@@ -219,6 +219,8 @@ describe("source rules", () => {
     // (Step 6), controlled (Step 7), downtime (Step 8) and messages (Step 9) actions.
     expect(actions).toEqual([
       "app/pharmacy/actions.ts",
+      // Pharmacy Phase 3: Clinical content (Step 4).
+      "app/pharmacy/clinical/actions.ts",
       "app/pharmacy/controlled-actions.ts",
       "app/pharmacy/downtime/actions.ts",
       "app/pharmacy/downtime/entry-actions.ts",

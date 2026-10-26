@@ -5,6 +5,9 @@ import { withSentryConfig } from "@sentry/nextjs";
 import { LAB_REDIRECTS } from "./lib/lab/redirects";
 
 const nextConfig: NextConfig = {
+  // The build's own type check took 11.7 of 15 minutes; the pre-commit hook already runs `npm run typecheck` on every
+  // commit. Run it by hand before deploying uncommitted code.
+  typescript: { ignoreBuildErrors: true },
   // Vercel Analytics is loaded via @vercel/analytics in app/layout.tsx (0.8).
   experimental: {
     serverActions: {

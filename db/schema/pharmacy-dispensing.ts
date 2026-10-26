@@ -332,6 +332,11 @@ export const pharmacyQueries = pgTable("pharmacy_queries", {
   senderUserId: uuid("sender_user_id").notNull(),
   senderCadre: text("sender_cadre"),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+  /** IV-2a (0210): asks a question or proposes a change. */
+  intent: text("intent")
+    .$type<"asks_question" | "proposes_change">()
+    .notNull()
+    .default("proposes_change"),
   clientKey: text("client_key"),
 });
 

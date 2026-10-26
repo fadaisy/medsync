@@ -9,11 +9,17 @@ import { sentenceCase, WorkspaceShell } from "@/components/medsync/workspace-she
 import { PHARMACY } from "@/content/pharmacy";
 import { DOWNTIME_PAGE } from "@/content/pharmacy-golive";
 import { db } from "@/db";
+import { dispensingMap } from "@/lib/pharmacy/access";
 import { POINT_COOKIE } from "@/lib/pharmacy/actor";
 import { countSheetsToEnter } from "@/lib/pharmacy/downtime-store";
 import {
   pharmacyDispensingLiveFor,
   pharmacyDowntimeLiveFor,
+  pharmacyInteractionsLiveFor,
+  pharmacyInterventionReviewLiveFor,
+  pharmacyReactionsLiveFor,
+  pharmacyReconciliationLiveFor,
+  pharmacyStewardshipLiveFor,
   storesFlagsFor,
 } from "@/lib/pharmacy/feature";
 import { pharmacyNavFor, pharmacyNavPermissions } from "@/lib/pharmacy/nav";
@@ -46,6 +52,13 @@ export default async function PharmacyLayout({ children }: { children: ReactNode
     dispensing: pharmacyDispensingLiveFor(scope.hospitalId),
     downtime: pharmacyDowntimeLiveFor(scope.hospitalId),
     stores: storesFlagsFor(scope.hospitalId),
+    clinical: {
+      interactions: pharmacyInteractionsLiveFor(scope.hospitalId),
+      interventionReview: pharmacyInterventionReviewLiveFor(scope.hospitalId),
+      stewardship: pharmacyStewardshipLiveFor(scope.hospitalId),
+      reactions: pharmacyReactionsLiveFor(scope.hospitalId),
+      reconciliation: pharmacyReconciliationLiveFor(scope.hospitalId),
+    },
   };
   const points = flags.dispensing
     ? await pharmacyPointsFor(db as unknown as EmrDb, scope.userId, scope.hospitalId)
@@ -81,7 +94,12 @@ export default async function PharmacyLayout({ children }: { children: ReactNode
     downtime: DOWNTIME_PAGE.toEnter(sheets),
   };
   // Items with nothing to count (Stock, Controlled drugs) carry no number, in the sidebar or the row.
-  const permissions = pharmacyNavPermissions(scope.access.permissions, scope.cadreCode, flags);
+  const permissions = pharmacyNavPermissions(
+    scope.access.permissions,
+    scope.cadreCode,
+    flags,
+    dispensingMap(undefined, scope.hospitalId),
+  );
   const nav: PharmacyNavEntry[] = pharmacyNavFor(permissions, flags).map((i) => ({
     id: i.id,
     label: i.label,

@@ -7,6 +7,7 @@ import type { PlanOrderLine } from "@/lib/clerking/plan/draft";
 import type { ChartFrequency, ObsFrequency, PlanChartItem } from "@/lib/emr/charts/rules";
 import type { EmrTx } from "@/lib/emr/db";
 import type { DemographicFact, ObservationFact, PregnancyFact } from "@/lib/facts/types";
+import type { InteractionContext } from "@/lib/pharmacy/clinical/read";
 import type { StockLine } from "@/lib/prescribing/pharmacy";
 import type { CultureState, OtherMedicine, PlanCheckContext } from "@/lib/prescribing/plan-checks";
 import type { PlanRx } from "@/lib/prescribing/plan-rx";
@@ -27,7 +28,8 @@ import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { unitWords } from "@/lib/emr/unit-words";
 import { encrypt } from "@/lib/encryption";
 import { loadFactSnapshot } from "@/lib/facts/loader";
-import { pharmacyStockAnswerLiveFor } from "@/lib/pharmacy/feature";
+import { interactionContextFor } from "@/lib/pharmacy/clinical/read";
+import { pharmacyInteractionsLiveFor, pharmacyStockAnswerLiveFor } from "@/lib/pharmacy/feature";
 import { stockLinesFor } from "@/lib/pharmacy/stock/availability-read";
 import { drugById, isFluid, regimenById, resolveRegimens } from "@/lib/prescribing/formulary";
 import { pharmacyAvailability } from "@/lib/prescribing/pharmacy";
@@ -212,6 +214,8 @@ async function prescribeFromPlan(
   earlier: OtherMedicine[],
   /** Pharmacy Phase 1 (5.10): the answer the prescriber saw, behind `pharmacyStockAnswer`. */
   stock: StockLine | null = null,
+  /** Pharmacy Phase 3 (5.3): the signed pairs and current medicines, behind `pharmacyInteractions`. */
+  interactions: InteractionContext | null = null,
 ): Promise<{ id: string; label: string; drugId: string; classId: string; kind: "drug" | "fluid" }> {
   const { tx, actor, now } = ctx;
   const { rx } = input;
@@ -275,6 +279,7 @@ async function prescribeFromPlan(
     cosign: requirement,
     pharmacy: pharmacyAvailability(drug.id, actor.hospitalId),
     stock,
+    interactions,
   });
   // Law 10, D-PH1-22: stock never refuses a placement. If the answer turned into a Check after the
   // dialog (stock ran out meanwhile), the line is placed and the stock answer is stored unanswered.
@@ -347,11 +352,16 @@ async function prescribeFromPlan(
       warmed: f ? f.warmed : null,
       // The level beside each answer, so a reader can tell an overridden stop from an answered
       // check without re-running a check (Pharmacy Phase 0, ADR 0233).
-      checkAnswers: answered.map((a) => ({
-        code: a.code,
-        answer: a.answer,
-        outcome: checks.find((c) => c.code === a.code)!.outcome,
-      })),
+      checkAnswers: answered.map((a) => {
+        const c = checks.find((x) => x.code === a.code)!;
+        // IX-5: an interaction answer names the signed entries and versions it answered.
+        return {
+          code: a.code,
+          answer: a.answer,
+          outcome: c.outcome,
+          ...(c.entries ? { entries: c.entries } : {}),
+        };
+      }),
       placementId: input.placementId,
       placementLine: input.placementLine,
       createdAt: now,
@@ -621,6 +631,9 @@ export async function placePlan(
     }),
   ];
   const stock = await basketStock(ctx, encounter.id, input.prescriptions);
+  const interactions = pharmacyInteractionsLiveFor(ctx.actor.hospitalId)
+    ? await interactionContextFor(ctx.tx, ctx.actor.hospitalId, input.patientUserId, ctx.now)
+    : null;
   const prescriptionIds: string[] = [];
   // One id for every line of this basket: the prescription the patient carries (ADR 0230).
   const placementId = randomUUID();
@@ -637,6 +650,7 @@ export async function placePlan(
       facts,
       others,
       stock?.get(rx.drugId) ?? null,
+      interactions,
     );
     prescriptionIds.push(placed.id);
     // HZ-PH1-45: a line placed to change one the pharmacy asked about cancels the old line naming it,

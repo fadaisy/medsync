@@ -1,14 +1,18 @@
 import type { QueuePayload } from "./_components/queue-screen";
+import type { EmrDb } from "@/lib/emr/db";
 import type { QueuePeriod } from "@/lib/pharmacy/read";
 
 import { CautionNotice } from "@/components/medsync/caution-notice";
+import { withSignedPairs } from "@/content/pharmacy-clinical";
 import { REVIEW } from "@/content/pharmacy-review";
+import { db } from "@/db";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { can } from "@/lib/pharmacy/access";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { anythingNotDone, pharmacyChecksState } from "@/lib/pharmacy/check-state";
+import { interactionsStateFor } from "@/lib/pharmacy/clinical/read";
 import { servesOf } from "@/lib/pharmacy/dispensing-points";
-import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { pharmacyDispensingLiveFor, pharmacyInteractionsLiveFor } from "@/lib/pharmacy/feature";
 import { queueFor } from "@/lib/pharmacy/page-data";
 import { defaultLane } from "@/lib/pharmacy/queue";
 import { getReviewQueue } from "@/lib/pharmacy/review/read";
@@ -83,7 +87,12 @@ export default async function PharmacyQueuePage({
     timeZone: DEFAULT_TIME_ZONE,
   };
   return (
-    <QueueScreen payload={payload} notice={<PharmacyNotice hospitalId={scope.hospitalId} />} />
+    <QueueScreen
+      payload={payload}
+      notice={
+        <PharmacyNotice hospitalId={scope.hospitalId} pairs={await signedPairs(scope.hospitalId)} />
+      }
+    />
   );
 }
 
@@ -107,14 +116,20 @@ async function ReviewQueuePage({
     scope.hospitalId,
     data.points.map((p) => ({ id: p.id, live: p.live })),
   );
+  const ix = await interactionsStateFor(
+    db as unknown as EmrDb,
+    scope.hospitalId,
+    pharmacyInteractionsLiveFor(scope.hospitalId),
+  );
   const refs = state.doseReferences;
   const notice = anythingNotDone(state) ? (
     <CautionNotice
-      lead={
+      lead={withSignedPairs(
         refs
           ? REVIEW.fill(REVIEW.noticeQueue, { signed: refs.signed, total: refs.total })
-          : REVIEW.noticeQueueNoCounts
-      }
+          : REVIEW.noticeQueueNoCounts,
+        ix.state === "partial" ? ix.pairs : null,
+      )}
     />
   ) : null;
   return (
@@ -132,3 +147,13 @@ async function ReviewQueuePage({
     />
   );
 }
+
+/** 5.1: the signed pair count for the notice, with `pharmacyInteractions` on; null leaves it unchanged. */
+const signedPairs = async (hospitalId: string) => {
+  const ix = await interactionsStateFor(
+    db as unknown as EmrDb,
+    hospitalId,
+    pharmacyInteractionsLiveFor(hospitalId),
+  );
+  return ix.state === "partial" ? ix.pairs : null;
+};

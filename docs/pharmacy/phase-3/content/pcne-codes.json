@@ -1,0 +1,552 @@
+{
+  "version": "PCNE Classification for Drug-Related Problems V9.1 (validated after the February 2020 expert workshop; document dated May 2020, help text dated 10-5-2020; English file re-issued on pcne.org in January 2026, still V9.1)",
+  "url": "https://pcne.org/wp-content/uploads/2026/01/PCNE_classification_V9-1-en-2026.pdf",
+  "accessed": "2026-10-24",
+  "terms": "Copyright 2003-2020 Pharmaceutical Care Network Europe Association. Use is permitted for pharmaceutical care research and practice only; PCNE must be informed of the use and of any validation results. Any use by commercial entities, or any use with a commercial purpose, is prohibited unless the user has obtained explicit permission from the PCNE Board. Users are asked to contact the DRP working group before using or publishing it. Jurisdiction: District Court of The Hague, the Netherlands. Contact: drp@pcne.org. Consequence for MedSync: MedSync is a commercial product, so written permission from the PCNE Board is needed before these labels ship in the product, even as an optional audit layer. Until then this file is research material only.",
+  "domains": [
+    {
+      "domain": "Problems",
+      "codes": [
+        {
+          "code": "P1",
+          "label": "Treatment effectiveness",
+          "parent": null
+        },
+        {
+          "code": "P1.1",
+          "label": "No effect of drug treatment despite correct use",
+          "parent": "P1"
+        },
+        {
+          "code": "P1.2",
+          "label": "Effect of drug treatment not optimal",
+          "parent": "P1"
+        },
+        {
+          "code": "P1.3",
+          "label": "Untreated symptoms or indication",
+          "parent": "P1"
+        },
+        {
+          "code": "P2",
+          "label": "Treatment safety",
+          "parent": null
+        },
+        {
+          "code": "P2.1",
+          "label": "Adverse drug event (possibly) occurring",
+          "parent": "P2"
+        },
+        {
+          "code": "P3",
+          "label": "Other",
+          "parent": null
+        },
+        {
+          "code": "P3.1",
+          "label": "Unnecessary drug-treatment",
+          "parent": "P3"
+        },
+        {
+          "code": "P3.2",
+          "label": "Unclear problem/complaint. Further clarification necessary (please use as escape only)",
+          "parent": "P3"
+        }
+      ]
+    },
+    {
+      "domain": "Causes",
+      "codes": [
+        {
+          "code": "C1",
+          "label": "Drug selection",
+          "parent": null
+        },
+        {
+          "code": "C1.1",
+          "label": "Inappropriate drug according to guidelines/formulary",
+          "parent": "C1"
+        },
+        {
+          "code": "C1.2",
+          "label": "No indication for drug",
+          "parent": "C1"
+        },
+        {
+          "code": "C1.3",
+          "label": "Inappropriate combination of drugs, or drugs and herbal medications, or drugs and dietary supplements",
+          "parent": "C1"
+        },
+        {
+          "code": "C1.4",
+          "label": "Inappropriate duplication of therapeutic group or active ingredient",
+          "parent": "C1"
+        },
+        {
+          "code": "C1.5",
+          "label": "No or incomplete drug treatment in spite of existing indication",
+          "parent": "C1"
+        },
+        {
+          "code": "C1.6",
+          "label": "Too many different drugs/active ingredients prescribed for indication",
+          "parent": "C1"
+        },
+        {
+          "code": "C2",
+          "label": "Drug form",
+          "parent": null
+        },
+        {
+          "code": "C2.1",
+          "label": "Inappropriate drug form/formulation (for this patient)",
+          "parent": "C2"
+        },
+        {
+          "code": "C3",
+          "label": "Dose selection",
+          "parent": null
+        },
+        {
+          "code": "C3.1",
+          "label": "Drug dose too low",
+          "parent": "C3"
+        },
+        {
+          "code": "C3.2",
+          "label": "Drug dose of a single active ingredient too high",
+          "parent": "C3"
+        },
+        {
+          "code": "C3.3",
+          "label": "Dosage regimen not frequent enough",
+          "parent": "C3"
+        },
+        {
+          "code": "C3.4",
+          "label": "Dosage regimen too frequent",
+          "parent": "C3"
+        },
+        {
+          "code": "C3.5",
+          "label": "Dose timing instructions wrong, unclear or missing",
+          "parent": "C3"
+        },
+        {
+          "code": "C4",
+          "label": "Treatment duration",
+          "parent": null
+        },
+        {
+          "code": "C4.1",
+          "label": "Duration of treatment too short",
+          "parent": "C4"
+        },
+        {
+          "code": "C4.2",
+          "label": "Duration of treatment too long",
+          "parent": "C4"
+        },
+        {
+          "code": "C5",
+          "label": "Dispensing",
+          "parent": null
+        },
+        {
+          "code": "C5.1",
+          "label": "Prescribed drug not available",
+          "parent": "C5"
+        },
+        {
+          "code": "C5.2",
+          "label": "Necessary information not provided or incorrect advice provided",
+          "parent": "C5"
+        },
+        {
+          "code": "C5.3",
+          "label": "Wrong drug, strength or dosage advised (OTC)",
+          "parent": "C5"
+        },
+        {
+          "code": "C5.4",
+          "label": "Wrong drug or strength dispensed",
+          "parent": "C5"
+        },
+        {
+          "code": "C6",
+          "label": "Drug use process",
+          "parent": null
+        },
+        {
+          "code": "C6.1",
+          "label": "Inappropriate timing of administration or dosing intervals",
+          "parent": "C6"
+        },
+        {
+          "code": "C6.2",
+          "label": "Drug under-administered by a health professional",
+          "parent": "C6"
+        },
+        {
+          "code": "C6.3",
+          "label": "Drug over-administered by a health professional",
+          "parent": "C6"
+        },
+        {
+          "code": "C6.4",
+          "label": "Drug not administered at all by a health professional",
+          "parent": "C6"
+        },
+        {
+          "code": "C6.5",
+          "label": "Wrong drug administered by a health professional",
+          "parent": "C6"
+        },
+        {
+          "code": "C6.6",
+          "label": "Drug administered via wrong route by a health professional",
+          "parent": "C6"
+        },
+        {
+          "code": "C7",
+          "label": "Patient related",
+          "parent": null
+        },
+        {
+          "code": "C7.1",
+          "label": "Patient intentionally uses/takes less drug than prescribed or does not take the drug at all for whatever reason",
+          "parent": "C7"
+        },
+        {
+          "code": "C7.2",
+          "label": "Patient uses/takes more drug than prescribed",
+          "parent": "C7"
+        },
+        {
+          "code": "C7.3",
+          "label": "Patient abuses drug (unregulated overuse)",
+          "parent": "C7"
+        },
+        {
+          "code": "C7.4",
+          "label": "Patient decides to use unnecessary drug",
+          "parent": "C7"
+        },
+        {
+          "code": "C7.5",
+          "label": "Patient takes food that interacts",
+          "parent": "C7"
+        },
+        {
+          "code": "C7.6",
+          "label": "Patient stores drug inappropriately",
+          "parent": "C7"
+        },
+        {
+          "code": "C7.7",
+          "label": "Inappropriate timing or dosing intervals",
+          "parent": "C7"
+        },
+        {
+          "code": "C7.8",
+          "label": "Patient unintentionally administers/uses the drug in a wrong way",
+          "parent": "C7"
+        },
+        {
+          "code": "C7.9",
+          "label": "Patient physically unable to use drug/form as directed",
+          "parent": "C7"
+        },
+        {
+          "code": "C7.10",
+          "label": "Patient unable to understand instructions properly",
+          "parent": "C7"
+        },
+        {
+          "code": "C8",
+          "label": "Patient transfer related",
+          "parent": null
+        },
+        {
+          "code": "C8.1",
+          "label": "Medication reconciliation problem",
+          "parent": "C8"
+        },
+        {
+          "code": "C9",
+          "label": "Other",
+          "parent": null
+        },
+        {
+          "code": "C9.1",
+          "label": "No or inappropriate outcome monitoring (incl. TDM)",
+          "parent": "C9"
+        },
+        {
+          "code": "C9.2",
+          "label": "Other cause; specify",
+          "parent": "C9"
+        },
+        {
+          "code": "C9.3",
+          "label": "No obvious cause",
+          "parent": "C9"
+        }
+      ]
+    },
+    {
+      "domain": "Planned interventions",
+      "codes": [
+        {
+          "code": "I0",
+          "label": "No intervention",
+          "parent": null
+        },
+        {
+          "code": "I0.1",
+          "label": "No Intervention",
+          "parent": "I0"
+        },
+        {
+          "code": "I1",
+          "label": "At prescriber level",
+          "parent": null
+        },
+        {
+          "code": "I1.1",
+          "label": "Prescriber informed only",
+          "parent": "I1"
+        },
+        {
+          "code": "I1.2",
+          "label": "Prescriber asked for information",
+          "parent": "I1"
+        },
+        {
+          "code": "I1.3",
+          "label": "Intervention proposed to prescriber",
+          "parent": "I1"
+        },
+        {
+          "code": "I1.4",
+          "label": "Intervention discussed with prescriber",
+          "parent": "I1"
+        },
+        {
+          "code": "I2",
+          "label": "At patient level",
+          "parent": null
+        },
+        {
+          "code": "I2.1",
+          "label": "Patient (drug) counselling",
+          "parent": "I2"
+        },
+        {
+          "code": "I2.2",
+          "label": "Written information provided (only)",
+          "parent": "I2"
+        },
+        {
+          "code": "I2.3",
+          "label": "Patient referred to prescriber",
+          "parent": "I2"
+        },
+        {
+          "code": "I2.4",
+          "label": "Spoken to family member/caregiver",
+          "parent": "I2"
+        },
+        {
+          "code": "I3",
+          "label": "At drug level",
+          "parent": null
+        },
+        {
+          "code": "I3.1",
+          "label": "Drug changed to ...",
+          "parent": "I3"
+        },
+        {
+          "code": "I3.2",
+          "label": "Dosage changed to ...",
+          "parent": "I3"
+        },
+        {
+          "code": "I3.3",
+          "label": "Formulation changed to ...",
+          "parent": "I3"
+        },
+        {
+          "code": "I3.4",
+          "label": "Instructions for use changed to ...",
+          "parent": "I3"
+        },
+        {
+          "code": "I3.5",
+          "label": "Drug paused or stopped",
+          "parent": "I3"
+        },
+        {
+          "code": "I3.6",
+          "label": "Drug started",
+          "parent": "I3"
+        },
+        {
+          "code": "I4",
+          "label": "Other",
+          "parent": null
+        },
+        {
+          "code": "I4.1",
+          "label": "Other intervention (specify)",
+          "parent": "I4"
+        },
+        {
+          "code": "I4.2",
+          "label": "Side effect reported to authorities",
+          "parent": "I4"
+        }
+      ]
+    },
+    {
+      "domain": "Intervention acceptance",
+      "codes": [
+        {
+          "code": "A1",
+          "label": "Intervention accepted",
+          "parent": null
+        },
+        {
+          "code": "A1.1",
+          "label": "Intervention accepted and fully implemented",
+          "parent": "A1"
+        },
+        {
+          "code": "A1.2",
+          "label": "Intervention accepted, partially implemented",
+          "parent": "A1"
+        },
+        {
+          "code": "A1.3",
+          "label": "Intervention accepted but not implemented",
+          "parent": "A1"
+        },
+        {
+          "code": "A1.4",
+          "label": "Intervention accepted, implementation unknown",
+          "parent": "A1"
+        },
+        {
+          "code": "A2",
+          "label": "Intervention not accepted",
+          "parent": null
+        },
+        {
+          "code": "A2.1",
+          "label": "Intervention not accepted: not feasible",
+          "parent": "A2"
+        },
+        {
+          "code": "A2.2",
+          "label": "Intervention not accepted: no agreement",
+          "parent": "A2"
+        },
+        {
+          "code": "A2.3",
+          "label": "Intervention not accepted: other reason (specify)",
+          "parent": "A2"
+        },
+        {
+          "code": "A2.4",
+          "label": "Intervention not accepted: unknown reason",
+          "parent": "A2"
+        },
+        {
+          "code": "A3",
+          "label": "Other",
+          "parent": null
+        },
+        {
+          "code": "A3.1",
+          "label": "Intervention proposed, acceptance unknown",
+          "parent": "A3"
+        },
+        {
+          "code": "A3.2",
+          "label": "Intervention not proposed",
+          "parent": "A3"
+        }
+      ]
+    },
+    {
+      "domain": "Status of the DRP",
+      "codes": [
+        {
+          "code": "O0",
+          "label": "Problem status unknown",
+          "parent": null
+        },
+        {
+          "code": "O0.1",
+          "label": "Problem status unknown",
+          "parent": "O0"
+        },
+        {
+          "code": "O1",
+          "label": "Problem solved",
+          "parent": null
+        },
+        {
+          "code": "O1.1",
+          "label": "Problem totally solved",
+          "parent": "O1"
+        },
+        {
+          "code": "O2",
+          "label": "Problem partially solved",
+          "parent": null
+        },
+        {
+          "code": "O2.1",
+          "label": "Problem partially solved",
+          "parent": "O2"
+        },
+        {
+          "code": "O3",
+          "label": "Problem not solved",
+          "parent": null
+        },
+        {
+          "code": "O3.1",
+          "label": "Problem not solved, lack of cooperation of patient",
+          "parent": "O3"
+        },
+        {
+          "code": "O3.2",
+          "label": "Problem not solved, lack of cooperation of prescriber",
+          "parent": "O3"
+        },
+        {
+          "code": "O3.3",
+          "label": "Problem not solved, intervention not effective",
+          "parent": "O3"
+        },
+        {
+          "code": "O3.4",
+          "label": "No need or possibility to solve problem",
+          "parent": "O3"
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    "Labels were read through a text-extraction fetch of the PCNE PDF (direct download from pcne.org was refused by this session's network proxy). The extraction gave the code and label lines; a pharmacist should check every label against the PDF before signing.",
+    "Only the short labels are captured. PCNE's explanatory notes per code (for example what counts as 'Intervention discussed' versus 'proposed') are thin in V9.1 itself; the separate help text and the extended scoring form (418_DRP-form_ext_V9-1.pdf) were not opened.",
+    "Each Problem is also marked Potential or Manifest (tick boxes on the form). This is a property of the problem record, not a code, so it is not in the code list; MedSync needs a separate field for it.",
+    "Ellipses in I3.1 to I3.4 ('Drug changed to ...') stand for free text in the original; they are written here as three full stops.",
+    "No commercial-use permission has been requested or granted. The licence position must be settled by the MedSync owner with the PCNE Board (drp@pcne.org) before any of this is shown to users.",
+    "No newer version (V10) was found on pcne.org on the access date; the site says major changes must wait for a totally new version, with no timeline.",
+    "None of these codes is signed. Every mapping from MedSync query types to PCNE in MEDREC-PCNE.md is a candidate draft for the pharmacist reviewer and the Clinical Safety Officer."
+  ]
+}

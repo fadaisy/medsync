@@ -1,0 +1,2050 @@
+{
+  "pairs": [
+    {
+      "id": "CAND-001",
+      "a": "rifampicin",
+      "b": "dolutegravir",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Rifampicin induces UGT1A1 and CYP3A, lowering dolutegravir exposure.",
+      "effect": "Lower dolutegravir levels; risk of HIV treatment failure and resistance.",
+      "management": "Dolutegravir dose frequency is adjusted while on rifampicin and for a period after stopping; see source. Avoid if integrase resistance is known or suspected.",
+      "sources": [
+        {
+          "id": "S17",
+          "where": "summary and description"
+        },
+        {
+          "id": "S24",
+          "where": "section 7.3, Table 8"
+        },
+        {
+          "id": "S21",
+          "where": "rifampicin row"
+        },
+        {
+          "id": "S22",
+          "where": "Table 7, rifampin"
+        },
+        {
+          "id": "S23",
+          "where": "Module 18, dolutegravir"
+        }
+      ],
+      "ugandaRelevance": "Dolutegravir-based first-line ART is national policy; TB/HIV co-treatment is common. Uganda HIV guideline 2022 has a TB drug interaction section (p.163) and a DTG with TPT section (p.170) not yet read."
+    },
+    {
+      "id": "CAND-002",
+      "a": "dolutegravir",
+      "b": "aluminium/magnesium antacids",
+      "aClass": null,
+      "bClass": "polyvalent cation antacids",
+      "severity": "serious",
+      "mechanism": "Chelation by polyvalent cations reduces dolutegravir absorption.",
+      "effect": "Large fall in dolutegravir levels when taken together.",
+      "management": "Separate the doses; the source gives the timing window. Avoid with integrase resistance.",
+      "sources": [
+        {
+          "id": "S18",
+          "where": "summary"
+        },
+        {
+          "id": "S24",
+          "where": "section 7.3, Table 8"
+        },
+        {
+          "id": "S21",
+          "where": "antacids row"
+        },
+        {
+          "id": "S22",
+          "where": "divalent and trivalent cations"
+        }
+      ],
+      "ugandaRelevance": "Antacids are widely bought over the counter; patients may not report them."
+    },
+    {
+      "id": "CAND-003",
+      "a": "dolutegravir",
+      "b": "calcium carbonate",
+      "aClass": null,
+      "bClass": "calcium supplements",
+      "severity": "monitor",
+      "mechanism": "Chelation with calcium when taken fasting.",
+      "effect": "Lower dolutegravir levels if taken together on an empty stomach.",
+      "management": "Take together with food, or separate the doses; see source.",
+      "sources": [
+        {
+          "id": "S24",
+          "where": "section 7.3, Table 8"
+        },
+        {
+          "id": "S21",
+          "where": "calcium row"
+        },
+        {
+          "id": "S22",
+          "where": "cations row"
+        }
+      ],
+      "ugandaRelevance": "Calcium is given in pregnancy; many women in antenatal care take dolutegravir."
+    },
+    {
+      "id": "CAND-004",
+      "a": "dolutegravir",
+      "b": "ferrous salts",
+      "aClass": null,
+      "bClass": "iron supplements",
+      "severity": "monitor",
+      "mechanism": "Chelation with iron when taken fasting.",
+      "effect": "Lower dolutegravir levels if taken together on an empty stomach.",
+      "management": "Take together with food, or separate the doses; see source.",
+      "sources": [
+        {
+          "id": "S24",
+          "where": "section 7.3, Table 8"
+        },
+        {
+          "id": "S21",
+          "where": "iron row"
+        },
+        {
+          "id": "S22",
+          "where": "iron salts row"
+        }
+      ],
+      "ugandaRelevance": "Iron and folic acid are routine in antenatal care alongside dolutegravir."
+    },
+    {
+      "id": "CAND-005",
+      "a": "dolutegravir",
+      "b": "zinc",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "Chelation with zinc (polyvalent cation).",
+      "effect": "Lower dolutegravir levels.",
+      "management": "Separate the doses; see source. Food effect unknown.",
+      "sources": [
+        {
+          "id": "S21",
+          "where": "sucralfate/zinc row"
+        },
+        {
+          "id": "S22",
+          "where": "cations row"
+        }
+      ],
+      "ugandaRelevance": "Zinc is used for childhood diarrhoea; children may be on dolutegravir."
+    },
+    {
+      "id": "CAND-006",
+      "a": "carbamazepine",
+      "b": "dolutegravir",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Enzyme induction lowers dolutegravir exposure.",
+      "effect": "Risk of HIV treatment failure.",
+      "management": "Prefer a non-interacting anticonvulsant; if no alternative, dolutegravir dosing is adjusted; see source.",
+      "sources": [
+        {
+          "id": "S24",
+          "where": "section 7.3, Table 8"
+        },
+        {
+          "id": "S21",
+          "where": "anticonvulsants row"
+        }
+      ],
+      "ugandaRelevance": "Epilepsy and HIV commonly coexist; carbamazepine is a common first-line anticonvulsant."
+    },
+    {
+      "id": "CAND-007",
+      "a": "phenytoin",
+      "b": "dolutegravir",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Enzyme induction lowers dolutegravir exposure.",
+      "effect": "Risk of HIV treatment failure.",
+      "management": "FDA label: avoid (insufficient data to give a dose). UCT sheet: use alternative anticonvulsant; see source.",
+      "sources": [
+        {
+          "id": "S24",
+          "where": "section 7.3, Table 8"
+        },
+        {
+          "id": "S21",
+          "where": "anticonvulsants row"
+        }
+      ],
+      "ugandaRelevance": "Phenytoin is used for seizures and status epilepticus in hospitals."
+    },
+    {
+      "id": "CAND-008",
+      "a": "phenobarbital",
+      "b": "dolutegravir",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Enzyme induction lowers dolutegravir exposure.",
+      "effect": "Risk of HIV treatment failure.",
+      "management": "FDA label: avoid (insufficient data). Consider an alternative anticonvulsant; see source.",
+      "sources": [
+        {
+          "id": "S24",
+          "where": "section 7.3, Table 8"
+        },
+        {
+          "id": "S21",
+          "where": "anticonvulsants row"
+        }
+      ],
+      "ugandaRelevance": "Phenobarbital is a low-cost anticonvulsant used in adults and neonates."
+    },
+    {
+      "id": "CAND-009",
+      "a": "dolutegravir",
+      "b": "metformin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "Dolutegravir inhibits renal OCT2 and MATE transporters that clear metformin.",
+      "effect": "Higher metformin levels; more side effects.",
+      "management": "Review metformin dose and monitor; the sources give dose limits; see source. Monitor renal function.",
+      "sources": [
+        {
+          "id": "S24",
+          "where": "section 7.3, Table 8"
+        },
+        {
+          "id": "S21",
+          "where": "metformin row"
+        },
+        {
+          "id": "S22",
+          "where": "metformin row"
+        }
+      ],
+      "ugandaRelevance": "Diabetes is rising among people on long-term ART; Uganda HIV guideline 2022 Figure 40 covers metformin (not read)."
+    },
+    {
+      "id": "CAND-010",
+      "a": "dolutegravir",
+      "b": "St John's wort",
+      "aClass": null,
+      "bClass": "herbal enzyme inducer",
+      "severity": "serious",
+      "mechanism": "Herbal enzyme induction lowers dolutegravir exposure.",
+      "effect": "Possible loss of HIV control.",
+      "management": "Avoid co-administration (FDA label).",
+      "sources": [
+        {
+          "id": "S24",
+          "where": "section 7.3, Table 8"
+        }
+      ],
+      "ugandaRelevance": "Herbal use alongside ART is common in Uganda (see herbal findings)."
+    },
+    {
+      "id": "CAND-011",
+      "a": "rifapentine",
+      "b": "dolutegravir",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Rifapentine induction lowers dolutegravir exposure.",
+      "effect": "Weekly rifapentine: possible reduced dolutegravir effect. Daily rifapentine: not to be combined.",
+      "management": "Weekly rifapentine with standard dolutegravir: monitor virological response; daily rifapentine: do not co-administer; see source.",
+      "sources": [
+        {
+          "id": "S22",
+          "where": "Table 7, rifapentine"
+        },
+        {
+          "id": "S31",
+          "where": "section 7.1"
+        }
+      ],
+      "ugandaRelevance": "3HP TB preventive therapy is used with DTG-based ART; Uganda guideline section on DTG and TPT (p.170) not yet read."
+    },
+    {
+      "id": "CAND-012",
+      "a": "lopinavir/ritonavir",
+      "b": "rifampicin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "contraindicated",
+      "mechanism": "Rifampicin strongly induces CYP3A, lowering lopinavir exposure.",
+      "effect": "Loss of HIV control; higher-dose strategies raise liver and gut toxicity.",
+      "management": "FDA label: contraindicated. Liverpool: avoid unless strictly necessary; some guidelines allow an adjusted regimen with liver monitoring; see source. Consider rifabutin-based TB treatment.",
+      "sources": [
+        {
+          "id": "S27",
+          "where": "section 4"
+        },
+        {
+          "id": "S19",
+          "where": "summary"
+        },
+        {
+          "id": "S23",
+          "where": "Module 18, LPV/r"
+        }
+      ],
+      "ugandaRelevance": "Lopinavir/ritonavir remains in second-line and paediatric regimens; sources disagree, so the signed rule needs a pharmacist decision."
+    },
+    {
+      "id": "CAND-013",
+      "a": "atazanavir",
+      "b": "rifampicin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "contraindicated",
+      "mechanism": "Strong CYP3A induction lowers atazanavir exposure.",
+      "effect": "Loss of HIV control and resistance.",
+      "management": "Do not combine; use rifabutin-based TB treatment per HIV/TB guidance; see source.",
+      "sources": [
+        {
+          "id": "S26",
+          "where": "section 4, Table 6"
+        },
+        {
+          "id": "S30",
+          "where": "contraindications"
+        }
+      ],
+      "ugandaRelevance": "Atazanavir/ritonavir is a second-line option."
+    },
+    {
+      "id": "CAND-014",
+      "a": "darunavir",
+      "b": "rifampicin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "contraindicated",
+      "mechanism": "Strong CYP3A induction lowers darunavir exposure.",
+      "effect": "Loss of HIV control.",
+      "management": "Do not combine; see source.",
+      "sources": [
+        {
+          "id": "S30",
+          "where": "contraindications"
+        }
+      ],
+      "ugandaRelevance": "Darunavir/ritonavir is used in third-line ART (Uganda guideline Table 82, not read)."
+    },
+    {
+      "id": "CAND-015",
+      "a": "atazanavir",
+      "b": "omeprazole",
+      "aClass": null,
+      "bClass": "proton pump inhibitors",
+      "severity": "serious",
+      "mechanism": "Reduced gastric acid lowers atazanavir absorption.",
+      "effect": "Lower atazanavir levels; risk of treatment failure.",
+      "management": "Avoid or follow the label's acid-reducer rules; see source.",
+      "sources": [
+        {
+          "id": "S4",
+          "where": "Table 2, item 2"
+        },
+        {
+          "id": "S26",
+          "where": "sections 2.1, 7"
+        }
+      ],
+      "ugandaRelevance": "Omeprazole is widely available; on the ONC high-priority list."
+    },
+    {
+      "id": "CAND-016",
+      "a": "lopinavir/ritonavir",
+      "b": "simvastatin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "contraindicated",
+      "mechanism": "Ritonavir inhibits CYP3A, raising simvastatin levels.",
+      "effect": "Myopathy and rhabdomyolysis.",
+      "management": "Do not combine; choose a statin the source allows; see source.",
+      "sources": [
+        {
+          "id": "S27",
+          "where": "section 4"
+        },
+        {
+          "id": "S36",
+          "where": "section 4"
+        },
+        {
+          "id": "S4",
+          "where": "Table 2, item 11"
+        }
+      ],
+      "ugandaRelevance": "Statin use is growing in people on long-term ART."
+    },
+    {
+      "id": "CAND-017",
+      "a": "lopinavir/ritonavir",
+      "b": "ergotamine",
+      "aClass": null,
+      "bClass": "ergot derivatives",
+      "severity": "contraindicated",
+      "mechanism": "CYP3A inhibition raises ergot levels.",
+      "effect": "Acute ergot toxicity: vasospasm and ischaemia.",
+      "management": "Do not combine.",
+      "sources": [
+        {
+          "id": "S27",
+          "where": "section 4"
+        },
+        {
+          "id": "S38",
+          "where": "boxed warning, contraindications"
+        },
+        {
+          "id": "S4",
+          "where": "Table 2, item 12"
+        }
+      ],
+      "ugandaRelevance": "Ergometrine/methylergometrine are used in obstetrics; check which ergot products are on the formulary."
+    },
+    {
+      "id": "CAND-018",
+      "a": "nevirapine",
+      "b": "rifampicin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Rifampicin induction lowers nevirapine exposure.",
+      "effect": "Loss of HIV control.",
+      "management": "Label: do not co-administer.",
+      "sources": [
+        {
+          "id": "S29",
+          "where": "section 7, Table 4"
+        }
+      ],
+      "ugandaRelevance": "Legacy and infant prophylaxis use of nevirapine."
+    },
+    {
+      "id": "CAND-019",
+      "a": "efavirenz",
+      "b": "rifampicin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "Rifampicin induction lowers efavirenz exposure.",
+      "effect": "Possibly lower efavirenz levels.",
+      "management": "Sources differ on dose change (FDA label vs SAHCS 2023); see source. Pharmacist decision needed.",
+      "sources": [
+        {
+          "id": "S28",
+          "where": "section 7.1, Table 7"
+        },
+        {
+          "id": "S23",
+          "where": "Module 18, efavirenz"
+        }
+      ],
+      "ugandaRelevance": "Efavirenz-based regimens persist for some patients with TB."
+    },
+    {
+      "id": "CAND-020",
+      "a": "efavirenz",
+      "b": "carbamazepine",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Mutual enzyme induction.",
+      "effect": "Lower efavirenz and carbamazepine levels.",
+      "management": "Label: use an alternative anticonvulsant.",
+      "sources": [
+        {
+          "id": "S28",
+          "where": "section 7.1, Table 7"
+        }
+      ],
+      "ugandaRelevance": "Epilepsy with HIV."
+    },
+    {
+      "id": "CAND-021",
+      "a": "efavirenz",
+      "b": "artemether/lumefantrine",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "Efavirenz induces CYP3A4, lowering artemether, dihydroartemisinin and lumefantrine.",
+      "effect": "Lower antimalarial levels; possible reduced efficacy.",
+      "management": "Use with caution; monitor malaria response.",
+      "sources": [
+        {
+          "id": "S20",
+          "where": "summary"
+        },
+        {
+          "id": "S55",
+          "where": "results"
+        },
+        {
+          "id": "S25",
+          "where": "section 7.3"
+        }
+      ],
+      "ugandaRelevance": "Ugandan PK study showed lower lumefantrine with efavirenz; AL is first-line for uncomplicated malaria."
+    },
+    {
+      "id": "CAND-022",
+      "a": "efavirenz",
+      "b": "levonorgestrel implant",
+      "aClass": null,
+      "bClass": "progestogen implants",
+      "severity": "serious",
+      "mechanism": "Efavirenz induction lowers levonorgestrel levels.",
+      "effect": "Contraceptive failure; unintended pregnancies observed.",
+      "management": "Counsel; consider a method not affected (e.g. DMPA or IUD) or add barrier; see source.",
+      "sources": [
+        {
+          "id": "S56",
+          "where": "title and design"
+        },
+        {
+          "id": "S57",
+          "where": "implants and DMPA rows"
+        },
+        {
+          "id": "S28",
+          "where": "Table 7, etonogestrel"
+        }
+      ],
+      "ugandaRelevance": "Ugandan study (Scarsi 2016) found unintended pregnancies with this combination."
+    },
+    {
+      "id": "CAND-023",
+      "a": "efavirenz",
+      "b": "ethinylestradiol",
+      "aClass": null,
+      "bClass": "combined hormonal contraceptives",
+      "severity": "serious",
+      "mechanism": "Efavirenz lowers progestin exposure.",
+      "effect": "Reduced contraceptive effect.",
+      "management": "Label: use a reliable barrier method in addition.",
+      "sources": [
+        {
+          "id": "S28",
+          "where": "Table 7"
+        },
+        {
+          "id": "S57",
+          "where": "COC row"
+        }
+      ],
+      "ugandaRelevance": "Family planning integration in HIV clinics."
+    },
+    {
+      "id": "CAND-024",
+      "a": "rifampicin",
+      "b": "artemether/lumefantrine",
+      "aClass": null,
+      "bClass": null,
+      "severity": "contraindicated",
+      "mechanism": "Strong CYP3A4 induction lowers artemether and lumefantrine.",
+      "effect": "Large falls in antimalarial levels; risk of treatment failure.",
+      "management": "Do not combine; choose an alternative antimalarial per national guidance.",
+      "sources": [
+        {
+          "id": "S25",
+          "where": "section 4"
+        },
+        {
+          "id": "S54",
+          "where": "results and recommendation"
+        }
+      ],
+      "ugandaRelevance": "Ugandan study (Lamorde 2013) showed marked falls; TB and malaria co-occur."
+    },
+    {
+      "id": "CAND-025",
+      "a": "carbamazepine",
+      "b": "artemether/lumefantrine",
+      "aClass": null,
+      "bClass": null,
+      "severity": "contraindicated",
+      "mechanism": "Strong CYP3A4 induction.",
+      "effect": "Lower antimalarial levels; treatment failure.",
+      "management": "Do not combine; see source.",
+      "sources": [
+        {
+          "id": "S25",
+          "where": "section 4"
+        }
+      ],
+      "ugandaRelevance": "Epilepsy patients treated for malaria."
+    },
+    {
+      "id": "CAND-026",
+      "a": "phenytoin",
+      "b": "artemether/lumefantrine",
+      "aClass": null,
+      "bClass": null,
+      "severity": "contraindicated",
+      "mechanism": "Strong CYP3A4 induction.",
+      "effect": "Lower antimalarial levels; treatment failure.",
+      "management": "Do not combine; see source.",
+      "sources": [
+        {
+          "id": "S25",
+          "where": "section 4"
+        }
+      ],
+      "ugandaRelevance": "As above."
+    },
+    {
+      "id": "CAND-027",
+      "a": "artemether/lumefantrine",
+      "b": "quinine",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Additive QT prolongation.",
+      "effect": "Arrhythmia risk.",
+      "management": "Avoid giving other antimalarials with AL unless no option; use quinine cautiously after AL; see source.",
+      "sources": [
+        {
+          "id": "S25",
+          "where": "sections 5.2, 7.7"
+        }
+      ],
+      "ugandaRelevance": "Severe malaria pathways may overlap parenteral and oral antimalarials."
+    },
+    {
+      "id": "CAND-028",
+      "a": "artemether/lumefantrine",
+      "b": "amitriptyline",
+      "aClass": null,
+      "bClass": "QT-prolonging CYP2D6 substrates",
+      "severity": "serious",
+      "mechanism": "Additive QT effect; lumefantrine inhibits CYP2D6.",
+      "effect": "QT prolongation and arrhythmia.",
+      "management": "Label: should not be given together.",
+      "sources": [
+        {
+          "id": "S25",
+          "where": "sections 5.4, 7.6"
+        }
+      ],
+      "ugandaRelevance": "Amitriptyline is used for neuropathic pain and depression, including in HIV care."
+    },
+    {
+      "id": "CAND-029",
+      "a": "quinine",
+      "b": "rifampicin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Rifampicin induction lowers quinine levels.",
+      "effect": "Possible treatment failure.",
+      "management": "Label: avoid co-administration.",
+      "sources": [
+        {
+          "id": "S32",
+          "where": "section 7.1"
+        },
+        {
+          "id": "S30",
+          "where": "examples list"
+        }
+      ],
+      "ugandaRelevance": "Quinine is used for severe malaria and in pregnancy; TB co-treatment possible."
+    },
+    {
+      "id": "CAND-030",
+      "a": "quinine",
+      "b": "erythromycin",
+      "aClass": null,
+      "bClass": "macrolides",
+      "severity": "serious",
+      "mechanism": "Additive QT prolongation; CYP3A4 inhibition.",
+      "effect": "QT prolongation and arrhythmia.",
+      "management": "Label: avoid macrolides during quinine.",
+      "sources": [
+        {
+          "id": "S32",
+          "where": "sections 5.3, 7.1"
+        }
+      ],
+      "ugandaRelevance": "Macrolides are common antibiotics."
+    },
+    {
+      "id": "CAND-031",
+      "a": "rifampicin",
+      "b": "praziquantel",
+      "aClass": null,
+      "bClass": null,
+      "severity": "contraindicated",
+      "mechanism": "Strong induction lowers praziquantel levels.",
+      "effect": "Treatment failure for schistosomiasis or other worms.",
+      "management": "Do not combine; see source for timing.",
+      "sources": [
+        {
+          "id": "S30",
+          "where": "contraindications"
+        }
+      ],
+      "ugandaRelevance": "Schistosomiasis treatment and mass drug administration are common in Uganda."
+    },
+    {
+      "id": "CAND-032",
+      "a": "rifampicin",
+      "b": "ethinylestradiol",
+      "aClass": null,
+      "bClass": "hormonal contraceptives",
+      "severity": "serious",
+      "mechanism": "Rifampicin induction lowers contraceptive hormone levels.",
+      "effect": "Contraceptive failure.",
+      "management": "Advise a non-hormonal or unaffected method; see source.",
+      "sources": [
+        {
+          "id": "S30",
+          "where": "effect on other drugs"
+        },
+        {
+          "id": "S57",
+          "where": "rifampicin column"
+        }
+      ],
+      "ugandaRelevance": "Women on TB treatment."
+    },
+    {
+      "id": "CAND-033",
+      "a": "rifampicin",
+      "b": "warfarin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Induction of CYP2C9 and CYP3A4 lowers warfarin levels.",
+      "effect": "Reduced anticoagulation; clot risk; rise in INR when rifampicin stops.",
+      "management": "Monitor INR closely when starting and stopping; see source.",
+      "sources": [
+        {
+          "id": "S33",
+          "where": "section 7.2, Table 2"
+        },
+        {
+          "id": "S30",
+          "where": "anticoagulants"
+        }
+      ],
+      "ugandaRelevance": "Warfarin users with TB."
+    },
+    {
+      "id": "CAND-034",
+      "a": "rifampicin",
+      "b": "fluconazole",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "Rifampicin increases fluconazole metabolism.",
+      "effect": "Lower fluconazole levels.",
+      "management": "Review fluconazole dosing; see source.",
+      "sources": [
+        {
+          "id": "S34",
+          "where": "drug interactions, rifampin"
+        },
+        {
+          "id": "S30",
+          "where": "antifungals"
+        }
+      ],
+      "ugandaRelevance": "Cryptococcal disease and TB in advanced HIV."
+    },
+    {
+      "id": "CAND-035",
+      "a": "rifampicin",
+      "b": "methadone",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Induction lowers methadone levels.",
+      "effect": "Opioid withdrawal.",
+      "management": "Monitor for withdrawal; dose review by prescriber; see source.",
+      "sources": [
+        {
+          "id": "S30",
+          "where": "analgesics"
+        }
+      ],
+      "ugandaRelevance": "Methadone-assisted treatment programmes; TB in people who use drugs."
+    },
+    {
+      "id": "CAND-036",
+      "a": "rifampicin",
+      "b": "prednisolone",
+      "aClass": null,
+      "bClass": "corticosteroids",
+      "severity": "monitor",
+      "mechanism": "Induction lowers corticosteroid levels.",
+      "effect": "Reduced steroid effect.",
+      "management": "Review steroid dosing; see source.",
+      "sources": [
+        {
+          "id": "S30",
+          "where": "corticosteroids"
+        }
+      ],
+      "ugandaRelevance": "Steroids are given in TB meningitis and pericarditis."
+    },
+    {
+      "id": "CAND-037",
+      "a": "rifampicin",
+      "b": "glibenclamide",
+      "aClass": null,
+      "bClass": "sulfonylureas",
+      "severity": "monitor",
+      "mechanism": "Induction lowers sulfonylurea levels.",
+      "effect": "Worse glucose control.",
+      "management": "Monitor blood glucose.",
+      "sources": [
+        {
+          "id": "S30",
+          "where": "antidiabetic"
+        }
+      ],
+      "ugandaRelevance": "TB and diabetes co-occur."
+    },
+    {
+      "id": "CAND-038",
+      "a": "rifampicin",
+      "b": "isoniazid",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "Additive hepatotoxicity.",
+      "effect": "Liver injury.",
+      "management": "Expected co-prescription in standard TB regimens; monitor for hepatotoxicity. Candidate for information-only display.",
+      "sources": [
+        {
+          "id": "S30",
+          "where": "pharmacodynamic interactions"
+        }
+      ],
+      "ugandaRelevance": "Fixed-dose TB regimens contain both; an interruptive alert here would be noise."
+    },
+    {
+      "id": "CAND-039",
+      "a": "isoniazid",
+      "b": "phenytoin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "Isoniazid inhibits phenytoin metabolism.",
+      "effect": "Phenytoin toxicity.",
+      "management": "Monitor for toxicity and levels if available.",
+      "sources": [
+        {
+          "id": "S52",
+          "where": "drug interactions"
+        }
+      ],
+      "ugandaRelevance": "TB preventive therapy and treatment in people with epilepsy."
+    },
+    {
+      "id": "CAND-040",
+      "a": "warfarin",
+      "b": "sulfamethoxazole/trimethoprim",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Co-trimoxazole inhibits CYP2C9.",
+      "effect": "Raised INR and bleeding.",
+      "management": "Avoid if possible or monitor INR closely; see source.",
+      "sources": [
+        {
+          "id": "S33",
+          "where": "section 7.2, Table 2"
+        },
+        {
+          "id": "S10",
+          "where": "trial description"
+        }
+      ],
+      "ugandaRelevance": "Co-trimoxazole is widely used in HIV care."
+    },
+    {
+      "id": "CAND-041",
+      "a": "warfarin",
+      "b": "metronidazole",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "CYP2C9 inhibition.",
+      "effect": "Raised INR and bleeding.",
+      "management": "Monitor INR closely; see source.",
+      "sources": [
+        {
+          "id": "S33",
+          "where": "section 7.2, Table 2"
+        }
+      ],
+      "ugandaRelevance": "Metronidazole is very commonly prescribed."
+    },
+    {
+      "id": "CAND-042",
+      "a": "warfarin",
+      "b": "fluconazole",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "CYP2C9 inhibition.",
+      "effect": "Raised INR and bleeding.",
+      "management": "Monitor prothrombin time and INR closely.",
+      "sources": [
+        {
+          "id": "S33",
+          "where": "section 7.2, Table 2"
+        },
+        {
+          "id": "S34",
+          "where": "drug interactions"
+        }
+      ],
+      "ugandaRelevance": "Fluconazole is used for candidiasis and cryptococcal disease."
+    },
+    {
+      "id": "CAND-043",
+      "a": "warfarin",
+      "b": "clarithromycin",
+      "aClass": null,
+      "bClass": "macrolides",
+      "severity": "serious",
+      "mechanism": "CYP3A4 inhibition.",
+      "effect": "Serious bleeding and raised INR.",
+      "management": "Monitor INR closely.",
+      "sources": [
+        {
+          "id": "S35",
+          "where": "warnings, oral anticoagulants"
+        },
+        {
+          "id": "S33",
+          "where": "Table 2"
+        }
+      ],
+      "ugandaRelevance": "Macrolides are used for respiratory infection and H. pylori."
+    },
+    {
+      "id": "CAND-044",
+      "a": "warfarin",
+      "b": "ciprofloxacin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "CYP1A2 and CYP3A4 inhibition.",
+      "effect": "Enhanced anticoagulant effect.",
+      "management": "Monitor INR and bleeding.",
+      "sources": [
+        {
+          "id": "S48",
+          "where": "highlights table"
+        },
+        {
+          "id": "S33",
+          "where": "Table 2"
+        }
+      ],
+      "ugandaRelevance": "Ciprofloxacin is commonly prescribed."
+    },
+    {
+      "id": "CAND-045",
+      "a": "warfarin",
+      "b": "amiodarone",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "CYP2C9 and CYP3A4 inhibition.",
+      "effect": "Raised INR and bleeding.",
+      "management": "Monitor INR closely; see source.",
+      "sources": [
+        {
+          "id": "S33",
+          "where": "section 7.2, Table 2"
+        }
+      ],
+      "ugandaRelevance": "Atrial fibrillation care in referral hospitals."
+    },
+    {
+      "id": "CAND-046",
+      "a": "warfarin",
+      "b": "ibuprofen",
+      "aClass": null,
+      "bClass": "NSAIDs",
+      "severity": "serious",
+      "mechanism": "Additive bleeding risk (antiplatelet and gastric effects).",
+      "effect": "Bleeding, including gastrointestinal.",
+      "management": "Avoid where possible; monitor closely.",
+      "sources": [
+        {
+          "id": "S33",
+          "where": "section 7.3, Table 3"
+        }
+      ],
+      "ugandaRelevance": "NSAIDs are widely bought over the counter."
+    },
+    {
+      "id": "CAND-047",
+      "a": "warfarin",
+      "b": "aspirin",
+      "aClass": null,
+      "bClass": "antiplatelet agents",
+      "severity": "serious",
+      "mechanism": "Additive bleeding risk.",
+      "effect": "Bleeding.",
+      "management": "Use together only when indicated; monitor closely.",
+      "sources": [
+        {
+          "id": "S33",
+          "where": "section 7.3, Table 3"
+        }
+      ],
+      "ugandaRelevance": "Cardiac patients may need both."
+    },
+    {
+      "id": "CAND-048",
+      "a": "clopidogrel",
+      "b": "omeprazole",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Omeprazole inhibits CYP2C19 activation of clopidogrel.",
+      "effect": "Reduced antiplatelet effect.",
+      "management": "Label: avoid omeprazole or esomeprazole; consider another acid reducer.",
+      "sources": [
+        {
+          "id": "S51",
+          "where": "section 7.2"
+        }
+      ],
+      "ugandaRelevance": "Gastroprotection is commonly co-prescribed."
+    },
+    {
+      "id": "CAND-049",
+      "a": "methotrexate",
+      "b": "sulfamethoxazole/trimethoprim",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Additive antifolate effect.",
+      "effect": "Bone marrow suppression.",
+      "management": "Avoid if possible; monitor blood counts if needed.",
+      "sources": [
+        {
+          "id": "S41",
+          "where": "section 7.1, oral antibiotics"
+        }
+      ],
+      "ugandaRelevance": "Co-trimoxazole prophylaxis is common; methotrexate used in rheumatology and oncology."
+    },
+    {
+      "id": "CAND-050",
+      "a": "allopurinol",
+      "b": "azathioprine",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Xanthine oxidase inhibition reduces azathioprine/mercaptopurine breakdown.",
+      "effect": "Severe marrow toxicity.",
+      "management": "Label requires azathioprine dose reduction; see source.",
+      "sources": [
+        {
+          "id": "S47",
+          "where": "drug interactions"
+        },
+        {
+          "id": "S46",
+          "where": "drug interactions"
+        }
+      ],
+      "ugandaRelevance": "Gout patients on immunosuppressants; oncology."
+    },
+    {
+      "id": "CAND-051",
+      "a": "febuxostat",
+      "b": "azathioprine",
+      "aClass": null,
+      "bClass": "azathioprine/mercaptopurine",
+      "severity": "contraindicated",
+      "mechanism": "Xanthine oxidase inhibition.",
+      "effect": "Marrow toxicity.",
+      "management": "Do not combine.",
+      "sources": [
+        {
+          "id": "S4",
+          "where": "Table 2, item 3"
+        },
+        {
+          "id": "S46",
+          "where": "drug interactions"
+        }
+      ],
+      "ugandaRelevance": "On the ONC high-priority list; check formulary status."
+    },
+    {
+      "id": "CAND-052",
+      "a": "spironolactone",
+      "b": "enalapril",
+      "aClass": null,
+      "bClass": "ACE inhibitors",
+      "severity": "serious",
+      "mechanism": "Both raise potassium.",
+      "effect": "Hyperkalaemia.",
+      "management": "Check potassium on starting or changing either; see source.",
+      "sources": [
+        {
+          "id": "S42",
+          "where": "sections 5.1, 7.1"
+        },
+        {
+          "id": "S43",
+          "where": "agents increasing serum potassium"
+        }
+      ],
+      "ugandaRelevance": "Common in heart failure care."
+    },
+    {
+      "id": "CAND-053",
+      "a": "spironolactone",
+      "b": "potassium chloride",
+      "aClass": null,
+      "bClass": "potassium supplements",
+      "severity": "serious",
+      "mechanism": "Additive potassium retention.",
+      "effect": "Severe hyperkalaemia.",
+      "management": "Label: generally stop potassium supplements in heart failure when starting spironolactone.",
+      "sources": [
+        {
+          "id": "S42",
+          "where": "section 7.1"
+        }
+      ],
+      "ugandaRelevance": "Potassium supplements are common on wards."
+    },
+    {
+      "id": "CAND-054",
+      "a": "lisinopril",
+      "b": "potassium chloride",
+      "aClass": "ACE inhibitors",
+      "bClass": "potassium supplements",
+      "severity": "serious",
+      "mechanism": "ACE inhibition reduces potassium excretion.",
+      "effect": "Hyperkalaemia.",
+      "management": "Monitor potassium.",
+      "sources": [
+        {
+          "id": "S43",
+          "where": "agents increasing serum potassium"
+        }
+      ],
+      "ugandaRelevance": "As above."
+    },
+    {
+      "id": "CAND-055",
+      "a": "spironolactone",
+      "b": "sulfamethoxazole/trimethoprim",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "Trimethoprim reduces potassium excretion.",
+      "effect": "Hyperkalaemia.",
+      "management": "Monitor potassium.",
+      "sources": [
+        {
+          "id": "S42",
+          "where": "section 7.1 examples"
+        }
+      ],
+      "ugandaRelevance": "Co-trimoxazole is common in HIV care."
+    },
+    {
+      "id": "CAND-056",
+      "a": "lisinopril",
+      "b": "ibuprofen",
+      "aClass": "ACE inhibitors",
+      "bClass": "NSAIDs",
+      "severity": "monitor",
+      "mechanism": "NSAIDs reduce renal perfusion and blunt ACE inhibitor effect.",
+      "effect": "Kidney injury in elderly or dry patients; weaker blood pressure control.",
+      "management": "Monitor renal function, especially if volume depleted.",
+      "sources": [
+        {
+          "id": "S43",
+          "where": "NSAIDs"
+        }
+      ],
+      "ugandaRelevance": "Over-the-counter NSAID use in hypertensive patients."
+    },
+    {
+      "id": "CAND-057",
+      "a": "lithium",
+      "b": "lisinopril",
+      "aClass": null,
+      "bClass": "ACE inhibitors",
+      "severity": "serious",
+      "mechanism": "Reduced lithium clearance.",
+      "effect": "Lithium toxicity.",
+      "management": "Monitor lithium levels frequently.",
+      "sources": [
+        {
+          "id": "S44",
+          "where": "Table 4"
+        },
+        {
+          "id": "S43",
+          "where": "lithium"
+        }
+      ],
+      "ugandaRelevance": "Check lithium availability on formulary."
+    },
+    {
+      "id": "CAND-058",
+      "a": "simvastatin",
+      "b": "clarithromycin",
+      "aClass": null,
+      "bClass": null,
+      "severity": "contraindicated",
+      "mechanism": "Strong CYP3A4 inhibition raises simvastatin.",
+      "effect": "Myopathy and rhabdomyolysis.",
+      "management": "Do not combine; hold the statin or choose another antibiotic.",
+      "sources": [
+        {
+          "id": "S35",
+          "where": "contraindications"
+        },
+        {
+          "id": "S36",
+          "where": "section 4"
+        },
+        {
+          "id": "S4",
+          "where": "Table 2, item 11"
+        }
+      ],
+      "ugandaRelevance": "Clarithromycin is used in H. pylori regimens."
+    },
+    {
+      "id": "CAND-059",
+      "a": "simvastatin",
+      "b": "itraconazole",
+      "aClass": null,
+      "bClass": "strong CYP3A4 inhibitors",
+      "severity": "contraindicated",
+      "mechanism": "Strong CYP3A4 inhibition.",
+      "effect": "Myopathy and rhabdomyolysis.",
+      "management": "Do not combine.",
+      "sources": [
+        {
+          "id": "S36",
+          "where": "section 4"
+        }
+      ],
+      "ugandaRelevance": "Itraconazole is used for fungal infections in advanced HIV."
+    },
+    {
+      "id": "CAND-060",
+      "a": "simvastatin",
+      "b": "amlodipine",
+      "aClass": null,
+      "bClass": null,
+      "severity": "monitor",
+      "mechanism": "CYP3A4 interaction raises simvastatin.",
+      "effect": "Higher myopathy risk at higher statin doses.",
+      "management": "The label sets a simvastatin dose limit; see source.",
+      "sources": [
+        {
+          "id": "S36",
+          "where": "section 2.3"
+        }
+      ],
+      "ugandaRelevance": "Common combination in hypertension and cardiovascular risk care."
+    },
+    {
+      "id": "CAND-061",
+      "a": "clarithromycin",
+      "b": "ergotamine",
+      "aClass": null,
+      "bClass": "ergot derivatives",
+      "severity": "contraindicated",
+      "mechanism": "CYP3A4 inhibition raises ergot levels.",
+      "effect": "Ergotism and ischaemia.",
+      "management": "Do not combine.",
+      "sources": [
+        {
+          "id": "S35",
+          "where": "contraindications"
+        },
+        {
+          "id": "S38",
+          "where": "contraindications"
+        }
+      ],
+      "ugandaRelevance": "Migraine and obstetric ergot use."
+    },
+    {
+      "id": "CAND-062",
+      "a": "clarithromycin",
+      "b": "colchicine",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "CYP3A4 and P-gp inhibition raise colchicine.",
+      "effect": "Life-threatening colchicine toxicity; contraindicated in renal or hepatic impairment.",
+      "management": "Avoid; contraindicated with renal or hepatic impairment; label requires colchicine dose reduction otherwise; see source.",
+      "sources": [
+        {
+          "id": "S35",
+          "where": "contraindications, warnings"
+        }
+      ],
+      "ugandaRelevance": "Gout care; renal impairment is common."
+    },
+    {
+      "id": "CAND-063",
+      "a": "sildenafil",
+      "b": "glyceryl trinitrate",
+      "aClass": null,
+      "bClass": "nitrates",
+      "severity": "contraindicated",
+      "mechanism": "Additive vasodilation.",
+      "effect": "Severe hypotension.",
+      "management": "Do not combine.",
+      "sources": [
+        {
+          "id": "S37",
+          "where": "section 4.1"
+        }
+      ],
+      "ugandaRelevance": "Nitrates in cardiac care; sildenafil also used in pulmonary hypertension."
+    },
+    {
+      "id": "CAND-064",
+      "a": "tramadol",
+      "b": "fluoxetine",
+      "aClass": null,
+      "bClass": "SSRIs",
+      "severity": "serious",
+      "mechanism": "Additive serotonergic effect; CYP2D6 inhibition.",
+      "effect": "Serotonin syndrome and seizures.",
+      "management": "Avoid if possible; monitor for serotonin syndrome.",
+      "sources": [
+        {
+          "id": "S39",
+          "where": "sections 5.9, 5.10, Table 2"
+        }
+      ],
+      "ugandaRelevance": "Tramadol is a common analgesic; SSRI use is growing."
+    },
+    {
+      "id": "CAND-065",
+      "a": "tramadol",
+      "b": "phenelzine",
+      "aClass": null,
+      "bClass": "MAOIs",
+      "severity": "contraindicated",
+      "mechanism": "Serotonergic and noradrenergic excess.",
+      "effect": "Serotonin syndrome or opioid toxicity.",
+      "management": "Do not use within 14 days of an MAOI (label).",
+      "sources": [
+        {
+          "id": "S39",
+          "where": "section 4, Table 2"
+        }
+      ],
+      "ugandaRelevance": "MAOIs are rare; linezolid is an MAOI-type drug (see linezolid pairs)."
+    },
+    {
+      "id": "CAND-066",
+      "a": "tramadol",
+      "b": "diazepam",
+      "aClass": null,
+      "bClass": "benzodiazepines",
+      "severity": "serious",
+      "mechanism": "Additive CNS and respiratory depression.",
+      "effect": "Profound sedation, respiratory depression, coma and death.",
+      "management": "Avoid where possible; if needed, use lowest doses and monitor (boxed warning).",
+      "sources": [
+        {
+          "id": "S39",
+          "where": "boxed warning"
+        }
+      ],
+      "ugandaRelevance": "Common on wards and in emergency care."
+    },
+    {
+      "id": "CAND-067",
+      "a": "fluoxetine",
+      "b": "phenelzine",
+      "aClass": "SSRIs",
+      "bClass": "MAOIs",
+      "severity": "contraindicated",
+      "mechanism": "Serotonergic excess.",
+      "effect": "Serotonin syndrome.",
+      "management": "Do not combine.",
+      "sources": [
+        {
+          "id": "S4",
+          "where": "Table 2, item 4"
+        }
+      ],
+      "ugandaRelevance": "On the ONC high-priority list."
+    },
+    {
+      "id": "CAND-068",
+      "a": "linezolid",
+      "b": "fluoxetine",
+      "aClass": null,
+      "bClass": "SSRIs and other serotonergic drugs",
+      "severity": "serious",
+      "mechanism": "Linezolid is a reversible MAO inhibitor.",
+      "effect": "Serotonin syndrome.",
+      "management": "Monitor closely for serotonin syndrome; see source.",
+      "sources": [
+        {
+          "id": "S40",
+          "where": "section 5.3"
+        }
+      ],
+      "ugandaRelevance": "Linezolid is part of drug-resistant TB regimens."
+    },
+    {
+      "id": "CAND-069",
+      "a": "fluconazole",
+      "b": "erythromycin",
+      "aClass": null,
+      "bClass": "QT-prolonging CYP3A4 substrates",
+      "severity": "contraindicated",
+      "mechanism": "CYP3A4 inhibition and additive QT prolongation.",
+      "effect": "QT prolongation and torsades.",
+      "management": "Do not combine.",
+      "sources": [
+        {
+          "id": "S34",
+          "where": "contraindications"
+        }
+      ],
+      "ugandaRelevance": "Both are common antimicrobials."
+    },
+    {
+      "id": "CAND-070",
+      "a": null,
+      "b": null,
+      "aClass": "QT-prolonging agents",
+      "bClass": "QT-prolonging agents",
+      "severity": "serious",
+      "mechanism": "Additive QT prolongation (class effect stated by source).",
+      "effect": "Torsades de pointes and sudden death.",
+      "management": "Avoid combining where possible; consider ECG and electrolytes.",
+      "sources": [
+        {
+          "id": "S4",
+          "where": "Table 2, item 8"
+        }
+      ],
+      "ugandaRelevance": "Many common drugs prolong QT (antimalarials, macrolides, fluoroquinolones, some antipsychotics); a class rule needs a signed list of member drugs."
+    },
+    {
+      "id": "CAND-071",
+      "a": "ciprofloxacin",
+      "b": "aminophylline",
+      "aClass": null,
+      "bClass": "theophylline",
+      "severity": "serious",
+      "mechanism": "CYP1A2 inhibition raises theophylline.",
+      "effect": "Serious and fatal toxicity.",
+      "management": "Label: avoid; monitor serum levels if unavoidable.",
+      "sources": [
+        {
+          "id": "S48",
+          "where": "highlights table"
+        }
+      ],
+      "ugandaRelevance": "Aminophylline is used for asthma and COPD."
+    },
+    {
+      "id": "CAND-072",
+      "a": "ciprofloxacin",
+      "b": "aluminium/magnesium antacids",
+      "aClass": null,
+      "bClass": "multivalent cation products",
+      "severity": "monitor",
+      "mechanism": "Chelation reduces ciprofloxacin absorption.",
+      "effect": "Lower ciprofloxacin levels; treatment failure.",
+      "management": "Separate the doses; see source for timing.",
+      "sources": [
+        {
+          "id": "S48",
+          "where": "section 2.4"
+        }
+      ],
+      "ugandaRelevance": "Antacids, iron and zinc are common."
+    },
+    {
+      "id": "CAND-073",
+      "a": "digoxin",
+      "b": "amiodarone",
+      "aClass": null,
+      "bClass": null,
+      "severity": "serious",
+      "mechanism": "Amiodarone raises digoxin levels.",
+      "effect": "Digoxin toxicity.",
+      "management": "Measure digoxin levels; label advises digoxin dose reduction; see source.",
+      "sources": [
+        {
+          "id": "S45",
+          "where": "section 7.2"
+        }
+      ],
+      "ugandaRelevance": "Heart failure and atrial fibrillation care."
+    },
+    {
+      "id": "CAND-074",
+      "a": "digoxin",
+      "b": "calcium gluconate",
+      "aClass": null,
+      "bClass": "intravenous calcium",
+      "severity": "serious",
+      "mechanism": "Calcium potentiates digoxin effect on the heart.",
+      "effect": "Serious arrhythmias if given rapidly IV.",
+      "management": "Avoid rapid IV calcium in patients on digoxin; see source.",
+      "sources": [
+        {
+          "id": "S45",
+          "where": "section 7.3"
+        }
+      ],
+      "ugandaRelevance": "IV calcium is used for hyperkalaemia and hypocalcaemia."
+    },
+    {
+      "id": "CAND-075",
+      "a": "ceftriaxone",
+      "b": null,
+      "aClass": null,
+      "bClass": "calcium-containing IV solutions",
+      "severity": "contraindicated",
+      "mechanism": "Ceftriaxone-calcium precipitation.",
+      "effect": "Fatal precipitates in lungs and kidneys in neonates.",
+      "management": "Contraindicated in neonates (up to 28 days) who need IV calcium; in others do not give simultaneously; see source.",
+      "sources": [
+        {
+          "id": "S49",
+          "where": "contraindications, warnings"
+        }
+      ],
+      "ugandaRelevance": "Ceftriaxone is a first-line antibiotic for neonatal and child sepsis; Ringer's lactate contains calcium."
+    },
+    {
+      "id": "CAND-076",
+      "a": "meropenem",
+      "b": "sodium valproate",
+      "aClass": null,
+      "bClass": "valproic acid",
+      "severity": "serious",
+      "mechanism": "Carbapenems sharply lower valproate levels.",
+      "effect": "Breakthrough seizures.",
+      "management": "Generally not recommended; if needed, consider other anticonvulsant cover.",
+      "sources": [
+        {
+          "id": "S50",
+          "where": "sections 5.5, 7.2"
+        }
+      ],
+      "ugandaRelevance": "Meropenem use is rising for resistant infections."
+    },
+    {
+      "id": "CAND-077",
+      "a": "gentamicin",
+      "b": "furosemide",
+      "aClass": null,
+      "bClass": "potent loop diuretics",
+      "severity": "serious",
+      "mechanism": "Additive ototoxicity and nephrotoxicity.",
+      "effect": "Hearing loss and kidney injury.",
+      "management": "Label: avoid concurrent use.",
+      "sources": [
+        {
+          "id": "S53",
+          "where": "boxed warning"
+        }
+      ],
+      "ugandaRelevance": "Gentamicin is widely used in neonatal and adult sepsis."
+    },
+    {
+      "id": "CAND-078",
+      "a": "Hypoxis hemerocallidea (African potato)",
+      "b": null,
+      "aClass": "herbal extract",
+      "bClass": "antiretrovirals metabolised by CYP3A4",
+      "severity": "monitor",
+      "mechanism": "In vitro CYP3A4 inhibition, P-gp effects and PXR activation (no clinical data).",
+      "effect": "Unknown in patients; possible change in ARV levels.",
+      "management": "Ask about herbal use; record it; no specific action. Evidence is in vitro only.",
+      "sources": [
+        {
+          "id": "S61",
+          "where": "findings and caveat"
+        }
+      ],
+      "ugandaRelevance": "Herbal use with ART reported in 34% to 46% of Ugandan HIV patients, mostly undisclosed."
+    }
+  ],
+  "sources": [
+    {
+      "id": "S1",
+      "title": "NLM RxNav: Interaction API page (discontinuation notice)",
+      "url": "https://lhncbc.nlm.nih.gov/RxNav/APIs/InteractionAPIs.html",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S2",
+      "title": "DrugBank blog: NIH discontinues their drug interaction API",
+      "url": "https://blog.drugbank.com/nih-discontinues-their-drug-interaction-api/",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S3",
+      "title": "Phansalkar S et al. High-priority drug-drug interactions for use in electronic health records. JAMIA 2012;19(5):735-743 (publisher abstract page)",
+      "url": "https://academic.oup.com/jamia/article/19/5/735/716402",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S4",
+      "title": "Cornu P, Phansalkar S et al. High-priority and low-priority drug-drug interactions in different international EHR systems. Int J Med Inform 2018;111:165-171 (accepted manuscript; Table 2 reproduces the 15 high-priority class pairs)",
+      "url": "https://research.birmingham.ac.uk/files/46122740/IJMI_manuscript_revised_IJMI_D_17_00373R1.pdf",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S5",
+      "title": "Phansalkar S, van der Sijs H et al. Drug-drug interactions that should be non-interruptive in order to reduce alert fatigue in EHRs. JAMIA 2013;20(3):489-493 (repository record and abstract)",
+      "url": "https://repub.eur.nl/pub/68684",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S6",
+      "title": "Phansalkar S et al. Criteria for assessing high-priority drug-drug interactions for clinical decision support in EHRs. BMC Med Inform Decis Mak 2013;13:65",
+      "url": "https://link.springer.com/article/10.1186/1472-6947-13-65",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S7",
+      "title": "van der Sijs H, Aarts J, Vulto A, Berg M. Overriding of drug safety alerts in computerized physician order entry. JAMIA 2006;13(2):138-147 (repository record and abstract)",
+      "url": "https://repub.eur.nl/pub/60465",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S8",
+      "title": "Payne TH et al. Recommendations to improve the usability of drug-drug interaction clinical decision support alerts. JAMIA 2015;22(6):1243-1250 (repository record and abstract)",
+      "url": "https://repub.eur.nl/pub/87785",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S9",
+      "title": "Paterno MD et al. Tiering drug-drug interaction alerts by severity increases compliance rates. JAMIA 2009;16(1):40-46",
+      "url": "https://academic.oup.com/jamia/article/16/1/40/865495",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S10",
+      "title": "Health Exec report of Strom BL et al., Arch Intern Med 2010: randomised trial of a near hard-stop alert for warfarin with co-trimoxazole, stopped early",
+      "url": "https://healthexec.com/topics/health-it/medical-records/aim-feature-cpoe-hard-stop-alerts-have-limitations",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S11",
+      "title": "PSNet summary of Powers EM et al. Efficacy and unintended consequences of hard-stop alerts in EHR systems: a systematic review. JAMIA 2018;25(11):1556-1566",
+      "url": "https://psnet.ahrq.gov/issue/efficacy-and-unintended-consequences-hard-stop-alerts-electronic-health-record-systems",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S12",
+      "title": "Nanji KC et al. Medication-related clinical decision support alert overrides in inpatients. JAMIA 2018;25(5):476-481",
+      "url": "https://academic.oup.com/jamia/article/25/5/476/4569609",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S13",
+      "title": "DDInter 2.0 website, home page and terms (data licensing statement)",
+      "url": "https://ddinter2.scbdd.com/terms/",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S14",
+      "title": "Tian Y et al. DDInter 2.0: an enhanced drug interaction resource. Nucleic Acids Res 2025;53(D1):D1356-D1362",
+      "url": "https://academic.oup.com/nar/article/53/D1/D1356/7740584",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S15",
+      "title": "DrugBank releases and licensing page",
+      "url": "https://go.drugbank.com/releases/latest",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S16",
+      "title": "University of Liverpool HIV Drug Interactions: terms of use",
+      "url": "https://www.hiv-druginteractions.org/terms",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S17",
+      "title": "Liverpool HIV Drug Interactions: dolutegravir with rifampicin",
+      "url": "https://www.hiv-druginteractions.org/interactions/81704",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S18",
+      "title": "Liverpool HIV Drug Interactions: dolutegravir with antacids",
+      "url": "https://www.hiv-druginteractions.org/interactions/81681",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S19",
+      "title": "Liverpool HIV Drug Interactions: lopinavir/ritonavir with rifampicin",
+      "url": "https://www.hiv-druginteractions.org/interactions/67230",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S20",
+      "title": "Liverpool HIV Drug Interactions: efavirenz with artemether/lumefantrine",
+      "url": "https://www.hiv-druginteractions.org/interactions/69284",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S21",
+      "title": "University of Cape Town Medicines Information Centre: Dolutegravir Interactions Information Sheet, v4 (May 2023, updated Feb 2025)",
+      "url": "https://mic.uct.ac.za/sites/default/files/media/documents/mic_uct_ac_za/2157/DTG Info Sheet_2023.pdf",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S22",
+      "title": "New York State Department of Health AIDS Institute: ART Drug-Drug Interactions, Dolutegravir (Oct 2022)",
+      "url": "https://d06.hivguidelines.org/wp-content/uploads/2023/01/NYSDOH-AI-ART-Drug-Drug-Interactions-DTG-Interactions_12-2-2022_HG.pdf",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S23",
+      "title": "Southern African HIV Clinicians Society Adult ART Guidelines 2023, Module 18: Tuberculosis",
+      "url": "https://sahivsoc.org/Guidelines/Module18",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S24",
+      "title": "DailyMed: TIVICAY (dolutegravir) label, revised 8/2026",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=63df5af3-b8ac-4e76-9830-2dbb340af922",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S25",
+      "title": "DailyMed: COARTEM (artemether/lumefantrine) label, revised 8/2019",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=7866ec19-dfac-47d4-a53f-511a12643cbf",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S26",
+      "title": "DailyMed: REYATAZ (atazanavir) label, revised 12/2024",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=165cff62-b284-4a27-a65d-9ec8a5bfcdd8",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S27",
+      "title": "DailyMed: KALETRA (lopinavir/ritonavir) label, revised 7/2026",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=8290add3-4449-4e58-6c97-8fe1eec972e3",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S28",
+      "title": "DailyMed: SUSTIVA (efavirenz) label, repackager copy revised 1/2013",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=04b5c345-c446-43a4-83f0-509bc287e10b",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S29",
+      "title": "DailyMed: VIRAMUNE (nevirapine) label, repackager copy revised 5/2010",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=46fb9dbc-5345-48a4-a0ec-75039622c76c",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S30",
+      "title": "DailyMed: RIFADIN (rifampicin) kit label, updated 25 Aug 2026",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=1b074c23-dd35-43c9-820c-0e603481fdd3",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S31",
+      "title": "DailyMed: PRIFTIN (rifapentine) label, revised 1/2026",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=3a64fb70-b85e-43d9-8bcd-7e893f568ae1",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S32",
+      "title": "DailyMed: QUALAQUIN (quinine sulfate) label, revised 4/2013",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=1f66fba7-4026-4504-918d-4c88f2835cc0",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S33",
+      "title": "DailyMed: JANTOVEN (warfarin) label, revised 9/2017",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=19a69a72-ac5d-45d5-a94d-a5aaecbe4730",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S34",
+      "title": "DailyMed: DIFLUCAN (fluconazole) label, updated 2 Apr 2026",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=f694c617-3383-416c-91b6-b94fda371204",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S35",
+      "title": "DailyMed: BIAXIN (clarithromycin) label, repackager copy updated Feb 2012",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=2e899f4a-a2e9-445c-a0ed-6ad811e997e6",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S36",
+      "title": "DailyMed: ezetimibe and simvastatin tablets (Dr. Reddy's), revised 10/2020",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=023ca87a-1b04-8c17-dc4f-e2758b0771e2",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S37",
+      "title": "DailyMed: VIAGRA (sildenafil) label, revised 12/2017",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0b0be196-0c62-461c-94f4-9a35339b4501",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S38",
+      "title": "DailyMed: CAFERGOT (ergotamine and caffeine) label, updated Mar 2026",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=4db7eece-2eef-bc1b-e063-6394a90a98cb",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S39",
+      "title": "DailyMed: CONZIP (tramadol) label, revised 12/2025",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S40",
+      "title": "DailyMed: ZYVOX (linezolid) label, revised 6/2026",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=6e70e63b-bfd5-478d-a8ee-8ba22c9efabd",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S41",
+      "title": "DailyMed: XATMEP (methotrexate) label, revised 5/2026",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=aec9984e-34c5-481b-b6bf-9bb5caf1daf8",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S42",
+      "title": "DailyMed: ALDACTONE (spironolactone) label, revised 11/2025",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0fed2822-3a03-4b64-9857-c682fcd462bc",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S43",
+      "title": "DailyMed: lisinopril and hydrochlorothiazide tablets (Cipla), revised 10/2021",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=40e6b627-63dc-4d52-aaa8-750663ad86c2",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S44",
+      "title": "DailyMed: lithium carbonate capsules (Glenmark), revised 7/2025",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=63b3790f-a9b5-47f4-bae1-ddf8b43c13c1",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S45",
+      "title": "DailyMed: LANOXIN (digoxin) tablets, revised 12/2024",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=d91e3646-4c63-4512-ab22-db39c085c4dc",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S46",
+      "title": "DailyMed: IMURAN (azathioprine) label, revised 07/2024",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=606101a0-6244-7eff-e053-2a91aa0acadd",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S47",
+      "title": "DailyMed: ZYLOPRIM (allopurinol) label, updated Nov 2009",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=342832b5-1a32-4bea-bc49-ab0fd152154e",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S48",
+      "title": "DailyMed: CIPRO (ciprofloxacin) label, revised 9/2024",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=888dc7f9-ad9c-4c00-8d50-8ddfd9bd27c0",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S49",
+      "title": "DailyMed: ceftriaxone for injection (Hikma), revised Dec 2021",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=8351aa37-552d-471d-b293-c564dcb6ec29",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S50",
+      "title": "DailyMed: meropenem for injection (Civica), revised Feb 2025",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=35466216-55ed-4836-8cbc-c8aafb079dae",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S51",
+      "title": "DailyMed: PLAVIX (clopidogrel) label, revised 5/2025",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=de8b0b67-eb25-4684-83b5-7ad785314227",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S52",
+      "title": "DailyMed: isoniazid tablets (Chartwell), rev. 02/2025",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=2e09b1a5-9786-427f-bf00-be15b06eb7e7",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S53",
+      "title": "DailyMed: gentamicin sulfate injection (Fresenius Kabi), updated Oct 2024",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=84f5c763-1cd3-4d85-9afb-934db8666fbf",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S54",
+      "title": "TB Online report of Lamorde M et al. Lower artemether, dihydroartemisinin and lumefantrine concentrations during rifampicin-based TB treatment. AIDS 2013;27:961-965 (Ugandan study)",
+      "url": "https://tbonline.simhub.online/posts/print/antimalarial-levels-sharply-lower-rifampin-hiv-uga/",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S55",
+      "title": "Byakika-Kibwika P et al. Significant pharmacokinetic interactions between artemether/lumefantrine and efavirenz or nevirapine in HIV-infected Ugandan adults. J Antimicrob Chemother 2012;67(9):2213-2221",
+      "url": "https://academic.oup.com/jac/article/67/9/2213/879457",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S56",
+      "title": "Scarsi KK et al. Unintended pregnancies observed with combined use of the levonorgestrel contraceptive implant and efavirenz-based ART. Clin Infect Dis 2016;62(6):675-682 (Uganda National Research Repository record)",
+      "url": "https://nru.uncst.go.ug/items/7b4abd63-b2b3-475b-b3d0-3433d386961c/full",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S57",
+      "title": "FHI 360: Contraceptive method considerations for clients with HIV including those on ART, provider reference tool (Nov 2017; cites WHO MEC 5th ed.)",
+      "url": "https://www.fhi360.org/wp-content/uploads/2024/02/resource-art-provider-reference-tool.pdf",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S58",
+      "title": "Namuddu B et al. Prevalence and factors associated with traditional herbal medicine use among patients on HAART in Uganda. BMC Public Health 2011;11:855",
+      "url": "https://link.springer.com/doi/10.1186/1471-2458-11-855",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S59",
+      "title": "Lubinga SJ et al. Concomitant herbal medicine and ART use among HIV patients in Western Uganda. AIDS Care 2012;24(11):1375-1383 (MUST repository record)",
+      "url": "https://ir.must.ac.ug/items/6d963ba1-ace0-4edf-9db2-20453233b9f5/full",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S60",
+      "title": "Twinomujuni SS et al. Artemisia annua and Moringa oleifera in PLWH on ART at Mbarara RRH: randomised trial. AIDS Res Ther 2024;21:22",
+      "url": "https://aidsrestherapy.biomedcentral.com/articles/10.1186/s12981-024-00609-4",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S61",
+      "title": "HIV i-Base report of Mills E et al. Impact of African herbal medicines on antiretroviral metabolism. AIDS 2005;19(1):95-97",
+      "url": "https://i-base.info/htb/7562",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S62",
+      "title": "Ministry of Health Uganda. Consolidated Guidelines for the Prevention and Treatment of HIV and AIDS in Uganda, November 2022 (only the front matter and table of contents could be read)",
+      "url": "https://www.prepwatch.org/wp-content/uploads/2025/11/Uganda-Consolidated-HIV-and-AIDS-Guidelines-20230516.pdf",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S63",
+      "title": "Wolters Kluwer: UpToDate Lexidrug (enterprise) page",
+      "url": "https://www.wolterskluwer.com/en/solutions/uptodate/enterprise/lexidrug",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S64",
+      "title": "Wolters Kluwer: UpToDate Lexidrug (individual / pro) page",
+      "url": "https://www.wolterskluwer.com/en/solutions/uptodate/pro/lexidrug",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S65",
+      "title": "Wolters Kluwer: Medi-Span page",
+      "url": "https://www.wolterskluwer.com/en/solutions/medi-span",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S66",
+      "title": "First Databank: MedKnowledge drug database page",
+      "url": "https://www.fdbhealth.com/solutions/medknowledge-drug-database",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S67",
+      "title": "Merative: Micromedex solutions page",
+      "url": "https://www.micromedex.com/products/micromedex-solutions",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S68",
+      "title": "MedicinesComplete (Pharmaceutical Press): About page",
+      "url": "https://www.medicinescomplete.com/about/",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S69",
+      "title": "NLM web policies (copyright status of NLM content)",
+      "url": "https://www.nlm.nih.gov/web_policies.html",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S70",
+      "title": "DailyMed web services (REST API)",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/app-support-web-services.cfm",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S71",
+      "title": "University of Liverpool Centre for Experimental Therapeutics: drug interactions page",
+      "url": "https://www.liverpool.ac.uk/centre-for-experimental-therapeutics/education-and-resources/drug-interactions/",
+      "accessed": "2026-10-24"
+    },
+    {
+      "id": "S72",
+      "title": "NAM Clinician Well-Being resource: van der Sijs 2006 summary",
+      "url": "https://nam.edu/clinicianwellbeing/resources/overriding-of-drug-safety-alerts-in-computerized-physician-order-entry/",
+      "accessed": "2026-10-24"
+    }
+  ],
+  "gaps": [
+    "Uganda Consolidated HIV guidelines 2022 (S62): only the front matter and table of contents could be read. The tool truncates the PDF at about 30 pages, and the proxy blocks direct download from prepwatch.org and medbox.org. Interaction sections not read: 4.4.2 and Table 19 (ART and contraceptives, pp.92-93); 5.4.1 and Table 40 (ART and TB, pp.163-164); DTG and TPT (p.170); Table 57 (hypertension medicines, p.195); Table 60 (antidepressants, p.202); Table 82 (third-line ART, p.281). Every HIV pair here rests on FDA labels, Liverpool, UCT MIC, NYSDOH and SAHCS sources, not the Uganda text.",
+    "Uganda Clinical Guidelines 2023 and EMHSLU 2023: not opened. Formulary presence of each drug in these pairs is unverified.",
+    "Uganda national TB and leprosy manual (current edition): not opened.",
+    "WHO consolidated TB and HIV guidelines (interaction annexes): not opened. NCBI and PMC pages returned a browser check and could not be read.",
+    "Phansalkar 2013 list of 33 non-interruptive DDIs: only the abstract and count were read; the list itself was not opened.",
+    "Payne 2015 seven core alert elements: only the abstract was read; the seven elements are not listed in what was opened.",
+    "Strom 2010 and Powers 2018 were read through secondary summaries (Health Exec, PSNet), not the full papers.",
+    "Commercial KB prices: none published on any vendor page opened (Wolters Kluwer Lexidrug and Medi-Span, FDB, Merative Micromedex, DrugBank, MedicinesComplete). Pharmaceutical Press data-licensing page failed to load. DrugBank pricing page not opened.",
+    "Liverpool TB or antimalarial-specific interaction resources: not confirmed; the Liverpool page opened names HIV, hepatology and COVID-19 only.",
+    "DDInter full terms on commercial use and redistribution were not visible beyond the CC BY-NC-SA 4.0 statement.",
+    "Several FDA labels used are repackager copies with old revision dates (efavirenz 2013, nevirapine 2010, clarithromycin 2012, quinine 2013, allopurinol 2009). A pharmacist should check each against the current innovator label or Uganda NDA-approved product information.",
+    "FDA labels reflect US products and doses, not NDA Uganda registrations. NDA product information was not consulted (www.nda.or.ug was blocked by the session proxy).",
+    "Herbal-drug interaction evidence for Ugandan herbs is thin: usage surveys and one small RCT (S58-S60), plus African in vitro data (S61). No Ugandan herb-specific pharmacokinetic interaction pairs could be sourced.",
+    "Paediatric-specific interaction handling (weight-based DTG dosing with rifampicin, LPV/r in children with TB) was not researched beyond label statements."
+  ]
+}

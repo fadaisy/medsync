@@ -51,7 +51,9 @@ renumbers its ADR.
 | ADR 0360–0366 | Tide everywhere (web migration) | `feat/tide-everywhere` | 21 Oct 2026 | 0360–0361 used |
 | migration 0180–0204 | Pharmacy Phase 2 (stores, wards and supply) | `feat/pharmacy-stores` | 21 Oct 2026 | 0180–0182, 0184 used |
 | ADR 0370–0384 | Pharmacy Phase 2 (stores, wards and supply) | `feat/pharmacy-stores` | 21 Oct 2026 | claimed |
-| migration 0185–0191 | Patient phone Tide v1 (was 0171–0177 on `feat/mobile-tide-v1`; renumbered at merge, unapplied) | `feat/patient-web-tide` | 25 Oct 2026 | used (unapplied) |
+| migration 0210–0229 | Pharmacy Phase 3 (clinical pharmacy and stewardship) | `feat/pharmacy-clinical` | 25 Oct 2026 | 0210–0212 used |
+| ADR 0390–0401 | Pharmacy Phase 3 (clinical pharmacy and stewardship) | `feat/pharmacy-clinical` | 25 Oct 2026 | claimed (0390–0395 used) |
+| migration 0185–0191 | Patient phone Tide v1 (was 0171–0177 on `feat/mobile-tide-v1`; renumbered at merge; applied in prod under the old names, see below) | `feat/patient-web-tide` | 25 Oct 2026 | used (unapplied) |
 | ADR 0402–0414 | Patient phone Tide v1 (was 0343–0355 on `feat/mobile-tide-v1`; renumbered at merge) | `feat/patient-web-tide` | 25 Oct 2026 | used |
 | ADR 0415–0424 | Patient web Tide (0415–0423 used, 0424 free) | `feat/patient-web-tide` | 25 Oct 2026 | claimed |
 
@@ -60,4 +62,4 @@ and lab ADRs 0343–0355. The phone's became migrations 0185–0191 (pharmacy Ph
 0402–0414 (0340–0342 and 0356–0358 keep their numbers). Old → new: 0343→0402 places, 0344→0403 doctors-only times,
 0345→0404 ask for a day, 0346→0405 voice notes, 0347→0406 staff see attachments, 0348→0407 ticket, 0349→0408 turn
 the ticket, 0350→0409 boarding pass, 0351→0410 staff home, 0352→0411 say or photograph, 0353→0412 food list,
-0354→0413 move tracker, 0355→0414 patient-reported history. The reference doc still cites the old numbers.
+0354→0413 move tracker, 0355→0414 patient-reported history. The reference doc still cites the old numbers. Prod had already run the phone files as 0171–0177 (same SQL, header comments aside), so 0185–0191 are recorded as applied there rather than run again (26 Oct 2026).
