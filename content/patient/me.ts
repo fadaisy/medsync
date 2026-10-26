@@ -198,6 +198,9 @@ export const ME_COPY = {
   keepIt: "Keep it",
   /** web: no map in this build, so the pin comes from the browser, on the patient's press only (L9). */
   useLocation: "Use my location",
+  mapLabel: "Map. Tap or click where this place is to move the pin.",
+  mapHint: "Or tap the map where this place is.",
+  pinMoved: "Pin moved on the map",
   locating: "Finding you…",
   pinSet: "Pin set where you are now",
   pinKept: "Pin kept where it was",
