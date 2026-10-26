@@ -199,14 +199,15 @@ As in Appendix A of the prompt, with no change. There is no new `pharmacy.*` per
 
 ## Signatures
 
-| Item                                                 | Signer                                       | Signed                       |
-| ---------------------------------------------------- | -------------------------------------------- | ---------------------------- |
-| D-PH4-01 to D-PH4-29, E-PH4-01 to E-PH4-04           | Fadhul (CSO)                                 | —                            |
-| Permission map v5                                    | Fadhul (CSO)                                 | —                            |
-| Hazard log (`hazard-log.md`)                         | Fadhul (CSO)                                 | —                            |
-| Strings (Appendix B and 5.10), as draft              | Fadhul (CSO) + pharmacist reviewer           | —                            |
-| Packs (Appendix D)                                   | As Appendix D                                | — (signed later, as content) |
-| Partner routing, consent wording, agreement template | Hospital DPO or legal adviser + CSO          | —                            |
-| Legal questions 1 and 2 (interim, written)           | Lawyer                                       | **Open**                     |
-| 2026 Act commencement record                         | Lawyer or CSO, from the statutory instrument | **Open**                     |
-| Partner verifier and second approver named           | Fadhul                                       | **Open**                     |
+| Item                                                                                                                 | Signer                                       | Signed                         |
+| -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------ |
+| D-PH4-29 (CSO alone, by recorded exception, Steps 2 to 5 only; partner routing still needs the DPO or legal adviser) | Fadhul (CSO)                                 | Signed 26 Oct 2026, in session |
+| D-PH4-01 to D-PH4-28, E-PH4-01 to E-PH4-04                                                                           | Fadhul (CSO)                                 | —                              |
+| Permission map v5                                                                                                    | Fadhul (CSO)                                 | —                              |
+| Hazard log (`hazard-log.md`)                                                                                         | Fadhul (CSO)                                 | —                              |
+| Strings (Appendix B and 5.10), as draft                                                                              | Fadhul (CSO) + pharmacist reviewer           | —                              |
+| Packs (Appendix D)                                                                                                   | As Appendix D                                | — (signed later, as content)   |
+| Partner routing, consent wording, agreement template                                                                 | Hospital DPO or legal adviser + CSO          | —                              |
+| Legal questions 1 and 2 (interim, written)                                                                           | Lawyer                                       | **Open**                       |
+| 2026 Act commencement record                                                                                         | Lawyer or CSO, from the statutory instrument | **Open**                       |
+| Partner verifier and second approver named                                                                           | Fadhul                                       | **Open**                       |
