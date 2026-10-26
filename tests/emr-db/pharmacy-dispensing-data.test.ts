@@ -12,7 +12,11 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Actor, Lane, Pg, PgQueryable } from "./_pglite";
+import type { EmrTx } from "@/lib/emr/db";
 import { beforeAll, describe, expect, it } from "vitest";
+
+import { asClinicalReader } from "@/lib/emr/db";
+import { nameWards, queryFacts } from "@/lib/pharmacy/clinical/interventions-read";
 
 import {
   authUser,
@@ -1042,5 +1046,21 @@ describe.skipIf(!laneOn)("Pharmacy Phase 1 data layer (0122–0130)", () => {
     expect(event).toBe("pharmacy");
     expect(topic).toBe(`user:${f.doctor}`);
     expect(Object.keys(payload).sort()).toEqual(["at", "kind", "ref"]);
+  });
+
+  it("intervention review reads its queries as the pharmacist, with point names from outside the reader (IV-4)", async () => {
+    // The reader role has no grant on hospital_departments; joining it inside the reader failed the page in production.
+    const denied = await probe(pg, reader(f.pharmacist), "SELECT name FROM public.hospital_departments");
+    expect(denied.ok).toBe(false);
+    const { name } = (
+      await pg.query<{ name: string }>("SELECT name FROM public.hospital_departments WHERE id = $1", [f.pointA])
+    ).rows[0]!;
+    const read = await asClinicalReader(
+      { userId: f.pharmacist!, hospitalId: f.hA! },
+      (tx) => queryFacts(tx as EmrTx, f.hA!, new Date(Date.now() - 86_400_000), new Date(Date.now() + 86_400_000)),
+      lane.db,
+    );
+    const facts = await nameWards(read, f.hA!, lane.db);
+    expect(facts.find((q) => q.id === f.query)).toMatchObject({ typeCode: "dose_unclear", ward: name, closed: null });
   });
 });

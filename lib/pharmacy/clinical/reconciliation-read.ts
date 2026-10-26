@@ -73,6 +73,7 @@ export async function factsFor(db: Db, hospitalId: string, id: string, now: Date
       .from(medicationStatements)
       .where(
         and(
+          eq(medicationStatements.hospitalId, hospitalId),
           eq(medicationStatements.patientUserId, p),
           sql`${medicationStatements.status} <> 'entered_in_error'`,
           notExists(
