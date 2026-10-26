@@ -19,8 +19,10 @@ const ACTIVITY = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"] as 
  * written to browser storage in either mode, and a left-over offline shell from the old web is removed.
  * The offline set for "Yes" is not built yet (Step 8 report).
  */
-export function DeviceChoice({ choice }: { choice: Choice | null }) {
-  const [open, setOpen] = useState(choice === null);
+export function DeviceChoice({ choice, ask }: { choice: Choice | null; ask: boolean }) {
+  const [answered, setAnswered] = useState(false);
+  // Unanswered, idle sign-out runs on the shared clock (15 minutes) until the question can be asked.
+  const open = ask && choice === null && !answered;
   const [pending, start] = useTransition();
   useIdleSignOut(choice);
 
@@ -41,7 +43,7 @@ export function DeviceChoice({ choice }: { choice: Choice | null }) {
   const pick = (next: Choice) =>
     start(async () => {
       await setDeviceChoiceAction(next).catch(() => {});
-      setOpen(false);
+      setAnswered(true);
     });
 
   return (

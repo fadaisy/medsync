@@ -14,6 +14,7 @@ export const PW_ROUTES: readonly RegExp[] = [
   /^\/patient\/me(\/(conditions|allergies|family|places|profile|household))?\/?$/,
   /^\/patient\/me\/records(\/[0-9a-f-]{36})?\/?$/,
   /^\/patient\/consent\/?$/,
+  /^\/patient\/hospitals\/?$/,
   /^\/signup\/patient\/?$/,
   /^\/emergency(\/(lines|crisis|sexual-violence|tell|status))?\/?$/,
 ];
@@ -30,8 +31,8 @@ export function pwRewrite(pathname: string, on = patientWebTideOn()): string | n
 
 /**
  * The old patient URLs that moved (GATE A §1), 308 while PATIENT_WEB_TIDE is on. Kept at Step 9 when the old
- * pages go. Not here, because no new page replaces them yet: `/patient/hospitals` (Me changes the usual
- * hospital there) and `/patient/results/[reportId]` (the result page stays behind PATIENT_RESULTS).
+ * pages go. Not here, because no new page replaces it yet: `/patient/results/[reportId]` (the result page
+ * stays behind PATIENT_RESULTS). `/patient/hospitals` keeps its URL and is rewritten (PW_ROUTES).
  */
 const MOVED: readonly [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^\/patient\/(appointments|queue(\/[^/]+)?)\/?$/, () => "/patient/visits"],

@@ -176,6 +176,13 @@ export const BOOK_COPY = {
   noHospitals: "No hospital is on MedSync yet.",
   hospitalSaveFailed: "Couldn't save your hospital. Try again.",
   chooseHospital: (name: string) => `Choose ${name}`,
+  yourHospital: "Your hospital",
+  // /patient/hospitals: the first page for a patient with no hospital, and Me's "change hospital".
+  hospitalsTitle: "Your hospital",
+  welcome: (first: string | null) => (first ? `Welcome, ${first}` : "Welcome"),
+  changeHospitalTitle: "Change your hospital",
+  changeHospitalLine: "Your visits and records stay with you. Booking uses the hospital you pick.",
+  backToMe: "Me",
   tryAgain: "Try again",
 } as const;
 
