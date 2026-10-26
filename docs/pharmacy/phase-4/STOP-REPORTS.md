@@ -109,3 +109,41 @@ Written: `gate-a-proposal.md`, `hazard-log.md` (H4-1 to H4-22) and `adr-drafts.m
 - the signatures in the proposal's last table.
 
 D-PH4-29 departs from the prompt's header. It proposes the CSO signing alone, by recorded exception, for Steps 2 to 5 only. That needs the owner's explicit choice.
+
+## STOP 2: data layer, built dark (26 Oct 2026)
+
+Built under D-PH4-29 (CSO alone, Steps 2 to 5). **Nothing is on.** The migrations are written but not applied, and no flag exists yet, so nothing reads the new tables.
+
+**Written:**
+
+- `0230_pharmacy_repeats_refills.sql`: repeat authorisations and their events, repeat instances, collectors, renewal requests, refill requests, the `prepared` location kind, set-aside and release stock movements, and the `routed` and `route_returned` line events.
+- `0231_pharmacy_network.sql`: the partner register, licences, pharmacists, verifiers, interests, verifications (second person to confirm), partner staff, agreements (four eyes), routing consent, routings and the partner variant of `pharmacy_supplies` (exactly one supplier, RT-5 exemption).
+- ADR 0428 (partners are not hospitals).
+- The Drizzle definition of `pharmacy_supplies` follows 0231. The recall trace and the supply reversal skip partner supplies, because those have no hospital batch.
+- `tests/emr-db/pharmacy-network-data.test.ts`, 8 tests: RP-2, RI-1, RN-2, PN-4, AG-1, Law 5, Law 7, the S2 RLS probes and S3 immutability.
+
+**Checks:**
+
+| Check                 | Result                                                                                              |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| Typecheck (8 GB heap) | Clean                                                                                               |
+| Lint                  | 0 errors (4 old warnings)                                                                           |
+| Unit tests            | Only the 21 files that also fail on a clean origin/main                                             |
+| PGlite lane           | Identical failures to origin/main (45 files and 2 tests fail on both), plus the 8 new tests passing |
+| Drizzle parity        | Only the 2 old problems                                                                             |
+
+**Owner, when the inputs are in (not now):**
+
+```bash
+cd ~/Desktop/medsync-network && npm run db:migrate
+```
+
+**Deferred:**
+
+- Drizzle tables for the new tables, and the flags `pharmacyRepeats`, `pharmacyRefills`, `pharmacyNetwork`, `pharmacyNetworkMessages` and `networkRegistry`. Both are added at Step 3 with the code that uses them.
+- The SA-1 prepared-stock test (needs batch fixtures, Step 5).
+- The RT-5 partner-supply insert test (Step 7).
+
+**Number clash:** ADR 0425 has been taken by two other branches (`feat/patient-web-tide`, `fix/arrival-routing-review`). No Phase 4 file uses 0425. The 0425 draft will take the next free number when it is written.
+
+**Still blocking switch-on:** the legal answers to questions 1 and 2, the Act commencement record, the verifier's name, and the DPO or legal adviser for partner routing.

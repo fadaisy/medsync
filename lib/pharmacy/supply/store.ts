@@ -796,17 +796,20 @@ async function lockedForReturn(
   return { group, line };
 }
 
+// A partner supply (no batch, RT-5) moves no hospital stock, so it is never reversed or corrected here.
 const refs = (rows: Awaited<ReturnType<typeof suppliesOf>>): SupplyRef[] =>
-  rows.map((r) => ({
-    id: r.id,
-    handoverId: r.handoverId,
-    hospitalId: r.hospitalId,
-    dispensingPointId: r.dispensingPointId,
-    patientUserId: r.patientUserId,
-    prescriptionId: r.prescriptionId,
-    batchId: r.batchId,
-    quantity: r.quantity,
-  }));
+  rows
+    .flatMap((r) => (r.batchId === null ? [] : [{ ...r, batchId: r.batchId }]))
+    .map((r) => ({
+      id: r.id,
+      handoverId: r.handoverId,
+      hospitalId: r.hospitalId,
+      dispensingPointId: r.dispensingPointId,
+      patientUserId: r.patientUserId,
+      prescriptionId: r.prescriptionId,
+      batchId: r.batchId,
+      quantity: r.quantity,
+    }));
 
 const REFUSE = {
   not_today: SUPPLY.refused.notToday,
