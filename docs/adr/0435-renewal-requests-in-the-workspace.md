@@ -1,4 +1,4 @@
-# ADR 0426: Renewal requests in the doctor's workspace
+# ADR 0435: Renewal requests in the doctor's workspace
 
 **Status:** Accepted, 26 Oct 2026. Pharmacy Phase 4 GATE A (signed by the CSO, D-PH4-29), Step 4.
 

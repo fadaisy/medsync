@@ -15,8 +15,6 @@ export default async function PatientWebShell({ children }: { children: ReactNod
   const scope = await resolvePatientScope();
   const consent = await dataProcessingConsent(scope.userId);
   const gated = consent !== null && consent.acceptedAt === null;
-  const name = scope.primaryHospitalName;
-  const place = name ? { name, initials: initialsOf(name) } : undefined;
   // The plus's "Right now" dose and the rail's Care badge come from the same day (S5).
   const day = gated ? null : await loadAddDialogDay(scope.userId).catch(() => null);
   return (
@@ -24,24 +22,11 @@ export default async function PatientWebShell({ children }: { children: ReactNod
       bare={gated}
       plus={<AddButton day={day} />}
       dosesDue={day?.today.dueNow.length ?? 0}
-      place={place}
     >
-      {/* Asked once the first-run redirects (consent, then a hospital) are behind them: the layout renders
-          before a page's redirect lands, so asking earlier flashes the question on a page that leaves. */}
-      <DeviceChoice
-        choice={await readDeviceChoice()}
-        ask={!gated && scope.primaryHospitalId !== null}
-      />
+      {/* Asked once the consent gate is passed: the layout renders before a page's redirect to the gate
+          lands, so asking earlier flashes the question on a page that leaves. */}
+      <DeviceChoice choice={await readDeviceChoice()} ask={!gated} />
       {children}
     </PatientShell>
   );
-}
-
-function initialsOf(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter((w) => /^[A-Za-z]/.test(w))
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join("");
 }

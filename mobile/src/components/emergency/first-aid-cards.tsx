@@ -1,9 +1,9 @@
-import type { Palette } from "@/theme/tokens";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { Watermark } from "@/components/emergency/watermark";
-import { useStyles } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { Card } from "@/components/tide";
+import { useTide } from "@/theme/theme";
+import { tSpace, tType } from "@/theme/tide";
 
 /**
  * ⚠ DRAFT — PENDING CLINICAL SAFETY OFFICER SIGN-OFF (PRD §5.6; Gate A
@@ -19,32 +19,18 @@ export const FIRST_AID_CARDS: readonly { key: string; text: string }[] = [
 ];
 
 export function FirstAidCards() {
-  const styles = useStyles(makeStyles);
+  const t = useTide();
   return (
-    <View style={styles.block}>
+    <View style={{ gap: tSpace[2] }}>
       <Watermark>First-aid cards are drafts awaiting sign-off.</Watermark>
-      <Text accessibilityRole="header" style={styles.title}>
+      <Text accessibilityRole="header" style={[tType.heading, { color: t.ink }]}>
         While you wait
       </Text>
       {FIRST_AID_CARDS.map((card) => (
-        <View key={card.key} style={styles.card}>
-          <Text style={styles.text}>{card.text}</Text>
-        </View>
+        <Card key={card.key}>
+          <Text style={[tType.bodyM, { lineHeight: 22, color: t.ink }]}>{card.text}</Text>
+        </Card>
       ))}
     </View>
   );
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    block: { gap: space[2] },
-    title: { fontFamily: font.bodyMedium, fontSize: 16.5, lineHeight: 22, color: c.foreground },
-    card: {
-      padding: space[3],
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: c.border,
-      backgroundColor: c.card,
-    },
-    text: { fontFamily: font.body, fontSize: 15, lineHeight: 22, color: c.foreground },
-  });

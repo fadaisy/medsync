@@ -364,6 +364,8 @@ export async function fetchExpectedArrivals(args: {
   statuses?: string[];
   /** Only arrived bookings nobody has sent on yet (see `unroutedSql`). */
   unrouted?: boolean;
+  /** Order by when people booked, so a limit cuts the latest bookers, never the earliest (ADR 0101). */
+  byBookedAt?: boolean;
 }): Promise<ExpectedArrival[]> {
   const surface = args.surface ?? "reception_expected_list";
   // The hospital's day containing `date` (a `?date=YYYY-MM-DD` parses as
@@ -444,9 +446,13 @@ export async function fetchExpectedArrivals(args: {
     // given orders them; booking time settles anything left (a stable board
     // between polls). Slot bookings have no position and follow.
     .orderBy(
-      asc(appointments.startsAt),
-      sql`${appointments.positionNumber} asc nulls last`,
-      asc(appointments.createdAt),
+      ...(args.byBookedAt
+        ? [asc(appointments.createdAt)]
+        : [
+            asc(appointments.startsAt),
+            sql`${appointments.positionNumber} asc nulls last`,
+            asc(appointments.createdAt),
+          ]),
     )
     .limit(args.limit ?? 100);
 
@@ -1006,6 +1012,7 @@ export async function fetchExpectedToday(args: {
       receptionUserId: args.receptionUserId,
       limit: args.limit,
       statuses: ["confirmed", "pending_approval", "requested"],
+      byBookedAt: true,
     }),
     fetchDeclaredIntakesToday({
       hospitalId: args.hospitalId,

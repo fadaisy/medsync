@@ -1,4 +1,4 @@
-# ADR 0428: Partner pharmacies are not hospitals
+# ADR 0437: Partner pharmacies are not hospitals
 
 **Status:** Accepted, 26 Oct 2026. Pharmacy Phase 4 GATE A (D-PH4-22, signed by the CSO), Step 2.
 

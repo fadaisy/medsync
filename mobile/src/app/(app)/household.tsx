@@ -1,29 +1,23 @@
 import type { HouseholdMember, HouseholdRelationship } from "@/lib/booking";
-import type { Palette } from "@/theme/tokens";
 import { useCallback, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useFocusEffect } from "expo-router";
+import { ActivityIndicator, Switch, Text, View } from "react-native";
 
-import { EmergencyButton } from "@/components/patient/emergency-button";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Chip, ChipRow } from "@/components/ui/chip";
-import { Empty } from "@/components/ui/empty";
-import { Screen } from "@/components/ui/screen";
-import { Section } from "@/components/ui/section";
+import {
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  ChipRow,
+  FieldLabel,
+  Note,
+  Screen,
+  SectionHead,
+  TextField,
+} from "@/components/tide";
 import { addHouseholdMember, fetchHousehold, HOUSEHOLD_RELATIONSHIPS } from "@/lib/booking";
-import { useStyles, useTheme } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { useTide } from "@/theme/theme";
+import { tSpace, tType } from "@/theme/tide";
 
 /**
  * People I book for — "a son with the only smartphone" (PRD §2.9, Gate D).
@@ -40,9 +34,7 @@ import { font, radius, space } from "@/theme/tokens";
  * goes there, never to this account (§2.9). Removal has no writer yet.
  */
 export default function HouseholdScreen() {
-  const router = useRouter();
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
+  const t = useTide();
 
   const [members, setMembers] = useState<HouseholdMember[] | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -103,257 +95,155 @@ export default function HouseholdScreen() {
     load();
   };
 
-  const chrome = { title: "People I book for", onBack: router.back, trailing: <EmergencyButton /> };
+  // Back is `router.back()`, the Tide back link's default; Help is the Screen's red disc.
+  const chrome = { back: {}, title: "People I book for", helpSource: "household" };
 
   if (loadFailed) {
     return (
       <Screen {...chrome}>
-        <Empty
-          icon="cloud-offline-outline"
-          title="Couldn't load the people you book for."
-          hint="Check your connection and try again."
-          action={<Button variant="secondary" label="Try again" onPress={load} />}
-        />
+        <View style={{ gap: tSpace[3] }}>
+          <Note tone="plain">
+            {"Couldn't load the people you book for. Check your connection and try again."}
+          </Note>
+          <Button label="Try again" variant="outline" onPress={load} />
+        </View>
       </Screen>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.fill}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <Screen
+      {...chrome}
+      subtitle="Book a visit for an adult in your household. They get their own booking code."
+      footer={
+        <>
+          {/* Amber, not red: a refused member is not a clinical emergency. */}
+          {error ? (
+            <View accessibilityLiveRegion="polite">
+              <Note tone="caution" icon="alert">
+                {error}
+              </Note>
+            </View>
+          ) : null}
+          <Button
+            label="Add this person"
+            busy={busy}
+            disabled={!ready}
+            onPress={() => void onAdd()}
+          />
+        </>
+      }
     >
-      <Screen
-        {...chrome}
-        footer={
-          <>
-            {error ? (
-              <View style={styles.well}>
-                <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
-                <Text style={styles.wellText} accessibilityLiveRegion="polite">
-                  {error}
+      {members === null ? (
+        <ActivityIndicator color={t.ink} accessibilityLabel="Loading" />
+      ) : members.length === 0 ? (
+        <Text style={[tType.bodyM, { color: t.ink2 }]}>Nobody yet.</Text>
+      ) : (
+        <View style={{ gap: tSpace[2.5] }}>
+          {members.map((m) => (
+            <Card key={m.id} style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3] }}>
+              <Avatar initials={initialsOf(m.label)} size={44} />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={[tType.label, { color: t.ink }]} numberOfLines={1}>
+                  {m.label}
+                </Text>
+                <Text style={[tType.bodyS, { color: t.ink2 }]}>
+                  {HOUSEHOLD_RELATIONSHIPS.find((r) => r.value === m.relationship)?.label ??
+                    m.relationship}
                 </Text>
               </View>
-            ) : null}
-            <Button
-              label="Add this person"
-              busy={busy}
-              disabled={!ready}
-              onPress={() => void onAdd()}
-            />
-          </>
-        }
-      >
-        <View style={styles.stack}>
-          <Text style={styles.lede}>
-            Book a visit for an adult in your household. They get their own booking code.
-          </Text>
-
-          {members === null ? (
-            <ActivityIndicator color={colors.primary} accessibilityLabel="Loading" />
-          ) : members.length === 0 ? (
-            <Text style={styles.none}>Nobody yet.</Text>
-          ) : (
-            <View style={styles.rows}>
-              {members.map((m) => (
-                <View key={m.id} style={styles.row}>
-                  <Avatar name={m.label} size={44} />
-                  <View style={styles.rowText}>
-                    <Text style={styles.rowName} numberOfLines={1}>
-                      {m.label}
-                    </Text>
-                    <Text style={styles.rowMeta}>
-                      {HOUSEHOLD_RELATIONSHIPS.find((r) => r.value === m.relationship)?.label ??
-                        m.relationship}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {added ? (
-            <Text style={styles.notice} accessibilityLiveRegion="polite">
-              {added} is on your list.
-            </Text>
-          ) : null}
-
-          <Section title="Add someone">
-            <Field label="Their name" value={label} onChangeText={setLabel} maxLength={80} />
-            <Field
-              label="Their phone number"
-              hint="Their own number. Booking messages for them go there."
-              placeholder="+256XXXXXXXXX"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-            />
-            <Field
-              label="Age in years"
-              value={age}
-              onChangeText={setAge}
-              keyboardType="number-pad"
-              maxLength={3}
-            />
-            <Field
-              label="Date of birth (optional, YYYY-MM-DD)"
-              placeholder="1980-06-21"
-              value={dob}
-              onChangeText={setDob}
-              keyboardType="numbers-and-punctuation"
-              maxLength={10}
-            />
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Who are they to you?</Text>
-              <ChipRow>
-                {HOUSEHOLD_RELATIONSHIPS.map((r) => (
-                  <Chip
-                    key={r.value}
-                    label={r.label}
-                    selected={relationship === r.value}
-                    onPress={() => setRelationship(r.value)}
-                  />
-                ))}
-              </ChipRow>
-            </View>
-            <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>This person is an adult (18 or older)</Text>
-              <Switch
-                value={adult}
-                onValueChange={setAdult}
-                accessibilityLabel="This person is an adult, 18 or older"
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.card}
-              />
-            </View>
-          </Section>
+            </Card>
+          ))}
         </View>
-      </Screen>
-    </KeyboardAvoidingView>
+      )}
+
+      {added ? (
+        <View accessibilityLiveRegion="polite">
+          <Note tone="info" icon="check">{`${added} is on your list.`}</Note>
+        </View>
+      ) : null}
+
+      <View style={{ gap: tSpace[3.5] }}>
+        <SectionHead title="Add someone" />
+        <TextField
+          label="Their name"
+          value={label}
+          onChangeText={setLabel}
+          maxLength={80}
+          inputProps={{ returnKeyType: "done" }}
+        />
+        <View style={{ gap: tSpace[1.5] }}>
+          <TextField
+            label="Their phone number"
+            placeholder="+256XXXXXXXXX"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            inputProps={{ returnKeyType: "done" }}
+          />
+          <Text style={[tType.bodyS, { color: t.ink2 }]}>
+            Their own number. Booking messages for them go there.
+          </Text>
+        </View>
+        <TextField
+          label="Age in years"
+          value={age}
+          onChangeText={setAge}
+          keyboardType="number-pad"
+          maxLength={3}
+          inputProps={{ returnKeyType: "done" }}
+        />
+        <TextField
+          label="Date of birth (optional, YYYY-MM-DD)"
+          placeholder="1980-06-21"
+          value={dob}
+          onChangeText={setDob}
+          keyboardType="numbers-and-punctuation"
+          maxLength={10}
+          inputProps={{ returnKeyType: "done" }}
+        />
+        <View style={{ gap: tSpace[1.5] }}>
+          <FieldLabel>Who are they to you?</FieldLabel>
+          <ChipRow>
+            {HOUSEHOLD_RELATIONSHIPS.map((r) => (
+              <Chip
+                key={r.value}
+                label={r.label}
+                selected={relationship === r.value}
+                onPress={() => setRelationship(r.value)}
+              />
+            ))}
+          </ChipRow>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: tSpace[3],
+            minHeight: 44,
+          }}
+        >
+          <Text style={[tType.labelS, { flex: 1, color: t.ink }]}>
+            This person is an adult (18 or older)
+          </Text>
+          <Switch
+            value={adult}
+            onValueChange={setAdult}
+            accessibilityLabel="This person is an adult, 18 or older"
+            trackColor={{ true: t.accentPressed, false: t.primaryOff }}
+            thumbColor={t.onBand}
+            ios_backgroundColor={t.primaryOff}
+          />
+        </View>
+      </View>
+    </Screen>
   );
 }
 
-/** The sunken field the visit screen uses, with its eyebrow label and optional why. */
-function Field({
-  label,
-  hint,
-  placeholder,
-  value,
-  onChangeText,
-  keyboardType,
-  maxLength,
-}: {
-  label: string;
-  hint?: string;
-  placeholder?: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  keyboardType?: "default" | "phone-pad" | "number-pad" | "numbers-and-punctuation";
-  maxLength?: number;
-}) {
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
-  const [focused, setFocused] = useState(false);
-  return (
-    <View style={styles.field}>
-      <Text style={[styles.fieldLabel, focused && styles.fieldLabelFocused]}>{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        keyboardType={keyboardType}
-        maxLength={maxLength}
-        accessibilityLabel={label}
-        placeholder={placeholder}
-        placeholderTextColor={colors.mutedForeground}
-        selectionColor={colors.primary}
-        returnKeyType="done"
-        style={[styles.input, focused && styles.inputFocused]}
-      />
-      {hint ? <Text style={styles.fieldHint}>{hint}</Text> : null}
-    </View>
-  );
+/** "Amina Okello" → "AO": the first and last word's first letter. */
+function initialsOf(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const last = words.length > 1 ? (words[words.length - 1]?.[0] ?? "") : "";
+  return ((words[0]?.[0] ?? "") + last).toUpperCase();
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    fill: { flex: 1 },
-    stack: { flexGrow: 1, gap: space[5] },
-    lede: {
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.mutedForeground,
-      marginTop: -space[3],
-    },
-    none: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.mutedForeground },
-    notice: { fontFamily: font.bodyMedium, fontSize: 14.5, lineHeight: 21, color: c.primary },
-
-    rows: { gap: space[3] },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: space[3],
-      padding: space[3],
-      borderRadius: radius["2xl"],
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    rowText: { flex: 1, gap: 2 },
-    rowName: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },
-    rowMeta: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
-
-    field: { gap: space[2] },
-    fieldLabel: {
-      fontFamily: font.body,
-      fontSize: 12.5,
-      letterSpacing: 0.3,
-      color: c.mutedForeground,
-    },
-    fieldLabelFocused: { fontFamily: font.bodyMedium, color: c.primary },
-    input: {
-      minHeight: 48,
-      paddingHorizontal: space[4],
-      paddingVertical: space[3],
-      borderRadius: radius.lg,
-      backgroundColor: c.muted,
-      borderWidth: 1,
-      borderColor: c.border,
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.foreground,
-    },
-    inputFocused: { borderColor: c.primary },
-    fieldHint: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
-
-    switchRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: space[3],
-      minHeight: 44,
-    },
-    switchLabel: { fontFamily: font.bodyMedium, fontSize: 15, lineHeight: 21, color: c.foreground },
-
-    // Amber, not red: a refused member is not a clinical emergency.
-    well: {
-      flexDirection: "row",
-      gap: space[2],
-      alignItems: "flex-start",
-      padding: space[3],
-      borderRadius: radius.lg,
-      backgroundColor: c.status.cautionBg,
-      borderWidth: 1,
-      borderColor: c.status.cautionFg,
-    },
-    wellText: {
-      flex: 1,
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.foreground,
-    },
-  });

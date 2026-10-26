@@ -177,6 +177,9 @@ Deno.serve(async (request: Request) => {
       .update({
         pre_arrival_id: pa.id,
         priority_hint: "urgent",
+        // A pre-alerted emergency is always triaged, even if the desk had sent
+        // this patient to the clinic (ADR 0101 safeguard).
+        routed_to: "triage",
         ...(pa.submission_id ? { symptom_submission_id: pa.submission_id } : {}),
         ...(existingIntakeStatus === "declared"
           ? { status: "arrived", checked_in_at: new Date().toISOString() }

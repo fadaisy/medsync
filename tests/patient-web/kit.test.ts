@@ -81,13 +81,14 @@ describe("patient kit and shell", () => {
     expect(page(false)).not.toContain("data-pw-light");
   });
 
-  it("the rail becomes the bottom pill at 760 px and the plus sits between Visits and Care", () => {
+  it("the places are a centred bottom pill at every width and the plus sits between Visits and Care", () => {
     const html = page();
-    expect(html).toContain("max-[760px]:fixed");
+    expect(html).toMatch(/<nav[^>]*class="[^"]*\bfixed\b[^"]*left-1\/2/);
+    expect(html).not.toContain("max-[760px]:fixed");
     const order = [...html.matchAll(/href="(\/patient[^"]*)"|aria-label="(Add)"/g)].map(
       (m) => m[1] ?? m[2],
     );
-    expect(order.slice(1, 6)).toEqual([
+    expect(order.slice(0, 5)).toEqual([
       "/patient",
       "/patient/visits",
       "Add",

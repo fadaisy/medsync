@@ -1,5 +1,5 @@
 -- 0231 — Pharmacy Phase 4, second merge's data: the partner register, agreements, consent per routing, routings
--- and partner supplies (PN-1 to PN-5, AG-1, RT-1 to RT-7; ADRs 0428 to 0431; GATE A signed 26 Oct 2026).
+-- and partner supplies (PN-1 to PN-5, AG-1, RT-1 to RT-7; ADRs 0437 to 0440; GATE A signed 26 Oct 2026).
 --
 -- GATED: owner-applied (`npm run db:migrate`), after 0230. ADDITIVE. Nothing reads these tables until the flags
 -- `networkRegistry` and `pharmacyNetwork` are on. Partner routing also needs the hospital's data-protection officer

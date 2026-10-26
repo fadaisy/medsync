@@ -19,8 +19,9 @@ import { cn } from "@/lib/utils";
 import { Avatar, DemoRibbon, ICON, Overline } from "./kit";
 
 /**
- * PatientShell (§4.1, D-PW-02): a floating left rail at ≥ 761 px, the phone's floating pill at ≤ 760 px, the
- * same five places with their words and the plus in its cradle. Help is never in either: it is the red pill
+ * PatientShell (§4.1): the phone's floating pill at the foot of every width (owner, 26 Oct 2026, replacing
+ * D-PW-02's left rail at ≥ 761 px), the page centred above it; the same places with their words and the plus
+ * in its cradle. Help is never in either: it is the red pill
  * in every header (L6). `light` pins the light values for Help and the symptom steps (L11).
  */
 
@@ -55,7 +56,6 @@ export function PatientShell({
   children,
   plus,
   dosesDue = 0,
-  place,
   light,
   bare,
 }: {
@@ -64,8 +64,6 @@ export function PatientShell({
   plus?: ReactNode;
   /** Care's badge: doses due now, in ink, never red. */
   dosesDue?: number;
-  /** The home facility at the foot of the rail: initials and its name. */
-  place?: { initials: string; name: string };
   light?: boolean;
   /** Signed out (Help, sign-in): no rail. */
   bare?: boolean;
@@ -76,34 +74,24 @@ export function PatientShell({
       data-pw=""
       data-pw-light={light ? "" : undefined}
       className={cn(
-        "bg-pw-bg font-pw text-pw-ink flex min-h-svh w-full items-start gap-7 text-[17px] leading-[25px] antialiased",
+        "bg-pw-bg font-pw text-pw-ink min-h-svh w-full text-[17px] leading-[25px] antialiased",
         "px-[max(24px,env(safe-area-inset-left))] pt-6 pb-12",
-        "max-[760px]:gap-5 max-[760px]:px-4 max-[760px]:pt-4",
-        !bare && "max-[760px]:pb-[132px]",
+        "max-[760px]:px-4 max-[760px]:pt-4",
+        !bare && "pb-[132px]",
       )}
     >
       {bare ? null : (
         <nav
           aria-label="Places"
           className={cn(
-            "bg-pw-surface shadow-pw-float sticky top-6 flex w-24 shrink-0 flex-col items-center gap-1.5 rounded-[48px] py-[18px]",
-            "max-[760px]:fixed max-[760px]:inset-x-4 max-[760px]:top-auto max-[760px]:bottom-[calc(14px+env(safe-area-inset-bottom))] max-[760px]:z-30",
-            "max-[760px]:h-[76px] max-[760px]:w-auto max-[760px]:flex-row max-[760px]:justify-around max-[760px]:rounded-[38px] max-[760px]:p-2",
+            "bg-pw-surface shadow-pw-float fixed bottom-[calc(14px+env(safe-area-inset-bottom))] left-1/2 z-30 flex h-[76px] -translate-x-1/2 items-center justify-around rounded-[38px] p-2",
+            "w-[min(560px,calc(100%-32px))]",
           )}
         >
-          <Link
-            href="/patient"
-            className="bg-pw-band text-pw-on-band mb-[18px] grid size-10 place-items-center rounded-[14px] text-[17px] font-extrabold max-[760px]:hidden"
-          >
-            <span aria-hidden>M</span>
-            <span className="sr-only">MedSync home</span>
-          </Link>
           {PLACES.slice(0, 2).map((p) => (
             <Place key={p.href} {...p} current={p.match(path)} />
           ))}
-          {plus ? (
-            <div className="my-2.5 max-[760px]:-mt-[30px] max-[760px]:mb-0">{plus}</div>
-          ) : null}
+          {plus ? <div className="-mt-[30px]">{plus}</div> : null}
           {PLACES.slice(2).map((p) => (
             <Place
               key={p.href}
@@ -112,18 +100,9 @@ export function PatientShell({
               badge={p.label === "Care" ? dosesDue : 0}
             />
           ))}
-          {place ? (
-            <span
-              title={place.name}
-              className="bg-pw-place-tint text-pw-place-text mt-[18px] grid size-11 place-items-center rounded-full text-[13px] font-bold max-[760px]:hidden"
-            >
-              <span aria-hidden>{place.initials}</span>
-              <span className="sr-only">Your hospital: {place.name}</span>
-            </span>
-          ) : null}
         </nav>
       )}
-      <main className="flex max-w-[1240px] min-w-0 flex-1 flex-col gap-7 max-[760px]:gap-5">
+      <main className="mx-auto flex w-full max-w-[1240px] min-w-0 flex-col gap-7 max-[760px]:gap-5">
         {children}
       </main>
     </div>
@@ -148,10 +127,10 @@ function Place({
       href={href}
       aria-current={current ? "page" : undefined}
       className={cn(
-        "relative flex min-h-16 w-[72px] flex-col items-center justify-center gap-1 rounded-[22px] text-xs leading-[14px] font-semibold",
+        "relative flex flex-col items-center justify-center gap-1 text-xs leading-[14px] font-semibold",
         "transition-[scale,background-color] duration-150 ease-out active:scale-[0.96] motion-reduce:transition-none",
         "focus-visible:outline-pw-focus focus-visible:outline-2 focus-visible:outline-offset-2",
-        "max-[760px]:min-h-[60px] max-[760px]:w-auto max-[760px]:flex-1 max-[760px]:rounded-[30px]",
+        "min-h-[60px] w-auto flex-1 rounded-[30px]",
         current
           ? "bg-pw-act text-pw-on-act font-bold"
           : "text-pw-ink-2 hover:bg-pw-surface-3 hover:text-pw-ink",

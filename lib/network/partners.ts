@@ -2,7 +2,7 @@ import { addDays } from "@/lib/pharmacy/stores/ledger";
 
 /**
  * The partner register (Pharmacy Phase 4, 6.5: PN-1 to PN-5; D-PH4-09, D-PH4-14, D-PH4-22). Pure. A partner is never a
- * `hospitals` row (ADR 0428); 0231 holds the register. Status is a projection evaluated at every routing and every
+ * `hospitals` row (ADR 0437); 0231 holds the register. Status is a projection evaluated at every routing and every
  * supply, so no scheduled job is relied on (PN-2).
  *
  * The pack (Appendix D: verification standard, re-verification period, licence warning window) is signed by the CSO

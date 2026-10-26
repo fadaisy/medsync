@@ -95,7 +95,7 @@ Deno.serve(async (request: Request) => {
     const { data: appt, error: apptErr } = await sb
       .from("appointments")
       .select(
-        "id, hospital_id, department_id, patient_user_id, provisional_patient_id, status, type, starts_at",
+        "id, hospital_id, department_id, patient_user_id, provisional_patient_id, status, type, starts_at, priority",
       )
       .eq("id", input.appointment_id)
       .maybeSingle();
@@ -139,8 +139,8 @@ Deno.serve(async (request: Request) => {
       return conflict("Confirm who this booking is for before checking in.", init);
     }
 
-    // A booking is never an emergency entry, so the desk's route stands.
-    const route = input.route;
+    // A booking is never an emergency entry; an urgent one is still triaged.
+    const route = effectiveRoute(input.route, appt.priority === "urgent");
     const departmentId: string | null = input.department_id ?? appt.department_id ?? null;
     if (
       input.department_id &&
@@ -172,14 +172,18 @@ Deno.serve(async (request: Request) => {
 
     // A self-arrived booking is already 'arrived' — no second flip.
     if (!selfArrived) {
-      const { error: updateError } = await sb
+      // Only from 'confirmed': a second desk pressing at the same moment finds no row to change.
+      const { data: flipped, error: updateError } = await sb
         .from("appointments")
         .update({ status: "arrived" })
-        .eq("id", appt.id);
+        .eq("id", appt.id)
+        .eq("status", "confirmed")
+        .select("id");
       if (updateError) {
         log.error("status update failed", { requestId, reason: updateError.message });
         return serverError("check-in failed", init);
       }
+      if (!flipped?.length) return conflict("This patient has just been checked in.", init);
     }
 
     // insertQueueRow reuses a self-arrived patient's row (moved to the chosen
@@ -208,15 +212,18 @@ Deno.serve(async (request: Request) => {
         // kept so an un-reconcile can null the patient without orphaning the row.
         provisional_patient_id: appt.provisional_patient_id ?? null,
         appointment_id: appt.id,
-        priority_hint: "routine",
+        priority_hint: appt.priority === "urgent" ? "urgent" : "routine",
         status: intakeStatusFor(route),
         routed_to: route,
         registered_by_user_id: caller.id,
       })
       .select("id")
       .single();
+    // Without the intake the patient reaches no triage worklist, so say so. The
+    // booking is now 'arrived' with no intake, which a retry treats as self-arrived.
     if (intakeError) {
-      log.warn("intake insert failed (continuing)", { requestId, reason: intakeError.message });
+      log.error("intake insert failed", { requestId, reason: intakeError.message });
+      return serverError("Check-in did not finish. Try again.", init);
     }
 
     log.info("checked in (booked)", {
@@ -240,7 +247,7 @@ Deno.serve(async (request: Request) => {
   const intakeId = input.intake_id!;
   const { data: intake, error: intakeErr } = await sb
     .from("patient_intakes")
-    .select("id, hospital_id, receiving_department_id, patient_user_id, status, entry_type_code")
+    .select("id, hospital_id, receiving_department_id, patient_user_id, status, entry_type_code, priority_hint")
     .eq("id", intakeId)
     .maybeSingle();
   if (intakeErr) return serverError(intakeErr.message, init);
@@ -262,7 +269,7 @@ Deno.serve(async (request: Request) => {
   } catch (e) {
     return serverError(e instanceof Error ? e.message : String(e), init);
   }
-  const route = effectiveRoute(input.route, isEmergency);
+  const route = effectiveRoute(input.route, isEmergency || intake.priority_hint === "urgent");
   const status = intakeStatusFor(route);
   const departmentId: string | null = input.department_id ?? intake.receiving_department_id ?? null;
   if (
@@ -294,7 +301,7 @@ Deno.serve(async (request: Request) => {
   }
 
   const checkedInAt = new Date().toISOString();
-  const { error: flipErr } = await sb
+  const { data: flipped, error: flipErr } = await sb
     .from("patient_intakes")
     .update({
       status,
@@ -302,11 +309,14 @@ Deno.serve(async (request: Request) => {
       checked_in_at: checkedInAt,
       receiving_department_id: departmentId,
     })
-    .eq("id", intake.id);
+    .eq("id", intake.id)
+    .eq("status", "declared")
+    .select("id");
   if (flipErr) {
     log.error("intake flip failed", { requestId, reason: flipErr.message });
     return serverError("check-in failed", init);
   }
+  if (!flipped?.length) return conflict("This patient has just been checked in.", init);
 
   const queueEntryId = await insertQueueRow(sb, {
     hospital_id: intake.hospital_id,

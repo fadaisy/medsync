@@ -11,10 +11,10 @@ Built on `feat/pharmacy-network`. Migrations 0230–0232 unapplied; `PHARMACY_RE
 Steps 2 to 5 wording signed by the CSO (D-PH4-29); the partner wording and the message templates stay draft.
 
 - Repeats beside the line, the Repeats step, the printed line and Stop repeats ([ADR 0434](docs/adr/0434-repeats-beside-the-line.md)).
-- Renewal requests and their workspace lane ([ADR 0426](docs/adr/0426-renewal-requests-in-the-workspace.md)).
+- Renewal requests and their workspace lane ([ADR 0435](docs/adr/0435-renewal-requests-in-the-workspace.md)).
 - Refills at the hospital: the Refills board, the held place, set aside, hand over, release, hold longer
-  ([ADR 0427](docs/adr/0427-holding-prepared-refills.md)); the patient's Repeat medicines.
-- Partner pharmacies are kept apart from hospitals ([ADR 0428](docs/adr/0428-partner-pharmacies-are-not-hospitals.md)).
+  ([ADR 0436](docs/adr/0436-holding-prepared-refills.md)); the patient's Repeat medicines.
+- Partner pharmacies are kept apart from hospitals ([ADR 0437](docs/adr/0437-partner-pharmacies-are-not-hospitals.md)).
 - Demo catalogue at `/styleguide/pharmacy-network/*` (`MEDSYNC_FIXTURES=1`); guide in `docs/pharmacy/phase-4/HOW-TO-USE.md`.
 
 ### Added — Patient web · Tide, Steps 0–8 — 25 Oct 2026
@@ -33,7 +33,9 @@ recommended ([ADR 0415](docs/adr/0415-patient-web-replaces-old-patient-pages.md)
   records, places, profile, household; Help at `/emergency`; patient sign-up and the consent gate. The moved old
   URLs answer 308 with the flag on. Reports: `docs/patient-web/STOP-*.md`.
 - No conditions or readings in addresses ([ADR 0422](docs/adr/0422-no-conditions-or-readings-in-patient-addresses.md));
-  the own-device choice in a session cookie ([ADR 0423](docs/adr/0423-own-device-choice-in-a-session-cookie.md)).
+  the own-device choice in a session cookie ([ADR 0423](docs/adr/0423-own-device-choice-in-a-session-cookie.md));
+  the places as a centred pill at the foot of every width, the page centred ([ADR 0424](docs/adr/0424-patient-web-places-at-the-foot.md)); a map to set a place's pin
+  ([ADR 0425](docs/adr/0425-patient-web-pin-map.md)).
 - Not yet: the signed parity report, the five-day pilot and the deletion of the old pages (Step 9, the owner's).
 
 ### Changed — Lab test menu v2: set up tests, not results — 19 Oct 2026

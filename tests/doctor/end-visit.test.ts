@@ -90,15 +90,23 @@ const row = (over: Record<string, unknown>) => ({
   identity,
   appointmentId: null,
   encounterId: null,
+  encounterClinicianUserId: null,
   notes: null,
   ...over,
 });
+const VIEWER = crypto.randomUUID();
 
 const count = (html: string, needle: string) => html.split(needle).length - 1;
 
 describe("the queue rail", () => {
   const entries = [
-    row({ state: "being_seen", encounterId: ENCOUNTER }),
+    row({ state: "being_seen", encounterId: ENCOUNTER, encounterClinicianUserId: VIEWER }),
+    // Another doctor's patient: the function would refuse, so no button.
+    row({
+      state: "being_seen",
+      encounterId: crypto.randomUUID(),
+      encounterClinicianUserId: crypto.randomUUID(),
+    }),
     // Called before the encounter id was stamped: nothing to end.
     row({ state: "being_seen", encounterId: null }),
     // Waiting rows are called, not ended — even with a stray encounter id.
@@ -106,23 +114,30 @@ describe("the queue rail", () => {
   ];
 
   it("offers End visit only on a being_seen row with an encounter", () => {
-    const html = renderToStaticMarkup(createElement(QueueRail, { entries }));
+    const html = renderToStaticMarkup(createElement(QueueRail, { entries, viewerUserId: VIEWER }));
     expect(count(html, ">End visit<")).toBe(1);
     // The walk-in (no appointment) keeps its Call button.
     expect(count(html, "and start the encounter")).toBe(1);
   });
 
   it("links to the encounter only when the engine is live", () => {
-    const off = renderToStaticMarkup(createElement(QueueRail, { entries }));
+    const off = renderToStaticMarkup(createElement(QueueRail, { entries, viewerUserId: VIEWER }));
     expect(off).not.toContain(`/doctor/encounters/${ENCOUNTER}`);
     const on = renderToStaticMarkup(
-      createElement(QueueRail, { entries, encounterEngineLive: true }),
+      createElement(QueueRail, { entries, encounterEngineLive: true, viewerUserId: VIEWER }),
     );
     expect(count(on, `/doctor/encounters/${ENCOUNTER}`)).toBe(1);
   });
 
+  it("with the EMR on, the visit closes on its page: no End visit on the rail", () => {
+    const html = renderToStaticMarkup(
+      createElement(QueueRail, { entries, emrLive: true, viewerUserId: VIEWER }),
+    );
+    expect(count(html, ">End visit<")).toBe(0);
+  });
+
   it("is never red — ending a visit is not an emergency", () => {
-    const html = renderToStaticMarkup(createElement(QueueRail, { entries }));
+    const html = renderToStaticMarkup(createElement(QueueRail, { entries, viewerUserId: VIEWER }));
     const button = html.slice(html.lastIndexOf("<button", html.indexOf(">End visit<")));
     expect(button.slice(0, button.indexOf(">"))).not.toMatch(/destructive|emergency|red-|rose-/);
   });

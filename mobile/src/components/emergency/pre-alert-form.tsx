@@ -1,6 +1,5 @@
 import type { EmergencySheet, PreArrivalInput, PreArrivalReceipt } from "@/lib/emergency";
 import type { LatLng } from "@/lib/nearest";
-import type { Palette } from "@/theme/tokens";
 import type { EtaBand, TransportMode } from "@shared/pre-arrival";
 import type { SubmissionAudience } from "@shared/symptom-catalog/types";
 import type { ReactNode } from "react";
@@ -14,25 +13,13 @@ import {
 import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
 import { t } from "@shared/symptom-catalog/classify";
 import * as Location from "expo-location";
-import {
-  KeyboardAvoidingView,
-  Linking,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Linking, Switch, Text, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { Chip, ChipRow, Tile, TileGrid } from "@/components/ui/chip";
-import { Screen } from "@/components/ui/screen";
+import { Button, Chip, ChipRow, Icon, Press, Screen, TextField, TextLink } from "@/components/tide";
 import { createPreArrival, e1Tiles, smsUrl, telUrl, writePendingPreArrival } from "@/lib/emergency";
 import { orderFacilities } from "@/lib/nearest";
-import { ForcedScheme, useStyles, useTheme } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { ForcedScheme, useTide } from "@/theme/theme";
+import { tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * E2 — the pre-alert (PRD MS-PRD-SYM-001 §8.3, §8.6, §8.7). Every field is
@@ -107,8 +94,7 @@ function FormBody({
   onSent,
   onBack,
 }: Parameters<typeof PreAlertForm>[0]) {
-  const styles = useStyles(makeStyles);
-  const { colors } = useTheme();
+  const tide = useTide();
 
   const [here, setHere] = useState<LatLng | null>(null);
   const [locationNote, setLocationNote] = useState<string | null>(null);
@@ -246,320 +232,345 @@ function FormBody({
       })
     : null;
 
+  // The Tide <Screen> rises with the keyboard itself, so Send stays above it.
   return (
-    <KeyboardAvoidingView
-      style={styles.fill}
-      // Same split as sign-in: the callback field sits low enough for the
-      // keyboard to cover Send on either platform.
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <Screen
-        title="Tell a hospital"
-        subtitle="They prepare before you arrive. Calling still comes first."
-        onBack={onBack}
-        footer={
-          <>
-            {error ? (
-              <Text accessibilityRole="alert" style={styles.error}>
-                {error}
-              </Text>
-            ) : null}
-            {queued ? (
-              <View style={styles.queued} accessibilityRole="alert">
-                <Text style={styles.queuedTitle}>Queued — no connection</Text>
-                <Text style={styles.queuedBody}>
-                  We&rsquo;ll keep trying while this screen is open.
-                  {smsBody ? " You can also send it by SMS from your own SIM." : ""}
-                </Text>
-                {smsBody && facility?.emergencySmsNumber ? (
-                  <Button
-                    variant="secondary"
-                    label="Send by SMS instead"
-                    onPress={() => {
-                      Linking.openURL(smsUrl(facility.emergencySmsNumber ?? "", smsBody)).catch(
-                        () => {},
-                      );
-                    }}
-                  />
-                ) : null}
-              </View>
-            ) : null}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !facility || busy, busy }}
-              disabled={!facility || busy}
-              onPress={() => void send()}
-              style={({ pressed }) => [
-                styles.send,
-                !facility && styles.sendDisabled,
-                pressed && styles.pressed,
-              ]}
+    <Screen
+      title="Tell a hospital"
+      subtitle="They prepare before you arrive. Calling still comes first."
+      back={{ onPress: onBack }}
+      helpSource="emergency-tell"
+      stagger={false}
+      gap={tSpace[6]}
+      footer={
+        <>
+          {error ? (
+            <Text accessibilityRole="alert" style={[tType.bodyM, { color: tide.ink }]}>
+              {error}
+            </Text>
+          ) : null}
+          {queued ? (
+            <View
+              accessibilityRole="alert"
+              style={{
+                gap: tSpace[2],
+                padding: tSpace[3],
+                borderRadius: tRadius.md,
+                backgroundColor: tide.surface2,
+              }}
             >
-              <Text style={[styles.sendLabel, !facility && styles.sendLabelDisabled]}>
-                {busy ? "Sending…" : "Send"}
+              <Text style={[tType.labelS, { color: tide.ink }]}>Queued — no connection</Text>
+              <Text style={[tType.bodyS, { color: tide.ink }]}>
+                We&rsquo;ll keep trying while this screen is open.
+                {smsBody ? " You can also send it by SMS from your own SIM." : ""}
               </Text>
-            </Pressable>
-            {facility?.emergencyPhone ? (
+              {smsBody && facility?.emergencySmsNumber ? (
+                <Button
+                  variant="outline"
+                  label="Send by SMS instead"
+                  onPress={() => {
+                    Linking.openURL(smsUrl(facility.emergencySmsNumber ?? "", smsBody)).catch(
+                      () => {},
+                    );
+                  }}
+                />
+              ) : null}
+            </View>
+          ) : null}
+          {/* The pre-alert's Send: the one red fill on this screen (PRD §7.1). */}
+          <Press
+            accessibilityState={{ busy }}
+            disabled={!facility || busy}
+            onPress={() => void send()}
+            style={{
+              minHeight: 52,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: tSpace[6],
+              borderRadius: tRadius.pill,
+              backgroundColor: facility ? tide.emergency : tide.primaryOff,
+              boxShadow: facility ? tide.shadow.emergency : undefined,
+            }}
+          >
+            <Text style={[tType.label, { color: facility ? tide.onEmergency : tide.onPrimaryOff }]}>
+              {busy ? "Sending…" : "Send"}
+            </Text>
+          </Press>
+          {facility?.emergencyPhone ? (
+            <Button
+              variant="outline"
+              icon="phone"
+              label={`Call ${facility.name}`}
+              accessibilityLabel={`Call ${facility.name}, ${facility.emergencyPhone}`}
+              onPress={() => {
+                Linking.openURL(telUrl(facility.emergencyPhone ?? "")).catch(() => {});
+              }}
+            />
+          ) : null}
+        </>
+      }
+    >
+      <Field label="Hospital">
+        {enabled.length ? (
+          <View accessibilityRole="radiogroup" style={{ gap: tSpace[2] }}>
+            {enabled.map((o) => (
+              <FacilityTile
+                key={o.facility.id}
+                label={o.facility.name}
+                hint={[
+                  o.isOwn ? "Your hospital" : null,
+                  o.distanceKm !== null ? `${o.distanceKm} km` : null,
+                  o.facility.emergencyCapability === "24h" ? "Open 24 h" : o.facility.level,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+                selected={facility?.id === o.facility.id}
+                onPress={() => setFacilityId(o.facility.id)}
+              />
+            ))}
+          </View>
+        ) : (
+          <Text style={[tType.bodyS, { color: tide.ink2 }]}>
+            {sheet
+              ? "No hospital near you takes pre-alerts yet. Please call."
+              : "Loading hospitals…"}
+          </Text>
+        )}
+        {callOnly.map((o) => (
+          <View
+            key={o.facility.id}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: tSpace[3],
+              paddingHorizontal: tSpace[4],
+              paddingVertical: tSpace[2],
+              borderRadius: tRadius.row,
+              backgroundColor: tide.surface2,
+            }}
+          >
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[tType.labelS, { color: tide.ink }]}>{o.facility.name}</Text>
+              <Text style={[tType.bodyS, { color: tide.ink2 }]}>
+                Call only — does not take pre-alerts yet
+              </Text>
+            </View>
+            {o.facility.emergencyPhone ? (
               <Button
-                variant="secondary"
-                label={`Call ${facility.name}`}
-                accessibilityLabel={`Call ${facility.name}, ${facility.emergencyPhone}`}
+                variant="outline"
+                size="sm"
+                label="Call"
+                accessibilityLabel={`Call ${o.facility.name}, ${o.facility.emergencyPhone}`}
                 onPress={() => {
-                  Linking.openURL(telUrl(facility.emergencyPhone ?? "")).catch(() => {});
+                  Linking.openURL(telUrl(o.facility.emergencyPhone ?? "")).catch(() => {});
                 }}
               />
             ) : null}
-          </>
+          </View>
+        ))}
+        <View style={{ alignItems: "flex-start", paddingVertical: tSpace[1] }}>
+          <TextLink
+            label="Use my location to sort hospitals"
+            onPress={() => void sortByLocation()}
+          />
+        </View>
+        {locationNote ? (
+          <Text style={[tType.bodyS, { color: tide.ink2 }]}>{locationNote}</Text>
+        ) : null}
+      </Field>
+
+      <Field label="Who is this for?">
+        <ChipRow>
+          {signedIn ? (
+            <Chip label="Me" selected={who === "me"} onPress={() => setWho("me")} />
+          ) : null}
+          {AUDIENCES.map((a) => (
+            <Chip
+              key={a}
+              label={t(CATALOG, `audience.${a}`)}
+              selected={who === a}
+              onPress={() => setWho(a)}
+            />
+          ))}
+        </ChipRow>
+      </Field>
+
+      <Field label="What is happening?" hint={picks.length ? undefined : "Not sure is fine."}>
+        <ChipRow>
+          {choices.map((item) => (
+            <Chip
+              key={item.key}
+              label={t(CATALOG, item.labelKey)}
+              selected={picks.includes(item.key)}
+              onPress={() => togglePick(item.key)}
+            />
+          ))}
+        </ChipRow>
+      </Field>
+
+      <Field label="When did it start?">
+        <ChipRow>
+          {ONSET.map((o) => (
+            <Chip
+              key={o.key}
+              label={o.label}
+              selected={onset === o.key}
+              onPress={() => setOnset(o.key)}
+            />
+          ))}
+        </ChipRow>
+      </Field>
+
+      {strokeFlag ? (
+        <Field label="When were they last normal?">
+          <ChipRow>
+            {LAST_WELL.map((o) => (
+              <Chip
+                key={o.key}
+                label={o.label}
+                selected={lastWell === o.key}
+                onPress={() => setLastWell(o.key)}
+              />
+            ))}
+          </ChipRow>
+        </Field>
+      ) : null}
+
+      <Field label="Getting there by">
+        <ChipRow>
+          {TRANSPORT_MODES.map((m) => (
+            <Chip
+              key={m}
+              label={TRANSPORT_WORD[m]}
+              selected={transport === m}
+              onPress={() => setTransport(m)}
+            />
+          ))}
+        </ChipRow>
+      </Field>
+
+      <Field label="Arriving in">
+        <ChipRow>
+          {ETA_BANDS.map((b) => (
+            <Chip
+              key={b}
+              label={ETA_BAND_LABEL[b]}
+              selected={eta === b}
+              onPress={() => setEta(b)}
+            />
+          ))}
+        </ChipRow>
+      </Field>
+
+      <Field
+        label="Callback number"
+        hint={
+          signedIn
+            ? "Leave blank to use the number on your account."
+            : "So the hospital can reach you."
         }
       >
-        <View style={styles.column}>
-          <Field label="Hospital">
-            {enabled.length ? (
-              <TileGrid>
-                {enabled.map((o) => (
-                  <Tile
-                    key={o.facility.id}
-                    label={o.facility.name}
-                    hint={[
-                      o.isOwn ? "Your hospital" : null,
-                      o.distanceKm !== null ? `${o.distanceKm} km` : null,
-                      o.facility.emergencyCapability === "24h" ? "Open 24 h" : o.facility.level,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                    selected={facility?.id === o.facility.id}
-                    onPress={() => setFacilityId(o.facility.id)}
-                  />
-                ))}
-              </TileGrid>
-            ) : (
-              <Text style={styles.hint}>
-                {sheet
-                  ? "No hospital near you takes pre-alerts yet. Please call."
-                  : "Loading hospitals…"}
-              </Text>
-            )}
-            {callOnly.map((o) => (
-              <View key={o.facility.id} style={styles.callOnly}>
-                <View style={styles.callOnlyText}>
-                  <Text style={styles.callOnlyName}>{o.facility.name}</Text>
-                  <Text style={styles.hint}>Call only — does not take pre-alerts yet</Text>
-                </View>
-                {o.facility.emergencyPhone ? (
-                  <Button
-                    variant="link"
-                    label="Call"
-                    accessibilityLabel={`Call ${o.facility.name}, ${o.facility.emergencyPhone}`}
-                    onPress={() => {
-                      Linking.openURL(telUrl(o.facility.emergencyPhone ?? "")).catch(() => {});
-                    }}
-                  />
-                ) : null}
-              </View>
-            ))}
-            <Button
-              variant="link"
-              label="Use my location to sort hospitals"
-              onPress={() => void sortByLocation()}
-            />
-            {locationNote ? <Text style={styles.hint}>{locationNote}</Text> : null}
-          </Field>
+        <TextField
+          accessibilityLabel="Callback number"
+          value={callback}
+          onChangeText={setCallback}
+          keyboardType="phone-pad"
+          autoComplete="tel"
+          placeholder="07XXXXXXXX"
+        />
+      </Field>
 
-          <Field label="Who is this for?">
-            <ChipRow>
-              {signedIn ? (
-                <Chip label="Me" selected={who === "me"} onPress={() => setWho("me")} />
-              ) : null}
-              {AUDIENCES.map((a) => (
-                <Chip
-                  key={a}
-                  label={t(CATALOG, `audience.${a}`)}
-                  selected={who === a}
-                  onPress={() => setWho(a)}
-                />
-              ))}
-            </ChipRow>
-          </Field>
-
-          <Field label="What is happening?" hint={picks.length ? undefined : "Not sure is fine."}>
-            <ChipRow>
-              {choices.map((item) => (
-                <Chip
-                  key={item.key}
-                  role="button"
-                  label={t(CATALOG, item.labelKey)}
-                  selected={picks.includes(item.key)}
-                  onPress={() => togglePick(item.key)}
-                />
-              ))}
-            </ChipRow>
-          </Field>
-
-          <Field label="When did it start?">
-            <ChipRow>
-              {ONSET.map((o) => (
-                <Chip
-                  key={o.key}
-                  label={o.label}
-                  selected={onset === o.key}
-                  onPress={() => setOnset(o.key)}
-                />
-              ))}
-            </ChipRow>
-          </Field>
-
-          {strokeFlag ? (
-            <Field label="When were they last normal?">
-              <ChipRow>
-                {LAST_WELL.map((o) => (
-                  <Chip
-                    key={o.key}
-                    label={o.label}
-                    selected={lastWell === o.key}
-                    onPress={() => setLastWell(o.key)}
-                  />
-                ))}
-              </ChipRow>
-            </Field>
-          ) : null}
-
-          <Field label="Getting there by">
-            <ChipRow>
-              {TRANSPORT_MODES.map((m) => (
-                <Chip
-                  key={m}
-                  label={TRANSPORT_WORD[m]}
-                  selected={transport === m}
-                  onPress={() => setTransport(m)}
-                />
-              ))}
-            </ChipRow>
-          </Field>
-
-          <Field label="Arriving in">
-            <ChipRow>
-              {ETA_BANDS.map((b) => (
-                <Chip
-                  key={b}
-                  label={ETA_BAND_LABEL[b]}
-                  selected={eta === b}
-                  onPress={() => setEta(b)}
-                />
-              ))}
-            </ChipRow>
-          </Field>
-
-          <Field
-            label="Callback number"
-            hint={
-              signedIn
-                ? "Leave blank to use the number on your account."
-                : "So the hospital can reach you."
-            }
-          >
-            <TextInput
-              accessibilityLabel="Callback number"
-              value={callback}
-              onChangeText={setCallback}
-              keyboardType="phone-pad"
-              autoComplete="tel"
-              placeholder="07XXXXXXXX"
-              placeholderTextColor={colors.mutedForeground}
-              style={styles.input}
-            />
-          </Field>
-
-          {facility?.ambulanceNumber ? (
-            <View style={styles.switchRow}>
-              <View style={styles.switchText}>
-                <Text style={styles.label}>Share my location with this hospital</Text>
-                <Text style={styles.hint}>
-                  {facility.name} runs its own ambulance. Sent once, with this alert only.
-                </Text>
-              </View>
-              <Switch
-                accessibilityLabel="Share my location with this hospital"
-                value={share !== null}
-                onValueChange={(on) => void toggleShare(on)}
-                trackColor={{ true: colors.primary }}
-              />
-            </View>
-          ) : null}
+      {facility?.ambulanceNumber ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3] }}>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[tType.label, { color: tide.ink }]}>
+              Share my location with this hospital
+            </Text>
+            <Text style={[tType.bodyS, { color: tide.ink2 }]}>
+              {facility.name} runs its own ambulance. Sent once, with this alert only.
+            </Text>
+          </View>
+          <Switch
+            accessibilityLabel="Share my location with this hospital"
+            value={share !== null}
+            onValueChange={(on) => void toggleShare(on)}
+            trackColor={{ true: tide.accentPressed, false: tide.primaryOff }}
+            thumbColor={tide.onBand}
+            ios_backgroundColor={tide.primaryOff}
+          />
         </View>
-      </Screen>
-    </KeyboardAvoidingView>
+      ) : null}
+    </Screen>
   );
 }
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
-  const styles = useStyles(makeStyles);
+  const tide = useTide();
   return (
-    <View style={styles.field}>
-      <Text accessibilityRole="header" style={styles.label}>
+    <View style={{ gap: tSpace[2] }}>
+      <Text accessibilityRole="header" style={[tType.label, { color: tide.ink }]}>
         {label}
       </Text>
       {children}
-      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+      {hint ? <Text style={[tType.bodyS, { color: tide.ink2 }]}>{hint}</Text> : null}
     </View>
   );
 }
 
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    fill: { flex: 1 },
-    column: { gap: space[6] },
-    field: { gap: space[2] },
-    label: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },
-    hint: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
-    input: {
-      minHeight: 48,
-      paddingHorizontal: space[4],
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: c.border,
-      backgroundColor: c.card,
-      fontFamily: font.body,
-      fontSize: 16,
-      color: c.foreground,
-    },
-    callOnly: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: space[3],
-      paddingHorizontal: space[4],
-      paddingVertical: space[2],
-      borderRadius: radius.xl,
-      borderWidth: 1,
-      borderColor: c.border,
-      backgroundColor: c.muted,
-    },
-    callOnlyText: { flex: 1, gap: 2 },
-    callOnlyName: { fontFamily: font.bodyMedium, fontSize: 15, color: c.foreground },
-    switchRow: { flexDirection: "row", alignItems: "center", gap: space[3] },
-    switchText: { flex: 1, gap: 2 },
-
-    // The pre-alert's Send: the one red fill on this screen (PRD §7.1).
-    send: {
-      minHeight: 52,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: space[6],
-      borderRadius: radius.full,
-      backgroundColor: c.status.criticalFg,
-    },
-    sendDisabled: { backgroundColor: c.muted, borderWidth: 1, borderColor: c.border },
-    sendLabel: { fontFamily: font.bodyMedium, fontSize: 16, color: c.background },
-    sendLabelDisabled: { color: c.mutedForeground },
-    pressed: { opacity: 0.85 },
-    error: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.foreground },
-    queued: {
-      gap: space[2],
-      padding: space[3],
-      borderRadius: radius.lg,
-      backgroundColor: c.muted,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    queuedTitle: { fontFamily: font.bodyMedium, fontSize: 15, color: c.foreground },
-    queuedBody: { fontFamily: font.body, fontSize: 14, lineHeight: 20, color: c.foreground },
-  });
+/**
+ * One hospital to send to: its name and hint on the left, a tick on the right
+ * once chosen, so the choice is a mark as well as a tint (the Tide pick).
+ */
+function FacilityTile({
+  label,
+  hint,
+  selected,
+  onPress,
+}: {
+  label: string;
+  hint?: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const tide = useTide();
+  return (
+    <Press
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected }}
+      accessibilityLabel={hint ? `${label}. ${hint}` : label}
+      onPress={onPress}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: tSpace[3],
+        minHeight: 56,
+        paddingHorizontal: tSpace[4],
+        paddingVertical: tSpace[2.5],
+        borderRadius: tRadius.row,
+        backgroundColor: selected ? tide.accentTint : tide.surface,
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? tide.accent : tide.line,
+      }}
+    >
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[tType.labelS, { color: tide.ink }]}>{label}</Text>
+        {hint ? <Text style={[tType.bodyS, { color: tide.ink2 }]}>{hint}</Text> : null}
+      </View>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={{
+          width: 24,
+          height: 24,
+          borderRadius: 12,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: selected ? tide.primary : tide.surface,
+          borderWidth: selected ? 0 : 1.5,
+          borderColor: tide.lineStrong,
+        }}
+      >
+        {selected ? <Icon name="check" size={14} color={tide.onPrimary} strokeWidth={2.6} /> : null}
+      </View>
+    </Press>
+  );
+}

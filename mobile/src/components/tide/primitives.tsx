@@ -112,7 +112,13 @@ export function TextLink({
   const t = useTide();
   const color = tone === "accent" ? t.accentText : tone === "info" ? t.info.text : t.ink;
   return (
-    <Press onPress={onPress} accessibilityRole="link" hitSlop={10} haptic={false}>
+    <Press
+      onPress={onPress}
+      accessibilityRole="link"
+      // 18pt line + 13 above and below: a 44pt target (law L13).
+      hitSlop={{ top: 13, bottom: 13, left: 10, right: 10 }}
+      haptic={false}
+    >
       <Text style={[tType.labelS, { color }, style]}>{label}</Text>
     </Press>
   );

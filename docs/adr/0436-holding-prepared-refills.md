@@ -1,4 +1,4 @@
-# ADR 0427: Holding prepared refills
+# ADR 0436: Holding prepared refills
 
 **Status:** Accepted, 26 Oct 2026. Pharmacy Phase 4 GATE A (signed by the CSO, D-PH4-29), Steps 2 and 5. Supersedes Phase 1 E-PH1-03 ("nothing is held") and D-PH1-31's Definition of Done line, for prepared refills only (SA-1).
 

@@ -1,6 +1,6 @@
 # ADR 0434: A repeat is the prescriber's record beside the line
 
-**Status:** Accepted, 26 Oct 2026. Pharmacy Phase 4 GATE A (signed by the CSO, D-PH4-29), Steps 2 to 4. This is the draft numbered 0425 in `docs/pharmacy/phase-4/adr-drafts.md`, renumbered because 0425 was taken on other branches.
+**Status:** Accepted, 26 Oct 2026. Pharmacy Phase 4 GATE A (signed by the CSO, D-PH4-29), Steps 2 to 4. This is the draft first numbered 0425 (`docs/pharmacy/phase-4/adr-drafts.md`), renumbered with the rest of the Phase 4 claim to 0434–0449.
 
 ## Context
 

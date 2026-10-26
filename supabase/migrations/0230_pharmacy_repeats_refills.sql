@@ -1,6 +1,6 @@
 -- 0230 — Pharmacy Phase 4, first merge: repeat authorisations, repeat instances, renewal requests, refill requests,
 -- named collectors, and prepared (held) stock (RP-1 to RP-6, RI-1, RF-1 to RF-5, RN-1 to RN-4, SA-1 to SA-6; ADR range
--- 0426 to 0444, docs/NUMBERS.md; GATE A signed 26 Oct 2026, D-PH4-29: the CSO signs alone for Steps 2 to 5).
+-- 0434 to 0449, docs/NUMBERS.md; GATE A signed 26 Oct 2026, D-PH4-29: the CSO signs alone for Steps 2 to 5).
 --
 -- GATED: owner-applied (`npm run db:migrate`), after 0212. ADDITIVE. Nothing reads these tables until the flags
 -- `pharmacyRepeats` and `pharmacyRefills` are on, and they stay off until legal questions 1 and 2 are answered.

@@ -1,25 +1,22 @@
 import type { HospitalOption, PatientProfile, WalkInDepartment } from "@/lib/booking";
-import type { Palette } from "@/theme/tokens";
 import { useCallback, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
-import { EmergencyButton } from "@/components/patient/emergency-button";
-import { Button } from "@/components/ui/button";
-import { Chip, ChipRow } from "@/components/ui/chip";
-import { Empty } from "@/components/ui/empty";
-import { Screen } from "@/components/ui/screen";
-import { Section } from "@/components/ui/section";
+import {
+  Button,
+  Card,
+  Chip,
+  ChipRow,
+  Icon,
+  IconDisc,
+  Note,
+  Press,
+  Screen,
+  TextField,
+  TextLink,
+} from "@/components/tide";
+import { pickStyle, StepTitle } from "@/features/visits/parts";
 import {
   choosePrimaryHospital,
   declareIntake,
@@ -29,8 +26,8 @@ import {
   fetchWalkInDepartments,
 } from "@/lib/booking";
 import { clearPendingCatalogDraft, getPendingCatalogDraft } from "@/lib/pending-symptoms";
-import { useStyles, useTheme } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { useTide } from "@/theme/theme";
+import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * Door A — "Coming to the hospital today" (ADR 0084 §1, §2), the primary door.
@@ -53,9 +50,8 @@ import { font, radius, space } from "@/theme/tokens";
  *     instead of being shown a message they cannot act on.
  */
 export default function TodayScreen() {
+  const t = useTide();
   const router = useRouter();
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
 
   // `undefined` until the profile is in; by then it has a hospital, or the
   // screen has already left.
@@ -65,7 +61,6 @@ export default function TodayScreen() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [note, setNote] = useState("");
-  const [noteFocused, setNoteFocused] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hospitals, setHospitals] = useState<HospitalOption[]>([]);
@@ -152,38 +147,33 @@ export default function TodayScreen() {
     router.replace("/(app)/ticket");
   };
 
+  // Back is `router.back()`, the Tide back link's default; Help is the Screen's red disc.
+  const chrome = { back: {}, helpSource: "today" };
+
   if (loadError) {
     return (
-      <Screen onBack={router.back} trailing={<EmergencyButton />}>
-        <Empty
-          icon="cloud-offline-outline"
-          title="Couldn't load this screen."
-          hint="Check your connection and try again."
-          action={
-            <Button
-              variant="secondary"
-              label="Try again"
-              onPress={() => {
-                setLoadError(null);
-                void load();
-              }}
-            />
-          }
-        />
+      <Screen {...chrome}>
+        <View style={{ gap: tSpace[3] }}>
+          <Note tone="plain">
+            {"Couldn't load this screen. Check your connection and try again."}
+          </Note>
+          <Button
+            variant="outline"
+            label="Try again"
+            onPress={() => {
+              setLoadError(null);
+              void load();
+            }}
+          />
+        </View>
       </Screen>
     );
   }
 
   if (!profile) {
     return (
-      <Screen
-        onBack={router.back}
-        trailing={<EmergencyButton />}
-        title="Coming to the hospital today"
-      >
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} accessibilityLabel="Loading" />
-        </View>
+      <Screen {...chrome} title="Coming to the hospital today">
+        <ActivityIndicator color={t.ink} accessibilityLabel="Loading" />
       </Screen>
     );
   }
@@ -204,8 +194,8 @@ export default function TodayScreen() {
   };
 
   const head = (
-    <>
-      <Text style={styles.lede}>
+    <View style={{ gap: tSpace[3] }}>
+      <Text style={[tType.bodyM, { color: t.ink }]}>
         We save your place in line. You will be seen in turn. We cannot tell you the hour.
       </Text>
       {/* Yours first and filled, two beside it, the directory beyond that:
@@ -216,7 +206,6 @@ export default function TodayScreen() {
           {(allHospitalsShown ? hospitals : hospitals.slice(0, 3)).map((h) => (
             <Chip
               key={h.id}
-              role="button"
               label={switching === h.id ? "Switching…" : h.name}
               selected={h.id === profile?.hospitalId}
               onPress={() => {
@@ -226,7 +215,6 @@ export default function TodayScreen() {
           ))}
           {hospitals.length > 3 && !allHospitalsShown ? (
             <Chip
-              role="button"
               label={`View more (${hospitals.length - 3})`}
               selected={false}
               onPress={() => setAllHospitalsShown(true)}
@@ -234,15 +222,15 @@ export default function TodayScreen() {
           ) : null}
         </ChipRow>
       ) : (
-        <Text style={styles.eyebrow}>{hospitalName}</Text>
+        <Text style={[tType.overline, { color: t.ink3 }]}>{hospitalName}</Text>
       )}
-    </>
+    </View>
   );
   // Named rather than silently omitted: a patient told to go to a specific
   // clinic has to see that it is the clinic, not the app, that is closed.
   const closedNote =
     closed.length > 0 ? (
-      <Text style={styles.muted}>
+      <Text style={[tType.bodyS, { color: t.ink2 }]}>
         Not taking walk-ins at {hospitalName} right now: {closed.map((d) => d.name).join(" · ")}.
       </Text>
     ) : null;
@@ -252,119 +240,101 @@ export default function TodayScreen() {
   // exit is the hospital; booking is demoted to a plain link.
   if (open.length === 0) {
     return (
-      <Screen
-        onBack={router.back}
-        trailing={<EmergencyButton />}
-        title="Coming to the hospital today"
-      >
-        <View style={styles.stack}>
-          {head}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Go to the hospital.</Text>
-            {/* "the emergency entrance is open at all hours" belongs here only
-                where someone has verified it. Nothing records that; not written. */}
-            <Text style={styles.body}>Reception can register you when you arrive.</Text>
-            {closedNote}
-            <Button
-              variant="link"
+      <Screen {...chrome} title="Coming to the hospital today">
+        {head}
+        <Card padding={tSpace[4]}>
+          <Text style={[tType.heading, { color: t.ink }]}>Go to the hospital.</Text>
+          {/* "the emergency entrance is open at all hours" belongs here only
+              where someone has verified it. Nothing records that; not written. */}
+          <Text style={[tType.bodyM, { color: t.ink }]}>
+            Reception can register you when you arrive.
+          </Text>
+          {closedNote}
+          <View style={{ alignItems: "flex-start", paddingVertical: tSpace[1] }}>
+            <TextLink
               label="Ask for a day — the clinic confirms"
               onPress={() => router.push("/(app)/book")}
-              style={styles.cardLink}
             />
           </View>
-        </View>
+        </Card>
       </Screen>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.fill}
-      // Same split as sign-in: the two platforms report the keyboard
-      // differently, and one behaviour for both leaves the docked button under
-      // it on whichever platform loses.
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <Screen
-        onBack={router.back}
-        trailing={<EmergencyButton />}
-        title="Coming to the hospital today"
-        footer={
-          <>
-            {error ? (
-              <View style={styles.well}>
-                <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
-                <Text style={styles.wellText} accessibilityLiveRegion="polite">
-                  {error}
-                </Text>
-              </View>
-            ) : null}
-            <Button
-              label="Save a place in line"
-              onPress={() => void onSubmit()}
-              busy={busy}
-              disabled={!chosenId}
-            />
-          </>
-        }
-      >
-        <View style={styles.stack}>
-          {head}
-
-          {only ? (
-            <View style={styles.group}>
-              <Text style={styles.caption}>Where you are going</Text>
-              <DepartmentCard name={only.name} />
+    <Screen
+      {...chrome}
+      title="Coming to the hospital today"
+      footer={
+        <>
+          {/* Amber, not red: a refused request is not a clinical emergency. The
+              amber is the frame and the glyph; the words carry the meaning. */}
+          {error ? (
+            <View accessibilityLiveRegion="polite">
+              <Note tone="caution" icon="alert">
+                {error}
+              </Note>
             </View>
-          ) : (
-            <Section title="Which clinic were you told to go to?">
-              {/* Two tiles a row: a hospital's clinics on one screen, not a
-                  scroll of 76px rows. */}
-              <View style={styles.grid} accessibilityRole="radiogroup">
-                {open.map((d) => (
-                  <View key={d.id} style={styles.gridCell}>
-                    <DepartmentCard
-                      name={d.name}
-                      checked={d.id === selectedId}
-                      onPress={() => setSelectedId(d.id)}
-                      compact
-                    />
-                  </View>
-                ))}
+          ) : null}
+          <Button
+            label="Save a place in line"
+            onPress={() => void onSubmit()}
+            busy={busy}
+            disabled={!chosenId}
+          />
+        </>
+      }
+    >
+      {head}
+
+      {only ? (
+        <View style={{ gap: tSpace[2] }}>
+          <Text style={[tType.caption, { color: t.ink3 }]}>Where you are going</Text>
+          <DepartmentCard name={only.name} />
+        </View>
+      ) : (
+        <View style={{ gap: tSpace[2] }}>
+          <StepTitle>Which clinic were you told to go to?</StepTitle>
+          {/* Two tiles a row: a hospital's clinics on one screen, not a
+              scroll of 76pt rows. */}
+          <View
+            style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}
+            accessibilityRole="radiogroup"
+          >
+            {open.map((d) => (
+              <View key={d.id} style={{ width: "48.5%" }}>
+                <DepartmentCard
+                  name={d.name}
+                  checked={d.id === selectedId}
+                  onPress={() => setSelectedId(d.id)}
+                  compact
+                />
               </View>
-            </Section>
-          )}
-
-          {closedNote}
-
-          <View style={styles.field}>
-            <Text style={[styles.fieldLabel, noteFocused && styles.fieldLabelFocused]}>
-              What brings you in? (optional)
-            </Text>
-            <TextInput
-              value={note}
-              onChangeText={setNote}
-              onFocus={() => setNoteFocused(true)}
-              onBlur={() => setNoteFocused(false)}
-              multiline
-              maxLength={500}
-              placeholder="A short note helps the team prepare — e.g. follow-up for diabetes, persistent cough for 3 days."
-              placeholderTextColor={colors.mutedForeground}
-              selectionColor={colors.primary}
-              accessibilityLabel="What brings you in? Optional."
-              style={[styles.input, noteFocused && styles.inputFocused]}
-            />
+            ))}
           </View>
         </View>
-      </Screen>
-    </KeyboardAvoidingView>
+      )}
+
+      {closedNote}
+
+      <TextField
+        label="What brings you in? (optional)"
+        value={note}
+        onChangeText={setNote}
+        multiline
+        maxLength={500}
+        placeholder="A short note helps the team prepare — e.g. follow-up for diabetes, persistent cough for 3 days."
+        accessibilityLabel="What brings you in? Optional."
+      />
+    </Screen>
   );
 }
 
 /**
- * One clinic, as the reference's doctor row: a disc, the name, the one fact
- * about it that matters today, a chevron. With `onPress` it is a radio in the
- * list of open clinics; without, it is the named destination.
+ * One clinic: a disc, the name, the one fact about it that matters today. With
+ * `onPress` it is a radio in the list of open clinics; without, it is the
+ * named destination. Chosen is the Tide pick (lagoon tint, a thicker ring)
+ * and a tick, so the choice is a mark as well as a tint.
  */
 function DepartmentCard({
   name,
@@ -375,192 +345,45 @@ function DepartmentCard({
   name: string;
   checked?: boolean;
   onPress?: () => void;
-  /** A grid tile: smaller disc, the name on two lines at most, no chevron. */
+  /** A grid tile: smaller disc, the name on two lines at most, no "Open now". */
   compact?: boolean;
 }) {
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
-
+  const t = useTide();
   const body = (
     <>
-      {/* The disc flips to the brand fill when chosen, so the pick is a shape
-          and not only a tint. Decorative: the name is beside it. */}
-      <View
-        style={[styles.disc, compact && styles.discCompact, checked && styles.discChecked]}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-      >
-        <Ionicons
-          name="medkit-outline"
-          size={compact ? 18 : 22}
-          color={checked ? colors.primaryForeground : colors.accentForeground}
-        />
-      </View>
-      <View style={styles.optionText}>
-        <Text
-          style={[
-            styles.optionName,
-            compact && styles.optionNameCompact,
-            checked && styles.optionInkChecked,
-          ]}
-          numberOfLines={2}
-        >
+      <IconDisc name="building" size={compact ? 32 : 44} color={t.ink} bg={t.surface2} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[compact ? tType.labelS : tType.label, { color: t.ink }]} numberOfLines={2}>
           {name}
         </Text>
         {compact ? null : (
-          <Text style={[styles.optionMeta, checked && styles.optionInkChecked]}>Open now</Text>
+          <Text style={[tType.bodyS, { fontFamily: tFont.medium, color: t.ink2 }]}>Open now</Text>
         )}
       </View>
-      {onPress && !compact ? (
-        <Ionicons
-          name="chevron-forward"
-          size={20}
-          color={checked ? colors.accentForeground : colors.mutedForeground}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        />
-      ) : null}
+      {checked ? <Icon name="check" size={18} color={t.accentText} strokeWidth={2.4} /> : null}
     </>
   );
+  const frame = {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: compact ? tSpace[2] : tSpace[3],
+    minHeight: compact ? 56 : 76,
+    padding: compact ? tSpace[3] : tSpace[4],
+    borderRadius: tRadius.row,
+    ...pickStyle(t, checked),
+  } as const;
 
-  if (!onPress) return <View style={styles.option}>{body}</View>;
+  if (!onPress) return <View style={frame}>{body}</View>;
 
   return (
-    <Pressable
+    <Press
+      onPress={onPress}
       accessibilityRole="radio"
       accessibilityState={{ checked }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.option,
-        compact && styles.optionCompact,
-        checked && styles.optionChecked,
-        pressed && styles.pressed,
-      ]}
+      accessibilityLabel={name}
+      style={frame}
     >
       {body}
-    </Pressable>
+    </Press>
   );
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    fill: { flex: 1 },
-    center: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
-    stack: { gap: space[5] },
-
-    eyebrow: {
-      fontFamily: font.body,
-      fontSize: 12.5,
-      letterSpacing: 0.3,
-      color: c.mutedForeground,
-      marginTop: -space[3],
-    },
-    lede: {
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.foreground,
-      marginTop: -space[2],
-    },
-
-    card: {
-      gap: space[1],
-      padding: space[4],
-      borderRadius: radius["2xl"],
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    cardTitle: { fontFamily: font.bodySemiBold, fontSize: 17, lineHeight: 23, color: c.foreground },
-    body: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.foreground },
-    cardLink: { alignSelf: "flex-start", marginTop: space[1], marginLeft: -space[2] },
-    caption: {
-      fontFamily: font.body,
-      fontSize: 12.5,
-      letterSpacing: 0.3,
-      color: c.mutedForeground,
-    },
-    muted: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
-
-    group: { gap: space[2] },
-    grid: { flexDirection: "row", flexWrap: "wrap", gap: space[2] },
-    gridCell: { width: "48.5%" },
-    optionCompact: { minHeight: 56, padding: space[3], gap: space[2], borderRadius: radius.xl },
-    discCompact: { width: 32, height: 32, borderRadius: 16 },
-    optionNameCompact: { fontSize: 14, lineHeight: 19 },
-    option: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: space[3],
-      minHeight: 76,
-      padding: space[4],
-      borderRadius: radius["2xl"],
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    optionChecked: { backgroundColor: c.accent, borderColor: c.primary },
-    disc: {
-      width: 44,
-      height: 44,
-      borderRadius: radius.full,
-      backgroundColor: c.accent,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    discChecked: { backgroundColor: c.primary },
-    optionText: { flex: 1, gap: 2 },
-    optionName: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },
-    optionMeta: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
-    optionInkChecked: { color: c.accentForeground },
-    pressed: { opacity: 0.88 },
-
-    // The sunken input: a quiet well on the page, the brand hairline on focus
-    // — and the label lifts in weight too, so focus is never colour alone.
-    field: { gap: space[2] },
-    fieldLabel: {
-      fontFamily: font.body,
-      fontSize: 12.5,
-      letterSpacing: 0.3,
-      color: c.mutedForeground,
-    },
-    fieldLabelFocused: { fontFamily: font.bodyMedium, color: c.primary },
-    input: {
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.foreground,
-      minHeight: 96,
-      paddingHorizontal: space[4],
-      paddingVertical: space[3],
-      borderRadius: radius.lg,
-      backgroundColor: c.muted,
-      // The web's inputs carry `--input` (= border) as their edge; a sunken
-      // fill alone is invisible on the dark page until focus, and a field a
-      // patient cannot find is not a field.
-      borderWidth: 1,
-      borderColor: c.border,
-      textAlignVertical: "top",
-    },
-    inputFocused: { borderColor: c.primary },
-
-    // Amber, not red: a refused request is not a clinical emergency. The
-    // amber is the frame and the glyph; the words carry the meaning.
-    well: {
-      flexDirection: "row",
-      gap: space[2],
-      alignItems: "flex-start",
-      padding: space[3],
-      borderRadius: radius.lg,
-      backgroundColor: c.status.cautionBg,
-      borderWidth: 1,
-      borderColor: c.status.cautionFg,
-    },
-    wellText: {
-      flex: 1,
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.foreground,
-    },
-  });

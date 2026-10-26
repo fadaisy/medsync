@@ -400,7 +400,7 @@ export const pharmacySupplies = pgTable("pharmacy_supplies", {
   handoverId: uuid("handover_id").notNull(),
   hospitalId: uuid("hospital_id").notNull(),
   dispensingPointId: uuid("dispensing_point_id").notNull(),
-  // Exactly one of the hospital and the partner supplies (0231 ps_supplier, ADR 0428); a partner supply has no
+  // Exactly one of the hospital and the partner supplies (0231 ps_supplier, ADR 0437); a partner supply has no
   // product or batch keys and moves no hospital stock (RT-5).
   supplyingHospitalId: uuid("supplying_hospital_id"),
   supplyingPartnerId: uuid("supplying_partner_id"),
