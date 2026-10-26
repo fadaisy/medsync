@@ -1,4 +1,4 @@
-# Pharmacy Phase 4: hazard log (draft, unsigned)
+# Pharmacy Phase 4: hazard log (signed by Fadhul, CSO, 26 Oct 2026, as written)
 
 Seeded from Appendix C of the prompt and completed at Step 1. A hazard closes only when its test passes; the "Closed by" column names that test, to be written at the step shown. H4-15 to H4-22 come from the STOP 0 findings.
 
