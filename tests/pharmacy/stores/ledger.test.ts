@@ -17,7 +17,7 @@ import {
 import { at, batch, int, mv, prng } from "./fixtures";
 
 describe("SL-12 the new kinds and their pairs", () => {
-  it("pairs exactly 0180's psm_pairs kinds, each the other's leg", () => {
+  it("pairs exactly 0180's psm_pairs kinds (with 0230's set-aside and release), each the other's leg", () => {
     expect(MOVEMENT_KINDS.filter(isPaired).sort()).toEqual(
       [
         "issued",
@@ -26,6 +26,10 @@ describe("SL-12 the new kinds and their pairs", () => {
         "returned_in",
         "quarantined_out",
         "quarantined_in",
+        "set_aside_out",
+        "set_aside_in",
+        "released_out",
+        "released_in",
       ].sort(),
     );
     for (const [k, other] of Object.entries(PAIRS))

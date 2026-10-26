@@ -47,6 +47,9 @@ describe("D-PH1-49: the printed prescription does not change", () => {
     const stripped = src(PAGE)
       .replace('import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";\n', "")
       .replace('import { PrintRecord } from "./_components/print-record";\n', "")
+      // Pharmacy Phase 4: the repeats line renders nothing unless PHARMACY_REPEATS is on and the line has repeats.
+      .replace('import { RepeatsPrint } from "./_components/repeats-print";\n', "")
+      .replace(/\n {16}<RepeatsPrint[\s\S]*?\/>/, "")
       .replace(
         /\n {6}\{kept\.length && pharmacyDispensingLiveFor\(actor\.hospitalId\) \? \([\s\S]*?\n {6}\) : null\}/,
         "",

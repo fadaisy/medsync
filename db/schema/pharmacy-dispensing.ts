@@ -159,6 +159,11 @@ export const MOVEMENT_KINDS = [
   "quarantined_in",
   "written_off",
   "returned_to_supplier",
+  // Phase 4 (0230, SA-1): two-leg moves into and out of a point's `prepared` location
+  "set_aside_out",
+  "set_aside_in",
+  "released_out",
+  "released_in",
 ] as const;
 export type MovementKind = (typeof MOVEMENT_KINDS)[number];
 
@@ -395,12 +400,21 @@ export const pharmacySupplies = pgTable("pharmacy_supplies", {
   handoverId: uuid("handover_id").notNull(),
   hospitalId: uuid("hospital_id").notNull(),
   dispensingPointId: uuid("dispensing_point_id").notNull(),
-  supplyingHospitalId: uuid("supplying_hospital_id").notNull(),
+  // Exactly one of the hospital and the partner supplies (0231 ps_supplier, ADR 0437); a partner supply has no
+  // product or batch keys and moves no hospital stock (RT-5).
+  supplyingHospitalId: uuid("supplying_hospital_id"),
+  supplyingPartnerId: uuid("supplying_partner_id"),
+  routingId: uuid("routing_id"),
   patientUserId: uuid("patient_user_id").notNull(),
   prescriptionId: uuid("prescription_id"),
   paperPrescriptionLineId: uuid("paper_prescription_line_id"),
-  productId: uuid("product_id").notNull(),
-  batchId: uuid("batch_id").notNull(),
+  productId: uuid("product_id"),
+  batchId: uuid("batch_id"),
+  partnerProductText: text("partner_product_text"),
+  partnerRegistrationNumber: text("partner_registration_number"),
+  partnerBatchText: text("partner_batch_text"),
+  partnerExpiry: date("partner_expiry"),
+  supervisingPharmacistUserId: uuid("supervising_pharmacist_user_id"),
   quantity: integer("quantity").notNull(),
   issueUnit: text("issue_unit").notNull(),
   daysCovered: integer("days_covered"),

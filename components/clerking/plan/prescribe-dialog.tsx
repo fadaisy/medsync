@@ -73,6 +73,7 @@ import { cn } from "@/lib/utils";
 import { FactChips } from "./medicines";
 import { MedicinesBrowseDialog } from "./medicines-browse-dialog";
 import { Caution, DraftLabel, FOCUS, inputClass, Seg, Tag, Toggle } from "./parts";
+import { NO_REPEATS, readRepeats, RepeatsField } from "./repeats";
 
 /**
  * The prescribing dialog (ADR 0186): a centred landscape dialog in three columns, what, how and
@@ -311,6 +312,7 @@ export function PlanPrescribeDialog({
   const [browsing, setBrowsing] = useState(false);
   const [byAge, setByAge] = useState(false);
   const [more, setMore] = useState(false);
+  const [rep, setRep] = useState(NO_REPEATS);
   const searchId = useId();
   const doseId = useId();
   const noteId = useId();
@@ -468,7 +470,15 @@ export function PlanPrescribeDialog({
   const rest = checks.filter((c) => !firing.includes(c));
   const edits = rx ? regimenEdits(rx, chosen) : [];
   const stop = checks.some((c) => c.outcome === "stop" && c.overrideable);
-  const reason = blocked(s, drug, rx, verdict && !verdict.ok ? verdict.reason : null);
+  // Pharmacy Phase 4 (5.2): the Repeats step, only for a medicine the signed list allows; never a controlled drug.
+  const repeats = v.payload.repeats;
+  const repBounds =
+    repeats?.bounds && drug && !drug.flags.controlled && repeats.bounds.offered.includes(drug.id)
+      ? repeats.bounds
+      : null;
+  const repRead = repBounds && repeats ? readRepeats(rep, repBounds, repeats.today) : null;
+  const reason =
+    blocked(s, drug, rx, verdict && !verdict.ok ? verdict.reason : null) ?? repRead?.error ?? null;
   const rate = rx?.fluid ? fluidRate(rx.fluid) : null;
 
   const add = () => {
@@ -480,6 +490,8 @@ export function PlanPrescribeDialog({
       display: willRead(rx, drug),
       drugName: drug.generic,
       problemLogicalId: problem.logicalId,
+      repeats: repRead?.terms ?? null,
+      ...(target.renewalId ? { renewalId: target.renewalId } : {}),
     });
   };
 
@@ -1137,6 +1149,9 @@ export function PlanPrescribeDialog({
               </div>
             ) : null}
           </Field>
+          {repBounds && repeats ? (
+            <RepeatsField bounds={repBounds} today={repeats.today} value={rep} onChange={setRep} />
+          ) : null}
         </section>
       </div>
     </EmrDialog>

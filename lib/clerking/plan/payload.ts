@@ -42,4 +42,30 @@ export interface PlanPayload {
   interactions?: InteractionContext | null;
   /** Pharmacy Phase 1 (5.10): where the dialog asks for the stock line; absent with the flag off (S88). */
   stockAnswer?: { surface: "doctor" | "clinician"; patientUserId: string; encounterId: string };
+  /** Pharmacy Phase 4 (5.2): the Repeats step's signed bounds and each placed line's terms; absent with the flag off. */
+  repeats?: RepeatsPayload;
+}
+
+export interface RepeatTerms {
+  furtherSupplies: number;
+  minIntervalDays: number;
+  notAfter: string;
+  reviewBy: string | null;
+  /** Stopped by a prescriber (RP-3), or ended because the line was cancelled or replaced. */
+  stopped: { cadre: string | null; on: string } | null;
+  ended: boolean;
+}
+
+export interface RepeatsPayload {
+  /** Null while the repeat pack is unsigned: no Repeats step is shown (Appendix D). */
+  bounds: {
+    offered: string[];
+    maxSupplies: number;
+    maxPeriodDays: number;
+    minIntervalDays: number;
+  } | null;
+  today: string;
+  lines: Record<string, RepeatTerms>;
+  /** Who acts from the card (Stop repeats). */
+  who?: { surface: "doctor" | "clinician"; patientUserId: string };
 }

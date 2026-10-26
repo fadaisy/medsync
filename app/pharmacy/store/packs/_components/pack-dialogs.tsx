@@ -5,10 +5,10 @@ import type { PackKind } from "@/lib/pharmacy/stores/packs";
 import { useId, useState } from "react";
 
 import { Input } from "@/components/ui/input";
+import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
 import {
   CSO_ALONE,
   PACK_FIELDS as L,
-  PACK_TEXT,
   PACKS,
   PACK_REFERENCE as R,
 } from "@/content/pharmacy-stores-supply";

@@ -4,13 +4,15 @@ import type { PharmacyCtx } from "@/lib/pharmacy/write";
 import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { CSO_ALONE, PACK_TEXT, PACKS } from "@/content/pharmacy-stores-supply";
+import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
+import { CSO_ALONE, PACKS } from "@/content/pharmacy-stores-supply";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { pharmacyAttestations, pharmacySignedSets } from "@/db/schema/pharmacy-dispensing";
 import { users } from "@/db/schema/users";
 import { attestSecondPerson } from "@/lib/auth/attest";
 import { PHARMACY_PERMISSIONS } from "@/lib/pharmacy/access";
 import { bannedTermsScan } from "@/lib/pharmacy/messages";
+import { NETWORK_PACK_SCHEMAS } from "@/lib/pharmacy/network-packs";
 import { fail, storeNeed } from "./write";
 
 /**
@@ -122,6 +124,8 @@ export const PACK_SCHEMAS = {
   outcome_reasons: coded,
   identity_routes: coded,
   counselling_points: coded,
+  // Phase 4 (0232): signed here; read by `networkPack`.
+  ...NETWORK_PACK_SCHEMAS,
 } as const;
 
 export type PackKind = keyof typeof PACK_SCHEMAS;

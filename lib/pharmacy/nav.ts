@@ -15,6 +15,8 @@ export type PharmacyNavId =
   | "queue"
   | "open"
   | "supplied"
+  // Phase 4 (5.5)
+  | "refills"
   | "stock"
   | "controlled"
   | "downtime"
@@ -38,6 +40,8 @@ export type PharmacyNavId =
 export interface PharmacyNavFlags {
   dispensing: boolean;
   downtime: boolean;
+  /** Phase 4, `pharmacyRefills`; absent means off. */
+  refills?: boolean;
   /** Phase 2 (D-PH2-24); absent means off. */
   stores?: StoresFlags;
   /** Phase 3 (Law 14); absent means off. */
@@ -71,6 +75,14 @@ export const PHARMACY_NAV: readonly PharmacyNavItem[] = [
     order: 3,
     exact: false,
     visibleFor: (p, f) => !!f?.dispensing && view(p),
+  },
+  {
+    id: "refills",
+    label: "Refills",
+    href: "/pharmacy/refills",
+    order: 3.5,
+    exact: false,
+    visibleFor: (p, f) => !!f?.refills && view(p),
   },
   {
     id: "stock",

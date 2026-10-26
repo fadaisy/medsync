@@ -526,6 +526,8 @@ export async function finishTrace(
   // RC-2: exact, from recorded supplies net of their reversals.
   const exact = exactList(
     supplies.flatMap((s) => {
+      // A partner supply has no batch here (RT-5); a recall traces only the hospital's own batches.
+      if (!s.batchId) return [];
       const row = {
         patientId: s.patientId,
         batchId: s.batchId,

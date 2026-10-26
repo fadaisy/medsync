@@ -18,6 +18,7 @@ import { decrypt } from "@/lib/encryption";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { includeSet, loadPrint, restrictedChoices } from "../_lib/load";
 import { PrintRecord } from "./_components/print-record";
+import { RepeatsPrint } from "./_components/repeats-print";
 
 export const metadata: Metadata = { title: "Prescription · MedSync" };
 export const dynamic = "force-dynamic";
@@ -112,6 +113,12 @@ export default async function PrescriptionPrintPage({ params, searchParams }: Pr
                 <PrescriptionLine item={r} />
                 {r.instructionsCiphertext ? <span>{decrypt(r.instructionsCiphertext)}</span> : null}
                 {r.awaitingCosign ? <span>Awaiting senior co-sign</span> : null}
+                <RepeatsPrint
+                  actor={actor}
+                  prescriptionId={r.id}
+                  prescriberUserId={r.prescriberUserId}
+                  prescriberName={prescribers.get(r.prescriberUserId)?.name ?? ""}
+                />
               </li>
             ))}
           </ol>

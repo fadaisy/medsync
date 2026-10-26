@@ -15,8 +15,9 @@ export type { LocationKind };
 export type WardModel = "stocked" | "issue_only";
 export type Direction = "in" | "out";
 
-/** The six columns of LC-3. */
+/** The columns of LC-3 (Phase 4 adds `prepared`, SA-1). */
 export type Place =
+  | "prepared"
   | "store"
   | "dispensing_point"
   | "ward_stocked"
@@ -45,6 +46,10 @@ export const DIRECTION: Readonly<Record<MovementKind, Direction | "either">> = {
   quarantined_out: "out",
   written_off: "out",
   returned_to_supplier: "out",
+  set_aside_in: "in",
+  released_in: "in",
+  set_aside_out: "out",
+  released_out: "out",
   adjusted: "either",
   count_correction: "either",
 };
@@ -85,7 +90,11 @@ export const LC3: Readonly<Record<Place, readonly MovementKind[]>> = {
     "count_correction",
     "transfer_out",
     "transfer_in",
+    "set_aside_out",
+    "released_in",
   ],
+  // SA-1 (amends LC-3): held stock comes in by setting aside and leaves by release, hand-over or quarantine.
+  prepared: ["set_aside_in", "released_out", "supplied", "quarantined_out"],
   ward_stocked: ["received_from_issue", "returned_out", "ward_used", "quarantined_out", "adjusted"],
   ward_issue_only: ["received_from_issue"],
   // `issued` out only to another cart (EC-3 "moved to another cart"; decided 21 Oct 2026, see issueAllowed).
@@ -131,9 +140,9 @@ export function allows(
 export const isIssueOnlyWard = (kind: LocationKind, model: WardModel | null): boolean =>
   kind === "ward" && model === "issue_only";
 
-/** LC-4: every location is counted except an issue-only ward. */
+/** LC-4: every location is counted except an issue-only ward and held refills (SA-2: no count corrects them). */
 export const mayBeCounted = (kind: LocationKind, model: WardModel | null): boolean =>
-  placeOf(kind, model) !== null && !isIssueOnlyWard(kind, model);
+  placeOf(kind, model) !== null && !isIssueOnlyWard(kind, model) && kind !== "prepared";
 
 /** LC-4, 5.12: an issue-only ward needs no go-live of its own beyond being named. */
 export const needsOwnGoLive = (kind: LocationKind, model: WardModel | null): boolean =>
@@ -172,6 +181,8 @@ export function isInternalTransfer(
   to: LocationKind,
 ): boolean {
   if (kind === "transfer_out" || kind === "transfer_in") return true;
+  // SA-1: setting aside and releasing are internal transfers between a point and its `prepared` location.
+  if (["set_aside_out", "set_aside_in", "released_out", "released_in"].includes(kind)) return true;
   if (kind !== "issued" && kind !== "received_from_issue") return false;
   return INTERNAL_PLACES.has(from) && INTERNAL_PLACES.has(to);
 }

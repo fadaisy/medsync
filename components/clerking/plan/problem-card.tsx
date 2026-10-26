@@ -24,6 +24,7 @@ import { classById, drugsInClass, SUPPORTIVE_ITEMS } from "@/lib/prescribing/for
 import { cn } from "@/lib/utils";
 import { Chevron, DraftLabel, FOCUS, inputClass, PriorityTag, Seg, Tag } from "./parts";
 import { itemsForLine, PharmacyChips, PharmacyItemBlock } from "./pharmacy";
+import { RepeatsLine } from "./repeats";
 
 /**
  * One problem from 09 Impression (ADR 0184 §1): tests that would help decide, must not miss,
@@ -36,6 +37,8 @@ export interface PrescribeTarget {
   drugId?: string;
   classId?: string;
   fluids?: boolean;
+  /** Pharmacy Phase 4 (RN-3): this placement answers a renewal request. */
+  renewalId?: string;
 }
 
 const PRIORITY_OPTIONS = ORDER_PRIORITIES.map((p) => ({
@@ -581,6 +584,14 @@ export function ProblemCard({
                       <li key={r.id} className="text-body-s flex flex-wrap items-center gap-2">
                         <span>{r.display}</span>
                         <Tag>{r.awaitingCosign ? "Awaiting co-sign" : "Prescribed"}</Tag>
+                        {v.payload.repeats?.lines[r.id] && v.payload.repeats.who ? (
+                          <RepeatsLine
+                            terms={v.payload.repeats.lines[r.id]!}
+                            who={v.payload.repeats.who}
+                            prescriptionId={r.id}
+                            canWrite={canWrite}
+                          />
+                        ) : null}
                         {pharmacy && v.payload.pharmacy ? (
                           <>
                             <PharmacyChips view={v.payload.pharmacy} lineId={r.id} />

@@ -225,6 +225,8 @@ describe("source rules", () => {
       "app/pharmacy/downtime/actions.ts",
       "app/pharmacy/downtime/entry-actions.ts",
       "app/pharmacy/open-lines/actions.ts",
+      // Pharmacy Phase 4: refills (Step 5).
+      "app/pharmacy/refill-actions.ts",
       "app/pharmacy/review-actions.ts",
       "app/pharmacy/stock/actions.ts",
       // Pharmacy Phase 2: the Store group (Steps 4 to 9).
@@ -249,6 +251,7 @@ describe("source rules", () => {
     expect(read("app/pharmacy/supply-actions.ts")).toMatch(/runPharmacyWrite/);
     expect(read("app/pharmacy/controlled-actions.ts")).toMatch(/runPharmacyWrite/);
     expect(read("app/pharmacy/open-lines/actions.ts")).toMatch(/runPharmacyWrite/);
+    expect(read("app/pharmacy/refill-actions.ts")).toMatch(/runPharmacyWrite/);
     for (const f of walk("app/pharmacy"))
       expect(read(f), f).not.toMatch(
         /@\/lib\/emr\/(write|actions)|@\/app\/(doctor|nurse|lab)\/.*actions/,
