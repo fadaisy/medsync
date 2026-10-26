@@ -25,7 +25,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@patient-core/*": ["./packages/patient-core/*"]
     }
   },
   "include": [

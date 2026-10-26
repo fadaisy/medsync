@@ -1,7 +1,9 @@
 import type { IconName } from "@/components/tide/icon";
 import type { Dose } from "@/data/medicines";
 import type { Href } from "expo-router";
+import type { NotifTargetKey } from "@patient-core/notifications";
 import { useEffect } from "react";
+import { FALLBACK, KIND_WORDS, notifTarget } from "@patient-core/notifications";
 
 import { SLOT_WORDS, useMedicines } from "@/data/medicines";
 import { createStore, useStore } from "@/data/store";
@@ -61,115 +63,23 @@ export interface DispatchRow {
   hospitals: { name: string } | { name: string }[] | null;
 }
 
-interface KindWords {
-  title: string;
-  line: string;
-  icon: IconName;
-  type: Notif["type"];
-  /** The button inside the row, when the message asks for something. */
-  act?: string;
-}
-
-/**
- * Titles are the web's push titles (`composeDispatchPush`, lib/notifications/dispatches.ts);
- * the lines say what to do next, with no name or value in them.
- */
-const KIND_WORDS: Record<string, KindWords> = {
-  booking_receipt: {
-    title: "Your visit is booked",
-    line: "Open it to see the day and your code.",
-    icon: "calendar",
-    type: "visit",
-  },
-  confirmation_request: {
-    title: "Are you coming tomorrow?",
-    line: "Confirm you are coming, or free the place.",
-    icon: "calendar",
-    type: "visit",
-    act: "Open visit",
-  },
-  reminder: {
-    title: "A reminder about your visit",
-    line: "Open it to see the day and time.",
-    icon: "clock",
-    type: "visit",
-  },
-  arrival_window: {
-    title: "Your arrival window today",
-    line: "Open it to see when to arrive.",
-    icon: "clock",
-    type: "visit",
-    act: "Open visit",
-  },
-  window_shifted: {
-    title: "Your arrival window has moved",
-    line: "The clinic is running late. Open it to see the new window.",
-    icon: "clock",
-    type: "visit",
-    act: "Open visit",
-  },
-  waitlist_offer: {
-    title: "A place has opened",
-    line: "Open your visits to take it before the offer closes.",
-    icon: "calendar",
-    type: "visit",
-    act: "See the offer",
-  },
-  session_cancelled: {
-    title: "Clinic day cancelled",
-    line: "We are sorry. Open it to choose another day.",
-    icon: "calendar",
-    type: "visit",
-    act: "Choose a day",
-  },
-  unconfirmed_release: {
-    title: "Your place was released",
-    line: "It was not confirmed. If you still need a visit, book again.",
-    icon: "calendar",
-    type: "visit",
-    act: "Book a visit",
-  },
-  position_called: {
-    title: "The clinic is calling you",
-    line: "Open your ticket.",
-    icon: "users",
-    type: "visit",
-    act: "Open ticket",
-  },
-  payment: {
-    title: "About a payment",
-    line: "Open MedSync for details.",
-    icon: "wallet",
-    type: "care",
-  },
-  sms_reply: {
-    title: "We answered your text message",
-    line: "Sent by SMS to your phone.",
-    icon: "message",
-    type: "care",
-  },
-};
-
-const FALLBACK: KindWords = {
-  title: "An update about your visit",
-  line: "Open MedSync for details.",
-  icon: "bell",
-  type: "care",
-};
-
 const one = <T>(v: T | T[] | null): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
+
+/** The phone's route for each core target key. */
+const ROUTE: Record<Exclude<NotifTargetKey, "visit">, Href> = {
+  book: "/book",
+  ticket: "/ticket",
+  visits: "/visits",
+};
 
 /** Where a row goes: its appointment, the visits list for a waitlist, the ticket when called, else nowhere. */
 export function targetOf(
   row: Pick<DispatchRow, "kind" | "related_kind" | "related_id">,
 ): Href | undefined {
-  if (row.kind === "unconfirmed_release") return "/book";
-  if (row.kind === "position_called") return "/ticket";
-  if (row.related_kind === "appointment")
-    return { pathname: "/visits/[id]", params: { id: row.related_id } };
-  if (row.related_kind === "waitlist_entry" || row.related_kind === "clinic_session")
-    return "/visits";
-  return undefined;
+  const t = notifTarget(row);
+  if (!t) return undefined;
+  if (t.key === "visit") return { pathname: "/visits/[id]", params: { id: t.id } };
+  return ROUTE[t.key];
 }
 
 export function groupOf(iso: string, now: Date): NotifGroup {

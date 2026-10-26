@@ -145,6 +145,8 @@ const BOOKING_PATHS = [
   "mobile/src/app/(app)/book",
   "mobile/src/data/visits.ts",
   "mobile/src/features/visits",
+  // ADR 0404: what Ask for a day sends besides words.
+  "mobile/src/data/attachments.ts",
   // ADR 0098: the catalog, the Emergency Pathway and the desk's catalog. The
   // ONE sanctioned display join — lib/emergency/labels.ts reading a
   // discriminator's LABEL — lives under lib/emergency, outside this list.
@@ -152,7 +154,7 @@ const BOOKING_PATHS = [
   "app/emergency",
   "components/emergency",
   "components/intake",
-  "mobile/src/components/symptoms",
+  "mobile/src/features/symptoms",
   "mobile/src/components/emergency",
   "mobile/src/app/(app)/symptoms.tsx",
   "mobile/src/app/(app)/emergency",
@@ -293,6 +295,7 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
     // Tide v1 (ADR 0340) retired the phone's home shortlist and the doctor and clinic screens.
     "mobile/src/app/(app)/book/index.tsx",
     "mobile/src/app/(app)/book/today.tsx",
+    "mobile/src/features/visits/symptom-note.tsx",
     "mobile/src/app/(app)/book/day.tsx",
   ];
 
@@ -353,6 +356,7 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
       ["app/patient/book/_components/symptom-picker.tsx", "@/supabase/functions/_shared/symptoms"],
       ["app/patient/_components/symptom-quick-pick.tsx", "@/supabase/functions/_shared/symptoms"],
       ["mobile/src/components/patient/symptom-picker.tsx", "@shared/symptoms"],
+      ["mobile/src/features/visits/symptom-note.tsx", "@shared/symptoms"],
     ] as const) {
       const src = stripComments(readRequired(path));
       expect(src, `${path} does not import SYMPTOMS_NOTE from ${module}`).toMatch(
@@ -454,7 +458,7 @@ describe("ADR 0098 — advisory tiering: a pure classifier over signed content, 
     "app/patient/symptoms",
     "app/emergency",
     "components/emergency",
-    "mobile/src/components/symptoms",
+    "mobile/src/features/symptoms",
     "mobile/src/components/emergency",
     "mobile/src/app/(app)/symptoms.tsx",
     "mobile/src/app/(app)/emergency",
@@ -577,7 +581,11 @@ describe("PRD §3.6 — a clinic day with no clinician is never offered as booka
     // Phone: the same predicate in the data layer. Tide v1 (ADR 0340): `data/visits.ts` uses it
     // for the open days, and `loadDays` drops a clinic day with no clinician before Book's day
     // screen sees it, so that screen's places-left test runs over gated sessions only.
+    // The gate lives in the shared core since D-PW-09; mobile/src/lib/booking.ts re-exports it.
     expect(read("mobile/src/lib/booking.ts")).toContain(
+      'export { sessionTakeable } from "@patient-core/doctors";',
+    );
+    expect(read("packages/patient-core/doctors.ts")).toContain(
       "return s.placesLeft > 0 && s.clinicianUserId !== null;",
     );
     const visits = stripComments(read("mobile/src/data/visits.ts"));

@@ -1,7 +1,10 @@
 import type { SaveResult } from "@/offline/outbox";
-import type { MedicationRow, TakeRow, DoseSlot as WebSlot } from "@patient/doses";
+import type { DoseSlot } from "@patient-core/dose-slots";
+import type { MedRow, TakeRec } from "@patient-core/medicines";
 import { useEffect } from "react";
-import { buildDayDoses, DOSE_GRACE_MINUTES, pendingSlotAt } from "@patient/doses";
+import { pendingSlotAt } from "@patient/doses";
+import { hhmm, patternFor, SLOT_TIMES, slotOf } from "@patient-core/dose-slots";
+import { dayDoses, doseStatus, takeFor, toDose, weekCounts, whenWords } from "@patient-core/medicines";
 
 import { onAccountChange } from "@/data/health-log";
 import { createStore, useStore } from "@/data/store";
@@ -19,23 +22,10 @@ import { currentUserId, db, insertOrQueue, newId, unqueue } from "@/offline/outb
  * is never read. A dose is a medicine, a time of day and "As your clinician
  * prescribed". Nothing here reaches a clinician: the list is the patient's.
  */
-export type DoseSlot = "morning" | "midday" | "evening" | "night";
-/** `noEntry`: past its time with nothing recorded, where a miss cannot be claimed (a guessed time). */
-export type DoseStatus = "taken" | "due" | "later" | "missed" | "noEntry";
-
-export interface Dose {
-  /** The web's slot key, `${medicationId}@${HH:MM}`. */
-  id: string;
-  slot: DoseSlot;
-  /** 24-hour "HH:MM". */
-  time: string;
-  medicine: string;
-  instruction: string;
-  takenAt: string | null;
-  snoozedUntil: string | null;
-  /** The slot's instant, which a take records as `scheduled_for`. */
-  scheduledForIso: string;
-}
+export type { DoseSlot } from "@patient-core/dose-slots";
+export { hhmm, patternFor, SLOT_TIMES, SLOT_WORDS, slotOf } from "@patient-core/dose-slots";
+export type { Dose, DoseStatus, MedRow, TakeRec } from "@patient-core/medicines";
+export { dayDoses, doseStatus, takesForDay, toDose, weekCounts, whenWords } from "@patient-core/medicines";
 
 export interface Medicine {
   id: string;
@@ -46,134 +36,9 @@ export interface Medicine {
   state: "active" | "paused";
 }
 
-export const SLOT_WORDS: Record<DoseSlot, string> = {
-  morning: "Morning",
-  midday: "Midday",
-  evening: "Evening",
-  night: "Night",
-};
-
-/** The clock time each time-of-day chip writes to `schedule_times` when a patient adds a medicine. */
-export const SLOT_TIMES: Record<DoseSlot, string> = {
-  morning: "08:00",
-  midday: "13:00",
-  evening: "20:00",
-  night: "22:00",
-};
-
-const PRESCRIBED = "As your clinician prescribed";
-
-export function hhmm(d: Date): string {
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-
-/** The time-of-day word for a clock time: morning 04–11, midday 11–16, evening 16–21, night after. */
-export function slotOf(timeLabel: string): DoseSlot {
-  const h = Number(timeLabel.slice(0, 2));
-  if (h >= 4 && h < 11) return "morning";
-  if (h >= 11 && h < 16) return "midday";
-  if (h >= 16 && h < 21) return "evening";
-  return "night";
-}
-
-/**
- * The phone's word for a slot: due from an hour before its time until the
- * web's grace ends; an open slot past that is the web's own "No entry" (a
- * guessed time can never be missed).
- */
-export function doseStatus(slot: Pick<WebSlot, "state" | "at">, now: Date): DoseStatus {
-  if (slot.state === "taken") return "taken";
-  if (slot.state === "missed") return "missed";
-  const t = now.getTime();
-  const at = slot.at.getTime();
-  if (t < at - 60 * 60_000) return "later";
-  if (t <= at + DOSE_GRACE_MINUTES * 60_000) return "due";
-  return "noEntry";
-}
-
-/** One web slot to the phone's dose. Instructions follow the fixed words; the dose column never shows. */
-export function toDose(slot: WebSlot, snoozedUntil: string | null = null): Dose {
-  const extra = slot.instructions?.trim();
-  return {
-    id: slot.key,
-    slot: slotOf(slot.timeLabel),
-    time: slot.timeLabel,
-    medicine: slot.name,
-    instruction: extra ? `${PRESCRIBED} · ${extra}` : PRESCRIBED,
-    takenAt: slot.state === "taken" ? (slot.takenAtLabel ?? slot.timeLabel) : null,
-    snoozedUntil,
-    scheduledForIso: slot.at.toISOString(),
-  };
-}
-
 /* ─── rows ─────────────────────────────────────────────────────────── */
 
-export interface MedRow extends MedicationRow {
-  /** ISO; a medicine added on Wednesday has no doses to count on Monday. */
-  createdAt: string;
-}
-
-export interface TakeRec extends TakeRow {
-  id: string;
-}
-
-const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-
-/** The takes that belong to one day, filed by `coalesce(scheduled_for, taken_at)` like the web's `listTakesForDay`. */
-export function takesForDay(takes: TakeRec[], day: Date): TakeRec[] {
-  const from = startOfDay(day).getTime();
-  const to = addDays(day, 1).getTime();
-  return takes.filter((t) => {
-    const at = new Date(t.scheduledForIso ?? t.takenAtIso).getTime();
-    return at >= from && at < to;
-  });
-}
-
-/** The active medicines that existed by the end of `day`. */
-function medsOn(meds: MedRow[], day: Date): MedRow[] {
-  const end = addDays(day, 1).getTime();
-  return meds.filter((m) => m.state === "active" && new Date(m.createdAt).getTime() < end);
-}
-
-export function dayDoses(meds: MedRow[], takes: TakeRec[], day: Date, now: Date) {
-  return buildDayDoses({
-    medications: medsOn(meds, day),
-    takes: takesForDay(takes, day),
-    day: startOfDay(day),
-    now,
-  });
-}
-
-/** Doses taken and doses scheduled on each of the six days before today and today, oldest first. */
-export function weekCounts(
-  meds: MedRow[],
-  takes: TakeRec[],
-  now: Date,
-): { taken: number[]; totals: number[] } {
-  const days = Array.from({ length: 7 }, (_, i) => addDays(now, i - 6));
-  const built = days.map((d) => dayDoses(meds, takes, d, now));
-  return { taken: built.map((b) => b.taken), totals: built.map((b) => b.total) };
-}
-
-const WHEN_ORDER: DoseSlot[] = ["morning", "midday", "evening", "night"];
-
-/** "Morning and evening" from the clock times, in plain words. */
-export function whenWords(med: MedicationRow): string {
-  if (med.schedulePattern === "as_needed") return "When you need it";
-  const slots = new Set((med.scheduleTimes ?? []).map((x) => slotOf(x.slice(0, 5))));
-  const words = WHEN_ORDER.filter((s) => slots.has(s)).map((s) => SLOT_WORDS[s].toLowerCase());
-  if (!words.length) return "No times set";
-  const list =
-    words.length > 1 ? `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}` : words[0];
-  return list[0].toUpperCase() + list.slice(1);
-}
-
-/** The pattern a set of chips writes, so the web's adherence reads it the same way. */
-export function patternFor(times: string[]): string {
-  if (times.length === 0) return "as_needed";
-  return ["once_daily", "twice_daily", "thrice_daily"][times.length - 1] ?? "custom";
-}
 
 /* ─── store ────────────────────────────────────────────────────────── */
 
@@ -276,16 +141,6 @@ function ensureLoaded(force = false): void {
 function today(now: Date) {
   const s = store.get();
   return dayDoses(s.meds, s.takes, now, now);
-}
-
-/** The take that put a slot into "taken": its own `scheduled_for`, else the same medicine at the same minute. */
-function takeFor(slot: WebSlot, takes: TakeRec[]): TakeRec | undefined {
-  const mine = takesForDay(takes, slot.at).filter((t) => t.medicationId === slot.medicationId);
-  return (
-    mine.find(
-      (t) => t.scheduledForIso && new Date(t.scheduledForIso).getTime() === slot.at.getTime(),
-    ) ?? mine.find((t) => hhmm(new Date(t.takenAtIso)) === slot.takenAtLabel)
-  );
 }
 
 export const medicinesRepo = {

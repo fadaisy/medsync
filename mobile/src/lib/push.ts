@@ -1,7 +1,7 @@
+import type * as NotificationsModule from "expo-notifications";
 import { useEffect } from "react";
-import Constants from "expo-constants";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import { Platform } from "react-native";
 
@@ -30,15 +30,47 @@ import { supabase } from "@/lib/supabase";
  * Function that re-homes a token to the caller.
  */
 
-/** Foreground presentation: show it — a silent arrival would be a message the patient never sees. */
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+type Notifications = typeof NotificationsModule;
+let loaded: Notifications | null | undefined;
+
+/**
+ * `expo-notifications`, or null where push cannot work: Expo Go on Android
+ * dropped remote notifications in SDK 53, and merely importing the module
+ * there throws, which stopped the whole app (owner's Android test, 18 Oct
+ * 2026). There the app runs without push; SMS still reaches the patient. A
+ * development or release build has it.
+ */
+export function notificationsModule(): Notifications | null {
+  if (loaded !== undefined) return loaded;
+  const expoGoAndroid =
+    Platform.OS === "android" &&
+    Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+  if (Platform.OS === "web" || expoGoAndroid) return (loaded = null);
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    loaded = require("expo-notifications") as Notifications;
+    // Foreground presentation: show it — a silent arrival would be a message the patient never sees.
+    loaded.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  } catch {
+    loaded = null;
+  }
+  return loaded;
+}
+
+/** This phone's push permission, or null where push is not available at all. */
+export async function pushPermission(): Promise<"granted" | "denied" | "undetermined" | null> {
+  const N = notificationsModule();
+  if (!N) return null;
+  const p = await N.getPermissionsAsync();
+  return p.status === "granted" ? "granted" : p.status === "denied" ? "denied" : "undetermined";
+}
 
 const ANDROID_CHANNEL = "medsync-visits";
 
@@ -56,7 +88,8 @@ interface PushData {
  * one of those is "no push for this device", not an error to show.
  */
 export async function registerPushToken(): Promise<string | null> {
-  if (!Device.isDevice) return null;
+  const Notifications = notificationsModule();
+  if (!Notifications || !Device.isDevice) return null;
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL, {
       name: "Visits",
@@ -103,7 +136,8 @@ export async function registerPushToken(): Promise<string | null> {
 
 /** Called BEFORE `auth.signOut()` — after it the JWT is gone and RLS refuses the delete. */
 export async function unregisterPushToken(): Promise<void> {
-  if (!Device.isDevice) return;
+  const Notifications = notificationsModule();
+  if (!Notifications || !Device.isDevice) return;
   try {
     const perm = await Notifications.getPermissionsAsync();
     if (perm.status !== "granted") return;
@@ -136,14 +170,15 @@ function destinationFor(
 export function usePushNotifications(enabled: boolean): void {
   const router = useRouter();
   useEffect(() => {
-    if (!enabled) return;
+    const Notifications = notificationsModule();
+    if (!enabled || !Notifications) return;
     void registerPushToken();
 
     const received = Notifications.addNotificationReceivedListener((n) => {
       const data = n.request.content.data as PushData;
       if (data.dispatch_id) void ackNotification(data.dispatch_id);
     });
-    const follow = (response: Notifications.NotificationResponse) => {
+    const follow = (response: NotificationsModule.NotificationResponse) => {
       const data = response.notification.request.content.data as PushData;
       if (data.dispatch_id) void ackNotification(data.dispatch_id);
       const to = destinationFor(data);

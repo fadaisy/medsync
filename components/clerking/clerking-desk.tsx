@@ -855,6 +855,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
       sex: k.sex,
       patient: { name: p.patient.name, mrn: p.patient.mrn },
       badges: derived.badges,
+      reported: k.patientReported,
       openKey: openComplaint,
       onOpenComplaint: (key) => {
         setOpenComplaint(key);

@@ -3,12 +3,13 @@ import type { HouseholdMember } from "@/lib/booking";
 import type { ThemePreference } from "@/theme/theme";
 import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
+import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
-import * as Notifications from "expo-notifications";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Image, Linking, Switch, Text, View } from "react-native";
 
 import { Avatar, Button, HealthCard, Icon, Press, Screen, TextLink } from "@/components/tide";
+import { useHistory } from "@/data/history";
 import {
   ageWords,
   cardNumber,
@@ -19,6 +20,9 @@ import {
   useMePrefs,
 } from "@/data/me";
 import { useMedicines } from "@/data/medicines";
+import { placesSummary, usePlaces } from "@/data/places";
+import { detailsFromAppOn, loadDetails } from "@/data/profile-details";
+import { cardLines } from "@/features/history/logic";
 import {
   AVATAR_PICKER_OPTIONS,
   fetchHousehold,
@@ -27,7 +31,7 @@ import {
 } from "@/lib/booking";
 import { SMS_CONSENT_COPY } from "@/lib/consent-copy";
 import { fetchSmsConsent, setSmsConsent } from "@/lib/notifications";
-import { registerPushToken } from "@/lib/push";
+import { pushPermission, registerPushToken } from "@/lib/push";
 import { useSession } from "@/lib/session";
 import { useNow } from "@/lib/use-now";
 import { useTheme, useTide } from "@/theme/theme";
@@ -37,15 +41,18 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * Me (board TMe/DMe, §8.6, F-20): the health card, my health, the people I
  * book for, privacy, and the phone's settings.
  *
- * All real: name (auth metadata), patient code, home facility, sex, age and
- * the conditions the patient wrote on their profile (cached for the offline
- * card), their medicines list, the household, photo, SMS consent, push
- * permission, theme and sign out. Allergies are not the patient's to read on
- * the phone yet, so the row says to tell the nurse. No primary doctor,
- * emergency contact, record openings or payment method is shown: the phone
- * holds none of them truthfully. Language and text size stay on this phone.
+ * All real: name (auth metadata), patient code, home facility, sex and age
+ * (cached for the offline card); the conditions, allergies and family history
+ * the patient reports from the clerking desk's catalogue (ADR 0414, cached
+ * too), which the desk shows as patient-reported for a clinician to confirm;
+ * their medicines list, the household, photo, SMS consent, push permission,
+ * theme and sign out. The card's back says whether a next of kin is on file
+ * (the number is encrypted server-side) and who to call if it is found. No
+ * primary doctor, blood group or payment method is shown: the phone holds
+ * none of them truthfully. Language is the preferred language saved on the
+ * profile (Profile details edits it); the app's own words are English, and
+ * text size follows the phone's setting, so neither is a switch here.
  */
-const ALLERGY_WORDS = "Tell your nurse about any allergy";
 export default function MeTab() {
   const t = useTide();
   const router = useRouter();
@@ -56,8 +63,10 @@ export default function MeTab() {
   const id = useCardIdentity(session?.user.id ?? null, name);
   const now = useNow();
   const meds = useMedicines(now);
-  // A+ applies to this screen's rows (board: zoom 1.12).
-  const z = (n: number) => Math.round(n * (prefs.big ? 1.12 : 1));
+  const places = usePlaces();
+  const history = useHistory();
+  const [nokOnFile, setNokOnFile] = useState<boolean | null>(null);
+  const [language, setLanguage] = useState<string | null>(null);
 
   const [household, setHousehold] = useState<HouseholdMember[]>([]);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -76,13 +85,17 @@ export default function MeTab() {
       void fetchHousehold().then(setHousehold, () => {});
       void fetchMyAvatarUrl().then(setAvatarUrl, () => {});
       void fetchSmsConsent().then(setSmsOn, () => {});
-      void Notifications.getPermissionsAsync().then(
-        (p) =>
-          setPush(
-            p.status === "granted" ? "granted" : p.status === "denied" ? "denied" : "undetermined",
-          ),
-        () => {},
-      );
+      if (detailsFromAppOn)
+        void loadDetails().then(
+          (r) => {
+            if (!r.ok) return;
+            setNokOnFile(r.onFile.nokOnFile);
+            setLanguage(r.onFile.preferredLanguage?.trim() || null);
+          },
+          () => {},
+        );
+      // Null where push is not available (Expo Go on Android): the row hides.
+      void pushPermission().then(setPush, () => {});
     }, []),
   );
 
@@ -103,8 +116,7 @@ export default function MeTab() {
       return;
     }
     const token = await registerPushToken();
-    const status = token ? "granted" : (await Notifications.getPermissionsAsync()).status;
-    setPush(status === "granted" ? "granted" : status === "denied" ? "denied" : "undetermined");
+    setPush(token ? "granted" : await pushPermission());
   };
 
   const onChangePhoto = async () => {
@@ -134,8 +146,12 @@ export default function MeTab() {
   };
 
   const sex = sexLetter(id.sex);
-  const conditions = id.conditions.length ? id.conditions.join(" · ") : null;
+  const card = cardLines(history, id.conditions);
   const medCount = meds.medicines.length;
+  const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const historySub = (n: number, one: string, many: string, none: string) =>
+    history.off ? "Not switched on yet" : n ? `${count(n, one, many)} · not yet confirmed` : none;
+  const facilityName = id.facility ?? "any hospital";
 
   return (
     <Screen title="Me" underNav helpSource="me" gap={tSpace[2.5]}>
@@ -145,8 +161,18 @@ export default function MeTab() {
           number: cardNumber(id.code),
           facility: id.facility,
           age: ageWords(id.dob, now),
-          conditions: prefs.showConditionsOnCard ? (conditions ?? "None added") : null,
-          allergies: "Tell your nurse",
+          conditions: prefs.showConditionsOnCard ? card.conditions : null,
+          allergies: card.allergies,
+          nextOfKin:
+            nokOnFile === null
+              ? null
+              : nokOnFile
+                ? `On file${id.facility ? ` at ${id.facility}` : ""}`
+                : "None given",
+          ifFound:
+            id.emergencyPhone && id.facility
+              ? `If found, call ${id.facility} on ${id.emergencyPhone}`
+              : `If found, please return it to ${facilityName}`,
         }}
       />
       <View
@@ -159,7 +185,7 @@ export default function MeTab() {
         <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
           <Icon name="replay" size={13} color={t.ink3} />
           <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
-            Tap the card to flip · works offline
+            Tap the card to turn it over · works offline
           </Text>
         </View>
         {sex ? (
@@ -167,19 +193,40 @@ export default function MeTab() {
         ) : null}
       </View>
 
-      <Label text="My health" z={z} />
+      <Label text="My health" />
       <Group>
         <Row
-          z={z}
           first
           icon="heart"
           color={t.area.readings}
           title="My conditions"
-          sub={conditions ?? "None added to your profile"}
+          sub={historySub(history.conditions.length, "condition", "conditions", "None added yet")}
+          onPress={() => router.push("/history?section=conditions")}
         />
-        <Row z={z} icon="alert" color={t.ink2} title="Allergies" sub={ALLERGY_WORDS} />
         <Row
-          z={z}
+          icon="alert"
+          color={t.ink2}
+          title="Allergies"
+          sub={
+            !history.allergies.length && history.noKnownAllergies
+              ? "No known allergies"
+              : historySub(history.allergies.length, "allergy", "allergies", "None added yet")
+          }
+          onPress={() => router.push("/history?section=allergies")}
+        />
+        <Row
+          icon="users"
+          color={t.area.team}
+          title="Family history"
+          sub={historySub(
+            history.family.length,
+            "family condition",
+            "family conditions",
+            "Conditions that run in your family",
+          )}
+          onPress={() => router.push("/history?section=family")}
+        />
+        <Row
           icon="pill"
           color={t.area.medicines}
           title="My medicines"
@@ -191,7 +238,6 @@ export default function MeTab() {
           onPress={() => router.push("/care/medicines")}
         />
         <Row
-          z={z}
           icon="file"
           color={t.area.team}
           title="Visits and documents"
@@ -200,7 +246,7 @@ export default function MeTab() {
         />
       </Group>
 
-      <Label text="People I care for" z={z} />
+      <Label text="People I care for" />
       <Group>
         <View
           style={{
@@ -248,8 +294,8 @@ export default function MeTab() {
             tType.caption,
             {
               fontFamily: tFont.medium,
-              fontSize: z(12),
-              lineHeight: z(17),
+              fontSize: 12,
+              lineHeight: 17,
               color: t.ink2,
               padding: tSpace[3.5],
               paddingTop: tSpace[2],
@@ -260,17 +306,46 @@ export default function MeTab() {
         </Text>
       </Group>
 
-      <Label text="Privacy and sharing" z={z} />
+      <Label text="My places" />
       <Group>
         <Row
-          z={z}
+          first
+          icon="mapPin"
+          color={t.ink2}
+          title="Home, work and others"
+          sub={
+            places.off
+              ? "Saving places is not switched on yet"
+              : places.loading
+                ? "Loading…"
+                : `${placesSummary(places.places)} · only you can see them`
+          }
+          onPress={() => router.push("/places")}
+        />
+      </Group>
+
+      <Label text="My details" />
+      <Group>
+        <Row
+          first
+          icon="user"
+          color={t.ink2}
+          title="Profile details"
+          sub="Photo, title, language, hospital, ID and next of kin"
+          onPress={() => router.push("/profile/details")}
+        />
+      </Group>
+
+      <Label text="Privacy and sharing" />
+      <Group>
+        <Row
           first
           icon="card"
           color={t.ink2}
           title="Show conditions on my card"
           sub={
             prefs.showConditionsOnCard
-              ? "Shown on the back of the card"
+              ? "Shown on the back of the card. Private ones never are."
               : "Hidden on the back of the card"
           }
           right={
@@ -282,18 +357,16 @@ export default function MeTab() {
           }
         />
         <Row
-          z={z}
           icon="eye"
           color={t.accentText}
-          title="Readings and doses you log"
-          sub="Only you can see them. Bring them to your visit."
+          title="Who sees what you log"
+          sub="Your care team sees your readings and what you add under My health. Your medicines and doses stay on your account only."
         />
       </Group>
 
-      <Label text="App" z={z} />
+      <Label text="App" />
       <Group>
         <Row
-          z={z}
           first
           icon="bell"
           color={t.accentText}
@@ -303,7 +376,6 @@ export default function MeTab() {
         />
         {push !== null ? (
           <Row
-            z={z}
             icon="smartphone"
             color={t.ink2}
             title={`Notifications on this phone · ${push === "granted" ? "On" : "Off"}`}
@@ -326,7 +398,6 @@ export default function MeTab() {
         ) : null}
         {smsOn !== null ? (
           <Row
-            z={z}
             icon="message"
             color={t.ink2}
             title={`${SMS_CONSENT_COPY.label} · ${smsOn ? "On" : "Off"}`}
@@ -347,43 +418,23 @@ export default function MeTab() {
           />
         ) : null}
         <Row
-          z={z}
           icon="globe"
           color={t.area.readings}
           title="Language"
-          sub={prefs.lang === "en" ? "English · voice calls too" : "Luganda · voice calls too"}
-          right={
-            <MiniSeg
-              label="Language"
-              value={prefs.lang}
-              onChange={(lang) => setPrefs({ lang })}
-              options={[
-                { key: "en", label: "English" },
-                { key: "lg", label: "Luganda" },
-              ]}
-            />
+          sub={
+            language
+              ? `${language} · the language staff use with you`
+              : "Tell staff which language you prefer"
           }
+          onPress={() => router.push("/profile/details")}
         />
         <Row
-          z={z}
           icon="type"
           color={t.ink2}
           title="Text size"
-          sub={prefs.big ? "Larger · easier to read" : "Standard"}
-          right={
-            <MiniSeg
-              label="Text size"
-              value={prefs.big ? "big" : "std"}
-              onChange={(k) => setPrefs({ big: k === "big" })}
-              options={[
-                { key: "std", label: "A" },
-                { key: "big", label: "A+" },
-              ]}
-            />
-          }
+          sub="Follows your phone. Make text larger in your phone's Settings, under Display."
         />
         <Row
-          z={z}
           icon={t.scheme === "dark" ? "moon" : "sun"}
           color={t.ink2}
           title="Theme"
@@ -402,7 +453,6 @@ export default function MeTab() {
           }
         />
         <Row
-          z={z}
           icon="camera"
           color={t.ink2}
           title="Profile photo"
@@ -427,13 +477,13 @@ export default function MeTab() {
       <Text
         style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3, textAlign: "center" }]}
       >
-        MedSync 3.0
+        {`MedSync ${Constants.expoConfig?.version ?? ""}`.trim()}
       </Text>
     </Screen>
   );
 }
 
-function Label({ text, z }: { text: string; z: (n: number) => number }) {
+function Label({ text }: { text: string }) {
   const t = useTide();
   return (
     <Text
@@ -441,8 +491,8 @@ function Label({ text, z }: { text: string; z: (n: number) => number }) {
       style={[
         tType.labelS,
         {
-          fontSize: z(13),
-          lineHeight: z(18),
+          fontSize: 13,
+          lineHeight: 18,
           color: t.ink3,
           paddingTop: tSpace[1.5],
           paddingHorizontal: tSpace[1],
@@ -480,7 +530,6 @@ function Row({
   onPress,
   right,
   first = false,
-  z,
 }: {
   icon: IconName;
   color: string;
@@ -490,7 +539,6 @@ function Row({
   onPress?: () => void;
   right?: ReactNode;
   first?: boolean;
-  z: (n: number) => number;
 }) {
   const t = useTide();
   const body = (
@@ -508,13 +556,11 @@ function Row({
         <Icon name={icon} size={18} color={color} />
       </View>
       <View style={{ flex: 1, gap: 1 }}>
-        <Text style={[tType.labelS, { fontSize: z(14), lineHeight: z(19), color: t.ink }]}>
-          {title}
-        </Text>
+        <Text style={[tType.labelS, { fontSize: 14, lineHeight: 19, color: t.ink }]}>{title}</Text>
         <Text
           style={[
             tType.caption,
-            { fontFamily: tFont.medium, fontSize: z(12), lineHeight: z(17), color: t.ink2 },
+            { fontFamily: tFont.medium, fontSize: 12, lineHeight: 17, color: t.ink2 },
           ]}
         >
           {sub}
@@ -522,7 +568,7 @@ function Row({
         {note ? (
           <Text
             accessibilityLiveRegion="polite"
-            style={[tType.caption, { fontSize: z(12), lineHeight: z(17), color: t.ink }]}
+            style={[tType.caption, { fontSize: 12, lineHeight: 17, color: t.ink }]}
           >
             {note}
           </Text>

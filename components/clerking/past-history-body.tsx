@@ -23,8 +23,22 @@ import { appliesTo, isRestricted } from "@/lib/clerking/catalogue";
 import { lc } from "@/lib/clerking/compose";
 import { operationById, operationGroups } from "@/lib/clerking/pick-lists";
 import { REACTION_TO_MANIFESTATION } from "@/lib/clerking/record-map";
+import {
+  openAllergies,
+  openConditions,
+  reportsNoKnownAllergies,
+  withReportedCondition,
+} from "@/lib/clerking/reported";
+import {
+  allergyLine,
+  conditionLine,
+  isSensitive,
+  OTHER,
+  reportedLabel,
+} from "@/lib/patient/reported-history";
 import { cn } from "@/lib/utils";
 import { Chip, FieldRow, PANEL, PANEL_HEAD, YesNoRow } from "./controls";
+import { PatientReported } from "./patient-reported";
 import { PickAllDialog } from "./pick-all-dialog";
 
 /**
@@ -284,6 +298,7 @@ function Conditions({
   act,
   problems,
   sex,
+  reported,
   onConfirm,
 }: PastHistoryProps & { onConfirm: (id: string) => void }) {
   const list = cat.data.past_history.conditions.filter((c) =>
@@ -302,6 +317,21 @@ function Conditions({
       <Heading aside="Any of these?">
         <span id="clerking-pmh-conditions">Conditions</span>
       </Heading>
+      <PatientReported
+        editable={editable}
+        onHistory={onHistory}
+        confirmLabel="Confirm: yes"
+        rows={openConditions(reported, history).map((i) => ({
+          key: i.id,
+          ids: [i.id],
+          label: reportedLabel(i),
+          line: conditionLine(i, "clinician"),
+          sensitive: isSensitive(i),
+          onConfirm: list.some((c) => c.id === i.itemId)
+            ? () => onHistory((h) => withReportedCondition(h, i, new Date()))
+            : undefined,
+        }))}
+      />
       <div className="flex flex-col">
         {list.map((c) => (
           <YesNoRow
@@ -903,6 +933,7 @@ function Allergies({
   act,
   busy,
   on,
+  reported,
 }: PastHistoryProps) {
   const [open, setOpen] = useState<string | null>(null);
   const [refuting, setRefuting] = useState<string | null>(null);
@@ -924,6 +955,45 @@ function Allergies({
   const picks = l.quick_picks.filter((q) => !taken.has(q.label.toLowerCase()));
   const nkda = a.status === "no_known_drug_allergies" && a.touchedThisVisit;
   const informant = l.source.some((o) => o.id === header.historian) ? header.historian : undefined;
+  const nkaIds = reportsNoKnownAllergies(reported, history, a.status)
+    ? (reported ?? []).filter((i) => i.kind === "no_known_allergies").map((i) => i.id)
+    : [];
+  const reportedRows = [
+    ...openAllergies(reported, history, [...taken]).map((i) => {
+      const name = reportedLabel(i);
+      return {
+        key: i.id,
+        ids: [i.id],
+        label: i.itemId === OTHER ? `${name} (patient's words)` : name,
+        line: allergyLine(i),
+        sensitive: false,
+        onConfirm: can
+          ? () =>
+              shown.add(
+                name,
+                on.onAllergy?.({
+                  substanceText: name,
+                  manifestations: i.reactions.flatMap((r) => REACTION_TO_MANIFESTATION[r] ?? []),
+                  ...(i.severity ? { severity: i.severity } : {}),
+                  informant: "patient",
+                }),
+              )
+          : undefined,
+      };
+    }),
+    ...(nkaIds.length
+      ? [
+          {
+            key: "nka",
+            ids: nkaIds,
+            label: "No known allergies",
+            line: "Confirm records no known drug allergies",
+            sensitive: false,
+            onConfirm: can ? () => on.onAssertAllergy?.("no_known_drug_allergies") : undefined,
+          },
+        ]
+      : []),
+  ];
   return (
     <section
       aria-labelledby="clerking-pmh-allergies"
@@ -941,6 +1011,12 @@ function Allergies({
           )}
         </span>
       </div>
+      <PatientReported
+        editable={editable}
+        onHistory={onHistory}
+        rows={reportedRows}
+        footnote="From the patient's phone. Confirm adds it to the allergy record with the patient as the source."
+      />
       {a.items.length || adding.length ? (
         <ul className="flex flex-col gap-2 max-sm:gap-0">
           {a.items.map((x) => {

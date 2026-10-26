@@ -10,9 +10,10 @@ import {
 } from "lucide-react";
 
 import { IncomingIntakesPanel } from "@/components/intake/incoming-panel";
+import { ComingDays } from "@/components/scheduling/coming-days";
 import { fetchIncomingPreArrivals } from "@/lib/emergency/queries";
 import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
-import { fetchReceptionTodayCounts } from "@/lib/reception/queries";
+import { fetchReceptionComingDays, fetchReceptionTodayCounts } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
 import { ETA_BAND_LABEL } from "@/supabase/functions/_shared/pre-arrival";
 
@@ -23,8 +24,10 @@ export default async function ReceptionTodayPage() {
   const scope = await requireReceptionScope();
   const firstName = scope.fullName?.split(" ")[0];
 
-  const [counts, preArrivals, incoming] = await Promise.all([
+  const [counts, coming, preArrivals, incoming] = await Promise.all([
     fetchReceptionTodayCounts({ hospitalId: scope.hospitalId }),
+    // The next seven days from tomorrow: a booking made for another day shows here (ADR 0410).
+    fetchReceptionComingDays({ hospitalId: scope.hospitalId, days: 7 }),
     // Open pre-alerts (ADR 0098): the strip at the top says how many are on
     // their way so nobody misses one; the board itself is /reception/incoming.
     fetchIncomingPreArrivals({ facilityId: scope.hospitalId }),
@@ -92,6 +95,13 @@ export default async function ReceptionTodayPage() {
         <StatTile label="Awaiting triage" value={counts.awaitingTriage} tone="caution" />
         <StatTile label="No-shows" value={counts.noShowsToday} tone="muted" />
       </section>
+
+      <div className="reveal-up">
+        <ComingDays
+          days={coming.map((d) => ({ dateKey: d.dateKey, booked: d.expected }))}
+          hrefOf={(dateKey) => `/reception/expected?date=${dateKey}`}
+        />
+      </div>
 
       {/* Quick actions */}
       <section className="stagger-children grid gap-3 sm:grid-cols-2">

@@ -24,6 +24,7 @@ import { declaredLast, presenceAt, presenceOf, ts } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
 import { appointmentBookedVia, byBookedAt, intakeBookedVia } from "@/lib/reception/booked-via";
 import { maskPhone, matchBasis } from "@/lib/reception/reconcile-basis";
+import { loadBookingAttachments } from "@/lib/scheduling/attachments";
 import { admittedLabel } from "@/lib/workspace/words";
 import {
   DEFAULT_TIME_ZONE,
@@ -505,9 +506,17 @@ export async function fetchExpectedArrivals(args: {
     patientUserIds: revealedPatients.map((r) => r.patientUserId!),
   });
   if (audited) {
-    const urls = await signAvatars(rows.map((r) => r.avatarPath));
+    const [urls, sent] = await Promise.all([
+      signAvatars(rows.map((r) => r.avatarPath)),
+      // What a patient sent with the booking: only with the audited name, like the photo (ADR 0406).
+      loadBookingAttachments(
+        rows.filter((r, i) => r.patientUserId && out[i]!.identity.displayName).map((r) => r.id),
+      ),
+    ]);
     rows.forEach((r, i) => {
       if (r.avatarPath) out[i]!.identity.photoUrl = urls.get(r.avatarPath) ?? null;
+      const files = sent.get(r.id);
+      if (files?.length) out[i]!.identity.attachments = files;
     });
   } else {
     for (const r of out) if (r.patientUserId) r.identity.displayName = null;
@@ -1596,4 +1605,16 @@ export async function fetchHospitalStaffNames(hospitalId: string) {
       ),
     );
   return rows.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** The next `days` days from tomorrow on the Expected board's own counts: reception's "Coming days" (ADR 0410). */
+export async function fetchReceptionComingDays(args: {
+  hospitalId: string;
+  days: number;
+}): Promise<ExpectedDayCounts[]> {
+  return fetchExpectedCountsByDay({
+    hospitalId: args.hospitalId,
+    from: new Date(Date.now() + DAY_MS),
+    days: args.days,
+  });
 }

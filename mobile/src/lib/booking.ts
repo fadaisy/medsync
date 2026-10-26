@@ -1,8 +1,13 @@
 import type { EdgeResult } from "@/lib/edge";
+import type { WalkInDepartment } from "@patient-core/doctors";
+import type { HouseholdRelationship } from "@patient-core/me-profile";
 import type { FeeInputs } from "@shared/fees";
 import type { PatientReasonCode } from "@shared/sessions-sql";
 import type { BookingSymptom } from "@shared/symptoms";
 import type { ImagePickerOptions } from "expo-image-picker";
+import { toUgandaE164 } from "@patient-core/me-profile";
+import { MIN_REASON_CHARS } from "@patient-core/visits-calendar";
+import { PATIENT_BOOKING_HORIZON_DAYS } from "@shared/booking-horizon";
 import { feeRange, rangeLine } from "@shared/fees";
 import {
   DEFAULT_TIME_ZONE,
@@ -16,6 +21,14 @@ import { normaliseSymptoms } from "@shared/symptoms";
 
 import { callEdge, requestId } from "@/lib/edge";
 import { supabase } from "@/lib/supabase";
+
+export type { HouseholdRelationship } from "@patient-core/me-profile";
+export { HOUSEHOLD_RELATIONSHIPS, toUgandaE164 } from "@patient-core/me-profile";
+
+export { MIN_REASON_CHARS } from "@patient-core/visits-calendar";
+
+export type { WalkInDepartment } from "@patient-core/doctors";
+export { sessionTakeable } from "@patient-core/doctors";
 
 /**
  * Every read and every write the booking app makes. Screens call this file and
@@ -295,39 +308,7 @@ export async function fetchPatientProfile(): Promise<PatientProfile | null> {
 
 /* ─── appointments ───────────────────────────────────────────────── */
 
-/**
- * Patient-facing word for every status the CHECK constraint allows. Never
- * colour alone for state — a screen pairs the tone with one of these.
- * Lifted from `lib/patient/appointments.ts` so the phone and the web cannot
- * name the same appointment differently.
- */
-export const STATUS_LABEL: Record<string, string> = {
-  requested: "Requested",
-  pending_approval: "Awaiting approval",
-  confirmed: "Confirmed",
-  arrived: "You've arrived",
-  in_progress: "In progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-  no_show: "Missed",
-  rescheduled: "Rescheduled",
-  declined: "Declined",
-};
-
-/** What `cancel-appointment` will accept. Gate the control on this, not on a guess. */
-export const CANCELLABLE: ReadonlySet<string> = new Set([
-  "requested",
-  "pending_approval",
-  "confirmed",
-  "arrived",
-]);
-
-/** What `reschedule-appointment` will accept. Note `arrived` is NOT in it. */
-export const RESCHEDULABLE: ReadonlySet<string> = new Set([
-  "requested",
-  "pending_approval",
-  "confirmed",
-]);
+export { CANCELLABLE, RESCHEDULABLE, STATUS_LABEL } from "@patient-core/visits";
 
 /** Statuses whose appointment is still going to happen — the engine's list, not a copy. */
 const LIVE_STATUSES = [...LIVE_APPOINTMENT_STATUSES];
@@ -349,6 +330,8 @@ export interface AppointmentRow {
   clinicianPhotoUrl: string | null;
   departmentName: string;
   hospitalName: string;
+  /** Where the hospital is, when its admin has set it (Profile); null until then. */
+  hospitalPin: { lat: number; lng: number } | null;
   /** Carried because rescheduling has to rebuild this clinician's grid. */
   hospitalId: string;
   departmentId: string;
@@ -381,6 +364,15 @@ export interface AppointmentRow {
   quotedFeeLabel: string | null;
 }
 
+/** A hospital's map pin, only when both numbers are there. */
+function pinOf(
+  h: { latitude: number | null; longitude: number | null } | null | undefined,
+): { lat: number; lng: number } | null {
+  return h && h.latitude !== null && h.longitude !== null
+    ? { lat: h.latitude, lng: h.longitude }
+    : null;
+}
+
 interface AppointmentQueryRow {
   id: string;
   provisional_patient_id: string | null;
@@ -404,7 +396,7 @@ interface AppointmentQueryRow {
   quoted_fee_ugx: number | null;
   quoted_fee_label: string | null;
   hospital_departments: Embed<{ name: string }>;
-  hospitals: Embed<{ name: string }>;
+  hospitals: Embed<{ name: string; latitude: number | null; longitude: number | null }>;
 }
 
 /**
@@ -447,7 +439,7 @@ export async function fetchAppointments(
       "id, provisional_patient_id, hospital_id, department_id, clinician_user_id, starts_at, ends_at, status, type, " +
         "reason, reason_note, symptoms, booking_code, session_id, position_number, " +
         "arrival_window_start, arrival_window_end, confirmed_by_patient_at, cancelled_reason, " +
-        "quoted_fee_ugx, quoted_fee_label, hospital_departments(name), hospitals(name)",
+        "quoted_fee_ugx, quoted_fee_label, hospital_departments(name), hospitals(name, latitude, longitude)",
     )
     .or(`${own}${members}`);
   query = isPast ? query.lt("starts_at", nowIso) : query.gte("starts_at", nowIso);
@@ -481,6 +473,7 @@ export async function fetchAppointments(
       clinicianPhotoUrl: clinicians.get(r.clinician_user_id)?.photoUrl ?? null,
       departmentName: embedded(r.hospital_departments)?.name ?? "Outpatients",
       hospitalName: embedded(r.hospitals)?.name ?? "Your hospital",
+      hospitalPin: pinOf(embedded(r.hospitals)),
       hospitalId: r.hospital_id,
       departmentId: r.department_id,
       clinicianUserId: r.clinician_user_id,
@@ -634,18 +627,6 @@ export async function fetchLiveIntake(hospitalId: string): Promise<LiveIntake | 
 }
 
 /* ─── the same-day door ──────────────────────────────────────────── */
-
-export interface WalkInDepartment {
-  id: string;
-  name: string;
-  /**
-   * Whether the hospital's clock is inside this department's walk-in window
-   * right now. NO queue length rides along: pricing each clinical destination
-   * by wait turns a differential ("Cardiology or General Medicine?") into a
-   * wait-shopping decision (ADR 0084 §5).
-   */
-  openNow: boolean;
-}
 
 interface DepartmentRow {
   id: string;
@@ -819,10 +800,15 @@ interface ServiceLineRow {
   hospitals: Embed<{ name: string; emergency_phone: string | null }>;
 }
 
+/**
+ * The department is named by its foreign key: `service_lines` points at
+ * `hospital_departments` twice (`department_id`, and the services hub's
+ * `unit_id`), and an unnamed embed is refused as ambiguous (PGRST201).
+ */
 const LINE_SELECT =
   "id, name, hospital_id, department_id, capacity_mode, reason_codes, time_to_care_days, confidential, " +
   "payment_posture, fee_ugx, service_line_fees(cadre_id, fee_ugx, cadres(name)), " +
-  "hospital_departments(name), hospitals(name, emergency_phone)";
+  "hospital_departments!service_lines_department_id_fkey(name), hospitals(name, emergency_phone)";
 
 function toLine(r: ServiceLineRow): ServiceLine {
   const hospital = embedded(r.hospitals);
@@ -888,14 +874,6 @@ export async function fetchServiceLine(id: string): Promise<ServiceLine | null> 
 }
 
 /** One published clinic day a patient can take a place in. */
-/**
- * A clinic day a patient can actually take: a place left AND a clinician
- * named (PRD §3.6; the core 409s an unnamed day). One predicate for every
- * "next", "within" and "still open" on the phone.
- */
-export function sessionTakeable(s: Pick<ClinicSession, "placesLeft" | "clinicianUserId">): boolean {
-  return s.placesLeft > 0 && s.clinicianUserId !== null;
-}
 
 export interface ClinicSession {
   id: string;
@@ -927,7 +905,7 @@ interface SessionRow {
 }
 
 /** ADR 0084 §8: the server refuses a day past this; the list never offers one. */
-const HORIZON_MS = 14 * 86_400_000;
+const HORIZON_MS = PATIENT_BOOKING_HORIZON_DAYS * 86_400_000;
 
 /**
  * Published, future clinic days within the 14-day horizon — every line at a
@@ -1002,7 +980,7 @@ export const APPOINTMENT_REASONS: readonly {
   },
   {
     value: "new_concern",
-    title: "New or worsening problem",
+    title: "General check-up for a new complaint",
     hint: "Something you want looked at fresh.",
   },
   { value: "refill", title: "Medicine refill", hint: "You need more, or need it reviewed." },
@@ -1042,15 +1020,6 @@ export function reasonsFor(line: Pick<ServiceLine, "reasonCodes">) {
 export const INTERSTITIAL_REASONS: ReadonlySet<string> = new Set<AppointmentReason>([
   "new_concern",
 ]);
-
-/**
- * `cancel-appointment` and `reschedule-appointment` both require a reason of
- * at least this many characters — it lands in the audit log. Gate the submit
- * control on the same number: the server's refusal for a short one is zod's
- * "Invalid input", which is precisely the useless generic sentence a patient
- * must never be shown.
- */
-export const MIN_REASON_CHARS = 8;
 
 /**
  * One key per submission attempt, reused across retries of it — a 2G retry
@@ -1232,19 +1201,6 @@ export function rescheduleAppointment(input: {
 
 /* ─── the household (Gate D, ADR 0089; PRD §2.9) ─────────────────── */
 
-/** `booking_agents.relationship` — the migration's CHECK list, with the words a patient picks. */
-export const HOUSEHOLD_RELATIONSHIPS = [
-  { value: "parent", label: "Parent" },
-  { value: "guardian", label: "Guardian" },
-  { value: "child", label: "Adult child" },
-  { value: "spouse", label: "Spouse" },
-  { value: "relative", label: "Relative" },
-  { value: "vht", label: "VHT" },
-  { value: "other", label: "Other" },
-] as const;
-
-export type HouseholdRelationship = (typeof HOUSEHOLD_RELATIONSHIPS)[number]["value"];
-
 /** Someone this account books for — a live `booking_agents` row about a provisional record. */
 export interface HouseholdMember {
   id: string;
@@ -1285,20 +1241,6 @@ export async function fetchHousehold(): Promise<HouseholdMember[]> {
     label: r.member_label,
     relationship: r.relationship,
   }));
-}
-
-/**
- * "+256XXXXXXXXX" from the ways a Ugandan number gets typed — "0772 123 456",
- * "256772123456". Spaces and dashes dropped, a leading 0 swapped for the
- * country code. Anything else is sent as typed and the server's own sentence
- * says what shape it wants.
- */
-export function toUgandaE164(raw: string): string {
-  const digits = raw.replace(/[\s\-()]/g, "");
-  if (digits.startsWith("+")) return digits;
-  if (digits.startsWith("0")) return `+256${digits.slice(1)}`;
-  if (digits.startsWith("256")) return `+${digits}`;
-  return digits;
 }
 
 /**

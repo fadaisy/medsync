@@ -1,3 +1,4 @@
+import type { SosPhase } from "@patient-core/help-sos";
 import { useEffect, useRef, useState } from "react";
 import { Linking } from "react-native";
 
@@ -5,7 +6,7 @@ import { SOS_COUNTDOWN_S, SOS_DIAL } from "@/features/safety/config";
 import { track } from "@/lib/analytics";
 import { emergencyEvent } from "@/lib/emergency";
 
-export type SosPhase = "idle" | "counting" | "calling";
+export type { SosPhase } from "@patient-core/help-sos";
 
 /**
  * SOS: idle → a 3-second countdown → the call. Cancel inside the countdown

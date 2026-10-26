@@ -15,7 +15,7 @@ const read = (rel: string) => readFileSync(resolve(ROOT, rel), "utf8");
 const stripComments = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-const C = "mobile/src/components/symptoms";
+const C = "mobile/src/features/symptoms";
 const SCREEN = "mobile/src/app/(app)/symptoms.tsx";
 const BOOK = "mobile/src/app/(app)/book/index.tsx";
 
@@ -28,87 +28,49 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-describe("S1 fits the 360×640 budget (PRD §7.2)", () => {
-  it("the height constants object sums to at most 660", () => {
-    const src = read(`${C}/catalog.tsx`);
-    const m = /export const S1_BUDGET = \{([^}]*)\}/.exec(src);
-    expect(m, "S1_BUDGET is missing").not.toBeNull();
-    const numbers = [...(m?.[1] ?? "").matchAll(/:\s*(\d+)/g)].map((x) => Number(x[1]));
-    expect(numbers.length).toBeGreaterThanOrEqual(5);
-    expect(numbers.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(660);
+// Board D (owner, 19 Oct 2026) replaced S1–S4's grid, sheet and tray with three steps:
+// tick what fits in one body area, a few questions, what to do. These hold that design.
+describe("any item in three interactions (PRD §7.3, board D)", () => {
+  it("area chip → tick → Continue", () => {
+    const steps = stripComments(read(`${C}/steps.tsx`));
+    expect(steps).toMatch(/onPress=\{\(\) => onArea\(c\.key\)\}/); // 1: the area (Book opens on it)
+    expect(steps).toMatch(/onPress=\{\(\) => onToggle\(item\)\}/); // 2: tick
+    const screen = stripComments(read(SCREEN));
+    expect(screen).toMatch(/label=\{step === "pick" \? "Continue" : "See what to do"\}/); // 3: continue
+    expect(screen).toMatch(/params\.area/);
   });
 
-  it("no nested scroll region and no horizontal carousel on S1", () => {
-    for (const file of ["catalog.tsx", "danger-strip.tsx", "category-grid.tsx", "search.tsx"]) {
-      const src = stripComments(read(`${C}/${file}`));
-      expect(src, file).not.toMatch(/\bhorizontal\b/);
-      expect(src, file).not.toMatch(/<(FlatList|ScrollView)\b/);
-    }
-  });
-});
-
-describe("any item in three interactions (PRD §7.3)", () => {
-  it("category grid → category sheet → tray Continue", () => {
-    const grid = stripComments(read(`${C}/category-grid.tsx`));
-    expect(grid).toMatch(/accessibilityRole="button"/);
-    expect(grid).toMatch(/onPress=\{\(\) => onOpen\(category\)\}/); // 1: open the category
-
-    const sheet = stripComments(read(`${C}/category-sheet.tsx`));
-    expect(sheet).toMatch(
-      /<ItemRow item=\{item\} selected=\{ticked\} onPress=\{\(\) => onToggle\(item\)\}/,
-    ); // 2: tick
-
-    const tray = stripComments(read(`${C}/selection-tray.tsx`));
-    expect(tray).toMatch(/label="Continue" onPress=\{onContinue\}/); // 3: continue
-
-    const catalog = stripComments(read(`${C}/catalog.tsx`));
-    expect(catalog).toMatch(/onOpen=\{\(category\) =>\s*setSheet\(/);
-    expect(catalog).toMatch(/<SelectionTray/);
-    expect(catalog).toMatch(/onContinue=\{\(\) =>\s*onContinue\(/);
-  });
-
-  it("search is the two-step path: the results are the same tickable rows", () => {
-    const search = stripComments(read(`${C}/search.tsx`));
-    expect(search).toMatch(/searchItems\(CATALOG, audience, q\)/);
-    expect(search).toMatch(
-      /<ItemRow item=\{item\} selected=\{ticked\} onPress=\{\(\) => onToggle\(item\)\}/,
+  it("the follow-ups are each chosen item's own qualifiers, in the catalogue's words", () => {
+    expect(stripComments(read("packages/patient-core/symptoms.ts"))).toMatch(
+      /item\.qualifiers \?\? \[\]/,
     );
+    expect(stripComments(read(`${C}/steps.tsx`))).toMatch(/say\(CATALOG, q\.promptKey\)/);
   });
 });
 
 describe("the tier is a word, never a colour alone (PRD §7.5)", () => {
-  it("the item row prints the tier word from the catalog's own strings", () => {
-    const src = stripComments(read(`${C}/item-row.tsx`));
-    expect(src).toMatch(/t\(CATALOG, TIER_LABEL_KEY\[item\.tier\]\)/);
-    expect(src).toMatch(/\{tierWord\}/);
-    // The screen-reader label carries it too, and the emergency marker has its word.
-    expect(src).toMatch(/accessibilityLabel=\{`\$\{label\}\. .*\$\{tierWord\}`\}/);
-    expect(src).toMatch(/>Emergency</);
-  });
-
-  it("the tray and the review name the tier beside every item", () => {
-    for (const file of ["selection-tray.tsx", "review-outcome.tsx"]) {
-      expect(stripComments(read(`${C}/${file}`)), file).toMatch(/TIER_LABEL_KEY\[item\.tier\]/);
-    }
+  it("emergency signs sit under their words, and every outcome's tag is the catalogue's tier word", () => {
+    const danger = stripComments(read(`${C}/danger.tsx`));
+    expect(danger).toMatch(/Any of these, right now\?/);
+    expect(danger).toMatch(/say\(CATALOG, TIER_LABEL_KEY\.E\)/);
+    expect(stripComments(read(`${C}/steps.tsx`))).toMatch(/say\(CATALOG, TIER_LABEL_KEY\[tier\]\)/);
   });
 });
 
 describe("the emergency interrupt (PRD §5.4)", () => {
-  it("is derived from the classification (the web's pattern) — an E item, a qualifier or a combination opens it; a decline holds until the item is removed", () => {
-    const src = stripComments(read(`${C}/catalog.tsx`));
-    expect(src).toMatch(/const local = classify\(\{ audience, items, qualifiers \}, CATALOG\)/);
-    expect(src).toMatch(
-      /local\.tier === "E" \? \(local\.reasons\.find\(\(k\) => !declined\.includes\(k\)\) \?\? null\) : null/,
-    );
-    const toggle = src.slice(src.indexOf("const toggle = "), src.indexOf("const answer = "));
+  it("is derived from the classification — an E item, a qualifier or a combination opens it; a decline holds until the item is removed", () => {
+    const logic = stripComments(read("packages/patient-core/symptoms.ts"));
+    expect(logic).toMatch(/const c = classify\(sel, pkg\)/);
+    expect(logic).toMatch(/c\.reasons\.find\(\(k\) => !declined\.includes\(k\)\)/);
+    const src = stripComments(read(SCREEN));
+    expect(src).toMatch(/const interrupt = interruptOf\(selection, declined, CATALOG\)/);
+    const toggle = src.slice(src.indexOf("const toggle = "), src.indexOf("const changeChoice = "));
     expect(toggle).toMatch(/setDeclined\(declined\.filter\(\(k\) => k !== item\.key\)\)/);
-    const cont = src.slice(src.indexOf("onContinue=("), src.indexOf("onGetHelp"));
-    expect(cont).not.toMatch(/setDeclined/);
-    expect(src).toMatch(/<EmergencyInterrupt/);
+    expect(src).toMatch(/<HelpPanel/);
   });
 
   it("fires the haptic and logs interrupt_shown, and the way back logs declined with the item", () => {
-    const src = stripComments(read(`${C}/emergency-interrupt.tsx`));
+    const src = stripComments(read(`${C}/danger.tsx`));
     expect(src).toMatch(/Haptics\.notificationAsync\(Haptics\.NotificationFeedbackType\.Warning\)/);
     expect(src).toMatch(/emergencyEvent\(\{ event: "interrupt_shown", itemKey/);
     expect(src).toMatch(/emergencyEvent\(\{ event: "declined", itemKey/);
@@ -116,10 +78,12 @@ describe("the emergency interrupt (PRD §5.4)", () => {
     // Through `telUrl`: a registered number with spaces must still dial on iOS.
     expect(src).toMatch(/Linking\.openURL\(telUrl\(emergencyPhone\)\)/);
     // PRD §5.5: a crisis_route item interrupts calmly — no haptic, the crisis screen.
-    expect(src).toMatch(/const calm = item\?\.flags\?\.includes\("crisis_route"\)/);
+    expect(src).toMatch(/const calm = item\.flags\?\.includes\("crisis_route"\)/);
     expect(src).toMatch(/if \(!calm\)\s*void Haptics\.notificationAsync/);
+    const screen = stripComments(read(SCREEN));
+    expect(screen).toMatch(/router\.push\("\/\(app\)\/emergency\/crisis"\)/);
     // "Get help now" leads to the Emergency sheet with what was ticked (Tide v1: the lines screen).
-    expect(stripComments(read(SCREEN))).toMatch(
+    expect(screen).toMatch(
       /pathname: "\/\(app\)\/emergency\/lines",\s*params: \{\s*from: "catalog"/,
     );
   });
@@ -127,20 +91,17 @@ describe("the emergency interrupt (PRD §5.4)", () => {
 
 describe("the outcome (PRD §7.2 S4)", () => {
   it("the review shows the catalog's own sentence on every outcome", () => {
-    const src = stripComments(read(`${C}/review-outcome.tsx`));
-    expect(src).toMatch(/t\(CATALOG, "catalog\.note"\)/);
-    // Not inside a tier branch: the note is the last child of the stack.
-    expect(src).toMatch(
-      /<Text style=\{styles\.note\}>\{t\(CATALOG, "catalog\.note"\)\}<\/Text>\s*<\/View>\s*\);/,
-    );
+    const src = stripComments(read(SCREEN));
+    const review = src.slice(src.lastIndexOf("<StepHead n={3}"));
+    expect(review).toMatch(/say\(CATALOG, "catalog\.note"\)/);
   });
 
-  it("U goes to the same-day path, then today's queue; R carries the report to booking", () => {
+  it("U goes to the same-day path, then today's line; R carries the report to a day", () => {
     const src = stripComments(read(SCREEN));
     expect(src).toMatch(/requestSameDay\(\{/);
     expect(src).toMatch(/setNoSlot\(res\.noSlot\)/);
-    expect(src).toMatch(/router\.push\("\/\(app\)\/today"\)/);
-    expect(src).toMatch(/router\.push\("\/\(app\)\/book"\)/);
+    expect(src).toMatch(/door\("\/book\/today"\)/);
+    expect(src).toMatch(/door\("\/book\/day"\)/);
     expect(src).toMatch(/setPendingCatalogDraft\(\{/);
     // A failed submit keeps the choices and says so.
     expect(src).toMatch(/Your choices are kept/);
@@ -148,22 +109,18 @@ describe("the outcome (PRD §7.2 S4)", () => {
 });
 
 describe("Gate CS on the phone (ADR 0098 ruling 2)", () => {
-  it("the watermark says what it is", () => {
-    expect(read(`${C}/watermark.tsx`)).toMatch(/Unsigned clinical content/);
-  });
-
-  // Tide v1 (ADR 0340) moved the door from the home to Book's "Something new": the catalog screen
-  // reads the render mode itself; off, it shows no catalog and says so; a draft is watermarked.
   it("the catalog screen reads the render mode: off shows no catalog, a draft is watermarked", () => {
-    expect(stripComments(read(BOOK))).toMatch(/why === "new" \? router\.push\("\/symptoms"\)/);
+    expect(stripComments(read(BOOK))).toMatch(
+      /router\.push\((?:area \? )?\{ pathname: "\/symptoms", params: \{ area/,
+    );
     const src = stripComments(read(SCREEN));
     expect(src).toMatch(/\buseCatalogMode \} from "@\/lib\/symptoms"/);
     expect(src).toMatch(/const mode = useCatalogMode\(\);/);
     const off = src.slice(src.indexOf('if (mode === "off")'));
     expect(off.slice(0, off.indexOf("}\n"))).toMatch(/This is not available yet\./);
-    expect(off.slice(0, off.indexOf("}\n"))).not.toMatch(/<SymptomCatalog\b/);
-    expect(src).toMatch(/mode === "draft_watermarked" \? <Watermark \/>/);
-    expect(stripComments(read(`${C}/catalog.tsx`))).toMatch(/<DangerStrip\b/);
+    expect(off.slice(0, off.indexOf("}\n"))).not.toMatch(/<PickStep\b/);
+    expect(src).toMatch(/mode === "draft_watermarked" \? \(\s*<Note tone="caution"/);
+    expect(src).toMatch(/Unsigned clinical content/);
   });
 
   it("the screen is permanently light (Law 3)", () => {
@@ -200,7 +157,7 @@ describe("copy (ADR 0098 Law 4)", () => {
       resolve(ROOT, SCREEN),
       resolve(ROOT, "mobile/src/lib/symptoms.ts"),
     ];
-    expect(files.length).toBeGreaterThanOrEqual(13);
+    expect(files.length).toBeGreaterThanOrEqual(5);
     for (const p of files) {
       const src = stripComments(readFileSync(p, "utf8"));
       expect(src, p).not.toMatch(REASSURANCE);

@@ -3,6 +3,7 @@
 **Branch:** `feat/pharmacy-clinical` (worktree `~/Desktop/medsync-pharmclose`).
 
 **Three merges:**
+
 1. Steps 0–6: content, interactions and interventions.
 2. Steps 7–8: stewardship and reactions.
 3. Steps 9–10: reconciliation and hardening.
@@ -11,33 +12,33 @@
 
 ## What is built
 
-| Part | Flag | Wording | State |
-|---|---|---|---|
-| Clinical content (signed entries, import, sign with attestation) | any Phase 3 flag | `PHARMACY_CLINICAL_COPY`, **signed** 25 Oct | Built, live at the test hospital |
-| Interactions (dialog line, review alerts, notice count) | `PHARMACY_INTERACTIONS` | signed | Built |
-| Intervention review (codes, outcomes, CSV) | `PHARMACY_INTERVENTION_REVIEW` | signed | Built |
-| Stewardship (AWaRe figures, reviews due, Reserve, by ward) | `PHARMACY_STEWARDSHIP` | signed | Built; see the limits |
-| Suspected reactions (record, unconfirmed allergy, report, submission) | `PHARMACY_REACTIONS` | signed | Built; see the limits |
-| Reconciliation at discharge (prescriber decisions, pharmacist confirm, patient sheet) | `PHARMACY_RECONCILIATION` | `PHARMACY_RECONCILIATION_COPY`, **signed** 25 Oct | Built |
+| Part                                                                                  | Flag                           | Wording                                           | State                            |
+| ------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------- | -------------------------------- |
+| Clinical content (signed entries, import, sign with attestation)                      | any Phase 3 flag               | `PHARMACY_CLINICAL_COPY`, **signed** 25 Oct       | Built, live at the test hospital |
+| Interactions (dialog line, review alerts, notice count)                               | `PHARMACY_INTERACTIONS`        | signed                                            | Built                            |
+| Intervention review (codes, outcomes, CSV)                                            | `PHARMACY_INTERVENTION_REVIEW` | signed                                            | Built                            |
+| Stewardship (AWaRe figures, reviews due, Reserve, by ward)                            | `PHARMACY_STEWARDSHIP`         | signed                                            | Built; see the limits            |
+| Suspected reactions (record, unconfirmed allergy, report, submission)                 | `PHARMACY_REACTIONS`           | signed                                            | Built; see the limits            |
+| Reconciliation at discharge (prescriber decisions, pharmacist confirm, patient sheet) | `PHARMACY_RECONCILIATION`      | `PHARMACY_RECONCILIATION_COPY`, **signed** 25 Oct | Built                            |
 
 ## Section 13 numbers
 
-| Metric | Result |
-|---|---|
-| Alerts fired from unsigned or withdrawn entries | **0 by construction.** Only in-force entries are read (test). An audit query over pilot data is still to run. |
-| Interaction entries in force, by severity | Not measured: read it on Clinical content after signing. |
-| Queries without a code / answered with a reason | Not measured: needs pilot data. |
-| Wards with AWaRe use visible | Not met: the ward is not read yet, so all courses show as one row. |
-| Antibiotics with no AWaRe decision | Listed as unmatched by the import, for the signer. |
-| Reviews due with no answer, oldest | Not measured: needs pilot data. |
-| Discharges with a confirmed list or reason | Not measured: needs pilot data. Nothing holds a discharge. |
-| Suspected reactions without an unconfirmed allergy entry | **0 by construction:** the same transaction writes both. |
-| Reaction reports with a name, number or address | **0** (AR-5 test) |
-| Allergy entries deleted | **0:** append-only, and nothing deletes. |
-| Prescription rows written by this slice | **0** (Law 2 test and the Step 10 scan) |
-| Interaction check p95 | **Not measured** |
-| axe serious or critical | **Not run** |
-| Red added; anything green | **0:** a search of the Phase 3 UI files finds no red or green; alerts and due dates use "caution" (amber). |
+| Metric                                                   | Result                                                                                                        |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Alerts fired from unsigned or withdrawn entries          | **0 by construction.** Only in-force entries are read (test). An audit query over pilot data is still to run. |
+| Interaction entries in force, by severity                | Not measured: read it on Clinical content after signing.                                                      |
+| Queries without a code / answered with a reason          | Not measured: needs pilot data.                                                                               |
+| Wards with AWaRe use visible                             | Not met: the ward is not read yet, so all courses show as one row.                                            |
+| Antibiotics with no AWaRe decision                       | Listed as unmatched by the import, for the signer.                                                            |
+| Reviews due with no answer, oldest                       | Not measured: needs pilot data.                                                                               |
+| Discharges with a confirmed list or reason               | Not measured: needs pilot data. Nothing holds a discharge.                                                    |
+| Suspected reactions without an unconfirmed allergy entry | **0 by construction:** the same transaction writes both.                                                      |
+| Reaction reports with a name, number or address          | **0** (AR-5 test)                                                                                             |
+| Allergy entries deleted                                  | **0:** append-only, and nothing deletes.                                                                      |
+| Prescription rows written by this slice                  | **0** (Law 2 test and the Step 10 scan)                                                                       |
+| Interaction check p95                                    | **Not measured**                                                                                              |
+| axe serious or critical                                  | **Not run**                                                                                                   |
+| Red added; anything green                                | **0:** a search of the Phase 3 UI files finds no red or green; alerts and due dates use "caution" (amber).    |
 
 ## Checks at STOP 10
 
@@ -50,12 +51,14 @@
 ## Definition of Done
 
 **Met:**
+
 - [x] No interaction alert from unsigned or withdrawn content. Shown by test; the audit query waits for the pilot.
 - [x] Every suspected reaction goes on the allergy record as unconfirmed with a printed report; none carries a name.
 - [x] No action writes a prescription; no allergy entry is deleted.
 - [x] Handbook sections (`USER-GUIDE.md`), ADRs, hazard log (`hazard-log.md`) and this report exist.
 
 **Not met:**
+
 - [ ] Interventions coded and answered in the pilot period. Waits for the pilot.
 - [ ] AWaRe use by ward, with prompts reaching prescribers. The ward is not read, and there is no doctor-side card.
 - [ ] Every discharge has a confirmed list or a reason. Waits for the pilot.

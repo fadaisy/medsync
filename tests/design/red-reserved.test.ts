@@ -557,20 +557,21 @@ describe("red is reserved — the Expo app", () => {
     "mobile/src/components/patient/emergency-button.tsx",
     // ADR 0098 (PRD §7.1): the Emergency sheet's header and primary actions,
     // the pre-alert's Send, the status panel, the catalog's emergency-tier
-    // row marker and interrupt banner. Nothing else.
+    // row marker and interrupt banner. Nothing else. (The catalog's
+    // Tide steps draw red through `t.critical`, held by mobile's colour-laws scan.)
     "mobile/src/components/emergency/emergency-sheet.tsx",
     "mobile/src/components/emergency/pre-alert-form.tsx",
     "mobile/src/components/emergency/status-panel.tsx",
-    "mobile/src/components/symptoms/item-row.tsx",
-    "mobile/src/components/symptoms/emergency-interrupt.tsx",
     // ADR 0340 (Tide v1, law L3): red only for Help, SOS, the danger interrupt and a danger
     // reading, its word from the reading rules (law L7). Tide's own scan of `t.critical` is
     // mobile/src/theme/colour-laws.test.ts; these are the files this scan also sees.
     "mobile/src/theme/tide.ts", // defines the Tide pairs, light and dark
     "mobile/src/components/tide/primitives.tsx", // StatusPill's `critical` tone
     "mobile/src/app/(app)/danger.tsx", // the danger interrupt
-    "mobile/src/data/trends.ts", // a danger reading's judgement
+    // A danger reading's judgement lives in packages/patient-core/care-trends.ts since D-PW-09;
+    // mobile/src/data/trends.ts only re-exports it.
     "mobile/src/features/care/week-chart.tsx", // a danger reading on the week chart
+    "mobile/src/data/food/foods.ts", // food names ("tomato"), not a colour
     "mobile/src/features/care-more/chat-parts.tsx", // a danger reading shared in the chat
     "mobile/src/app/dev/tide.tsx", // the __DEV__-only gallery of every primitive state
   ];
@@ -650,7 +651,8 @@ describe("never colour alone — the Expo app", () => {
         expect(elementAt(src, i).tag, path).toMatch(/\blabel=/);
       }
     }
-    const booking = MOBILE.find(([p]) => p === "mobile/src/lib/booking.ts")?.[1] ?? "";
+    // The map lives in the shared core since D-PW-09; mobile/src/lib/booking.ts re-exports it.
+    const booking = readFileSync(resolve(ROOT, "packages/patient-core/visits.ts"), "utf8");
     const map = booking.slice(booking.indexOf("export const STATUS_LABEL"));
     const entries = [...map.slice(0, map.indexOf("};")).matchAll(/^\s+(\w+): "([^"]*)",$/gm)];
     expect(entries.length).toBeGreaterThanOrEqual(10); // the ten appointments.status values

@@ -9,6 +9,9 @@ import type {
   PatientProfile,
   ServiceLine,
 } from "@/lib/booking";
+import type { DayOption, SessionOption } from "@patient-core/book-days";
+import type { BookingSymptom } from "@shared/symptoms";
+import { mergeDays } from "@patient-core/book-days";
 import { feeRange } from "@shared/fees";
 
 import { createStore, useStore } from "@/data/store";
@@ -37,6 +40,9 @@ import { flag } from "@/lib/flags";
 import { confirmAttendance } from "@/lib/notifications";
 import { clearPendingCatalogDraft, getPendingCatalogDraft } from "@/lib/pending-symptoms";
 import { supabase } from "@/lib/supabase";
+
+export type { DayOption, SessionOption, SlotPick } from "@patient-core/book-days";
+export { mergeDays } from "@patient-core/book-days";
 
 export type { Ticket } from "@/features/visits/ticket-cache";
 
@@ -162,8 +168,9 @@ export interface MoveOption {
 
 /**
  * Where a visit can move: this clinician's open slots in this department,
- * from the server's own grid. Shown as a day and a part of the day, never as
- * a clock time (law L8), so each day-part offers its earliest slot.
+ * from the server's own grid, every one of them. A doctor's slot has a time
+ * (ADR 0403), so "Move it" offers the same calendar and time wheel as Ask for
+ * a day; `part` stays for the words.
  */
 export async function moveOptions(visit: AppointmentRow): Promise<MoveOption[]> {
   const clinicians = await fetchBookableClinicians(visit.hospitalId);
@@ -176,9 +183,12 @@ export async function moveOptions(visit: AppointmentRow): Promise<MoveOption[]> 
   for (const dayKey of Object.keys(mine.slotsByDate).sort()) {
     for (const s of mine.slotsByDate[dayKey] ?? []) {
       if (new Date(s.startsAtIso).getTime() === current) continue;
-      const part = partOf(s.startsAtIso);
-      if (out.some((o) => o.dayKey === dayKey && o.part === part)) continue;
-      out.push({ dayKey, part, startsAtIso: s.startsAtIso, endsAtIso: s.endsAtIso });
+      out.push({
+        dayKey,
+        part: partOf(s.startsAtIso),
+        startsAtIso: s.startsAtIso,
+        endsAtIso: s.endsAtIso,
+      });
     }
   }
   return out;
@@ -326,33 +336,6 @@ export function todaysQueueTicket(all: Ticket[], now: Date): Ticket | null {
 
 /* ─── Ask for a day ─────────────────────────────────────────────── */
 
-/** A clinician's own slot, when the day was asked for with a named clinician. */
-export interface SlotPick {
-  clinicianUserId: string;
-  departmentId: string;
-  startsAtIso: string;
-  endsAtIso: string;
-  serviceLineId?: string;
-}
-
-export interface SessionOption extends Fee {
-  id: string;
-  part: "Morning" | "Afternoon";
-  /** When doors open ("08:00") for a clinic day; null for a clinician's slot (never your hour, law L8). */
-  doors: string | null;
-  placesLeft: number;
-  clinicianName: string;
-  clinicName: string;
-  room: string;
-  /** Set when this is a clinician's slot rather than a place in a clinic day. */
-  slot?: SlotPick;
-}
-
-export interface DayOption {
-  key: string;
-  sessions: SessionOption[];
-}
-
 export interface Days {
   /** Null when the patient has no hospital yet: the screen asks them to choose one. */
   hospitalId: string | null;
@@ -371,10 +354,11 @@ function sessionFee(line: ServiceLine | undefined): Fee {
 }
 
 /**
- * One clinician's open slots as day options: each part of a day offers its
- * earliest slot, shown as morning or afternoon, never as a clock time (law
- * L8). The fee is the line in their department that takes this reason; that
- * line is sent with the request so the record keeps the same quote.
+ * One clinician's open slots as day options: every open time of each day, in
+ * order, each its own option (one place, never a count shown). The server
+ * already returns only truly bookable slots. The fee is the line in their
+ * department that takes this reason; that line is sent with the request so
+ * the record keeps the same quote.
  */
 export function slotDays(
   c: ClinicianOption,
@@ -388,43 +372,62 @@ export function slotDays(
   return Object.keys(c.slotsByDate)
     .sort()
     .flatMap((key) => {
-      const sessions: SessionOption[] = [];
-      for (const part of ["Morning", "Afternoon"] as const) {
-        const slots = (c.slotsByDate[key] ?? []).filter((s) => partOf(s.startsAtIso) === part);
-        const first = slots[0];
-        if (!first) continue;
-        sessions.push({
-          id: `slot:${first.startsAtIso}`,
-          part,
-          doors: null,
-          placesLeft: slots.length,
-          clinicianName: c.fullName,
-          clinicName: c.departmentName,
-          room: c.departmentName,
-          ...fee,
-          slot: {
-            clinicianUserId: c.userId,
-            departmentId: c.departmentId,
-            startsAtIso: first.startsAtIso,
-            endsAtIso: first.endsAtIso,
-            ...(line ? { serviceLineId: line.id } : {}),
-          },
-        });
-      }
+      const sessions = [...(c.slotsByDate[key] ?? [])]
+        .sort((a, b) => a.startsAtIso.localeCompare(b.startsAtIso))
+        .map(
+          (s): SessionOption => ({
+            id: `slot:${s.startsAtIso}`,
+            part: partOf(s.startsAtIso),
+            doors: null,
+            placesLeft: 1,
+            clinicianName: c.fullName,
+            clinicName: c.departmentName,
+            room: c.departmentName,
+            ...fee,
+            slot: {
+              clinicianUserId: c.userId,
+              departmentId: c.departmentId,
+              startsAtIso: s.startsAtIso,
+              endsAtIso: s.endsAtIso,
+              ...(line ? { serviceLineId: line.id } : {}),
+            },
+          }),
+        );
       return sessions.length ? [{ key, sessions }] : [];
     });
 }
 
 /**
- * Published clinic days within the 14-day horizon that take this reason,
- * grouped by day; or, with `doctor`, that clinician's own open slots. A day
- * with no place left stays on the rail as "Full".
+ * Published clinic days within the booking horizon that take this reason,
+ * grouped by day; or, with `doctor`, that clinician's own open slots and the
+ * clinic days they run. A day
+ * with no place left stays on the calendar as "no open times".
  */
 export async function loadDays(
   reason: AppointmentReason,
-  doctor: { userId: string; departmentId?: string } | null,
+  doctor: { userId: string; departmentId?: string; hospitalId?: string } | null,
 ): Promise<Days> {
   const profile = await fetchPatientProfile();
+  // A doctor's own hospital may be another one: a patient may book at any (ADR 0086).
+  if (doctor?.hospitalId) {
+    const [clinicians, lines] = await Promise.all([
+      fetchBookableClinicians(doctor.hospitalId),
+      fetchServiceLines({ hospitalId: doctor.hospitalId }),
+    ]);
+    const c = clinicians.find(
+      (x) =>
+        x.userId === doctor.userId &&
+        (!doctor.departmentId || x.departmentId === doctor.departmentId),
+    );
+    if (c)
+      return {
+        hospitalId: doctor.hospitalId,
+        hospitalName: c.hospitalName,
+        patientCode: profile?.patientCode ?? null,
+        doctorName: c.fullName,
+        days: await doctorDays(c, doctor.hospitalId, lines, reason),
+      };
+  }
   if (!profile?.hospitalId)
     return { hospitalId: null, hospitalName: "", patientCode: null, doctorName: null, days: [] };
   const base = {
@@ -442,17 +445,36 @@ export async function loadDays(
         x.userId === doctor.userId &&
         (!doctor.departmentId || x.departmentId === doctor.departmentId),
     );
-    if (c) return { ...base, doctorName: c.fullName, days: slotDays(c, lines, reason) };
+    if (c)
+      return {
+        ...base,
+        doctorName: c.fullName,
+        days: await doctorDays(c, profile.hospitalId, lines, reason),
+      };
   }
   const [lines, sessions] = await Promise.all([
     fetchServiceLines({ hospitalId: profile.hospitalId }),
     fetchSessions({ hospitalId: profile.hospitalId }),
   ]);
+  return { ...base, doctorName: null, days: clinicDays(sessions, lines, reason) };
+}
+
+/**
+ * Published clinic days that take this reason, grouped by day; with
+ * `clinicianUserId`, only the days that clinician runs.
+ */
+export function clinicDays(
+  sessions: readonly ClinicSession[],
+  lines: readonly ServiceLine[],
+  reason: AppointmentReason,
+  clinicianUserId?: string,
+): DayOption[] {
   const byId = new Map(lines.map((l) => [l.id, l]));
   const days: DayOption[] = [];
   for (const s of sessions) {
     const line = byId.get(s.serviceLineId);
     if (!line || !line.reasonCodes.includes(reason) || s.clinicianUserId === null) continue;
+    if (clinicianUserId && s.clinicianUserId !== clinicianUserId) continue;
     const key = dayKeyOf(s.startsAtIso);
     let day = days.find((d) => d.key === key);
     if (!day) days.push((day = { key, sessions: [] }));
@@ -467,7 +489,18 @@ export async function loadDays(
       ...sessionFee(line),
     });
   }
-  return { ...base, doctorName: null, days };
+  return days;
+}
+
+/** The doctor's slots plus the clinic days they run at that hospital. */
+async function doctorDays(
+  c: ClinicianOption,
+  hospitalId: string,
+  lines: readonly ServiceLine[],
+  reason: AppointmentReason,
+): Promise<DayOption[]> {
+  const sessions = await fetchSessions({ hospitalId }).catch(() => [] as ClinicSession[]);
+  return mergeDays(slotDays(c, lines, reason), clinicDays(sessions, lines, reason, c.userId));
 }
 
 /** Ask for a day: a place in a clinic day, or a clinician's slot, through `pt-request-appointment`. */
@@ -482,6 +515,8 @@ export async function requestDay(input: {
   payNow: boolean;
   idempotencyKey: string;
   now: Date;
+  /** What the patient chose from the symptom catalogue, as words (ADR 0095, 0098). */
+  symptoms?: BookingSymptom[];
 }): Promise<IssueResult> {
   const { days, session } = input;
   const res = await requestAppointment({
@@ -489,7 +524,9 @@ export async function requestDay(input: {
     reason: input.reason,
     reasonNote: input.note.trim() || null,
     idempotencyKey: input.idempotencyKey,
+    ...(input.symptoms?.length ? { symptoms: input.symptoms } : {}),
     // ADR 0098 ruling 3: a catalog report filed before this door rides with the booking.
+    // ponytail: when one rides, the server keeps the report's symptoms over the ones chosen here.
     symptomSubmissionId: getPendingCatalogDraft()?.submissionId,
     ...(input.forProvisionalId ? { forProvisionalId: input.forProvisionalId } : {}),
     ...(session.slot ? { slot: session.slot } : { session: { sessionId: session.id } }),
@@ -510,6 +547,7 @@ export async function requestDay(input: {
     dayKey: input.day.key,
     part: session.part,
     doors: session.doors,
+    time: session.slot ? clockOf(session.slot.startsAtIso) : null,
     awaiting: res.data.status === "requested" || res.data.status === "pending_approval",
     fee: session.fee,
     feeLabel: session.feeLabel,

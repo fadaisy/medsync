@@ -55,6 +55,8 @@ export * from "./scheduling";
 export * from "./emergency";
 
 // ─── Patient self-tracking (migration 0029) ────────────────────────────
+export * from "./patient-places";
+export * from "./appointment-attachments";
 export * from "./patient-self-tracking";
 
 // ─── Doctor workspace (migration 0030) ─────────────────────────────────

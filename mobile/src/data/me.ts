@@ -4,6 +4,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createStore, useStore } from "@/data/store";
 import { fetchPatientProfile } from "@/lib/booking";
 
+export { ageFrom, ageWords, cardNumber, sexLetter } from "@patient-core/me-health";
+
 /**
  * Me: who the patient is, their health card, and the phone's own settings.
  *
@@ -12,26 +14,23 @@ import { fetchPatientProfile } from "@/lib/booking";
  * patient wrote on their own profile). Cached on the phone per account so the
  * health card and Help's medic card draw with no network.
  *
- * Not shown, because the phone cannot read it truthfully: allergies (the
- * clinical record is not the patient's to read yet, ADR 0342; Me says "Tell
- * your nurse about any allergy"), a primary doctor (no such record), the
- * emergency contact (encrypted server-side), blood group (not recorded).
+ * The patient's own conditions, allergies and family history live in
+ * `@/data/history` (ADR 0414). Not shown, because the phone cannot read it
+ * truthfully: the clinical record's allergies (not the patient's to read yet,
+ * ADR 0342), a primary doctor (no such record), the emergency contact's
+ * number (encrypted server-side; only *that* one is on file), blood group
+ * (not recorded).
  */
 
 /* ── Phone settings (stored on this phone only) ─────────────────────── */
 
 export interface MePrefs {
-  lang: "en" | "lg";
-  /** Text size A+ (larger). */
-  big: boolean;
   /** PRD Q6, owner decision: conditions on the card's back are hidden until the patient shows them. */
   showConditionsOnCard: boolean;
 }
 
 const PREFS_KEY = "medsync:me-prefs";
 const DEFAULT_PREFS: MePrefs = {
-  lang: "en",
-  big: false,
   showConditionsOnCard: false,
 };
 
@@ -65,10 +64,12 @@ export interface CardIdentity {
   /** `patient_profiles.patient_code`, the DB-issued code reception matches at the desk. */
   code: string | null;
   facility: string | null;
+  /** The home facility's activated emergency number, or null (never guessed). */
+  emergencyPhone: string | null;
   sex: string | null;
   /** `patient_profiles.date_of_birth`, "YYYY-MM-DD". */
   dob: string | null;
-  /** The patient's own `known_conditions`. Shown on the card only when they switch it on. */
+  /** The patient's older free-text `known_conditions` (from the web profile), before ADR 0414. */
   conditions: string[];
 }
 
@@ -76,6 +77,7 @@ const EMPTY: CardIdentity = {
   name: null,
   code: null,
   facility: null,
+  emergencyPhone: null,
   sex: null,
   dob: null,
   conditions: [],
@@ -107,6 +109,7 @@ export function useCardIdentity(userId: string | null, name: string | null): Car
           name: null,
           code: p.patientCode,
           facility: p.hospitalName,
+          emergencyPhone: p.emergencyPhone,
           sex: p.sex,
           dob: p.dateOfBirth,
           conditions: p.knownConditions,
@@ -125,38 +128,6 @@ export function useCardIdentity(userId: string | null, name: string | null): Car
 }
 
 /* ── Formatting ─────────────────────────────────────────────────────── */
-
-/** "MS-2026-00042" → "MS 2026 00042": spaced for the card's mono line. */
-export function cardNumber(code: string | null): string {
-  return code ? code.replace(/-/g, " ") : "Given at your first visit";
-}
-
-/**
- * Whole years from a "YYYY-MM-DD" date of birth to `now`, or null when there
- * is no usable date. A birthday later this year has not happened yet.
- */
-export function ageFrom(dob: string | null, now: Date): number | null {
-  const m = dob ? /^(\d{4})-(\d{2})-(\d{2})/.exec(dob) : null;
-  if (!m) return null;
-  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  const thisYear = now.getFullYear();
-  const before =
-    now.getMonth() + 1 < mo || (now.getMonth() + 1 === mo && now.getDate() < d) ? 1 : 0;
-  const age = thisYear - y - before;
-  return age >= 0 && age < 130 ? age : null;
-}
-
-/** "34 years", or null. */
-export function ageWords(dob: string | null, now: Date): string | null {
-  const age = ageFrom(dob, now);
-  return age === null ? null : `${age} ${age === 1 ? "year" : "years"}`;
-}
-
-/** `patient_profiles.sex` → the card's one letter; anything else says nothing. */
-export function sexLetter(sex: string | null): string | null {
-  const s = sex?.toLowerCase();
-  return s === "female" ? "F" : s === "male" ? "M" : null;
-}
 
 /** The account holder's name from auth metadata (`full_name`, written at sign-up). */
 export function metaName(meta: Record<string, unknown> | undefined): string | null {

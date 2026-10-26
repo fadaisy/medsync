@@ -10,6 +10,7 @@ import { Button, Chip, ChipRow, Icon, Pill, Press, Screen, SegmentTiles } from "
 import { hhmm } from "@/data/medicines";
 import { lastTimeLine, readingsRepo, startValues, useReadings } from "@/data/readings";
 import { saveButton } from "@/features/care/logic";
+import { ReadingCapture } from "@/features/home/reading-capture";
 import {
   checkReading,
   parseReading,
@@ -125,6 +126,10 @@ export default function ReadingScreen() {
       check.level !== "empty"
         ? readingsRepo.save(input, { entry: "page", taps: taps + 1, feel })
         : null;
+    // A pulse read with blood pressure (photo or voice) is its own reading, saved beside it.
+    const pulse = kind === "bp" ? parseReading(edited.pulse ?? "") : null;
+    if (saving && pulse !== null)
+      void readingsRepo.save({ kind: "pulse", value: pulse }, { entry: "page", taps: 0 });
     if (save.help) return goForHelp();
     const result = saving ? await saving : "failed";
     if (result === "failed") setProblem(savedLine(result));
@@ -186,6 +191,18 @@ export default function ReadingScreen() {
         ]}
       />
 
+      <ReadingCapture
+        kind={kind}
+        onFill={(found) => {
+          tap();
+          setEdited((s) => ({ ...s, ...found }));
+        }}
+      />
+      {kind === "bp" && edited.pulse ? (
+        <Text style={[tType.caption, { color: t.ink2 }]}>
+          {`Pulse ${edited.pulse} from your monitor is saved too.`}
+        </Text>
+      ) : null}
       <View
         style={{
           borderRadius: tRadius.xl,

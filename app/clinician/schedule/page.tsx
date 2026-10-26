@@ -13,6 +13,7 @@ import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointments } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { requireClinicianScope } from "@/lib/clinician/scope";
+import { loadBookingAttachments } from "@/lib/scheduling/attachments";
 import { revealPatientIdentities, toPatientIdentity } from "@/lib/scheduling/patient-identity";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { ScheduleList } from "./_components/schedule-list";
@@ -85,14 +86,17 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
   // The audited reveal (ADR 0095) — the booking is the care relationship.
   // `users.full_name` is not read: it is unaudited and, for a patient, not
   // the profile's name.
-  const revealed = await revealPatientIdentities({
-    viewer: { userId: scope.userId, hospitalId: scope.hospitalId },
-    surface: "clinician_schedule",
-    patients: rows,
-  });
+  const [revealed, sent] = await Promise.all([
+    revealPatientIdentities({
+      viewer: { userId: scope.userId, hospitalId: scope.hospitalId },
+      surface: "clinician_schedule",
+      patients: rows,
+    }),
+    loadBookingAttachments(rows.map((r) => r.id)),
+  ]);
 
   const list: ScheduleAppointmentRow[] = rows.map((r) => {
-    const who = toPatientIdentity(r, revealed);
+    const who = toPatientIdentity(r, revealed, sent.get(r.id));
     return {
       id: r.id,
       status: r.status,
@@ -108,6 +112,7 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
       ageYears: who.ageYears,
       sex: who.sex,
       complaint: who.complaint,
+      attachments: who.attachments,
     };
   });
 

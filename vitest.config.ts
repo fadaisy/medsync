@@ -35,6 +35,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(__dirname, "./"),
+      "@patient-core": resolve(__dirname, "./packages/patient-core"),
       // Stub Next's `server-only` package — not resolvable outside Next's
       // bundler. Production builds enforce the boundary at compile time.
       "server-only": resolve(__dirname, "./tests/_stubs/server-only.ts"),

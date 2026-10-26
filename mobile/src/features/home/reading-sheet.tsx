@@ -7,6 +7,7 @@ import { Text, View } from "react-native";
 
 import { Button, Chip, ChipRow, Sheet, Stepper, TextLink } from "@/components/tide";
 import { readingsRepo, startValues, useReadings } from "@/data/readings";
+import { ReadingCapture } from "@/features/home/reading-capture";
 import {
   checkReading,
   parseReading,
@@ -118,6 +119,10 @@ export function ReadingSheet({
   const save = async () => {
     if (check.level === "empty") return;
     const saving = readingsRepo.save(input, { entry: "sheet", taps: taps + 1 });
+    // A pulse given with blood pressure is its own reading, saved beside it.
+    const pulse = kind === "bp" ? parseReading(edited.pulse ?? "") : null;
+    if (pulse !== null)
+      void readingsRepo.save({ kind: "pulse", value: pulse }, { entry: "sheet", taps: 0 });
     if (check.level === "danger") {
       setSavedDanger(input);
       setDangerResult(await saving);
@@ -240,6 +245,14 @@ export function ReadingSheet({
             ))}
           </ChipRow>
 
+          <ReadingCapture
+            kind={kind}
+            onFill={(found) => {
+              setTaps((n) => n + 1);
+              setEdited((s) => ({ ...s, ...found }));
+            }}
+          />
+
           {kind === "bp" ? (
             <View style={{ flexDirection: "row", gap: tSpace[2] }}>
               <Stepper
@@ -259,6 +272,20 @@ export function ReadingSheet({
                 step={2}
                 min={30}
                 max={160}
+              />
+            </View>
+          ) : null}
+          {/* Pulse with blood pressure: most monitors show it; optional, saved as its own reading. */}
+          {kind === "bp" ? (
+            <View style={{ flexDirection: "row" }}>
+              <Stepper
+                label="Pulse (if your monitor shows it)"
+                unit="beats per minute"
+                value={edited.pulse ?? ""}
+                onChange={set("pulse")}
+                step={1}
+                min={20}
+                max={250}
               />
             </View>
           ) : null}

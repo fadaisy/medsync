@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SIGN_IN } from "@/content/auth";
+import { PATIENT_WEB_COPY } from "@/content/patient/web";
 import { cn } from "@/lib/utils";
 import {
   AUTH_INPUT,
@@ -50,6 +51,8 @@ export function SignInForm() {
   const [state, formAction, pending] = useActionState(signInAction, initial);
   const params = useSearchParams();
   const justSignedUp = params.get("signed-up") === "1";
+  // The patient web's idle sign-out (D-PW-06) lands here with ?idle=1; nothing else sets it.
+  const idle = params.get("idle") === "1";
   const redirectTo = params.get("redirect") ?? "";
 
   const [offline, setOffline] = useState(false);
@@ -93,6 +96,8 @@ export function SignInForm() {
             <CheckIcon aria-hidden className="size-4 shrink-0" strokeWidth={2.5} />
             {SIGN_IN.signedUp}
           </span>
+        ) : idle ? (
+          PATIENT_WEB_COPY.idleSignedOut
         ) : undefined
       }
       footer={<Footer />}

@@ -98,7 +98,7 @@ describe("E1 — the primary call is a tel: tap, and numbers come from data (rul
   it("the tiles are hidden when the catalog opened the sheet; the ONE haptic is the interrupt's, not E1's", () => {
     expect(sheet).toMatch(/from === "catalog"/);
     expect(sheet).not.toMatch(/expo-haptics|Haptics\./);
-    expect(read("mobile/src/components/symptoms/emergency-interrupt.tsx")).toMatch(
+    expect(read("mobile/src/features/symptoms/danger.tsx")).toMatch(
       /Haptics\.notificationAsync\(Haptics\.NotificationFeedbackType\.Warning\)/,
     );
     expect(sheet).toMatch(/\{!fromCatalog \? \(/);
@@ -184,28 +184,62 @@ describe("E3 — status (PRD §8.4)", () => {
 });
 
 // Ruling 9 as narrowed by the Tide v1 build prompt (law L9, owner, ADR 0340): the pre-alert asks;
-// the optional home pin at sign-up asks only behind `mobileMapPin` and its own declinable consent;
-// Help reads a position the patient already allowed and never asks in the middle of an emergency.
-describe("location — asked from the pre-alert and the consented home pin only (ruling 9, L9)", () => {
+// a place map asks only when the patient taps "Use my location", and a live share only when the patient starts
+// one (ADR 0402); a home place is saved only with its own declinable consent. Help reads a position the patient
+// already allowed and never asks in the middle of an emergency.
+describe("location — asked only when the patient acts for it (ruling 9, L9; ADR 0402)", () => {
   const importers = walk(resolve(ROOT, "mobile/src"))
     .map((p) => relative(ROOT, p))
     .filter((p) => /from "expo-location"/.test(stripComments(read(p))));
 
-  it("expo-location is imported by the pre-alert form, the home pin and Help's granted-only read", () => {
+  it("expo-location is imported by the pre-alert, the place map, live shares, places and Help's granted-only read", () => {
     expect([...importers].sort()).toEqual([
       "mobile/src/components/emergency/pre-alert-form.tsx",
-      "mobile/src/features/auth/map-pin.tsx",
+      "mobile/src/components/tide/place-map.tsx",
+      "mobile/src/data/location-share.ts",
+      // A type only: the geocoder's address shape.
+      "mobile/src/data/places.ts",
       "mobile/src/features/safety/location.ts",
     ]);
+    expect(stripComments(read("mobile/src/data/places.ts"))).toMatch(
+      /import type \{[^}]*\} from "expo-location"/,
+    );
   });
 
-  it("Help's read never asks; the home pin is behind its flag and its own consent", () => {
+  /** The body of `export async function <name>(…) {…}`, by brace depth. */
+  function body(src: string, name: string): string {
+    const start = src.indexOf(`export async function ${name}(`);
+    expect(start, name).toBeGreaterThan(-1);
+    let depth = 0;
+    // The body's brace ends its line; a return type's braces do not.
+    let i = src.indexOf("{\n", start);
+    const from = i;
+    do {
+      if (src[i] === "{") depth++;
+      else if (src[i] === "}") depth--;
+      i++;
+    } while (depth > 0 && i < src.length);
+    return src.slice(from, i);
+  }
+
+  it("Help's read never asks; the map and the share ask only from the patient's own tap", () => {
     const granted = stripComments(read("mobile/src/features/safety/location.ts"));
     expect(granted).toMatch(/getForegroundPermissionsAsync\(\)/);
     expect(granted).not.toMatch(/request\w*PermissionsAsync/);
+    for (const [file, fn] of [
+      ["mobile/src/components/tide/place-map.tsx", "findMe"],
+      ["mobile/src/data/location-share.ts", "startShare"],
+    ] as const) {
+      const src = stripComments(read(file));
+      const asks = src.match(/request\w*PermissionsAsync/g) ?? [];
+      expect(asks.length, `${file} asks outside ${fn}`).toBe(1);
+      expect(body(src, fn), `${file}: ${fn} is where it asks`).toMatch(
+        /request\w*PermissionsAsync/,
+      );
+    }
     const steps = stripComments(read("mobile/src/features/auth/steps.tsx"));
-    expect(steps).toMatch(/flag\("mobileMapPin"\)/);
-    expect(steps).toMatch(/\{draft\.pinConsent \? \(\s*<>\s*<MapPin\b/);
+    expect(steps).toMatch(/\{mapOpen \? \(\s*<>\s*<PlaceMap\b/);
+    expect(steps).toMatch(/patch\(\{ pinConsent: !draft\.pinConsent \}\)/);
   });
 
   it("E1 never asks for a location", () => {

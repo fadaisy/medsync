@@ -37,7 +37,7 @@ export const REASONS: ReadonlyArray<ReasonChip> = [
   },
   {
     value: "new_concern",
-    title: "New or worsening problem",
+    title: "General check-up for a new complaint",
     hint: "Something new, or something that has got worse.",
   },
   { value: "refill", title: "Medicine refill", hint: "You need more of a medicine you take." },

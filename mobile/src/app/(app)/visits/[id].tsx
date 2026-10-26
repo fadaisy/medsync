@@ -3,7 +3,7 @@ import type { AppointmentRow } from "@/lib/booking";
 import { useEffect, useState } from "react";
 import { cancellationSentence } from "@shared/cancel-reasons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Linking, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -11,19 +11,32 @@ import {
   BackLink,
   Button,
   Card,
-  Chip,
-  ChipRow,
   FieldError,
   Icon,
   Note,
   Press,
+  SatellitePreview,
   Screen,
   Sheet,
   TextField,
+  Ticket,
 } from "@/components/tide";
-import { loadVisit, moveOptions, visitActions } from "@/data/visits";
-import { dayKeyOf, dayNumberOf, shortDayOf, weekdayOf } from "@/features/visits/logic";
+import { loadVisit, moveOptions, payments, useTickets, visitActions } from "@/data/visits";
+import { ShareLocationSheet } from "@/features/location-share/share-sheet";
+import { BookingCalendar } from "@/features/visits/calendar";
+import {
+  clockOf,
+  dayKeyOf,
+  dayNumberOf,
+  longDayOf,
+  mapsUrl,
+  monthShortOf,
+  partOf,
+  shortDayOf,
+  weekdayOf,
+} from "@/features/visits/logic";
 import { HONEST } from "@/features/visits/parts";
+import { Countdown, TimeWheel } from "@/features/visits/time-wheel";
 import {
   APPOINTMENT_REASONS,
   canArrive,
@@ -34,6 +47,7 @@ import {
 } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { confirmationPending } from "@/lib/notifications";
+import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -68,11 +82,17 @@ export default function VisitScreen() {
   const [mode, setMode] = useState<Mode>("idle");
   const [options, setOptions] = useState<MoveOption[] | null>(null);
   const [chosen, setChosen] = useState<MoveOption | null>(null);
+  const [moveDay, setMoveDay] = useState<string | null>(null);
+  const now = useNow(60_000);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [sharing, setSharing] = useState(false);
+  const [paying, setPaying] = useState(false);
+  // The ticket this phone issued for the visit, if it did: its fee, payment and patient line.
+  const tickets = useTickets();
 
   useEffect(() => {
     let live = true;
@@ -130,10 +150,15 @@ export default function VisitScreen() {
     .filter(Boolean)
     .join(" · ");
   const reasonShort = reason.trim().length < MIN_REASON_CHARS;
+  // A doctor's slot has a time (ADR 0403); a place in a clinic day has a part of the day only.
+  const slot = visit.sessionId === null;
+  const issued = tickets.find((x) => x.id === visit.id) ?? null;
+  const live = !ended && visit.status !== "completed" && visit.status !== "no_show";
 
   const closeSheet = () => {
     setMode("idle");
     setChosen(null);
+    setMoveDay(null);
     setReason("");
     setError(null);
   };
@@ -177,16 +202,23 @@ export default function VisitScreen() {
           return res;
         }, "Thank you. The clinic expects you.");
 
+  // Move it: the calendar picks a day with open time, the wheel a time on it (as Ask for a day).
+  const openDays = new Set((options ?? []).map((o) => o.dayKey));
+  const moveDayKey = moveDay && openDays.has(moveDay) ? moveDay : (options?.[0]?.dayKey ?? null);
+  const dayOptions = (options ?? []).filter((o) => o.dayKey === moveDayKey);
+  const pick = (chosen && chosen.dayKey === moveDayKey ? chosen : dayOptions[0]) ?? null;
+
   const submitMove = async () => {
-    if (!chosen) return;
+    const to = pick;
+    if (!to) return;
     const ok = await run(async () => {
-      const res = await visitActions.move(visit, chosen, reason);
+      const res = await visitActions.move(visit, to, reason);
       if (res.ok)
         setVisit({
           ...visit,
           id: res.data.new_appointment_id,
-          startsAtIso: chosen.startsAtIso,
-          endsAtIso: chosen.endsAtIso,
+          startsAtIso: to.startsAtIso,
+          endsAtIso: to.endsAtIso,
           status: res.data.new_status,
         });
       return res;
@@ -290,7 +322,9 @@ export default function VisitScreen() {
           <Text
             style={[tType.bodyM, { fontFamily: tFont.regular, fontSize: 14, color: t.onBand2 }]}
           >
-            {HONEST}
+            {slot
+              ? "Please arrive a little early. The doctor may see you later than your time."
+              : HONEST}
           </Text>
         </View>
         {/* the day tile, pulled out of the right edge */}
@@ -349,6 +383,53 @@ export default function VisitScreen() {
         ) : null}
       </Card>
 
+      {/* The ticket in the hand (ADR 0407): it leans, turns over and shares. */}
+      {live ? (
+        <Ticket
+          kind="day"
+          hospitalName={visit.hospitalName}
+          day={dayNumberOf(key)}
+          dayLine={`${weekdayOf(key)} · ${monthShortOf(key)}`.toUpperCase()}
+          sessionLine={
+            slot
+              ? clockOf(visit.startsAtIso)
+              : issued?.doors
+                ? `${partOf(visit.startsAtIso)} · doors ${issued.doors}`
+                : partOf(visit.startsAtIso)
+          }
+          status={STATUS_LABEL[visit.status]}
+          details={[
+            { label: "Clinic", value: visit.departmentName },
+            { label: "See", value: visit.clinicianName },
+            {
+              label: "Time",
+              value: slot
+                ? `${clockOf(visit.startsAtIso)} · arrive a little early`
+                : "Not promised",
+            },
+            ...(issued ? [{ label: "Patient", value: issued.patient }] : []),
+          ]}
+          // Only what this phone knows: no strip at all rather than a guessed fee.
+          fee={issued ? issued.fee : undefined}
+          feeLabel={issued?.feeLabel}
+          paid={issued?.paid ?? false}
+          demoPayment={issued?.demoPayment}
+          paying={paying}
+          onPayNow={
+            issued && mine
+              ? () => {
+                  setPaying(true);
+                  void payments.payTicket(issued).then((r) => {
+                    setPaying(false);
+                    if (!r.ok) setError(r.error);
+                  });
+                }
+              : undefined
+          }
+          code={visit.bookingCode ?? issued?.code ?? "Ask at the desk"}
+        />
+      ) : null}
+
       {notice ? (
         <Note tone="info" icon="check">
           {notice}
@@ -372,13 +453,47 @@ export default function VisitScreen() {
             ? `Show code ${visit.bookingCode} at the desk when you arrive.`
             : "Show your MedSync number at the desk when you arrive."}
         </Text>
+        {/* The plain street map to the hospital, when its admin has set where it is. */}
+        {visit.hospitalPin ? (
+          <SatellitePreview
+            satellite={false}
+            lat={visit.hospitalPin.lat}
+            lng={visit.hospitalPin.lng}
+            height={170}
+            label={`Map showing where ${visit.hospitalName} is`}
+          />
+        ) : (
+          <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
+            {`${visit.hospitalName} has not put its place on the map yet. Your map app can search for it.`}
+          </Text>
+        )}
+        <Button
+          label={visit.hospitalPin ? "Directions in Maps" : "Search in Maps"}
+          variant="soft"
+          icon="navigation"
+          onPress={() =>
+            void Linking.openURL(mapsUrl(Platform.OS, visit.hospitalName, visit.hospitalPin))
+          }
+        />
+        {/* Upcoming and not yet arrived: family can follow the trip with a private link (ADR 0402). */}
+        {mine && RESCHEDULABLE.has(visit.status) ? (
+          <Button
+            label="Share my location while I travel"
+            variant="outline"
+            icon="locate"
+            onPress={() => setSharing(true)}
+          />
+        ) : null}
       </View>
+
+      <ShareLocationSheet visible={sharing} onClose={() => setSharing(false)} purpose="visit" />
 
       <Sheet
         visible={mode === "move"}
         onClose={closeSheet}
+        help={false}
         overline="Move it"
-        title="Pick another day"
+        title="Pick another day and time"
       >
         {options === null ? (
           <ActivityIndicator
@@ -388,24 +503,42 @@ export default function VisitScreen() {
         ) : options.length === 0 ? (
           <Note tone="plain">No other day is open with this clinician on MedSync yet.</Note>
         ) : (
-          <ChipRow>
-            {options.map((o) => (
-              <Chip
-                key={o.startsAtIso}
-                label={`${shortDayOf(o.dayKey)} · ${o.part}`}
-                selected={chosen?.startsAtIso === o.startsAtIso}
-                onPress={() => setChosen(o)}
-              />
-            ))}
-          </ChipRow>
+          <>
+            <BookingCalendar
+              today={dayKeyOf(now)}
+              open={openDays}
+              selected={moveDayKey}
+              onSelect={(k) => {
+                setMoveDay(k);
+                setChosen(null);
+              }}
+            />
+            {pick && moveDayKey ? (
+              <Card padding={tSpace[3]} style={{ flexDirection: "row", gap: tSpace[3] }}>
+                <Countdown
+                  iso={pick.startsAtIso}
+                  whenLine={`${shortDayOf(pick.dayKey)} at ${clockOf(pick.startsAtIso)}`}
+                />
+                <TimeWheel
+                  key={moveDayKey}
+                  label={`Times on ${longDayOf(moveDayKey)}`}
+                  times={dayOptions.map((o) => clockOf(o.startsAtIso))}
+                  index={dayOptions.indexOf(pick)}
+                  onChange={(k) => setChosen(dayOptions[k] ?? null)}
+                />
+              </Card>
+            ) : null}
+          </>
         )}
-        <Text style={[tType.bodyS, { color: t.ink2 }]}>{HONEST}</Text>
+        <Text style={[tType.bodyS, { color: t.ink2 }]}>
+          Please arrive a little early. The doctor may see you later than your time.
+        </Text>
         <ReasonField value={reason} onChange={setReason} />
         {error ? <FieldError>{error}</FieldError> : null}
         <Button
           label="Move my visit"
           busy={busy}
-          disabled={!chosen || reasonShort}
+          disabled={!pick || reasonShort}
           onPress={() => void submitMove()}
         />
         <Button label="Keep it" variant="soft" onPress={closeSheet} />

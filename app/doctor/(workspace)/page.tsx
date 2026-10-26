@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { IncomingIntakesPanel } from "@/components/intake/incoming-panel";
+import { ComingDays } from "@/components/scheduling/coming-days";
 import {
   getMySupervisor,
   listMyCosignRequests,
@@ -20,6 +21,7 @@ import {
 } from "@/lib/doctor/cosign";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
+import { fetchClinicianComingDays } from "@/lib/scheduling/doctor";
 import { doctorWorkspace } from "@/lib/workspace/feature";
 import { PinnedCriticals } from "../_components/critical-alerts";
 import { Workspace } from "../_components/workspace/workspace";
@@ -48,12 +50,27 @@ export default async function DoctorHomePage({
 }) {
   const scope = await requireDoctorScope();
   // Lab Phase 1 §5.4: open critical alerts pinned above every lane (or above the Overview).
-  const c = await myCriticals(scope.userId, scope.hospitalId);
-  const pinned = c ? (
-    <div className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
-      <PinnedCriticals alerts={c.alerts} ids={c.ids} now={c.now} time={c.time} />
-    </div>
-  ) : null;
+  const [c, coming] = await Promise.all([
+    myCriticals(scope.userId, scope.hospitalId),
+    // A booking for another day shows on the home board, not only in Schedule (ADR 0410).
+    fetchClinicianComingDays({
+      clinicianUserId: scope.userId,
+      hospitalId: scope.hospitalId,
+      days: 7,
+    }),
+  ]);
+  const pinned = (
+    <>
+      {c ? (
+        <div className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
+          <PinnedCriticals alerts={c.alerts} ids={c.ids} now={c.now} time={c.time} />
+        </div>
+      ) : null}
+      <div className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
+        <ComingDays days={coming} hrefOf={() => "/doctor/schedule"} title="Your coming days" />
+      </div>
+    </>
+  );
   if (!doctorWorkspace(scope.hospitalId))
     return (
       <>

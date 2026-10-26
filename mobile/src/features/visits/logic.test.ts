@@ -2,8 +2,10 @@ import type { FeeInputs } from "@shared/fees";
 
 import {
   aheadWords,
+  countdownOf,
   feeFor,
   feeText,
+  mapsUrl,
   monthGrid,
   partOf,
   payLook,
@@ -104,5 +106,48 @@ describe("words and grids", () => {
   it("splits the day at Kampala noon", () => {
     expect(partOf("2026-10-20T05:00:00Z")).toBe("Morning"); // 08:00 EAT
     expect(partOf("2026-10-20T10:00:00Z")).toBe("Afternoon"); // 13:00 EAT
+  });
+});
+
+describe("countdownOf", () => {
+  const now = new Date("2026-10-18T06:30:00Z");
+  it("splits the time left into days, hours, minutes and seconds", () => {
+    expect(countdownOf(now, "2026-10-19T09:50:00Z")).toEqual({
+      days: 1,
+      hours: 3,
+      minutes: 20,
+      seconds: 0,
+    });
+    expect(countdownOf(now, "2026-10-18T07:15:30Z")).toEqual({
+      days: 0,
+      hours: 0,
+      minutes: 45,
+      seconds: 30,
+    });
+  });
+  it("stops at zero once the time has passed", () => {
+    expect(countdownOf(now, "2026-10-18T06:00:00Z")).toEqual({
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+    });
+  });
+});
+
+describe("mapsUrl", () => {
+  const pin = { lat: 0.3381, lng: 32.5761 };
+  it("gives directions to the pin when the hospital set one", () => {
+    expect(mapsUrl("ios", "Mulago", pin)).toBe(
+      "https://maps.apple.com/?daddr=0.3381,32.5761&q=Mulago",
+    );
+    expect(mapsUrl("android", "Mulago", pin)).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=0.3381%2C32.5761",
+    );
+  });
+  it("searches the name when it has not", () => {
+    expect(mapsUrl("android", "Test Hospital-1", null)).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Test%20Hospital-1%2C%20Uganda",
+    );
   });
 });

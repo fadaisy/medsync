@@ -1,7 +1,13 @@
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { Ticket } from "@/components/tide/ticket";
 import { ThemeProvider } from "@/theme/theme";
+
+const METRICS = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const base = {
   kind: "queue" as const,
@@ -14,9 +20,11 @@ const base = {
 
 const show = async (fee: number | null, paid: boolean) =>
   await render(
-    <ThemeProvider>
-      <Ticket {...base} fee={fee} paid={paid} demoPayment={paid} onPayNow={() => {}} />
-    </ThemeProvider>,
+    <SafeAreaProvider initialMetrics={METRICS}>
+      <ThemeProvider>
+        <Ticket {...base} fee={fee} paid={paid} demoPayment={paid} onPayNow={() => {}} />
+      </ThemeProvider>
+    </SafeAreaProvider>,
   );
 
 describe("ticket place in line", () => {
@@ -29,9 +37,11 @@ describe("ticket place in line", () => {
 
   it("hides the count when there is none", async () => {
     await render(
-      <ThemeProvider>
-        <Ticket {...base} aheadLine={null} fee={null} paid={false} />
-      </ThemeProvider>,
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <ThemeProvider>
+          <Ticket {...base} aheadLine={null} fee={null} paid={false} />
+        </ThemeProvider>
+      </SafeAreaProvider>,
     );
     expect(screen.getByText("In the line")).toBeTruthy();
     expect(screen.queryByText(/ahead of you/)).toBeNull();
@@ -59,5 +69,33 @@ describe("ticket payment looks", () => {
     expect(screen.getByText("Demo payment · no money moved")).toBeTruthy();
     expect(screen.getByText("Not promised")).toBeTruthy();
     expect(screen.getByText("Show at the desk · works with no internet")).toBeTruthy();
+  });
+});
+
+describe("ticket turns over with a tap (ADR 0409)", () => {
+  it("has no share or turn button, and a tap shows the back", async () => {
+    await show(null, false);
+    expect(screen.queryByText("Share ticket")).toBeNull();
+    expect(screen.queryByText("Turn over")).toBeNull();
+    // The back waits, hidden from screen readers, until the ticket is tapped.
+    expect(screen.queryByText("YOUR CODE")).toBeNull();
+    await fireEvent.press(screen.getByText("[Hospital name]"));
+    expect(screen.getByText("YOUR CODE")).toBeTruthy();
+    expect(screen.getByText("Go to the reception desk when you arrive.")).toBeTruthy();
+    expect(screen.getByText("Tap the ticket to see the front")).toBeTruthy();
+  });
+
+  it("pressing Pay now pays and does not turn the ticket", async () => {
+    const pay = jest.fn();
+    await render(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <ThemeProvider>
+          <Ticket {...base} fee={30000} paid={false} onPayNow={pay} />
+        </ThemeProvider>
+      </SafeAreaProvider>,
+    );
+    await fireEvent.press(screen.getByText("Pay now"));
+    expect(pay).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("YOUR CODE")).toBeNull();
   });
 });

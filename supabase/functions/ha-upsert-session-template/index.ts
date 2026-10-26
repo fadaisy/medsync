@@ -40,6 +40,7 @@ import type { ClosureWindow } from "../_shared/services-hub.ts";
 import { z } from "npm:zod@4.4.3";
 
 import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
+import { PATIENT_BOOKING_HORIZON_DAYS } from "../_shared/booking-horizon.ts";
 import { preflight } from "../_shared/cors.ts";
 import {
   badRequest,
@@ -60,7 +61,7 @@ import { DEFAULT_TIME_ZONE, expandSessionTemplate } from "../_shared/slots.ts";
 const log = makeLogger("ha-upsert-session-template");
 
 /** Same horizon as pt-request-appointment's PATIENT_BOOKING_HORIZON_DAYS. */
-const MATERIALISE_HORIZON_DAYS = 14;
+const MATERIALISE_HORIZON_DAYS = PATIENT_BOOKING_HORIZON_DAYS;
 
 const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD");
 

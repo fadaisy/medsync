@@ -1,5 +1,6 @@
 "use client";
 
+import type { BookingAttachment } from "@/components/medsync/booking-attachments";
 import type { PatientIdentity } from "@/components/medsync/patient-identity";
 import type { PillTone } from "@/components/ui/data-table";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -27,6 +28,8 @@ export interface ScheduleAppointmentRow {
   ageYears?: number | null;
   sex?: string | null;
   complaint?: string | null;
+  /** What the patient sent with the booking, shown only with an audited reveal (ADR 0406). */
+  attachments?: BookingAttachment[];
 }
 
 /** The card's shape from a row. `patientName` falls back to the code, so a name equal to it is no name. */
@@ -38,6 +41,7 @@ export function identityOf(row: ScheduleAppointmentRow): PatientIdentity {
     ageYears: row.ageYears ?? null,
     sex: row.sex ?? null,
     complaint: row.complaint ?? null,
+    attachments: row.attachments,
   };
 }
 
@@ -162,6 +166,8 @@ export function ScheduleList({
                     <PatientIdentityCard
                       patient={identityOf(r)}
                       className="flex-1"
+                      // The row is a button: the words here, the files in the detail dialog.
+                      attachments="text"
                       trailing={
                         r.priority === "urgent" ? (
                           <AlertCircleIcon

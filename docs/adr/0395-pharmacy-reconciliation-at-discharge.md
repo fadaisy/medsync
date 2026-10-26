@@ -11,6 +11,7 @@
   - the active lines prescribed after opening (the discharge prescription).
 
   Uncoded medicines stand as their own rows.
+
 - **Decisions.** Every row needs the prescriber's decision for home, stored append-only in `pharmacy_reconciliation_decisions`; the latest decision wins. Stay stopped, Paused and Changed each need a reason. Nothing is inferred.
 - **Discrepancies (MR-3).** Discrepancies come only from the rules signed on in the `reconciliation_rules` pack. MedSync checks twelve of the fourteen; R7 (directions differ) and R9 (a course with no stop) are listed on the page as not checked. A pharmacist explains a discrepancy with a reason from the signed list.
 - **Confirming (MR-4).** **Confirm the list** is checked again on the server. It writes an event carrying the list as it stood.

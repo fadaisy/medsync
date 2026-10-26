@@ -24,6 +24,7 @@ const RED_ALLOWED = new Set([
   "app/(app)/care/trends.tsx",
   "features/care/week-chart.tsx",
   "features/home/reading-sheet.tsx",
+  "features/symptoms/danger.tsx",
   "components/tide/primitives.tsx",
   "components/tide/field.tsx",
   "components/tide/screen.tsx",

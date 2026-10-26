@@ -1,35 +1,51 @@
+import type { Attachment } from "@/data/attachments";
 import type { DayOption, Days, SessionOption, Ticket as TicketData } from "@/data/visits";
+import type { NoteSelection } from "@/features/visits/symptom-note-logic";
+import type { Door } from "@/features/visits/why-coming";
 import type { AppointmentReason } from "@/lib/booking";
 import { useEffect, useState } from "react";
+import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
 import {
   Button,
   Card,
   FieldError,
   Icon,
+  IconDisc,
   Note,
   Press,
   Screen,
   TextField,
   Ticket,
 } from "@/components/tide";
+import { sendAttachments } from "@/data/attachments";
 import { loadDays, payments, requestDay, useTickets } from "@/data/visits";
+import { AttachmentTools } from "@/features/visits/attachments";
+import { BookingCalendar } from "@/features/visits/calendar";
+import { dayState, firstOpenDay } from "@/features/visits/calendar-logic";
 import { HospitalPicker } from "@/features/visits/hospital-picker";
 import {
   clockOf,
   dayKeyOf,
   dayNumberOf,
   feeText,
+  longDayOf,
   monthShortOf,
   shortDayOf,
   weekdayOf,
 } from "@/features/visits/logic";
 import { HonestNote, pickStyle, StepTitle } from "@/features/visits/parts";
+import { SymptomNote } from "@/features/visits/symptom-note";
+import { bookingSymptoms, EMPTY_NOTE } from "@/features/visits/symptom-note-logic";
+import { Countdown, TimeWheel } from "@/features/visits/time-wheel";
+import { WhyComing } from "@/features/visits/why-coming";
 import { APPOINTMENT_REASONS, newIdempotencyKey } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { useSession } from "@/lib/session";
+import { useCatalogMode } from "@/lib/symptoms";
+import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -42,14 +58,20 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * itself (`pt-request-appointment`, one idempotency key per attempt). The fee
  * is the clinic's own price list; where none is priced it says "No fee".
  *
- * Morning or afternoon is shown as when doors open, never as your hour (law
- * L8). Payment is simulated (`payments`). With no hospital chosen the patient
+ * The days sit on a month calendar reaching `PATIENT_BOOKING_HORIZON_DAYS`
+ * ahead; a day with no open time cannot be chosen. A clinic day shows morning
+ * or afternoon as when doors open, never as your hour (law L8). A named
+ * doctor's day shows its open times on a scroll wheel beside a countdown to
+ * the chosen one, with the owner's plain words that the doctor may see you
+ * later (18 Oct 2026). No count of what is left is ever
+ * shown (ADR 0084). Payment is simulated (`payments`). With no hospital chosen the patient
  * chooses one first; nothing is shown in its place.
  */
 const REASONS = new Set<string>(APPOINTMENT_REASONS.map((r) => r.value));
 
 export default function BookDayScreen() {
   const t = useTide();
+  const router = useRouter();
   const { session: auth } = useSession();
   const params = useLocalSearchParams<{
     day?: string;
@@ -59,10 +81,15 @@ export default function BookDayScreen() {
     /** Home's "Ask for a day": the clinician's user id and their department. */
     doctor?: string;
     department?: string;
+    /** The doctor's hospital, which may not be the patient's own (ADR 0086). */
+    hospital?: string;
   }>();
-  const reason = (
-    params.reason && REASONS.has(params.reason) ? params.reason : "follow_up"
-  ) as AppointmentReason;
+  // What the visit is for: given by Book a visit, else the patient says it here.
+  // It used to fall back to "Routine follow-up", which named visits wrongly (owner, 18 Oct 2026).
+  const [reason, setReason] = useState<AppointmentReason | null>(
+    params.reason && REASONS.has(params.reason) ? (params.reason as AppointmentReason) : null,
+  );
+  const [door, setDoor] = useState<Door | null>(null);
   const fullName = auth?.user.user_metadata?.full_name;
   const patient =
     params.memberName ??
@@ -73,53 +100,128 @@ export default function BookDayScreen() {
   const [attempt, setAttempt] = useState(0);
   const [picked, setPicked] = useState<string | null>(params.day ?? null);
   const [part, setPart] = useState<"Morning" | "Afternoon" | null>(null);
+  const [slotId, setSlotId] = useState<string | null>(null);
   const [whoId, setWhoId] = useState<string | null>(null);
   const [pay, setPay] = useState<"momo" | "later">("momo");
   const [note, setNote] = useState("");
+  const [symptoms, setSymptoms] = useState<NoteSelection>(EMPTY_NOTE);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [unsent, setUnsent] = useState(0);
+  const catalog = useCatalogMode();
   const [key, setKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ticketId, setTicketId] = useState<string | null>(null);
   const all = useTickets();
+  const now = useNow(60_000);
   const ticket = ticketId ? (all.find((x) => x.id === ticketId) ?? null) : null;
 
-  const { doctor, department } = params;
+  const { doctor, department, hospital } = params;
   useEffect(() => {
+    if (!reason) return;
     let live = true;
-    loadDays(reason, doctor ? { userId: doctor, departmentId: department } : null).then(
+    loadDays(
+      reason,
+      doctor ? { userId: doctor, departmentId: department, hospitalId: hospital } : null,
+    ).then(
       (d) => {
         if (live) setDays(d);
       },
-      () => {
+      (e: unknown) => {
+        // The reason, for whoever is running the app in development; the patient sees plain words.
+        if (__DEV__) console.warn("[book/day] loading open days failed:", e);
         if (live) setFailed(true);
       },
     );
     return () => {
       live = false;
     };
-  }, [reason, doctor, department, attempt]);
+  }, [reason, doctor, department, hospital, attempt]);
 
-  if (ticket) return <Sent ticket={ticket} />;
+  if (ticket) return <Sent ticket={ticket} unsent={unsent} />;
+
+  // The reason sets the fee and which clinic days take the visit, so it comes first.
+  // Book a visit already asked it (its reason rides in the params): then this goes straight on.
+  const asked = !!params.reason;
+  const pickReason = (r: AppointmentReason) => {
+    if (r === reason) return;
+    setReason(r);
+    setDays(null);
+    setFailed(false);
+    setSlotId(null);
+    setPart(null);
+    setWhoId(null);
+    setKey(null);
+  };
+  const reasonPicker = asked ? null : (
+    <WhyComing
+      door={door ?? (reason ? "planned" : null)}
+      onDoor={setDoor}
+      reason={reason}
+      onReason={pickReason}
+      // The checker comes back here with the reason, and the doctor, it was opened with.
+      onSymptoms={(area) =>
+        router.push({
+          pathname: "/symptoms",
+          params: {
+            ...(area ? { area } : {}),
+            ...(doctor ? { doctor } : {}),
+            ...(department ? { department } : {}),
+            ...(hospital ? { hospital } : {}),
+          },
+        })
+      }
+    />
+  );
+  const helpInPage = door === "wrong";
+  if (!reason) {
+    return (
+      <Screen
+        back={{ label: "Book a visit" }}
+        title="Ask for a day"
+        help={helpInPage ? "none" : "round"}
+        helpSource="book-day"
+      >
+        {reasonPicker}
+      </Screen>
+    );
+  }
 
   if (!days) {
     return (
       <Screen back={{ label: "Book a visit" }} title="Ask for a day" helpSource="book-day">
         {failed ? (
-          <View style={{ gap: tSpace[3] }}>
-            <Note tone="plain">
-              {"Couldn't load the clinic days. Check your connection and try again."}
-            </Note>
+          <View style={{ gap: tSpace[4] }}>
+            <View style={{ alignItems: "center", gap: tSpace[3], paddingVertical: tSpace[6] }}>
+              <IconDisc name="calendar" size={56} color={t.area.visits} bg={t.surface2} />
+              <Text
+                accessibilityRole="header"
+                style={[tType.heading, { color: t.ink, textAlign: "center" }]}
+              >
+                {"We couldn't load the open days"}
+              </Text>
+              <Text style={[tType.bodyM, { color: t.ink2, textAlign: "center" }]}>
+                Your phone may be offline, or the clinic list is busy. Nothing was booked.
+              </Text>
+            </View>
             <Button
               label="Try again"
-              variant="outline"
               onPress={() => {
                 setFailed(false);
                 setAttempt((n) => n + 1);
               }}
             />
+            <Button
+              label="Back to doctors"
+              variant="outline"
+              onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+            />
           </View>
         ) : (
-          <ActivityIndicator color={t.ink} accessibilityLabel="Loading the clinic days" />
+          <View style={{ gap: tSpace[4] }}>
+            {reasonPicker}
+            <ActivityIndicator color={t.ink} accessibilityLabel="Loading the clinic days" />
+          </View>
         )}
       </Screen>
     );
@@ -139,8 +241,22 @@ export default function BookDayScreen() {
     );
   }
 
+  const today = dayKeyOf(now);
   const takeable = (d: DayOption) => d.sessions.some((s) => s.placesLeft > 0);
-  const day = days.days.find((d) => d.key === picked) ?? days.days.find(takeable) ?? null;
+  const openKeys = new Set(days.days.filter(takeable).map((d) => d.key));
+  const first = firstOpenDay(today, openKeys);
+  const dayKey = picked && dayState(picked, today, openKeys) === "open" ? picked : first;
+  const day = days.days.find((d) => d.key === dayKey) ?? null;
+  const doctorName = days.doctorName;
+  const clinicName =
+    day?.sessions[0]?.clinicName ?? days.days[0]?.sessions[0]?.clinicName ?? "The clinic";
+
+  // A named doctor: every open time of the day, and the patient picks one.
+  const slots = doctorName ? (day?.sessions ?? []).filter((s) => s.slot) : [];
+  // The wheel always has a time in its band, so the first open time stands until another is chosen.
+  const slotSession = slots.find((s) => s.id === slotId) ?? slots[0] ?? null;
+
+  // A clinic day: morning or afternoon, and who to see.
   const inPart = (p: "Morning" | "Afternoon") => (day?.sessions ?? []).filter((s) => s.part === p);
   const partOpen = (p: "Morning" | "Afternoon") => inPart(p).some((s) => s.placesLeft > 0);
   const chosenPart =
@@ -151,26 +267,32 @@ export default function BookDayScreen() {
         : partOpen("Afternoon")
           ? "Afternoon"
           : null;
-  const open = chosenPart ? inPart(chosenPart).filter((s) => s.placesLeft > 0) : [];
+  const inChosen = chosenPart ? inPart(chosenPart).filter((s) => s.placesLeft > 0) : [];
   // "Any doctor" takes the cheapest open place; a named doctor is their own session.
-  const anySession = [...open].sort((a, b) => (a.fee ?? 0) - (b.fee ?? 0))[0] ?? null;
-  const named = open.filter((s) => s.clinicianName !== "Clinic team");
+  const anySession = [...inChosen].sort((a, b) => (a.fee ?? 0) - (b.fee ?? 0))[0] ?? null;
+  const named = inChosen.filter((s) => s.clinicianName !== "Clinic team");
   const whoSel = whoId === "any" ? null : whoId;
-  const session: SessionOption | null = (whoSel && open.find((s) => s.id === whoSel)) || anySession;
-  // From a doctor's card the clinician is already chosen: no "who" question.
-  const whoOptions = days.doctorName
+  const session: SessionOption | null = doctorName
+    ? slotSession
+    : (whoSel && inChosen.find((s) => s.id === whoSel)) || anySession;
+  const whoOptions = doctorName
     ? []
     : [
         { key: "any", name: "Any doctor", fee: anySession?.fee ?? null },
         ...named.map((s) => ({ key: s.id, name: s.clinicianName, fee: s.fee })),
       ];
   const fee = session?.fee ?? null;
-  const clinicName = days.days[0]?.sessions[0]?.clinicName ?? "The clinic";
-  const weekdays = [...new Set(days.days.map((d) => weekdayOf(d.key)))];
-  const dayWords = day
-    ? `${weekdayOf(day.key)} ${dayNumberOf(day.key)} ${(chosenPart ?? "").toLowerCase()}`
-    : "";
-  const send = fee && pay === "momo" ? `Pay ${feeText(fee)} · ${dayWords}` : `Ask for ${dayWords}`;
+  const when = slotSession?.slot
+    ? clockOf(slotSession.slot.startsAtIso)
+    : (chosenPart ?? "").toLowerCase();
+  const dayWords = day ? `${weekdayOf(day.key)} ${dayNumberOf(day.key)} ${when}` : "";
+  const send = !session
+    ? doctorName
+      ? "Choose a time"
+      : "Choose a day"
+    : fee && pay === "momo"
+      ? `Pay ${feeText(fee)} · ${dayWords}`
+      : `Ask for ${dayWords}`;
 
   const reset = () => setKey(null);
 
@@ -191,103 +313,111 @@ export default function BookDayScreen() {
       payNow: pay === "momo",
       idempotencyKey: k,
       now: new Date(),
+      symptoms: bookingSymptoms(symptoms, CATALOG),
     });
-    setBusy(false);
     if (!res.ok) {
+      setBusy(false);
       setError(res.error);
       return;
     }
+    // The request stands whatever happens to the files; the ticket says if any did not go.
+    const sent = await sendAttachments(res.ticket.id, attachments);
+    setBusy(false);
+    setUnsent(sent.failed);
     setKey(null);
     setTicketId(res.ticket.id);
   };
 
+  const header = {
+    back: { label: "Book a visit" },
+    overline: doctorName ? `${days.hospitalName} · ${clinicName}` : days.hospitalName,
+    overlineColor: t.area.visits,
+    title: doctorName ? `Ask ${doctorName} for a day` : "Ask for a day",
+    helpSource: "book-day",
+  } as const;
+
+  if (!first) {
+    return (
+      <Screen {...header}>
+        <Card>
+          <View style={{ alignItems: "center", gap: tSpace[3], paddingVertical: tSpace[4] }}>
+            <IconDisc name="calendar" size={56} color={t.area.visits} bg={t.surface2} />
+            <Text
+              accessibilityRole="header"
+              style={[tType.heading, { color: t.ink, textAlign: "center" }]}
+            >
+              No open days in the next two months
+            </Text>
+            <Text style={[tType.bodyM, { color: t.ink2, textAlign: "center" }]}>
+              {doctorName
+                ? `${doctorName} has no open time on MedSync yet. Try another doctor, or come back later.`
+                : "No clinic day for this kind of visit is open on MedSync yet. Come back later."}
+            </Text>
+          </View>
+        </Card>
+        <Button
+          label={doctorName ? "Back to doctors" : "Back to Book a visit"}
+          variant="outline"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+        />
+      </Screen>
+    );
+  }
+
   return (
-    <Screen
-      back={{ label: "Book a visit" }}
-      overline={
-        days.days.length ? `${clinicName} · open ${weekdays.join(" and ")}` : days.hospitalName
-      }
-      overlineColor={t.area.visits}
-      title={days.doctorName ? `Ask ${days.doctorName} for a day` : "Ask for a day"}
-      helpSource="book-day"
-    >
-      {days.days.length === 0 ? (
-        <Note tone="plain">
-          {days.doctorName
-            ? `${days.doctorName} has no open day on MedSync in the next two weeks.`
-            : "No clinic day for this kind of visit is open on MedSync in the next two weeks."}
-        </Note>
-      ) : (
-        // The rail runs off the right edge: no right padding.
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginHorizontal: -tSpace[5], flexGrow: 0 }}
-          contentContainerStyle={{ paddingLeft: tSpace[5], gap: tSpace[2], paddingVertical: 4 }}
-        >
-          {days.days.map((d) => {
-            const on = d.key === day?.key;
-            const room = takeable(d);
-            return (
-              <Press
-                key={d.key}
-                onPress={() => {
-                  setPicked(d.key);
-                  setWhoId(null);
+    <Screen {...header}>
+      {reasonPicker}
+
+      <BookingCalendar
+        today={today}
+        open={openKeys}
+        selected={day?.key ?? null}
+        onSelect={(k) => {
+          setPicked(k);
+          setSlotId(null);
+          setPart(null);
+          setWhoId(null);
+          reset();
+        }}
+      />
+
+      {day && doctorName ? (
+        <View style={{ gap: tSpace[3] }}>
+          <StepTitle>{`Choose a time on ${longDayOf(day.key)}`}</StepTitle>
+          {slotSession?.slot ? (
+            <Card padding={tSpace[3]} style={{ flexDirection: "row", gap: tSpace[3] }}>
+              <Countdown
+                iso={slotSession.slot.startsAtIso}
+                whenLine={`${shortDayOf(day.key)} at ${clockOf(slotSession.slot.startsAtIso)}`}
+              />
+              <TimeWheel
+                key={day.key}
+                label={`Times on ${longDayOf(day.key)}`}
+                times={slots.map((s) => (s.slot ? clockOf(s.slot.startsAtIso) : ""))}
+                index={slots.indexOf(slotSession)}
+                onChange={(k) => {
+                  setSlotId(slots[k]?.id ?? null);
                   reset();
                 }}
-                disabled={!room}
-                accessibilityState={{ selected: on, disabled: !room }}
-                accessibilityLabel={`${shortDayOf(d.key)}, ${room ? "places left" : "full"}`}
-                style={{
-                  width: 74,
-                  height: 96,
-                  borderRadius: tRadius.panel,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 2,
-                  backgroundColor: on ? t.band : room ? t.surface : t.surface3,
-                  boxShadow: on || !room ? undefined : t.shadow.card,
-                }}
-              >
-                <Text style={[tType.caption, { color: on ? t.onBand2 : room ? t.ink2 : t.ink4 }]}>
-                  {weekdayOf(d.key).toUpperCase()}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: tFont.monoSemibold,
-                    fontSize: 28,
-                    lineHeight: 32,
-                    color: on ? t.onBand : room ? t.ink : t.ink4,
-                  }}
-                >
-                  {dayNumberOf(d.key).padStart(2, "0")}
-                </Text>
-                <Text
-                  style={[
-                    tType.micro,
-                    {
-                      fontFamily: tFont.semibold,
-                      color: on ? t.onBandAccent : room ? t.accentText : t.ink4,
-                    },
-                  ]}
-                >
-                  {room ? "Room" : "Full"}
-                </Text>
-              </Press>
-            );
-          })}
-        </ScrollView>
-      )}
+              />
+            </Card>
+          ) : null}
+          {slotSession ? (
+            <Note tone="plain" icon="clock">
+              Please arrive a little early. The doctor may see you later than this time.
+            </Note>
+          ) : null}
+        </View>
+      ) : null}
 
-      {day ? (
+      {day && !doctorName ? (
         <View style={{ gap: tSpace[2] }}>
           <StepTitle>Morning or afternoon?</StepTitle>
           <View style={{ flexDirection: "row", gap: tSpace[2] }}>
             {(["Morning", "Afternoon"] as const).map((p) => {
               const ss = inPart(p);
               const ok = partOpen(p);
-              const places = ss.reduce((n, s) => n + s.placesLeft, 0);
+              const doors = ss[0]?.doors;
               const on = p === chosenPart;
               return (
                 <Press
@@ -301,8 +431,8 @@ export default function BookDayScreen() {
                   accessibilityState={{ selected: on, disabled: !ok }}
                   accessibilityLabel={
                     ok
-                      ? `${p}, ${ss[0]?.doors ? `doors open ${ss[0].doors}, ` : ""}${places} places left`
-                      : `${p}, full`
+                      ? `${p}, ${doors ? `doors open ${doors}` : "open"}`
+                      : `${p}, ${ss.length ? "full" : "no clinic"}`
                   }
                   style={{
                     flex: 1,
@@ -320,7 +450,9 @@ export default function BookDayScreen() {
                     {ss.length === 0
                       ? "No clinic"
                       : ok
-                        ? `${ss[0]?.doors ? `Doors ${ss[0].doors} · ` : ""}${places} places left`
+                        ? doors
+                          ? `Doors ${doors}`
+                          : "Open"
                         : "Full"}
                   </Text>
                 </Press>
@@ -374,6 +506,48 @@ export default function BookDayScreen() {
               );
             })}
           </View>
+        </View>
+      ) : null}
+
+      {catalog && catalog !== "off" ? (
+        <SymptomNote
+          mode={catalog}
+          // ponytail: the adult list, also when booking for a household member; ask who it is for if children book here.
+          audience="adult"
+          value={symptoms}
+          onChange={(v) => {
+            setSymptoms(v);
+            reset();
+          }}
+        />
+      ) : null}
+      <View style={{ gap: tSpace[2] }}>
+        <TextField
+          label={catalog && catalog !== "off" ? undefined : "Anything the doctor should know?"}
+          optional={!catalog || catalog === "off"}
+          accessibilityLabel="Anything else, in your own words"
+          value={note}
+          onChangeText={(v) => {
+            setNote(v);
+            reset();
+          }}
+          placeholder="Anything else, in your own words"
+          maxLength={500}
+          multiline
+        />
+        <AttachmentTools
+          value={attachments}
+          onAdd={(list) => setAttachments((a) => [...a, ...list])}
+          onRemove={(id) => setAttachments((a) => a.filter((x) => x.id !== id))}
+          onText={(words) => {
+            setNote((n) => (n.trim() ? `${n.trimEnd()} ${words}` : words).slice(0, 500));
+            reset();
+          }}
+        />
+      </View>
+
+      {session && fee ? (
+        <View style={{ gap: tSpace[2] }}>
           {fee ? (
             <View style={{ flexDirection: "row", gap: tSpace[2] }}>
               {(
@@ -409,19 +583,6 @@ export default function BookDayScreen() {
         </View>
       ) : null}
 
-      <TextField
-        label="Anything the doctor should know?"
-        optional
-        value={note}
-        onChangeText={(v) => {
-          setNote(v);
-          reset();
-        }}
-        placeholder="Type here"
-        maxLength={500}
-        multiline
-      />
-
       {error ? <FieldError>{error}</FieldError> : null}
       <View style={{ gap: tSpace[2] }}>
         <Button label={send} busy={busy} disabled={!session} onPress={() => void onSend()} />
@@ -436,7 +597,7 @@ export default function BookDayScreen() {
 }
 
 /** The day ticket and what happens next. */
-function Sent({ ticket: tk }: { ticket: TicketData }) {
+function Sent({ ticket: tk, unsent }: { ticket: TicketData; unsent: number }) {
   const t = useTide();
   const router = useRouter();
   const [paying, setPaying] = useState(false);
@@ -467,7 +628,8 @@ function Sent({ ticket: tk }: { ticket: TicketData }) {
           { label: "Clinic", value: tk.clinic },
           { label: "See", value: tk.see },
           { label: "Room", value: tk.room },
-          { label: "Time", value: "Not promised" },
+          // A doctor's slot has the time the patient chose (ADR 0403); a clinic day promises none.
+          { label: "Time", value: tk.time ? `${tk.time} · arrive a little early` : "Not promised" },
           { label: "Patient", value: tk.patient },
           {
             label: "Asked",
@@ -489,6 +651,11 @@ function Sent({ ticket: tk }: { ticket: TicketData }) {
         code={tk.code}
       />
       {err ? <FieldError>{err}</FieldError> : null}
+      {unsent ? (
+        <Note tone="plain" icon="info">
+          {`${unsent === 1 ? "One file" : `${unsent} files`} you added did not send. Your request is made; show ${unsent === 1 ? "it" : "them"} at the desk.`}
+        </Note>
+      ) : null}
       <Card>
         <Text accessibilityRole="header" style={[tType.label, { fontSize: 15, color: t.ink }]}>
           What happens next

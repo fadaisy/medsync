@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
-import { Children, isValidElement } from "react";
+import { Children, isValidElement, useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ScrollView, Text, View } from "react-native";
@@ -8,8 +9,10 @@ import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/tide/icon";
+import { KeyboardFrame, useKeyboardAware } from "@/components/tide/keyboard";
 import { Press } from "@/components/tide/press";
 import { DemoRibbon } from "@/components/tide/primitives";
+import { NAV_H } from "@/components/tide/tide-nav";
 import { track } from "@/lib/analytics";
 import { motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
@@ -17,6 +20,19 @@ import { tRadius, tSpace, tType } from "@/theme/tide";
 
 /** Room left under scrolling content on a tab screen so it clears the floating nav. */
 export const NAV_CLEARANCE = 130;
+
+/** How tall the soft fade under the header is. */
+const EDGE_FADE = 28;
+/** The floating nav's gap above the home indicator (the tabs layout's `bottom: 14 + inset`). */
+const NAV_BOTTOM = 14;
+
+/**
+ * The page colour with no opacity, for the end of the fade. A plain
+ * "transparent" is clear black and greys the middle of the fade on iOS.
+ */
+export function clearOf(color: string): string {
+  return /^#[0-9a-f]{6}$/i.test(color) ? `${color}00` : "transparent";
+}
 
 /**
  * The red Help control (law L6). Round with the accessible label
@@ -79,32 +95,44 @@ export function HelpButton({
   );
 }
 
-/** The bell. Opens Notifications from anywhere; the count is ink on surface, never red. */
+/**
+ * The bell. Opens Notifications from anywhere; the count is ink on surface,
+ * never red. With unseen notifications it turns teal and rings now and then
+ * (`motion.bellRing`), so "something new" never rests on colour alone.
+ */
 export function BellButton({ count = 0, raised = false }: { count?: number; raised?: boolean }) {
   const t = useTide();
   const router = useRouter();
-  const ground = raised ? t.surface : t.bg;
+  const reduced = useReducedMotion();
+  const unseen = count > 0;
+  const fill = unseen ? t.accent : raised ? t.surface : "transparent";
+  const ground = unseen ? t.accent : raised ? t.surface : t.bg;
   return (
     <Press
       onPress={() => router.push("/notifications")}
-      accessibilityLabel={count > 0 ? `Notifications, ${count} new` : "Notifications"}
+      accessibilityLabel={unseen ? `Notifications, ${count} new` : "Notifications"}
       style={{
         width: 44,
         height: 44,
         borderRadius: 22,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: raised ? t.surface : "transparent",
-        boxShadow: raised ? t.shadow.card : undefined,
+        backgroundColor: fill,
+        boxShadow: raised || unseen ? t.shadow.card : undefined,
       }}
     >
-      <Icon name="bell" size={22} color={t.ink} />
-      {count > 0 ? (
+      <Animated.View
+        key={unseen ? "ring" : "still"}
+        style={[{ transformOrigin: "50% 8%" }, unseen ? motion.bellRing(reduced) : null]}
+      >
+        <Icon name="bell" size={22} color={unseen ? t.onAccent : t.ink} />
+      </Animated.View>
+      {unseen ? (
         <View
           style={{
             position: "absolute",
-            top: 5,
-            right: 5,
+            top: 3,
+            right: 3,
             minWidth: 17,
             height: 17,
             paddingHorizontal: 4,
@@ -187,6 +215,8 @@ export function Screen({
   contentStyle,
   background,
   topBand,
+  growLast = false,
+  bounce = true,
 }: {
   children: ReactNode;
   back?: { label?: string; onPress?: () => void; icon?: "back" | "close" };
@@ -212,11 +242,19 @@ export function Screen({
   background?: string;
   /** A full-bleed band drawn under the header (Visit detail, Help). */
   topBand?: ReactNode;
+  /** The last child stretches to the bottom of the screen (a sheet-style card under a band, Sign in). */
+  growLast?: boolean;
+  /** Off where stretching past the end would show the wrong colour (a white card over a navy page). */
+  bounce?: boolean;
 }) {
   const t = useTide();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
+  const { scrollRef, keyboardShown } = useKeyboardAware();
   const bg = background ?? t.bg;
+  // True once the content has moved under the header: then it fades out there instead of
+  // stopping at a hard line. Set only when it changes, not on every scroll event.
+  const [scrolled, setScrolled] = useState(false);
 
   const headerRow = (
     <View
@@ -262,7 +300,10 @@ export function Screen({
   const body = items.map((child, i) => (
     <Animated.View
       key={isValidElement(child) && child.key != null ? String(child.key) : `i${i}`}
-      style={stagger ? motion.staggerUp(i, reduced) : undefined}
+      style={[
+        stagger && !underNav ? motion.staggerUp(i, reduced) : undefined,
+        growLast && i === items.length - 1 ? { flexGrow: 1 } : undefined,
+      ]}
     >
       {child}
     </Animated.View>
@@ -280,35 +321,87 @@ export function Screen({
   };
 
   return (
-    <Animated.View style={[{ flex: 1, backgroundColor: bg }, motion.pageIn(reduced)]}>
+    // A tab page (underNav) appears at once: an entrance starting from transparent could stall
+    // while the tab navigator swaps scenes and leave the page white (owner report, 18 Oct 2026).
+    <Animated.View
+      style={[{ flex: 1, backgroundColor: bg }, underNav ? undefined : motion.pageIn(reduced)]}
+    >
       <StatusBar style={t.scheme === "dark" ? "light" : "dark"} />
       {topBand}
       {headerRow}
-      {scroll ? (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={[padding, contentStyle]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {body}
-        </ScrollView>
-      ) : (
-        <View style={[{ flex: 1 }, padding, contentStyle]}>{body}</View>
-      )}
-      {footer ? (
-        <View
-          style={{
-            paddingHorizontal: tSpace[5],
-            paddingTop: tSpace[3],
-            paddingBottom: Math.max(insets.bottom, tSpace[4]) + tSpace[2],
-            backgroundColor: bg,
-            gap: tSpace[2],
-          }}
-        >
-          {footer}
-        </View>
-      ) : null}
+      <KeyboardFrame>
+        {scroll ? (
+          <View style={{ flex: 1 }}>
+            <ScrollView
+              ref={scrollRef}
+              style={{ flex: 1 }}
+              contentContainerStyle={[padding, contentStyle]}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+              bounces={bounce}
+              overScrollMode={bounce ? "auto" : "never"}
+              showsVerticalScrollIndicator={false}
+              scrollEventThrottle={32}
+              onScroll={(e) => {
+                const next = e.nativeEvent.contentOffset.y > 2;
+                if (next !== scrolled) setScrolled(next);
+              }}
+            >
+              {body}
+            </ScrollView>
+            {/* The soft edge under the header: the page colour fading to clear. */}
+            <Animated.View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: EDGE_FADE,
+                opacity: scrolled ? 1 : 0,
+                transitionProperty: "opacity",
+                transitionDuration: reduced ? 0 : 150,
+              }}
+            >
+              <LinearGradient colors={[bg, clearOf(bg)]} style={{ flex: 1 }} />
+            </Animated.View>
+            {underNav ? (
+              /* The same soft edge behind the floating nav: content melts into the page colour
+                 before it reaches the bar, instead of showing round its corners. */
+              <LinearGradient
+                pointerEvents="none"
+                colors={[clearOf(bg), bg, bg]}
+                locations={[0, 0.45, 1]}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: NAV_BOTTOM + NAV_H + insets.bottom + EDGE_FADE,
+                }}
+              />
+            ) : null}
+          </View>
+        ) : (
+          <View style={[{ flex: 1 }, padding, contentStyle]}>{body}</View>
+        )}
+        {footer ? (
+          <View
+            style={{
+              paddingHorizontal: tSpace[5],
+              paddingTop: tSpace[3],
+              // On top of the keyboard there is no home indicator to clear.
+              paddingBottom: keyboardShown
+                ? tSpace[3]
+                : Math.max(insets.bottom, tSpace[4]) + tSpace[2],
+              backgroundColor: bg,
+              gap: tSpace[2],
+            }}
+          >
+            {footer}
+          </View>
+        ) : null}
+      </KeyboardFrame>
     </Animated.View>
   );
 }

@@ -3,6 +3,7 @@ import type { ResultFact } from "./exam/context";
 import type { Signoff } from "./flags";
 import type { DxSignoff } from "./impression/catalogue";
 import type { ConversionFlagDefs } from "./legacy";
+import type { ReportedItem } from "@/lib/patient/reported-history";
 import type { AdultVitals } from "@/lib/triage/types";
 
 /**
@@ -58,6 +59,10 @@ export interface ClerkingDeskData {
    *  high-risk specimen warning for this encounter. */
   labHighRisk?: boolean;
   canSeeRestricted: boolean;
+  /** What the patient reported on their phone (ADR 0414, 0189): shown as patient-reported, not yet
+   *  confirmed, never a record until a clinician confirms it. Absent before 0189 or when it could
+   *  not be read. */
+  patientReported?: ReportedItem[];
   signoff: Signoff;
   /** The signed wording of the conversion flags (a v1 draft continued in the new format). */
   conversionFlags?: ConversionFlagDefs;

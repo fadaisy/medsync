@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { DEVICE_COOKIE } from "@/lib/patient-web/getting-in-device";
 import { createClient, listAccounts, setActiveAccount } from "@/lib/supabase/server";
 
 /**
@@ -17,7 +18,10 @@ export async function POST(request: Request) {
   await supabase.auth.signOut({ scope: "local" });
   const next = (await listAccounts()).find((a) => !a.active);
   if (next) await setActiveAccount(next.slot);
-  return NextResponse.redirect(new URL(next ? "/accounts" : "/sign-in", request.url), {
+  const res = NextResponse.redirect(new URL(next ? "/accounts" : "/sign-in", request.url), {
     status: 303,
   });
+  // The patient web's own-device answer (D-PW-05) goes with the session; staff never have one.
+  res.cookies.delete(DEVICE_COOKIE);
+  return res;
 }

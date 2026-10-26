@@ -10,7 +10,7 @@ Every part sits behind its own flag, and nothing acts until it is signed in **Cl
   - **Signing:** open a draft and **Sign**. You re-enter your password and code. An entry goes into force with two signers, or with one signer and the recorded exception.
 - **Interventions.** Codes and outcomes of every query, with a CSV of the counts.
 - **Reactions.**
-  - **Recording:** **Record a suspected reaction** from a prescription's review page. Each suspected medicine is added to the allergy list as *suspected*.
+  - **Recording:** **Record a suspected reaction** from a prescription's review page. Each suspected medicine is added to the allergy list as _suspected_.
   - **Reporting:** open the report, then print it or copy it. Submit it by the Authority's own route, then **Record as submitted** with the route and date, or close it with a reason.
 - **Reconciliation.**
   - **The page:** open a reconciliation from **Reconciliation**. It shows the table and the discrepancies the signed rules find.
@@ -39,6 +39,7 @@ Every part sits behind its own flag, and nothing acts until it is signed in **Cl
   - `PHARMACY_RECONCILIATION`
 
   All are off in production while their wording is draft.
+
 - **Before switching a flag on,** sign its content:
   - interactions: the pairs and the alert levels;
   - stewardship: the AWaRe pack and the review settings;

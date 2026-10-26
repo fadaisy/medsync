@@ -56,8 +56,10 @@ describe("queue honesty (law L8)", () => {
     expect(read("data/visits.ts")).toContain('rpc("patient_intake_ahead"');
   });
 
-  it("the ticket always says the time is not promised", () => {
+  it("a place in the line never promises a time; a day ticket only a doctor's chosen slot (ADR 0403)", () => {
     expect(read("app/(app)/book/today.tsx")).toContain('value: "Not promised"');
-    expect(read("app/(app)/book/day.tsx")).toContain('value: "Not promised"');
+    expect(read("app/(app)/book/day.tsx")).toContain(
+      'tk.time ? `${tk.time} · arrive a little early` : "Not promised"',
+    );
   });
 });
