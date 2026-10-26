@@ -15,7 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { NETWORK_B } from "@/content/pharmacy-network";
+import { NETWORK_B, PHARMACY_NETWORK_COPY } from "@/content/pharmacy-network";
 import { stopRepeats } from "@/lib/emr/actions/repeats";
 import { addDays } from "@/lib/pharmacy/stores/ledger";
 import { longDate } from "@/lib/prescribing/repeats";
@@ -146,7 +146,9 @@ export function RepeatsField({
         <Toggle on={value.on} onPress={() => set({ on: !value.on })}>
           {value.on ? "Repeats on" : "No repeats"}
         </Toggle>
-        <DraftLabel>Wording not signed</DraftLabel>
+        {PHARMACY_NETWORK_COPY.status === "draft" ? (
+          <DraftLabel>Wording not signed</DraftLabel>
+        ) : null}
       </div>
       {value.on ? (
         <div className="grid gap-2 sm:grid-cols-2">

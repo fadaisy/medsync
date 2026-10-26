@@ -255,7 +255,7 @@ Behind `PHARMACY_REFILLS` (per hospital; needs `PHARMACY_REPEATS` and `pharmacyD
 | `lib/pharmacy/stores/write.ts`                                                            | movement pairs `set_aside` and `release`                                                                            |
 | Packs page                                                                                | the five Phase 4 packs, written as JSON, signed as Phase 2's are                                                    |
 
-**Decisions taken (CSO, D-PH4-29):**
+**Decisions taken (signed by Fadhul, CSO, 26 Oct 2026, under D-PH4-29):**
 
 - Hand over writes Phase 1's rows (hand-over, supplies, `supplied` movements) out of the prepared place, and the refill instance's `supplied` event. The Phase 1 line machine is not moved (it would refuse `already_supplied`).
 - Phase 3 blocks: a reaction report naming the medicine with no causality yet → `suspected_reaction`; the line's latest AMS answer `change` or `stop` → `stewardship_review`.
@@ -277,3 +277,16 @@ Behind `PHARMACY_REFILLS` (per hospital; needs `PHARMACY_REPEATS` and `pharmacyD
 - Partner routing (the Partner tab) waits for Step 6, which needs the DPO or legal adviser.
 
 **Checks:** typecheck clean; lint clean; pharmacy unit tests 886/886; PGlite lanes refills 10/10, repeats 7/7, stores-supply 23/23, network-data 8/8, supply 22/22. The remaining unit failures (patient-web care/help: the mobile tsconfig) are the worktree's baseline.
+
+## Sign-off, 26 Oct 2026
+
+Fadhul (CSO), alone under D-PH4-29, signed:
+
+- the six Step 5 decisions above;
+- the Steps 2 to 5 wording: `PHARMACY_NETWORK_COPY` is now `signed`. This covers repeats, renewals, refills, the Packs page rows and the screen words in their components, including the "1 more supply" and "once more" plural.
+
+The partner wording (`NETWORK_PARTNER`) and the seven message templates (`NETWORK_MESSAGES`) were split into `PHARMACY_PARTNER_COPY`, which stays `draft` until Step 6 (DPO or legal adviser) and the two-user template approval. `tests/pharmacy/network/copy.test.ts` holds the split.
+
+ADRs written as Accepted: 0434 (repeats beside the line; the 0425 draft, renumbered), 0426 (renewal requests in the workspace), 0427 (holding prepared refills).
+
+Signing the wording switches nothing on. In production, `PHARMACY_REPEATS` and `PHARMACY_REFILLS` now depend only on their env values and their hospital's packs. Both stay unset, and 0230–0232 stay unapplied, until the legal answers, the Act record and the verifier's name are in.

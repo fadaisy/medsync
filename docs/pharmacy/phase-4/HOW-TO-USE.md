@@ -2,7 +2,7 @@
 
 Repeats, renewals and refills (Steps 2 to 5). Partner routing (Step 6 onwards) is not built: it waits for the DPO or legal adviser (D-PH4-29).
 
-Everything here is **dark**. The migrations are written but not applied, every flag is off, every pack is unsigned and the wording is draft. Nothing changes for anyone until the owner switches it on. Part 1 gives the order for that.
+Everything here is **dark**. The migrations are written but not applied, every flag is off, every pack is unsigned. The Steps 2 to 5 wording was signed by the CSO on 26 Oct 2026; the partner wording and the message templates stay draft. Nothing changes for anyone until the owner switches it on. Part 1 gives the order for that.
 
 Contents:
 
@@ -43,7 +43,7 @@ cd ~/Desktop/medsync-network && npm run db:migrate
 | `PHARMACY_REPEATS`    | the Repeats step in prescribing, Stop repeats, the printed repeats line, Renewal requests, the workspace lane | the workspace                                |
 | `PHARMACY_REFILLS`    | the Refills page and nav item, and the patient's Repeat medicines section                                     | `PHARMACY_REPEATS` and `PHARMACY_DISPENSING` |
 
-In production every Phase 4 flag stays off by itself while `PHARMACY_NETWORK_COPY` in `content/pharmacy-network.ts` is `draft`. The CSO and the pharmacist reviewer sign the wording; then set its status to `signed` with the signers and the date.
+The Steps 2 to 5 wording (`PHARMACY_NETWORK_COPY` in `content/pharmacy-network.ts`) was signed by the CSO on 26 Oct 2026, so it no longer holds these flags off in production. The partner wording and the message templates (`PHARMACY_PARTNER_COPY`) stay `draft` until Step 6.
 
 **1.3 Sign the packs** (Part 2). With the flags on but the packs unsigned, each feature shows its "while unsigned" behaviour: nothing unsafe happens, but nothing much happens either.
 
@@ -277,7 +277,7 @@ The catalogue is `lib/pharmacy/network-demo.ts`; `tests/pharmacy/network/demo.te
 | Renewals             | `lib/emr/read/renewals.ts`, `app/doctor/renewals/` (`renewals-list.tsx` is the view)                                                                  |
 | Refills              | `lib/pharmacy/refill-store.ts` (writes), `lib/pharmacy/refill-read.ts` (board and patient), `app/pharmacy/refills/`, `app/pharmacy/refill-actions.ts` |
 | Patient              | `app/patient/track/medications/refill-actions.ts`, `_components/patient-refills.tsx`                                                                  |
-| Copy                 | `content/pharmacy-network.ts` (draft)                                                                                                                 |
+| Copy                 | `content/pharmacy-network.ts` (Steps 2 to 5 signed; partner and messages draft)                                                                       |
 | Demo                 | `lib/pharmacy/network-demo.ts`, `app/styleguide/pharmacy-network/[screen]/page.tsx`                                                                   |
 
 **Tests:**
@@ -304,4 +304,4 @@ Run the PGlite lanes one at a time. Scenarios S10 to S24 are listed in `STOP-REP
 - no window or phone dialog on the board;
 - releasing a held batch that has since been recalled may be refused by the stock guard;
 - the Partner tab waits for Step 6;
-- the plural in "1 more supply" and "once more" was corrected in the draft copy (26 Oct), so the CSO signs the corrected wording.
+- the plural in "1 more supply" and "once more" was corrected on 26 Oct 2026, before the CSO signed the wording.

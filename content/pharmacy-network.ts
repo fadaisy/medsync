@@ -4,10 +4,20 @@ import { PACK_TEXT } from "@/content/pharmacy-stores-supply";
 
 /**
  * Pharmacy Phase 4: repeats, refills and the partner network. Every string staff, partners and patients read for it,
- * Appendix B word for word. All `draft`: in production the Phase 4 flags stay off while it is (CS-5). The CSO and the
- * pharmacist reviewer sign it (Appendix D); nothing here is a clinical value.
+ * Appendix B word for word. Nothing here is a clinical value.
+ *
+ * Two records (CS-5): `PHARMACY_NETWORK_COPY` covers the Steps 2 to 5 wording (repeats, renewals, refills, the Packs
+ * page, and the screen words in their components), signed by the CSO alone under D-PH4-29. `PHARMACY_PARTNER_COPY`
+ * covers the partner wording (`NETWORK_PARTNER`) and the seven message templates (`NETWORK_MESSAGES`): draft until
+ * Step 6 (the DPO or legal adviser) and the two-user template approval. Partner and message flags gate on it.
  */
 export const PHARMACY_NETWORK_COPY: SignedCopy = {
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-26",
+};
+
+export const PHARMACY_PARTNER_COPY: SignedCopy = {
   status: "draft",
   signedBy: null,
   signedOn: null,
@@ -30,6 +40,10 @@ export const NETWORK_B = {
   patientAllowed: (n: number, date: string, review: string) =>
     `${supplies(n)} allowed until ${date}. Next review by ${review}.`,
   patientReady: (place: string, date: string) => `Ready to collect at ${place}, until ${date}.`,
+} as const;
+
+/** Appendix B, the partner side (Step 6). Under `PHARMACY_PARTNER_COPY`: draft. */
+export const NETWORK_PARTNER = {
   patientNotPossible: (reason: string, whatToDo: string) => `Not possible: ${reason}. ${whatToDo}.`,
   consent: (pharmacy: string) =>
     `${pharmacy} will see your name, age and sex, these medicines and how to take them, and your prescriber's name. It will not see anything else in your record. When you collect, it will ask your date of birth or phone number and MedSync will check it, without showing it to them. You will pay ${pharmacy} directly. Take your printed prescription with you.`,
@@ -43,8 +57,23 @@ export const NETWORK_B = {
     `Your licence expires on ${date}. Upload the renewed licence to keep receiving prescriptions.`,
   verified: (date: string) => `Documents checked by MedSync on ${date}.`,
   partnerSuspended: "Partner suspended: arrange supply.",
+  routeRefusals: {
+    no_consent: "No consent recorded for this pharmacy",
+    partner_not_in_force: "The partner pharmacy is not in force today",
+    agreement_not_in_force: "No agreement in force covers this point and kind",
+    not_on_routing_list: "Not on the routing list",
+    never_routed: "On the never-routed list",
+    controlled: "Controlled drugs are never routed",
+    already_taken: "Already prepared, routed, supplied or closed",
+    repeat_not_allowed: "The repeat does not allow a supply now",
+    needs_pharmacist_acceptance: "Needs a pharmacist's acceptance first",
+    programme_not_in_agreement: "The agreement does not name this programme",
+    no_quantity: "No quantity recorded",
+    routing_unsigned: "The routing lists are not signed",
+  },
 } as const;
 
+/** Under `PHARMACY_PARTNER_COPY`: draft until the two-user template approval. */
 /** 5.10, the seven message kinds. `{hospital}`, `{pharmacy}`, `{date}` and `{phone}` are filled by NM-1. */
 export const NETWORK_MESSAGES = {
   refill_due:
@@ -74,21 +103,7 @@ export const NETWORK_UI = {
     too_early: "Asked before the interval",
     asked_by_pharmacy: "Asked by the pharmacy",
   },
-  routeRefusals: {
-    no_consent: "No consent recorded for this pharmacy",
-    partner_not_in_force: "The partner pharmacy is not in force today",
-    agreement_not_in_force: "No agreement in force covers this point and kind",
-    not_on_routing_list: "Not on the routing list",
-    never_routed: "On the never-routed list",
-    controlled: "Controlled drugs are never routed",
-    already_taken: "Already prepared, routed, supplied or closed",
-    repeat_not_allowed: "The repeat does not allow a supply now",
-    needs_pharmacist_acceptance: "Needs a pharmacist's acceptance first",
-    programme_not_in_agreement: "The agreement does not name this programme",
-    no_quantity: "No quantity recorded",
-    routing_unsigned: "The routing lists are not signed",
-  },
-  /** Step 5: refills at the hospital (5.4 hospital places, 5.5). Draft with the rest. */
+  /** Step 5: refills at the hospital (5.4 hospital places, 5.5). */
   refills: {
     title: "Refills",
     lead: "Refill requests from patients and the window. Nothing is prepared early, and nothing closes by itself.",

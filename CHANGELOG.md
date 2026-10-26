@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Pharmacy Phase 4, Steps 2–5 (dark) — 26 Oct 2026
+
+Built on `feat/pharmacy-network`. Migrations 0230–0232 unapplied; `PHARMACY_REPEATS` and `PHARMACY_REFILLS` off.
+Steps 2 to 5 wording signed by the CSO (D-PH4-29); the partner wording and the message templates stay draft.
+
+- Repeats beside the line, the Repeats step, the printed line and Stop repeats ([ADR 0434](docs/adr/0434-repeats-beside-the-line.md)).
+- Renewal requests and their workspace lane ([ADR 0426](docs/adr/0426-renewal-requests-in-the-workspace.md)).
+- Refills at the hospital: the Refills board, the held place, set aside, hand over, release, hold longer
+  ([ADR 0427](docs/adr/0427-holding-prepared-refills.md)); the patient's Repeat medicines.
+- Partner pharmacies are kept apart from hospitals ([ADR 0428](docs/adr/0428-partner-pharmacies-are-not-hospitals.md)).
+- Demo catalogue at `/styleguide/pharmacy-network/*` (`MEDSYNC_FIXTURES=1`); guide in `docs/pharmacy/phase-4/HOW-TO-USE.md`.
+
 ### Added — Patient web · Tide, Steps 0–8 — 25 Oct 2026
 
 Built on `feat/patient-web-tide` (PROMPT-PATIENT-WEB-TIDE). The phone branch `feat/mobile-tide-v1` is merged in, its
