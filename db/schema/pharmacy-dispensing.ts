@@ -159,6 +159,11 @@ export const MOVEMENT_KINDS = [
   "quarantined_in",
   "written_off",
   "returned_to_supplier",
+  // Phase 4 (0230, SA-1): two-leg moves into and out of a point's `prepared` location
+  "set_aside_out",
+  "set_aside_in",
+  "released_out",
+  "released_in",
 ] as const;
 export type MovementKind = (typeof MOVEMENT_KINDS)[number];
 

@@ -28,6 +28,7 @@ const PLACES: readonly Place[] = [
   "ward_issue_only",
   "cart",
   "quarantine",
+  "prepared",
 ];
 const row = (...cells: Cell[]) => cells;
 // Each spec row expands to its kinds; a pair row puts the out-leg kind under "out" and the in-leg under "in".
@@ -42,11 +43,11 @@ const TABLE: Record<MovementKind, Cell[]> = {
   borrowed: row(IN, IN, N, N, N, N),
   loan_returned_out: row(OUT, OUT, N, N, N, N),
   loan_returned_in: row(IN, IN, N, N, N, N),
-  supplied: row(N, OUT, N, N, N, N),
+  supplied: row(N, OUT, N, N, N, N, OUT),
   reversed: row(N, IN, N, N, N, N),
   ward_used: row(N, N, OUT, N, N, N),
   cart_used: row(N, N, N, N, OUT, N),
-  quarantined_out: row(OUT, OUT, OUT, N, OUT, N),
+  quarantined_out: row(OUT, OUT, OUT, N, OUT, N, OUT),
   quarantined_in: row(N, N, N, N, N, IN),
   written_off: row(N, N, N, N, N, OUT),
   returned_to_supplier: row(N, N, N, N, N, OUT),
@@ -54,6 +55,11 @@ const TABLE: Record<MovementKind, Cell[]> = {
   count_correction: row(BOTH, BOTH, N, N, N, BOTH),
   transfer_out: row(OUT, OUT, N, N, N, N),
   transfer_in: row(IN, IN, N, N, N, N),
+  // Phase 4 SA-1: the point's legs and the `prepared` location's legs.
+  set_aside_out: row(N, OUT, N, N, N, N, N),
+  set_aside_in: row(N, N, N, N, N, N, IN),
+  released_out: row(N, N, N, N, N, N, OUT),
+  released_in: row(N, IN, N, N, N, N, N),
 };
 
 const kindModel = (p: Place) =>
@@ -64,8 +70,15 @@ const kindModel = (p: Place) =>
       : ([p, null] as const);
 
 describe("LC-1 location kinds", () => {
-  it("has the five kinds of 0180, and each non-ward kind is its own column", () => {
-    expect(LOCATION_KINDS).toEqual(["store", "dispensing_point", "ward", "cart", "quarantine"]);
+  it("has the five kinds of 0180 and 0230's `prepared`, and each non-ward kind is its own column", () => {
+    expect(LOCATION_KINDS).toEqual([
+      "store",
+      "dispensing_point",
+      "ward",
+      "cart",
+      "quarantine",
+      "prepared",
+    ]);
     for (const k of LOCATION_KINDS.filter((k) => k !== "ward")) expect(placeOf(k, null)).toBe(k);
   });
 });

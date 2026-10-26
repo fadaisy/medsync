@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { StatusWord } from "@/components/emr/status-word";
 import { PageHeader } from "@/components/medsync/page-header";
 import { PHARMACY } from "@/content/pharmacy";
+import { NETWORK_UI } from "@/content/pharmacy-network";
 import { expiryText } from "@/content/pharmacy-stock";
 import { LOCATION_KIND_WORDS, STORE } from "@/content/pharmacy-stores-store";
 import { db } from "@/db";
@@ -122,7 +123,9 @@ export default async function PlacesPage() {
                       </td>
                       <td className="px-3 py-2">
                         <span className="flex flex-col gap-1">
-                          {LOCATION_KIND_WORDS[l.kind]}
+                          {l.kind === "prepared"
+                            ? NETWORK_UI.preparedPlace
+                            : LOCATION_KIND_WORDS[l.kind]}
                           {l.kind === "ward" ? (
                             <span className="text-muted-foreground">
                               {l.wardSupplyModel

@@ -50,6 +50,10 @@ export const PAIRS = {
   returned_in: "returned_out",
   quarantined_out: "quarantined_in",
   quarantined_in: "quarantined_out",
+  set_aside_out: "set_aside_in",
+  set_aside_in: "set_aside_out",
+  released_out: "released_in",
+  released_in: "released_out",
 } as const satisfies Partial<Record<MovementKind, MovementKind>>;
 export type PairedKind = keyof typeof PAIRS;
 

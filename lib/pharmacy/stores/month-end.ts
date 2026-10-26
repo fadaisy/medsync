@@ -45,6 +45,11 @@ export const COLUMN_OF: Readonly<Record<MovementKind, Column>> = {
   adjusted: "adjusted",
   count_correction: "adjusted",
   written_off: "writtenOff",
+  // SA-1: moves between a point and its held refills are internal, like an issue.
+  set_aside_out: "issuedOut",
+  released_out: "issuedOut",
+  set_aside_in: "issuedIn",
+  released_in: "issuedIn",
 };
 
 export interface MonthEndCount {

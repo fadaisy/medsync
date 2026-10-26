@@ -286,6 +286,9 @@ export const LINE_EVENT_KINDS = [
   "cancelled_by_prescriber",
   "returned",
   "patient_reported",
+  // Phase 4 (0230): a line sent to a partner, and its return (RT-3, RT-4)
+  "routed",
+  "route_returned",
 ] as const;
 export type LineEventKind = (typeof LINE_EVENT_KINDS)[number];
 

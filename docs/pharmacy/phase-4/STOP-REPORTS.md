@@ -147,3 +147,55 @@ cd ~/Desktop/medsync-network && npm run db:migrate
 **Number clash:** ADR 0425 has been taken by two other branches (`feat/patient-web-tide`, `fix/arrival-routing-review`). No Phase 4 file uses 0425. The 0425 draft will take the next free number when it is written.
 
 **Still blocking switch-on:** the legal answers to questions 1 and 2, the Act commencement record, the verifier's name, and the DPO or legal adviser for partner routing.
+
+## STOP 3: engines, pure (26 Oct 2026)
+
+**Written (no I/O, no UI, no flag):**
+
+| File                          | Rules                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| `lib/prescribing/repeats.ts`  | RP-1 to RP-6                                                            |
+| `lib/pharmacy/refills.ts`     | RF-1 to RF-5, and RN-1 to RN-4 (one file, not a separate `renewals.ts`) |
+| `lib/pharmacy/prepared.ts`    | SA-1 to SA-6                                                            |
+| `lib/network/partners.ts`     | PN-2 to PN-5, Law 13 ordering                                           |
+| `lib/network/routing.ts`      | AG-1, RT-1 to RT-7                                                      |
+| `lib/network/messages.ts`     | NM-1 to NM-3                                                            |
+| `content/pharmacy-network.ts` | Appendix B and 5.10, all `draft`                                        |
+
+Phase 2 amended for 0230's kinds:
+
+- LC-1 `prepared` location;
+- LC-3 `prepared` column (set_aside_in, released_out, supplied, quarantined_out), and the point gains set_aside_out and released_in;
+- SL-12 pairs;
+- month-end columns (internal, like an issue);
+- line events `routed` and `route_returned`.
+
+The LC-3 table test and the pairs test now include the new kinds.
+
+**Every pack is unsigned (Appendix D), so each engine takes it as `null` and does the "while unsigned" column:**
+
+- no Repeats step;
+- nothing set aside;
+- nothing routed;
+- no partner in force;
+- decline only with a signed list.
+
+No value is proposed. The tests use labelled test values.
+
+**Scenarios, all passing** (`tests/pharmacy/network/engines.test.ts`):
+
+- S4 (300 seeded runs);
+- S5 (200 seeded runs);
+- S6 (each of 12 conditions alone);
+- S7;
+- S8;
+- S9.
+
+**One addition to RP-6:** `first_supply_open`. A line whose own first supply is still open is not a refill, so it does not become a renewal request.
+
+**Checks:**
+
+- typecheck clean;
+- lint clean;
+- pharmacy stores and network tests 200/200;
+- Drizzle parity: the 2 old problems only.

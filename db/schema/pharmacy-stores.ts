@@ -18,7 +18,15 @@ import {
  */
 const tz = { withTimezone: true } as const;
 
-export const LOCATION_KINDS = ["store", "dispensing_point", "ward", "cart", "quarantine"] as const;
+export const LOCATION_KINDS = [
+  "store",
+  "dispensing_point",
+  "ward",
+  "cart",
+  "quarantine",
+  // Phase 4 (0230, SA-1): stock set aside for one prepared refill
+  "prepared",
+] as const;
 export type LocationKind = (typeof LOCATION_KINDS)[number];
 
 export const pharmacyLocations = pgTable("pharmacy_locations", {
