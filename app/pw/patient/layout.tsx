@@ -26,7 +26,12 @@ export default async function PatientWebShell({ children }: { children: ReactNod
       dosesDue={day?.today.dueNow.length ?? 0}
       place={place}
     >
-      <DeviceChoice choice={await readDeviceChoice()} />
+      {/* Asked once the first-run redirects (consent, then a hospital) are behind them: the layout renders
+          before a page's redirect lands, so asking earlier flashes the question on a page that leaves. */}
+      <DeviceChoice
+        choice={await readDeviceChoice()}
+        ask={!gated && scope.primaryHospitalId !== null}
+      />
       {children}
     </PatientShell>
   );
