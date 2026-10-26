@@ -14,6 +14,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { answerRenewal } from "@/lib/emr/actions/repeats";
+import { DEMO_SAVE } from "@/lib/pharmacy/network-demo";
 
 const FIELD =
   "border-input bg-card text-body-s focus-visible:shadow-focus min-h-9 w-full rounded-md border px-2.5 outline-none";
@@ -26,10 +27,12 @@ export function RenewalAnswer({
   patientUserId,
   renewalId,
   reasons,
+  demo = false,
 }: {
   patientUserId: string;
   renewalId: string;
   reasons: { code: string; words: string }[] | null;
+  demo?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState<"visit_needed" | "declined" | null>(null);
@@ -40,6 +43,7 @@ export function RenewalAnswer({
   const ids = { code: useId(), note: useId() };
   const send = () =>
     start(async () => {
+      if (demo) return setError(DEMO_SAVE);
       const r = await answerRenewal({
         surface: "doctor",
         patientUserId,

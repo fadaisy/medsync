@@ -13,10 +13,13 @@ export const PHARMACY_NETWORK_COPY: SignedCopy = {
   signedOn: null,
 };
 
+/** "1 more supply", "2 more supplies": Appendix B's plural, with its singular. */
+const supplies = (n: number) => (n === 1 ? "1 more supply" : `${n} more supplies`);
+
 /** Appendix B. */
 export const NETWORK_B = {
   repeatsStep: (n: number, d: number, date: string) =>
-    `After the first supply, the pharmacy may supply this ${n} more times, at least ${d} days apart, until ${date}. You can stop the repeats at any time.`,
+    `After the first supply, the pharmacy may supply this ${n === 1 ? "once more" : `${n} more times`}, at least ${d} days apart, until ${date}. You can stop the repeats at any time.`,
   repeatsPrint: (n: number, d: number, date: string, name: string, council: string) =>
     `Repeats: ${n}, at least ${d} days apart, not after ${date}. Prescriber: ${name}, ${council}.`,
   repeatsStopped: (cadre: string, date: string) => `Stopped by ${cadre} on ${date}.`,
@@ -25,7 +28,7 @@ export const NETWORK_B = {
   patientRenew: "Your doctor needs to renew this before the next supply.",
   patientNever: "Not refilled without seeing a clinician.",
   patientAllowed: (n: number, date: string, review: string) =>
-    `${n} more supplies allowed until ${date}. Next review by ${review}.`,
+    `${supplies(n)} allowed until ${date}. Next review by ${review}.`,
   patientReady: (place: string, date: string) => `Ready to collect at ${place}, until ${date}.`,
   patientNotPossible: (reason: string, whatToDo: string) => `Not possible: ${reason}. ${whatToDo}.`,
   consent: (pharmacy: string) =>
@@ -99,7 +102,7 @@ export const NETWORK_UI = {
     },
     empty: "Nothing here.",
     allows: (n: number, d: number, date: string) =>
-      `${n} more supplies, at least ${d} days apart, until ${date}`,
+      `${supplies(n)}, at least ${d} days apart, until ${date}`,
     noneLeft: "None left",
     noRepeats: "No repeats authorised",
     early: (date: string) => `Early: possible from ${date}`,

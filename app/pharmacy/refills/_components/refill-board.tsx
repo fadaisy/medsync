@@ -11,6 +11,7 @@ import { Tag } from "@/components/medsync/tag";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NETWORK_UI } from "@/content/pharmacy-network";
+import { guard } from "@/lib/pharmacy/network-demo";
 import { cn } from "@/lib/utils";
 import { ReviewDialog, SELECT, TARGET, TEXTAREA } from "../../_components/review-dialogs";
 import {
@@ -36,12 +37,15 @@ export function RefillBoard({
   identities,
   canDispense,
   pointId,
+  demo = false,
 }: {
   place: string;
   rows: RefillRow[];
   identities: Record<string, PatientIdentity>;
   canDispense: boolean;
   pointId: string | null;
+  /** The fixture catalogue (/styleguide/pharmacy-network): every save answers in words, nothing is sent. */
+  demo?: boolean;
 }) {
   const [tab, setTab] = useState<RefillTab>("to_prepare");
   const panel = useId();
@@ -110,7 +114,7 @@ export function RefillBoard({
                   <Item k="Collector" v={r.collector} />
                   {r.note ? <Item k="Note" v={r.note} /> : null}
                 </dl>
-                {canDispense ? <Action row={r} pointId={pointId} /> : null}
+                {canDispense ? <Action row={r} pointId={pointId} demo={demo} /> : null}
               </article>
             );
           })
@@ -139,7 +143,7 @@ function Field({ id, label, children }: { id: string; label: string; children: R
 }
 
 /** The row's one action (5.5), plus Ask the clinic where the line waits on it. */
-function Action({ row, pointId }: { row: RefillRow; pointId: string | null }) {
+function Action({ row, pointId, demo }: { row: RefillRow; pointId: string | null; demo: boolean }) {
   const ids = {
     product: useId(),
     qty: useId(),
@@ -156,9 +160,9 @@ function Action({ row, pointId }: { row: RefillRow; pointId: string | null }) {
       title={W.actions.askClinic}
       description="A renewal request goes to the clinic with your note. The patient is told."
       submit={W.actions.askClinic}
-      onSave={(clientKey, d) =>
-        askClinicToRenew({ clientKey, lineId: row.prescriptionId, note: str(d, "note") })
-      }
+      onSave={guard(demo, (clientKey, d) =>
+        askClinicToRenew({ clientKey, lineId: row.prescriptionId, note: str(d, "note") }),
+      )}
     >
       <Field id={ids.reason} label="Note for the clinic (optional)">
         <textarea id={ids.reason} name="note" maxLength={500} className={TEXTAREA} />
@@ -176,14 +180,14 @@ function Action({ row, pointId }: { row: RefillRow; pointId: string | null }) {
           description="The quantity moves to this point's held refills, first expiry first. Nothing is handed over."
           submit={W.actions.setAside}
           variant="primary"
-          onSave={(clientKey, d) =>
+          onSave={guard(demo, (clientKey, d) =>
             setAsideRefill({
               clientKey,
               lineId: row.lineId,
               productId: str(d, "product"),
               quantity: Number(str(d, "quantity")),
-            })
-          }
+            }),
+          )}
         >
           <Field id={ids.product} label="Product">
             <select id={ids.product} name="product" required className={SELECT}>
@@ -210,7 +214,7 @@ function Action({ row, pointId }: { row: RefillRow; pointId: string | null }) {
           description={`Collector: ${row.collector}. Ask for the date of birth or phone number; MedSync checks it without showing it.`}
           submit={W.actions.handOver}
           variant="primary"
-          onSave={async (clientKey, d) => {
+          onSave={guard(demo, async (clientKey, d) => {
             const check = await checkSecondIdentifier({
               clientKey,
               lineId: row.prescriptionId,
@@ -233,7 +237,7 @@ function Action({ row, pointId }: { row: RefillRow; pointId: string | null }) {
               identity: { route: "two_identifiers", nameAttested: true },
               payment: { status: str(d, "payment") },
             });
-          }}
+          })}
         >
           <Field id={ids.kind} label="Second identifier">
             <select id={ids.kind} name="kind" className={SELECT}>
@@ -258,9 +262,9 @@ function Action({ row, pointId }: { row: RefillRow; pointId: string | null }) {
           title={`${W.actions.release}: ${row.medicine}`}
           description="Every held unit goes back to this point's shelf. The patient may ask again."
           submit={W.actions.release}
-          onSave={(clientKey, d) =>
-            releasePrepared({ clientKey, lineId: row.lineId, reasonCode: str(d, "reason") })
-          }
+          onSave={guard(demo, (clientKey, d) =>
+            releasePrepared({ clientKey, lineId: row.lineId, reasonCode: str(d, "reason") }),
+          )}
         >
           <Field id={ids.reason} label="Why">
             <select id={ids.reason} name="reason" className={SELECT}>
@@ -276,14 +280,14 @@ function Action({ row, pointId }: { row: RefillRow; pointId: string | null }) {
           title={`${W.actions.holdLonger}: ${row.medicine}`}
           description="Up to the signed number of extensions and the signed longest hold."
           submit={W.actions.holdLonger}
-          onSave={(clientKey, d) =>
+          onSave={guard(demo, (clientKey, d) =>
             holdPreparedLonger({
               clientKey,
               lineId: row.lineId,
               until: str(d, "until"),
               reasonCode: str(d, "reason"),
-            })
-          }
+            }),
+          )}
         >
           <Field id={ids.until} label="Hold until (YYYY-MM-DD)">
             <Input

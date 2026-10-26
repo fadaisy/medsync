@@ -7,13 +7,20 @@ import { ReviewDialog, SELECT, TARGET, TEXTAREA } from "@/app/pharmacy/_componen
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NETWORK_UI } from "@/content/pharmacy-network";
+import { guard } from "@/lib/pharmacy/network-demo";
 import { askForNextSupply } from "../refill-actions";
 
 const P = NETWORK_UI.refills.patient;
 const str = (d: FormData, k: string) => String(d.get(k) ?? "").trim();
 
 /** 5.4: each repeat medicine in one sentence, and the one ask it allows now. */
-export function PatientRefillsSection({ data }: { data: PatientRefills }) {
+export function PatientRefillsSection({
+  data,
+  demo = false,
+}: {
+  data: PatientRefills;
+  demo?: boolean;
+}) {
   if (!data.repeats.length) return null;
   return (
     <section aria-labelledby="meds-repeats" className="flex flex-col gap-3">
@@ -37,6 +44,7 @@ export function PatientRefillsSection({ data }: { data: PatientRefills }) {
                 clinic={!r.canAsk}
                 points={data.points[r.hospitalId] ?? []}
                 collectors={data.collectors}
+                demo={demo}
               />
             ) : null}
           </li>
@@ -52,12 +60,14 @@ function Ask({
   clinic,
   points,
   collectors,
+  demo,
 }: {
   lineId: string;
   medicine: string;
   clinic: boolean;
   points: PatientRefills["points"][string];
   collectors: PatientRefills["collectors"];
+  demo: boolean;
 }) {
   const id = useId();
   const [who, setWho] = useState("self");
@@ -68,7 +78,7 @@ function Ask({
       title={`${label}: ${medicine}`}
       submit={P.send}
       variant={clinic ? "secondary" : "primary"}
-      onSave={async (clientKey, d) => {
+      onSave={guard(demo, async (clientKey, d) => {
         const collector =
           who === "self"
             ? { kind: "self" }
@@ -85,7 +95,7 @@ function Ask({
         return r.ok
           ? { ok: true as const, id: clientKey, serverTime: new Date().toISOString() }
           : { ok: false as const, code: "conflict" as const, error: r.error ?? "" };
-      }}
+      })}
     >
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={`${id}-p`}>{P.where}</Label>
