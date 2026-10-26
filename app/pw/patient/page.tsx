@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { cache, Suspense } from "react";
 import { lastDays, moodsFor, readingsFrom } from "@patient-core/log";
 import { weekCounts } from "@patient-core/medicines";
@@ -50,8 +49,6 @@ const medicines = cache((userId: string) => loadMedicines(userId));
  */
 export default async function PatientHome() {
   const scope = await requirePatientScope();
-  // As the old home: a patient with no hospital chooses one first.
-  if (!scope.primaryHospitalId) redirect("/patient/hospitals");
   const name = scope.fullName?.trim();
   const first = name ? (name.split(/\s+/)[0] ?? C.there) : C.there;
   const unseen = await countUnseenNotifications(scope.userId).catch(() => 0);
@@ -83,7 +80,14 @@ export default async function PatientHome() {
                 </p>
               }
             >
-              <Doctors hospitalId={scope.primaryHospitalId} />
+              {scope.primaryHospitalId ? (
+                <Doctors hospitalId={scope.primaryHospitalId} />
+              ) : (
+                <div className="rounded-pw-row bg-pw-surface-2 flex flex-wrap items-center justify-between gap-3 p-4">
+                  <p className="text-pw-ink-2 text-[15px]">{C.doctorsNoHospital}</p>
+                  <TextLink href="/patient/hospitals">{C.chooseHospital}</TextLink>
+                </div>
+              )}
             </Suspense>
           </section>
         </div>
