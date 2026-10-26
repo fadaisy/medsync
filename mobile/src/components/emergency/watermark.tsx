@@ -1,8 +1,7 @@
-import type { Palette } from "@/theme/tokens";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
-import { useStyles } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { useTide } from "@/theme/theme";
+import { tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * Gate CS (ADR 0098 ruling 2): unsigned clinical content renders only
@@ -11,33 +10,23 @@ import { font, radius, space } from "@/theme/tokens";
  * warning; the colour is not.
  */
 export function Watermark({ children }: { children?: string }) {
-  const styles = useStyles(makeStyles);
+  const t = useTide();
   return (
-    <View style={styles.band} accessibilityRole="text">
-      <Text style={styles.text}>Unsigned clinical content</Text>
-      {children ? <Text style={styles.sub}>{children}</Text> : null}
+    <View
+      accessibilityRole="text"
+      style={{
+        paddingVertical: tSpace[2],
+        paddingHorizontal: tSpace[3],
+        borderRadius: tRadius.md,
+        backgroundColor: t.surface2,
+        borderWidth: 1,
+        borderColor: t.lineStrong,
+        borderStyle: "dashed",
+        gap: 2,
+      }}
+    >
+      <Text style={[tType.overline, { color: t.ink3 }]}>Unsigned clinical content</Text>
+      {children ? <Text style={[tType.bodyS, { color: t.ink2 }]}>{children}</Text> : null}
     </View>
   );
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    band: {
-      paddingVertical: space[2],
-      paddingHorizontal: space[3],
-      borderRadius: radius.md,
-      backgroundColor: c.muted,
-      borderWidth: 1,
-      borderColor: c.border,
-      borderStyle: "dashed",
-      gap: 2,
-    },
-    text: {
-      fontFamily: font.bodyMedium,
-      fontSize: 12.5,
-      letterSpacing: 0.4,
-      textTransform: "uppercase",
-      color: c.mutedForeground,
-    },
-    sub: { fontFamily: font.body, fontSize: 13, lineHeight: 18, color: c.mutedForeground },
-  });

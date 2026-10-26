@@ -1,19 +1,16 @@
 import type { PatientProfile } from "@/lib/booking";
 import type { ConsentDue } from "@/lib/session";
-import type { Palette } from "@/theme/tokens";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
 import { EmergencyNotice } from "@/components/patient/emergency-notice";
-import { HelpButton } from "@/components/tide";
-import { Button } from "@/components/ui/button";
-import { Screen } from "@/components/ui/screen";
+import { Button, Card, Note, Screen, TextLink } from "@/components/tide";
+import { CheckRow } from "@/features/auth/steps";
 import { fetchPatientProfile } from "@/lib/booking";
 import { acceptConsent, useSession } from "@/lib/session";
-import { useStyles, useTheme } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { useTide } from "@/theme/theme";
+import { tSpace, tType } from "@/theme/tide";
 
 /**
  * Re-accept the data-processing notice (Gate H, ADR 0094) — the web's
@@ -31,13 +28,14 @@ import { font, radius, space } from "@/theme/tokens";
  *
  * `consent` comes from the session provider, which also owns the reopen:
  * `consentAccepted()` flips the layout's guard and the tabs return.
+ *
+ * The red Help (law L6) is the Tide `<Screen>`'s own: the consent gate is the
+ * only screen until it is clear, so it carries Help itself. No back link.
  */
-/** The red Help (law L6): the consent gate is the only screen until it is clear, so it carries Help itself. */
-const HELP = <HelpButton source="consent" />;
 
 export default function ConsentScreen() {
+  const t = useTide();
   const { consent, consentAccepted, recheckConsent, signOut } = useSession();
-  const styles = useStyles(makeStyles);
   const [profile, setProfile] = useState<PatientProfile | null>(null);
 
   useEffect(() => {
@@ -54,20 +52,22 @@ export default function ConsentScreen() {
   }, []);
 
   const emergency = (
-    <View style={styles.emergency}>
-      <EmergencyNotice
-        hospitalName={profile?.hospitalName}
-        emergencyPhone={profile?.emergencyPhone}
-      />
-    </View>
+    <EmergencyNotice
+      hospitalName={profile?.hospitalName}
+      emergencyPhone={profile?.emergencyPhone}
+    />
   );
 
   if (consent.kind === "checking" || consent.kind === "clear") {
     // `clear` only for the frame in which the guard flips and the tabs replace this screen.
     return (
-      <Screen trailing={HELP}>
+      <Screen helpSource="consent">
         {emergency}
-        <ActivityIndicator style={styles.loading} accessibilityLabel="Checking your account" />
+        <ActivityIndicator
+          color={t.ink}
+          style={{ marginTop: tSpace[8] }}
+          accessibilityLabel="Checking your account"
+        />
       </Screen>
     );
   }
@@ -75,23 +75,16 @@ export default function ConsentScreen() {
   if (consent.kind === "unknown") {
     return (
       <Screen
-        trailing={HELP}
+        helpSource="consent"
         title="We couldn't check your account"
         footer={<Button label="Try again" onPress={recheckConsent} />}
       >
-        <View style={styles.column}>
-          {emergency}
-          <Text style={styles.lead} accessibilityLiveRegion="polite">
-            MedSync could not reach its records to see whether you have accepted the current
-            data-processing notice. Check your connection and try again.
-          </Text>
-          <Button
-            variant="link"
-            label="Sign out instead"
-            onPress={() => void signOut()}
-            style={styles.signOut}
-          />
-        </View>
+        {emergency}
+        <Text style={[tType.bodyM, { color: t.ink2 }]} accessibilityLiveRegion="polite">
+          MedSync could not reach its records to see whether you have accepted the current
+          data-processing notice. Check your connection and try again.
+        </Text>
+        <SignOutLink onPress={() => void signOut()} />
       </Screen>
     );
   }
@@ -117,8 +110,7 @@ function ConsentForm({
   onAccepted: () => void;
   onSignOut: () => void;
 }) {
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
+  const t = useTide();
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -138,7 +130,7 @@ function ConsentForm({
 
   return (
     <Screen
-      trailing={HELP}
+      helpSource="consent"
       title="Please read and accept"
       footer={
         <Button
@@ -149,107 +141,45 @@ function ConsentForm({
         />
       }
     >
-      <View style={styles.column}>
-        {emergency}
-        <Text style={styles.lead}>
-          We have no record of you accepting the current data-processing notice — your account may
-          predate it. Read it below and agree to continue using MedSync.
+      {emergency}
+      <Text style={[tType.bodyM, { color: t.ink2 }]}>
+        We have no record of you accepting the current data-processing notice — your account may
+        predate it. Read it below and agree to continue using MedSync.
+      </Text>
+
+      <Card padding={tSpace[4]} style={{ gap: tSpace[3] }}>
+        <Text style={[tType.labelS, { color: t.ink }]}>
+          Data-processing notice · {due.version}, effective {due.effectiveDate}
         </Text>
+        <Text style={[tType.bodyM, { color: t.ink2 }]}>{due.body}</Text>
+      </Card>
 
-        <View style={styles.card}>
-          <Text style={styles.meta}>
-            Data-processing notice · {due.version}, effective {due.effectiveDate}
-          </Text>
-          <Text style={styles.body}>{due.body}</Text>
+      {/* The tick is the state made visible; the role and `checked` carry it to a screen reader. */}
+      <CheckRow
+        checked={agreed}
+        onToggle={() => setAgreed((a) => !a)}
+        title="I agree to MedSync's data-processing notice"
+      />
+
+      {/* Amber, not red: a save that did not land is not a clinical emergency. */}
+      {error ? (
+        <View accessibilityLiveRegion="polite">
+          <Note tone="caution" icon="alert">
+            {error}
+          </Note>
         </View>
+      ) : null}
 
-        <Pressable
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: agreed }}
-          onPress={() => setAgreed((a) => !a)}
-          style={({ pressed }) => [styles.check, pressed && styles.checkPressed]}
-        >
-          {/* The glyph is the state made visible; the role and `checked` carry it to a screen reader. */}
-          <Ionicons
-            name={agreed ? "checkbox" : "square-outline"}
-            size={24}
-            color={agreed ? colors.primary : colors.mutedForeground}
-          />
-          <Text style={styles.checkLabel}>I agree to MedSync&apos;s data-processing notice</Text>
-        </Pressable>
-
-        {error ? (
-          <View style={styles.well}>
-            <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
-            <Text style={styles.wellText} accessibilityLiveRegion="polite">
-              {error}
-            </Text>
-          </View>
-        ) : null}
-
-        <Button
-          variant="link"
-          label="Sign out instead"
-          onPress={onSignOut}
-          style={styles.signOut}
-        />
-      </View>
+      <SignOutLink onPress={onSignOut} />
     </Screen>
   );
 }
 
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    column: { gap: space[5] },
-    emergency: { gap: space[3] },
-    loading: { marginTop: space[8] },
-    lead: { fontFamily: font.body, fontSize: 15.5, lineHeight: 23, color: c.mutedForeground },
-
-    card: {
-      gap: space[3],
-      padding: space[4],
-      borderRadius: radius["2xl"],
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    meta: { fontFamily: font.bodyMedium, fontSize: 14.5, lineHeight: 20, color: c.foreground },
-    body: { fontFamily: font.body, fontSize: 14.5, lineHeight: 22, color: c.mutedForeground },
-
-    check: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: space[3],
-      minHeight: 44,
-      paddingVertical: space[2],
-    },
-    checkPressed: { opacity: 0.7 },
-    checkLabel: {
-      flex: 1,
-      fontFamily: font.bodyMedium,
-      fontSize: 15.5,
-      lineHeight: 22,
-      color: c.foreground,
-    },
-
-    signOut: { alignSelf: "center" },
-
-    // Amber, not red: a save that did not land is not a clinical emergency.
-    well: {
-      flexDirection: "row",
-      gap: space[2],
-      alignItems: "flex-start",
-      padding: space[3],
-      borderRadius: radius.lg,
-      backgroundColor: c.status.cautionBg,
-      borderWidth: 1,
-      borderColor: c.status.cautionFg,
-    },
-    wellText: {
-      flex: 1,
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.foreground,
-    },
-  });
+/** "Sign out instead": the way not to agree, centred under the form. */
+function SignOutLink({ onPress }: { onPress: () => void }) {
+  return (
+    <View style={{ alignItems: "center" }}>
+      <TextLink label="Sign out instead" onPress={onPress} />
+    </View>
+  );
+}

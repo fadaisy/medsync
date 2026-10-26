@@ -1,10 +1,8 @@
-import type { Palette } from "@/theme/tokens";
-import { Ionicons } from "@expo/vector-icons";
-import { Linking, StyleSheet, Text, View } from "react-native";
+import { Linking, Text, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { useStyles, useTheme } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { Button, IconDisc } from "@/components/tide";
+import { useTide } from "@/theme/theme";
+import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * ⚠ PROVISIONAL — PENDING CLINICAL SAFETY OFFICER SIGN-OFF. ⚠
@@ -100,8 +98,7 @@ export function EmergencyNotice({
    */
   emergencyPhone?: string | null;
 }) {
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
+  const t = useTide();
 
   // Rendered verbatim, never reformatted — the hospital verified this string.
   // A value with no digit in it is not a number anyone can ring, so it shows
@@ -112,22 +109,28 @@ export function EmergencyNotice({
   const dialable = phone && /\d/.test(phone) ? phone : null;
 
   return (
-    <View style={styles.card}>
-      <View style={styles.row}>
+    // Amber ring on the page's own ground, never a fill and never red: the
+    // full caution ink at 1pt, so it holds on either ground.
+    <View
+      style={{
+        gap: tSpace[3],
+        padding: tSpace[4],
+        borderRadius: tRadius.cardLg,
+        borderWidth: 1,
+        borderColor: t.caution.text,
+      }}
+    >
+      {/* The mark beside the words; the Call control spans the card beneath them
+          so the one tap a relative has to make is the full width of the thumb. */}
+      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: tSpace[3] }}>
         {/* Decorative. The words carry the meaning, so the glyph is hidden from
             screen readers rather than given a name that repeats the sentence. */}
-        <View
-          style={styles.disc}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          <Ionicons name="warning-outline" size={18} color={colors.status.cautionFg} />
-        </View>
+        <IconDisc name="alert" size={36} color={t.caution.text} bg={t.caution.tint} />
 
-        <View style={styles.body}>
+        <View style={{ flex: 1, gap: tSpace[2] }}>
           {/* ADR 0084 §2 and §3. The words are the decision. Do not paraphrase,
               do not translate into another register, do not add a promise. */}
-          <Text style={styles.lead}>
+          <Text style={[tType.bodyM, { lineHeight: 22, color: t.ink }]}>
             If you are very sick now, do not use this page. Go to the hospital&rsquo;s emergency
             entrance. They see the sickest people first.
           </Text>
@@ -135,7 +138,7 @@ export function EmergencyNotice({
           {/* Not muted: the symptom names are the payload of this block, and a
               man with forty minutes of crushing chest pain has to be able to
               read them. */}
-          <Text style={styles.symptoms}>
+          <Text style={[tType.bodyM, { fontFamily: tFont.regular, lineHeight: 22, color: t.ink }]}>
             Very sick means things like: {EMERGENCY_SYMPTOMS.join(" · ")}.
           </Text>
         </View>
@@ -143,7 +146,8 @@ export function EmergencyNotice({
 
       {dialable ? (
         <Button
-          variant="secondary"
+          variant="outline"
+          icon="phone"
           label={`Call ${dialable}`}
           // The web's sr-only suffix: a screen-reader user hears whose line
           // this is, without the visible label growing.
@@ -159,43 +163,3 @@ export function EmergencyNotice({
     </View>
   );
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    // Amber ring on the page's own ground, never a fill and never red. The
-    // web's `ring-status-caution-fg/40` would vanish on a dark ground, so the
-    // ring is the full caution token at 1px in either theme.
-    card: {
-      gap: space[3],
-      padding: space[4],
-      borderRadius: radius["2xl"],
-      borderWidth: 1,
-      borderColor: c.status.cautionFg,
-    },
-    // The mark beside the words; the Call control spans the card beneath them
-    // so the one tap a relative has to make is the full width of the thumb.
-    row: { flexDirection: "row", alignItems: "flex-start", gap: space[3] },
-    // The design system's own caution pair, retoned per theme exactly as the
-    // web retones it, so the mark is the same colour here as there.
-    disc: {
-      width: 36,
-      height: 36,
-      borderRadius: radius.full,
-      backgroundColor: c.status.cautionBg,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    body: { flex: 1, gap: space[2] },
-    lead: {
-      fontFamily: font.bodyMedium,
-      fontSize: 15,
-      lineHeight: 22,
-      color: c.foreground,
-    },
-    symptoms: {
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 22,
-      color: c.foreground,
-    },
-  });

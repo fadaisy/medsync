@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
+import { View } from "react-native";
 
 import { CalmScreen } from "@/components/emergency/calm-screen";
-import { Button } from "@/components/ui/button";
+import { Button, TextLink } from "@/components/tide";
 import { fetchPatientProfile } from "@/lib/booking";
 import { preAlertLive, useEmergencySheet } from "@/lib/emergency";
 
@@ -40,16 +41,14 @@ export default function SexualViolenceScreen() {
     >
       {preAlertLive() ? (
         <Button
-          variant="secondary"
+          variant="outline"
           label="Tell a hospital I'm coming"
           onPress={() => router.push("/(app)/emergency/tell")}
         />
       ) : null}
-      <Button
-        variant="link"
-        label="Book a visit today"
-        onPress={() => router.push("/(app)/book")}
-      />
+      <View style={{ alignItems: "center" }}>
+        <TextLink label="Book a visit today" onPress={() => router.push("/(app)/book")} />
+      </View>
     </CalmScreen>
   );
 }
