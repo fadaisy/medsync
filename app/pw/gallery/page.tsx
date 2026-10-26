@@ -21,7 +21,7 @@ import { GalleryControls } from "./controls";
  */
 export default function Gallery() {
   return (
-    <PatientShell plus={<AddButton />} dosesDue={2} place={{ initials: "MH", name: "[Hospital]" }}>
+    <PatientShell plus={<AddButton />} dosesDue={2}>
       <PageHeader
         greeting
         overline="Kit"
