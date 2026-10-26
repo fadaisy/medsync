@@ -269,7 +269,9 @@ export interface MoveInput {
     | "write_off"
     | "supplier_return"
     | "opening"
-    | "downtime";
+    | "downtime"
+    | "set_aside"
+    | "release";
   sourceId?: string | null;
   actorUserId: string;
   effectiveAt: Date;
@@ -317,6 +319,9 @@ const PAIRS = {
   issue: ["issued", "received_from_issue"],
   return: ["returned_out", "returned_in"],
   quarantine: ["quarantined_out", "quarantined_in"],
+  // Pharmacy Phase 4 (SA-1): a point and its prepared place.
+  set_aside: ["set_aside_out", "set_aside_in"],
+  release: ["released_out", "released_in"],
 } as const;
 
 /**

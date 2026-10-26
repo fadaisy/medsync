@@ -241,3 +241,39 @@ Behind `PHARMACY_REPEATS` (per hospital, inside `PHARMACY_WORKSPACE`, off in pro
 - lint clean (0 errors);
 - unit suite: every remaining failure is the worktree's missing env (baseline);
 - prescriber lane 12/12 and repeats lane 7/7.
+
+## STOP 5: refills at the hospital (dark)
+
+Behind `PHARMACY_REFILLS` (per hospital; needs `PHARMACY_REPEATS` and `pharmacyDispensing`; off in production while `PHARMACY_NETWORK_COPY` is draft). Nothing applied, no flag on. 0231 is still unapplied; its Law 3 pair check now also accepts a supply handed over from the point's prepared place.
+
+| Where                                                                                     | What                                                                                                                |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `lib/pharmacy/refill-store.ts`                                                            | request (app, window, phone), ask the clinic, save a collector, set aside, release, hold longer, hand over          |
+| `lib/pharmacy/refill-read.ts`                                                             | the six-tab board and the patient's repeat medicines                                                                |
+| `app/pharmacy/refill-actions.ts`, `app/pharmacy/refills/`                                 | the Refills page: tabs with counts, one action per row (Set aside; Hand over, Release, Hold longer; Ask the clinic) |
+| `app/patient/track/medications/` (`refill-actions.ts`, `_components/patient-refills.tsx`) | "Repeat medicines": each in one sentence; Ask for my next supply, or Ask my clinic to renew it                      |
+| `lib/pharmacy/stores/write.ts`                                                            | movement pairs `set_aside` and `release`                                                                            |
+| Packs page                                                                                | the five Phase 4 packs, written as JSON, signed as Phase 2's are                                                    |
+
+**Decisions taken (CSO, D-PH4-29):**
+
+- Hand over writes Phase 1's rows (hand-over, supplies, `supplied` movements) out of the prepared place, and the refill instance's `supplied` event. The Phase 1 line machine is not moved (it would refuse `already_supplied`).
+- Phase 3 blocks: a reaction report naming the medicine with no causality yet → `suspected_reaction`; the line's latest AMS answer `change` or `stop` → `stewardship_review`.
+- An early ask is listed under "Needs the clinic" with the date it becomes possible; no renewal is made (`prl_route` forbids one). The pharmacist can still Ask the clinic.
+- "Late" (the patient may have run out) is the caution StatusWord with its glyph; "Early" and "Held until" are square Tags.
+- Hold rules and decline reasons take two signers (or the CSO alone) on the Packs page, where Appendix D names one: stricter, never looser.
+- A collector the patient names is saved (the request needs the row); there is no "don't save" choice yet.
+
+**Scenarios, all passing** (`tests/emr-db/pharmacy-refills.test.ts`, 10/10): S15–S24, including the unsigned hold refusal, FEFO set-aside, hand-over by typed check and by another way, release, hold longer to the signed maximum, not collected, early and late labels, RP-6 order ("none left" before "too early"), and the Phase 3 blocks.
+
+**Taps** (first value already chosen): patient ask 2 (open, send); set aside 2 plus the quantity; hand over 2 plus the typed identifier; release 2; hold longer 2 plus the date.
+
+**Known limits:**
+
+- One medicine per patient request from the app (the store takes up to 20; the dialog sends one).
+- Withdrawing a request is not built.
+- Releasing a held batch that has since been recalled may be refused by the stock guard; the quarantine path (`recallLegs`) is not wired to the prepared place.
+- "Record a request" (window or phone): the server action `requestRefillAtWindow` is built and tested (S15); the board has no dialog for it yet (it needs a patient and line picker).
+- Partner routing (the Partner tab) waits for Step 6, which needs the DPO or legal adviser.
+
+**Checks:** typecheck clean; lint clean; pharmacy unit tests 886/886; PGlite lanes refills 10/10, repeats 7/7, stores-supply 23/23, network-data 8/8, supply 22/22. The remaining unit failures (patient-web care/help: the mobile tsconfig) are the worktree's baseline.

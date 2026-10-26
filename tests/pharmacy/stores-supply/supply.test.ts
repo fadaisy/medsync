@@ -7,8 +7,9 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
 import { STORES_B } from "@/content/pharmacy-stores";
-import { CSO_ALONE, MONTH_END, PACK_TEXT } from "@/content/pharmacy-stores-supply";
+import { CSO_ALONE, MONTH_END } from "@/content/pharmacy-stores-supply";
 import { bannedTermsScan } from "@/lib/pharmacy/messages";
 import { countMonth } from "@/lib/pharmacy/stores/month-end-read";
 import { confirmCutRefusal, trimToBudget } from "@/lib/pharmacy/stores/order";

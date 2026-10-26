@@ -419,7 +419,10 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.pharmacy_supplies s JOIN public.pharmacy_stock_movements m
                    ON m.source_id = s.id AND m.kind = 'supplied'
                   WHERE s.id = _supply AND m.batch_id = s.batch_id AND m.quantity = -s.quantity
-                    AND m.dispensing_point_id = s.dispensing_point_id) THEN
+                    -- SA-1 (0230): a held refill is supplied out of its point's own prepared place.
+                    AND (m.dispensing_point_id = s.dispensing_point_id
+                         OR EXISTS (SELECT 1 FROM public.pharmacy_locations l WHERE l.id = m.location_id
+                                     AND l.kind = 'prepared' AND l.department_id = s.dispensing_point_id))) THEN
     RAISE EXCEPTION 'pharmacy: supply % and its movement disagree on batch, point or quantity', _supply;
   END IF;
   RETURN NULL;

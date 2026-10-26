@@ -1,5 +1,7 @@
 import type { SignedCopy } from "@/content/signed-copy";
 
+import { PACK_TEXT } from "@/content/pharmacy-stores-supply";
+
 /**
  * Pharmacy Phase 4: repeats, refills and the partner network. Every string staff, partners and patients read for it,
  * Appendix B word for word. All `draft`: in production the Phase 4 flags stay off while it is (CS-5). The CSO and the
@@ -83,4 +85,127 @@ export const NETWORK_UI = {
     no_quantity: "No quantity recorded",
     routing_unsigned: "The routing lists are not signed",
   },
+  /** Step 5: refills at the hospital (5.4 hospital places, 5.5). Draft with the rest. */
+  refills: {
+    title: "Refills",
+    lead: "Refill requests from patients and the window. Nothing is prepared early, and nothing closes by itself.",
+    tabs: {
+      to_prepare: "To prepare",
+      needs_clinic: "Needs the clinic",
+      prepared: "Prepared, waiting",
+      collected: "Collected today",
+      not_collected: "Not collected",
+      partner: "With a partner",
+    },
+    empty: "Nothing here.",
+    allows: (n: number, d: number, date: string) =>
+      `${n} more supplies, at least ${d} days apart, until ${date}`,
+    noneLeft: "None left",
+    noRepeats: "No repeats authorised",
+    early: (date: string) => `Early: possible from ${date}`,
+    late: "Late: asked well after the refill date",
+    askedBefore: (n: number) => `asked ${n} days before it was due`,
+    askedAfter: (n: number) => `${n} days after it was due`,
+    heldUntil: (date: string) => `Held until ${date}`,
+    self: "The patient",
+    actions: {
+      setAside: "Set aside",
+      handOver: "Hand over",
+      release: "Release to the shelf",
+      holdLonger: "Hold longer",
+      askClinic: "Ask the clinic",
+      record: "Record a request",
+    },
+    unsignedHold: "Refills cannot be set aside until the hold rules are signed.",
+    notYours: "That medicine is not on this patient's record.",
+    notHere: "That refill is not at this hospital.",
+    firstSupplyOpen: "The first supply of this medicine is still open: supply it from the queue.",
+    collectorGone: "That collector is no longer saved.",
+    notToPrepare: "This refill is not waiting to be prepared.",
+    otherPoint: "This refill is for another dispensing point.",
+    notAllowedNow: "The repeats no longer allow a supply now. Ask the clinic.",
+    wrongProduct: "Choose a product of this medicine.",
+    notHeld: "Nothing is held for this refill.",
+    oneRequest: "Hand over the lines of one request at a time.",
+    payment: "Record the payment status.",
+    identity: "Check the date of birth or phone number first.",
+    identityRoute: "Choose a way of identifying from the signed list.",
+    setAside: {
+      unsigned: "Refills cannot be set aside until the hold rules are signed.",
+      invalid_quantity: "The quantity is a whole number above zero.",
+      not_enough_in_date: "Not enough stock here lasts to the held-until date.",
+    },
+    holdLonger: {
+      unsigned: "The hold rules are not signed.",
+      released: "This refill was released.",
+      no_extensions_left: "No more extensions are allowed.",
+      past_maximum: "That is past the longest a refill may be held.",
+      not_later: "Choose a date after the current one.",
+    },
+    handOver: {
+      released: "released to the shelf; it cannot be handed over",
+      line_ended: "the prescriber stopped or changed this line; release it",
+      repeat_not_allowed: "the repeats no longer allow this supply; release it",
+      batch_expired: "a held batch has expired; release it",
+      batch_blocked: "a held batch is recalled or quarantined; release it",
+    },
+    patient: {
+      title: "Repeat medicines",
+      ask: "Ask for my next supply",
+      askClinic: "Ask my clinic to renew it",
+      talk: "I need to talk to someone first",
+      note: "Anything the pharmacy should know (optional)",
+      notePlaceholder: "For example: I have 3 days left",
+      who: "Who will collect",
+      me: "Me",
+      someone: "Someone else",
+      name: "Their name",
+      relationship: "Their relationship to you",
+      save: "Save them for next time",
+      where: "Where",
+      send: "Send the request",
+      sent: "Sent",
+      preparing: "Being prepared",
+      toClinic: "Sent to your clinic to renew",
+      collected: "Collected",
+      released: "Not collected in time: ask again when you need it",
+    },
+  },
 } as const;
+
+/**
+ * Appendix D's Phase 4 rows for the Packs page (draft copy, Phase 4). Every pack takes two signers or the CSO alone by
+ * the recorded exception, as Phase 2's do: hold rules and decline reasons name a second signer where Appendix D names
+ * one, which is stricter, never looser.
+ */
+export const NETWORK_PACK_TEXT = {
+  repeat_rules: {
+    name: "Repeat rules (Phase 4)",
+    signers: ["Pharmacist reviewer", "CSO"],
+    whileUnsigned: "No Repeats step is shown.",
+  },
+  refill_timing: {
+    name: "Refill timing (Phase 4)",
+    signers: ["Pharmacy in charge", "CSO"],
+    whileUnsigned:
+      "Patients can ask at any time; nothing is labelled early or late except by the interval.",
+  },
+  hold_rules: {
+    name: "Hold rules (Phase 4)",
+    signers: ["Pharmacy in charge", "CSO"],
+    whileUnsigned: "Refills cannot be set aside.",
+  },
+  renewal_decline_reasons: {
+    name: "Renewal decline reasons (Phase 4)",
+    signers: ["CSO", "Pharmacist reviewer"],
+    whileUnsigned: "Renewals can be answered only by Renew or Book a visit.",
+  },
+  routing_rules: {
+    name: "Routing rules (Phase 4)",
+    signers: ["Pharmacist reviewer", "CSO"],
+    whileUnsigned: "Nothing can be routed.",
+  },
+} as const;
+
+/** Phase 2's signed pack words and Phase 4's, for the one Packs page. */
+export const ALL_PACK_TEXT = { ...PACK_TEXT, ...NETWORK_PACK_TEXT };

@@ -333,7 +333,9 @@ describe("NV-P1: navigation", () => {
     // Phase 2 appends the Store group after these (5.1); Phase 1's own order is unchanged.
     expect(
       PHARMACY_NAV.filter(
-        (i) => !STORE_NAV_IDS.includes(i.id) && !CLINICAL_NAV_IDS.includes(i.id),
+        // Phase 4's Refills sits after Supplied today, behind its own flag.
+        (i) =>
+          !STORE_NAV_IDS.includes(i.id) && !CLINICAL_NAV_IDS.includes(i.id) && i.id !== "refills",
       ).map((i) => i.label),
     ).toEqual([
       "Queue",
@@ -443,7 +445,10 @@ describe("Law 2: no clinical write from the pharmacy's code", () => {
     const foreign = writes.filter(
       (w) =>
         !/ (pharmacy[A-Z]\w*|paper\w*|downtime\w*|auditLog)$/.test(w) &&
-        !/^patient-list\.ts: (insert|update) selfMedications$/.test(w),
+        !/^patient-list\.ts: (insert|update) selfMedications$/.test(w) &&
+        // Phase 4 (5.4, 5.5): a renewal request asks the prescriber (it changes no prescription), and a
+        // saved collector is the patient's own contact; neither is a clinical record.
+        !/^refill-store\.ts: insert (prescriptionRenewalRequests|patientCollectors)$/.test(w),
     );
     expect(foreign).toEqual([]);
     expect(writes.some((w) => / (prescriptions|prescriptionCancellations)$/.test(w))).toBe(false);

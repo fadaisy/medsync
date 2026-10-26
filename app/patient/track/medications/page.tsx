@@ -1,3 +1,4 @@
+import type { EmrDb } from "@/lib/emr/db";
 import type { MedicationRow } from "@/lib/patient/self-tracking";
 import type { PatientMedicineList } from "@/lib/pharmacy/patient-list";
 import type { Metadata } from "next";
@@ -7,15 +8,18 @@ import { PillIcon, PlusIcon } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
+import { db } from "@/db";
 import { rowTint } from "@/lib/patient/doses";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { listMedicationsForDay, SCHEDULE_PATTERN_LABEL } from "@/lib/patient/self-tracking";
 import { PATIENT_COPY } from "@/lib/pharmacy/messages";
 import { getPatientMedicineList, patientListLive } from "@/lib/pharmacy/patient-list";
+import { patientRefills } from "@/lib/pharmacy/refill-read";
 import { cn } from "@/lib/utils";
 import { PatientPageHeader } from "../../_components/page-header";
 import { TintedRow } from "../../_components/tinted-row";
 import { AddMedicationSheet, MedActions } from "./_components/med-actions";
+import { PatientRefillsSection } from "./_components/patient-refills";
 import { PharmacyReport } from "./_components/pharmacy-report";
 
 export const metadata: Metadata = { title: "Medications · MedSync" };
@@ -35,13 +39,17 @@ export default async function PatientMedicationsPage({ searchParams }: PageProps
   // The day fetcher rather than an active-only one: a medicine stopped earlier
   // today still belongs to today, so it stays on the list until tomorrow with
   // its state on show, instead of disappearing mid-day.
-  const [medications, pharmacy] = await Promise.all([
+  const [medications, pharmacy, refills] = await Promise.all([
     listMedicationsForDay(scope.userId, new Date()),
     // Pharmacy Phase 1 (5.11): only at hospitals where the list is live; otherwise empty, and the page
     // is exactly as before.
     process.env.PHARMACY_PATIENT_LIST?.trim()
       ? getPatientMedicineList(scope.userId, (hospitalId) => patientListLive(hospitalId))
       : EMPTY_LIST,
+    // Pharmacy Phase 4 (5.4): only while the refills flag is set anywhere; otherwise the page is as before.
+    process.env.PHARMACY_REFILLS?.trim()
+      ? patientRefills(db as unknown as EmrDb, scope.userId, new Date())
+      : null,
   ]);
   const covered = new Set(pharmacy.coveredMedicationIds);
   const byId = new Map(medications.map((m) => [m.id, m]));
@@ -73,6 +81,7 @@ export default async function PatientMedicationsPage({ searchParams }: PageProps
       />
 
       <PharmacySection list={pharmacy} byId={byId} />
+      {refills ? <PatientRefillsSection data={refills} /> : null}
 
       {rows.length === 0 ? (
         <EmptyState />

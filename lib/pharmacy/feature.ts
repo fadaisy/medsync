@@ -1,7 +1,7 @@
 import { PHARMACY_PHASE1_COPY, PHARMACY_SIGNED_COPY } from "@/content/pharmacy";
 import { NATIONAL_LIST_COPY } from "@/content/pharmacy-catalogue";
-import { PHARMACY_NETWORK_COPY } from "@/content/pharmacy-network";
 import { PHARMACY_CLINICAL_COPY } from "@/content/pharmacy-clinical";
+import { PHARMACY_NETWORK_COPY } from "@/content/pharmacy-network";
 import { PHARMACY_RECONCILIATION_COPY } from "@/content/pharmacy-reconciliation";
 import { PHARMACY_STORES_COPY } from "@/content/pharmacy-stores";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
@@ -137,6 +137,8 @@ const network = (value: string | undefined, hospitalId: string, tag: string) =>
 
 export const pharmacyRepeatsLiveFor = (h: string) =>
   network(process.env.PHARMACY_REPEATS, h, "pharmacy_repeats");
-/** Refills need repeats: a refill is supplied only against an authorisation (Law 2). */
+/** Refills need repeats (a refill is supplied only against an authorisation, Law 2) and Phase 1's dispensing. */
 export const pharmacyRefillsLiveFor = (h: string) =>
-  network(process.env.PHARMACY_REFILLS, h, "pharmacy_refills") && pharmacyRepeatsLiveFor(h);
+  network(process.env.PHARMACY_REFILLS, h, "pharmacy_refills") &&
+  pharmacyRepeatsLiveFor(h) &&
+  pharmacyDispensingLiveFor(h);
