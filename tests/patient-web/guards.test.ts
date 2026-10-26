@@ -154,13 +154,14 @@ describe("PW_ROUTES", () => {
       "/patient/me/family",
       `/patient/me/records/${id}`,
       "/patient/consent",
+      "/patient/hospitals",
       "/signup/patient",
       "/emergency",
       "/emergency/lines",
     ])
       expect(pwRewrite(p, true)).toBe(`/pw${p}`);
     for (const p of [
-      "/patient/hospitals",
+      "/patient/hospitals/x",
       "/patient/care/visits/x",
       "/emergency/unknown",
       "/sign-in",
