@@ -63,6 +63,7 @@ export async function stewardshipData(db: Db, hospitalId: string, since: Date) {
               .from(encounterOrders)
               .where(
                 and(
+                  eq(encounterOrders.hospitalId, hospitalId),
                   inArray(encounterOrders.patientUserId, patients),
                   eq(encounterOrders.testId, bc),
                 ),

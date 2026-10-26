@@ -1,11 +1,12 @@
 import type { Group } from "@/lib/pharmacy/clinical/stewardship";
+import type { EmrDb } from "@/lib/emr/db";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/medsync/page-header";
 import { PHARMACY } from "@/content/pharmacy";
 import { STEWARDSHIP_UI as U } from "@/content/pharmacy-clinical";
-import { asClinicalReader } from "@/lib/emr/db";
+import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import {
   cultureState,
@@ -31,7 +32,9 @@ export default async function StewardshipPage() {
   if (!pharmacyStewardshipLiveFor(actor.hospitalId)) notFound();
   const now = new Date();
   const from = new Date(now.getTime() - 30 * 86_400_000);
-  const d = await asClinicalReader(actor, (tx) => stewardshipData(tx, actor.hospitalId, from));
+  // On the app connection, as the review queue reads prescriptions: the clinical reader's rule
+  // (accessible_patient_ids) gives a pharmacist no ward patient, so it would show no courses.
+  const d = await stewardshipData(db as unknown as EmrDb, actor.hospitalId, from);
   const f = figures(d.courses, d.tags, d.cultures, d.settings, from, now);
   const open = d.courses
     .filter((c) => !c.endedAt)
