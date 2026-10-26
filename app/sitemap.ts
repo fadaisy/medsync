@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { legalConfig } from "@/lib/legal";
 import { SITE_URL } from "@/lib/site-config";
 
 // Public pages only. /get-started (older status copy), /sign-up (invited staff)
@@ -11,6 +12,9 @@ const PAGES: Array<[path: string, priority: number]> = [
   ["/signup/clinical", 0.8],
   ["/signup/patient", 0.8],
   ["/sign-in", 0.4],
+  // Listed once published; a draft is noindex.
+  ...(legalConfig.privacyPublished ? [["/privacy", 0.3] as [string, number]] : []),
+  ...(legalConfig.termsPublished ? [["/terms", 0.3] as [string, number]] : []),
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

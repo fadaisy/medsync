@@ -39,7 +39,8 @@ const PUBLIC_PREFIXES = [
   "/pw/gallery",
 ];
 
-const PUBLIC_EXACT = new Set(["/", "/sign-out", "/get-started"]);
+// /privacy and /terms are read before anyone signs up.
+const PUBLIC_EXACT = new Set(["/", "/sign-out", "/get-started", "/privacy", "/terms"]);
 
 const ALWAYS_AUTH_REQUIRED_PREFIXES = [
   "/onboarding/mfa-setup",
