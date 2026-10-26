@@ -22,7 +22,8 @@ recommended ([ADR 0415](docs/adr/0415-patient-web-replaces-old-patient-pages.md)
   URLs answer 308 with the flag on. Reports: `docs/patient-web/STOP-*.md`.
 - No conditions or readings in addresses ([ADR 0422](docs/adr/0422-no-conditions-or-readings-in-patient-addresses.md));
   the own-device choice in a session cookie ([ADR 0423](docs/adr/0423-own-device-choice-in-a-session-cookie.md));
-  the places as a centred pill at the foot of every width, the page centred ([ADR 0424](docs/adr/0424-patient-web-places-at-the-foot.md)).
+  the places as a centred pill at the foot of every width, the page centred ([ADR 0424](docs/adr/0424-patient-web-places-at-the-foot.md)); a map to set a place's pin
+  ([ADR 0425](docs/adr/0425-patient-web-pin-map.md)).
 - Not yet: the signed parity report, the five-day pilot and the deletion of the old pages (Step 9, the owner's).
 
 ### Changed — Lab test menu v2: set up tests, not results — 19 Oct 2026

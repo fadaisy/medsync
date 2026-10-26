@@ -1,6 +1,7 @@
 "use client";
 
 import type { Place, PlaceKind } from "@patient-core/me-places";
+import dynamic from "next/dynamic";
 import { useState, useTransition } from "react";
 import {
   ADDRESS_MAX,
@@ -107,7 +108,13 @@ export function PlacesView({ places }: { places: Place[] }) {
   );
 }
 
-type Locate = "idle" | "busy" | "set" | "refused" | "none";
+// Leaflet needs `window`, and stays out of the page's first load.
+const PinMap = dynamic(() => import("./pin-map"), {
+  ssr: false,
+  loading: () => <div className="rounded-pw-row bg-pw-surface-2 h-64 w-full" />,
+});
+
+type Locate = "idle" | "busy" | "set" | "moved" | "refused" | "none";
 
 /**
  * Add a place or edit one: the label (Home, Work, or the patient's own word), the pin from "Use my location"
@@ -137,6 +144,11 @@ function PlaceDialog({
   const reason = !pin
     ? C.needPin
     : (labelError ?? (place === null && !consent ? C.needConsent : undefined));
+
+  const pickOnMap = (p: { lat: number; lng: number }) => {
+    setPin(p);
+    setLocate("moved");
+  };
 
   const useMyLocation = () => {
     if (!("geolocation" in navigator)) return setLocate("none");
@@ -179,9 +191,11 @@ function PlaceDialog({
           ? C.locationNone
           : locate === "set"
             ? C.pinSet
-            : pin
-              ? C.pinWords
-              : C.noPin;
+            : locate === "moved"
+              ? C.pinMoved
+              : pin
+                ? C.pinWords
+                : C.noPin;
 
   return (
     <Dialog
@@ -233,6 +247,8 @@ function PlaceDialog({
               {C.useLocation}
             </Button>
           </div>
+          <PinMap pin={pin} onPick={pickOnMap} label={C.mapLabel} />
+          <p className="text-pw-ink-2 text-[13px] leading-[18px] font-medium">{C.mapHint}</p>
         </div>
         <TextField
           label={C.address}
