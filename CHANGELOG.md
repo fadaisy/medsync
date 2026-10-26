@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Pharmacy demo, a national referral day — 26 Oct 2026
+
+Built on `feat/pharmacy-demo`. Migration 0250 unapplied.
+
+- One press at `/hospital-admin/departments/pharmacy/demo` (demo hospitals only) fills every pharmacy page through the
+  real stores: eight points, 60 demo patients, a month of history, every dose `[demo dose]`, legal answers never filled
+  ([ADR 0450](docs/adr/0450-pharmacy-demo-national-referral-day.md)).
+
+### Fixed — Clinical pharmacy pages for pharmacists — 26 Oct 2026
+
+- Interventions read ward names as the clinical reader, which has no grant on departments; names are now read after the
+  reader's transaction.
+- Stewardship (no courses), reaction detail (refused on names) and reconciliation (refused on admissions) read behind
+  the pharmacy scope on the app connection, as the review queue does, scoped to the hospital
+  (`fix/pharmacy-interventions-read`).
+
 ### Added — Pharmacy Phase 4, Steps 2–5 (dark) — 26 Oct 2026
 
 Built on `feat/pharmacy-network`. Migrations 0230–0232 unapplied; `PHARMACY_REPEATS` and `PHARMACY_REFILLS` off.
