@@ -101,7 +101,7 @@ export interface FlowEncounter {
 export interface FlowTask {
   id: string;
   patientId: string;
-  kind: "critical_result" | "result_to_review" | "cosign";
+  kind: "critical_result" | "result_to_review" | "cosign" | "renewal";
   /** Where it is answered: the order's or the note's encounter. */
   encounterId: string;
   /** Released, or co-signature requested. */
@@ -473,6 +473,7 @@ function buildRow(b: Bucket, ctx: Ctx): { row: PatientFlowRow; flags: IntegrityF
   const critical = tasksOf("critical_result");
   const toReview = tasksOf("result_to_review");
   const toCosign = tasksOf("cosign");
+  const toRenew = tasksOf("renewal");
   const hasDraft = (e: FlowEncounter) => e.unsignedNoteAtMs != null;
   const draftIdle = (e: FlowEncounter) =>
     hasDraft(e) && nowMs - e.unsignedNoteAtMs! >= settings.encounterIdleMs;
@@ -741,6 +742,18 @@ function buildRow(b: Bucket, ctx: Ctx): { row: PatientFlowRow; flags: IntegrityF
         : `${t.label ?? "Note"} awaiting co-signature`;
     sinceMs = t.atMs;
     acuityTriage = b.intakes.map((i) => latestTriage(i)).find(Boolean) ?? null;
+    reason = visitReason();
+  } else if (toRenew.length > 0) {
+    // Pharmacy Phase 4 (5.3): answered on /doctor/renewals, below the record's lanes.
+    const t = toRenew[0]!;
+    lane = "renewal_requests";
+    primaryId = t.id;
+    primary = { kind: "view", label: "Answer", encounterId: t.encounterId };
+    stageDetail =
+      toRenew.length > 1
+        ? `${plural(toRenew.length, "renewal request")}`
+        : `${t.label ?? "Medicine"} to renew`;
+    sinceMs = t.atMs;
     reason = visitReason();
   } else if (openCount > 0) {
     // Only superseded, idle, stale or contradictory items are left.

@@ -40,6 +40,7 @@ import { loadEncounterDiagnoses } from "./diagnoses";
 import { recordMedicationStatements } from "./facts";
 import { openEncounter, placeOrders, replayed, requireCadre } from "./orders";
 import { answerQuery, chooseAlternative } from "./pharmacy-answers";
+import { authoriseRepeats, renewFrom } from "./repeats";
 import { prescribeRequirement, PRESCRIBING_CADRES, statementRoute } from "./prescriptions";
 
 /**
@@ -656,6 +657,23 @@ export async function placePlan(
     // HZ-PH1-45: a line placed to change one the pharmacy asked about cancels the old line naming it,
     // in this transaction; if the link is refused, nothing in the basket is placed.
     if (rx.replaces) await linkReplacement(ctx, input.patientUserId, rx.clientKey, rx.replaces);
+    // Pharmacy Phase 4 (Law 2): repeats are written only here, in the prescribing transaction, and a Renew
+    // links its request to the line it placed (RN-3).
+    if (rx.repeats)
+      await authoriseRepeats(ctx, {
+        prescriptionId: placed.id,
+        patientUserId: input.patientUserId,
+        drugId: placed.drugId,
+        terms: rx.repeats,
+      });
+    if (rx.renewalId) {
+      const said = await renewFrom(ctx, {
+        patientUserId: input.patientUserId,
+        renewalId: rx.renewalId,
+        newPrescriptionId: placed.id,
+      });
+      if (said) warnings.push(said);
+    }
     others.push({
       drugId: placed.drugId,
       classId: placed.classId,

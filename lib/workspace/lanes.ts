@@ -18,6 +18,7 @@ export type LaneId =
   | "in_progress"
   | "results_to_review"
   | "to_cosign"
+  | "renewal_requests"
   | "needs_closing"
   | "done";
 
@@ -26,6 +27,8 @@ export interface LaneViewer {
   mayAssign: boolean;
   /** EMR v1 is on at the viewer's hospital: the record's lanes (E8) exist only then. */
   emr?: boolean;
+  /** Pharmacy Phase 4 (5.1): PHARMACY_REPEATS is on here and the viewer may prescribe. */
+  renewals?: boolean;
 }
 
 export interface LaneDef {
@@ -122,6 +125,15 @@ export const LANES: readonly LaneDef[] = [
     hotkey: "0",
     empty: "No notes waiting for your co-signature.",
     visibleFor: emrOn,
+  },
+  {
+    id: "renewal_requests",
+    label: "Renewal requests",
+    short: "Renewals",
+    scope: "hospital",
+    hotkey: "r",
+    empty: "No renewal requests waiting.",
+    visibleFor: (v) => v.renewals === true,
   },
   {
     id: "needs_closing",

@@ -26,6 +26,11 @@ import { clinicalDocumentation, encounterOrders } from "@/db/schema/encounter";
 import { criticalAlertEvents, criticalAlerts } from "@/db/schema/lab-safety";
 import { entryTypes, patientIntakes } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
+import {
+  prescriptionRenewalEvents,
+  prescriptionRenewalRequests,
+} from "@/db/schema/pharmacy-network";
+import { prescriptions } from "@/db/schema/prescribing";
 import { resusEpisodes } from "@/db/schema/resus";
 import { encounters } from "@/db/schema/scheduling";
 import { triageRecords } from "@/db/schema/triage";
@@ -34,7 +39,9 @@ import { computeAgeYears } from "@/lib/age";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { OPEN_RESULT_ORDER, openResultFor } from "@/lib/emr/read/results";
 import { SENIOR_CADRES } from "@/lib/emr/write/facts";
+import { PRESCRIBING_CADRES } from "@/lib/emr/write/prescriptions";
 import { criticalsLive } from "@/lib/lab/criticals/readiness";
+import { pharmacyRepeatsLiveFor } from "@/lib/pharmacy/feature";
 import { fetchResusBoardV2, OPENABLE_LOOKBACK_MS } from "@/lib/resus/board-v2";
 import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
 import { resolveTriageAuthority } from "@/lib/triage/authority";
@@ -81,9 +88,15 @@ export interface WorkspaceData {
   nowIso: string;
   /** EMR v1 is on here: the record's lanes (E8) are shown. */
   emr: boolean;
+  /** Pharmacy Phase 4: the Renewal requests lane is shown. */
+  renewals: boolean;
 }
 
 const RESUS_DIED = ["died_after_cpr", "died_cpr_not_attempted"];
+
+/** The Renewal requests lane: PHARMACY_REPEATS on here, and the viewer's cadre prescribes (RN-2). */
+const renewalsLaneFor = (viewer: WorkspaceViewer) =>
+  pharmacyRepeatsLiveFor(viewer.hospitalId) && PRESCRIBING_CADRES.includes(viewer.cadreCode);
 
 /** The open visits a doctor's board can hold — the triage worklist's own filter. */
 function openIntakeWhere(viewer: WorkspaceViewer) {
@@ -402,6 +415,7 @@ export async function loadWorkspace(args: {
     scope: boardScope,
     nowIso: now.toISOString(),
     emr,
+    renewals: renewalsLaneFor(viewer),
   };
 }
 
@@ -421,7 +435,7 @@ export async function loadEmrTasks(database: EmrDb, viewer: WorkspaceViewer): Pr
   const r = diagnosticReports;
   const o = encounterOrders;
   const c = clinicalCosignRequests;
-  const [results, cosigns] = await Promise.all([
+  const [results, cosigns, renewals] = await Promise.all([
     database
       .select({
         id: r.id,
@@ -472,6 +486,30 @@ export async function loadEmrTasks(database: EmrDb, viewer: WorkspaceViewer): Pr
           )
           .limit(ROW_CAP)
       : [],
+    // Pharmacy Phase 4 (5.3): open renewal requests at the hospital, for prescribers.
+    renewalsLaneFor(viewer)
+      ? database
+          .select({
+            id: prescriptionRenewalRequests.id,
+            patientUserId: prescriptionRenewalRequests.patientUserId,
+            at: prescriptionRenewalRequests.askedAt,
+            encounterId: prescriptions.encounterId,
+            drugName: prescriptions.drugName,
+            sensitivity: prescriptions.sensitivity,
+          })
+          .from(prescriptionRenewalRequests)
+          .innerJoin(
+            prescriptions,
+            eq(prescriptions.id, prescriptionRenewalRequests.prescriptionId),
+          )
+          .where(
+            and(
+              eq(prescriptionRenewalRequests.hospitalId, viewer.hospitalId),
+              sql`not exists (select 1 from ${prescriptionRenewalEvents} e where e.renewal_id = ${prescriptionRenewalRequests.id})`,
+            ),
+          )
+          .limit(ROW_CAP)
+      : [],
   ]);
   // Lab Phase 1 §5.4: an open critical alert sent to me puts its report in Critical results, and
   // an alert reaching me as a department or hospital contact joins the lane though I did not order it.
@@ -502,6 +540,20 @@ export async function loadEmrTasks(database: EmrDb, viewer: WorkspaceViewer): Pr
         atMs: x.at.getTime(),
         label: x.restricted ? null : x.text,
       }),
+    ),
+    ...renewals.flatMap((x): FlowTask[] =>
+      x.encounterId
+        ? [
+            {
+              id: x.id,
+              patientId: x.patientUserId,
+              kind: "renewal",
+              encounterId: x.encounterId,
+              atMs: x.at.getTime(),
+              label: x.sensitivity === "standard" ? x.drugName : null,
+            },
+          ]
+        : [],
     ),
     ...cosigns.map(
       (x): FlowTask => ({

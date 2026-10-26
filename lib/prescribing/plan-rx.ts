@@ -82,6 +82,17 @@ export const PlanRxReplaces = z.object({
   kind: z.enum(["query", "notice"]),
 });
 
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+/** Pharmacy Phase 4 (5.2, RP-1): the prescriber's typed repeat terms; the system computes no quantity or date. */
+export const PlanRxRepeats = z.object({
+  furtherSupplies: z.number().int().min(1).max(99),
+  minIntervalDays: z.number().int().min(1).max(3660),
+  notAfter: isoDate,
+  reviewBy: isoDate.nullable(),
+});
+export type PlanRxRepeats = z.infer<typeof PlanRxRepeats>;
+
 export const PlanRxSchema = z.object({
   clientKey: z.string().trim().min(8).max(120),
   kind: z.enum(["drug", "fluid"]),
@@ -110,6 +121,9 @@ export const PlanRxSchema = z.object({
   /** The typed dose, when the dose check calls the dose egregious. */
   typedDose: z.number().nullable(),
   replaces: PlanRxReplaces.optional(),
+  /** Pharmacy Phase 4: repeats for this line (RP-1), and the renewal request this placement answers (RN-3). */
+  repeats: PlanRxRepeats.nullable().optional(),
+  renewalId: z.uuid().optional(),
 });
 export type PlanRx = z.infer<typeof PlanRxSchema>;
 

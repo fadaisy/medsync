@@ -889,7 +889,7 @@ describe("FW-11 scope and permissions", () => {
 });
 
 describe("registry and words", () => {
-  it("the registry has ten lanes in board order; the first seven keep keys 1–7 (E8)", () => {
+  it("the registry has eleven lanes in board order; the first seven keep keys 1–7 (E8)", () => {
     expect(LANES.map((l) => l.id)).toEqual([
       "resus",
       "critical_results",
@@ -899,10 +899,23 @@ describe("registry and words", () => {
       "in_progress",
       "results_to_review",
       "to_cosign",
+      "renewal_requests",
       "needs_closing",
       "done",
     ]);
-    expect(LANES.map((l) => l.hotkey)).toEqual(["1", "8", "2", "3", "4", "5", "9", "0", "6", "7"]);
+    expect(LANES.map((l) => l.hotkey)).toEqual([
+      "1",
+      "8",
+      "2",
+      "3",
+      "4",
+      "5",
+      "9",
+      "0",
+      "r",
+      "6",
+      "7",
+    ]);
     expect(new Set(LANES.map((l) => l.hotkey)).size).toBe(LANES.length);
   });
 
@@ -918,8 +931,12 @@ describe("registry and words", () => {
       "needs_closing",
       "done",
     ]);
-    expect(visibleLanes({ mayAssign: true, emr: true }).map((l) => l.id)).toEqual(
+    expect(visibleLanes({ mayAssign: true, emr: true, renewals: true }).map((l) => l.id)).toEqual(
       LANES.map((l) => l.id),
+    );
+    // Pharmacy Phase 4: the renewal lane only with PHARMACY_REPEATS on (5.1).
+    expect(visibleLanes({ mayAssign: true, emr: true }).map((l) => l.id)).not.toContain(
+      "renewal_requests",
     );
     for (const id of EMR_LANES) expect(off).not.toContain(id);
   });

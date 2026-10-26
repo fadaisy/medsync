@@ -28,7 +28,10 @@ import { PLAN_DX, withPlanFixture } from "./plan-fixtures";
  * chips announced as pressed with the disabled reason in words. Synthetic patient only.
  */
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh() {}, push() {} }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh() {}, push() {} }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 const { ClerkingDesk } = await import("@/components/clerking/clerking-desk");
 
 const dx = {

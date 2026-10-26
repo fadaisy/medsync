@@ -199,3 +199,45 @@ No value is proposed. The tests use labelled test values.
 - lint clean;
 - pharmacy stores and network tests 200/200;
 - Drizzle parity: the 2 old problems only.
+
+## STOP 4: repeats and renewals for the prescriber (dark)
+
+Behind `PHARMACY_REPEATS` (per hospital, inside `PHARMACY_WORKSPACE`, off in production while `PHARMACY_NETWORK_COPY` is draft). Nothing applied, no flag on.
+
+**Migration 0232 (GATED, unapplied):** adds the five Phase 4 pack kinds to `pharmacy_signed_sets` (repeat_rules, refill_timing, hold_rules, renewal_decline_reasons, routing_rules). Drizzle for the ten 0230 tables in `db/schema/pharmacy-network.ts`; parity shows only the 2 old problems.
+
+| Where                                      | What                                                                                                                           |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `lib/pharmacy/network-packs.ts`            | one Zod schema per pack kind; `networkPack()` returns null while unsigned                                                      |
+| `lib/emr/write/repeats.ts`                 | `authoriseRepeats` (inside `placePlan`), `stopRepeats`, `answerRenewal`, `renewFrom`, terms for the card and the print         |
+| `lib/emr/actions/repeats.ts`               | the two server actions (stop, answer)                                                                                          |
+| `components/clerking/plan/repeats.tsx`     | the Repeats step (four typed fields, day/month/year boxes) and the line's tag with Stop repeats                                |
+| print page `_components/repeats-print.tsx` | the s.37(5) line under each line with live repeats, with the council number                                                    |
+| `app/doctor/renewals/`                     | the renewal list; Renew opens the prescribing dialog on the source visit; Book a visit; Decline only with a signed reason list |
+| workspace                                  | a "Renewal requests" lane (key `r`), shown only with the flag on and to a prescribing cadre                                    |
+
+**While unsigned:** no Repeats step is shown and a line sent with repeats is refused whole; Decline is absent.
+
+**Kept as it was:** D-PH1-49. The printed page's own text is unchanged; the guard strips the repeats line the way it strips the print hook.
+
+**Scenarios, all passing** (`tests/emr-db/pharmacy-repeats.test.ts`, PGlite, run with `SKIP_ENV_VALIDATION=1` in a worktree without `.env.local`):
+
+- S10: unsigned refusal; authorised once under the rule version; out-of-range refused;
+- S11: the controlled backstop;
+- S12: stop, first stop stands, a nurse is refused;
+- S13: a cancelled line ends its repeats;
+- S14: list, answer once, Decline needs the signed list, Renew links the new prescription.
+
+`tests/pharmacy/network/writers.test.ts` enumerates the writers: only `lib/emr/write/repeats.ts` writes authorisations, their events and renewal answers. No Phase 4 module writes a prescription.
+
+**Known limits:**
+
+- Renew needs the source line's visit to be open; a closed visit shows "Open a visit for this patient to renew".
+- The Phase 4 packs are not yet on the Packs signing page (Step 5 adds them).
+
+**Checks:**
+
+- typecheck clean;
+- lint clean (0 errors);
+- unit suite: every remaining failure is the worktree's missing env (baseline);
+- prescriber lane 12/12 and repeats lane 7/7.

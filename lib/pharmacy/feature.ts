@@ -1,5 +1,6 @@
 import { PHARMACY_PHASE1_COPY, PHARMACY_SIGNED_COPY } from "@/content/pharmacy";
 import { NATIONAL_LIST_COPY } from "@/content/pharmacy-catalogue";
+import { PHARMACY_NETWORK_COPY } from "@/content/pharmacy-network";
 import { PHARMACY_CLINICAL_COPY } from "@/content/pharmacy-clinical";
 import { PHARMACY_RECONCILIATION_COPY } from "@/content/pharmacy-reconciliation";
 import { PHARMACY_STORES_COPY } from "@/content/pharmacy-stores";
@@ -123,3 +124,19 @@ export const anyClinicalLiveFor = (h: string) =>
   pharmacyInterventionReviewLiveFor(h) ||
   pharmacyStewardshipLiveFor(h) ||
   pharmacyReactionsLiveFor(h);
+
+/**
+ * Pharmacy Phase 4 (Law 15): per-hospital flags, off by default, each inside the workspace. The first merge builds
+ * `PHARMACY_REPEATS` (the prescriber's Repeats step and renewal requests) and `PHARMACY_REFILLS` (refills at the
+ * hospital). In production each stays off while the Phase 4 wording is draft. With all off, behaviour matches the
+ * Phase 1 baseline. Each also does nothing useful while its Appendix D pack is unsigned (lib/pharmacy/network-packs.ts).
+ */
+const network = (value: string | undefined, hospitalId: string, tag: string) =>
+  workspaceLiveFor(value, hospitalId, [PHARMACY_NETWORK_COPY], tag) &&
+  pharmacyWorkspaceLiveFor(hospitalId);
+
+export const pharmacyRepeatsLiveFor = (h: string) =>
+  network(process.env.PHARMACY_REPEATS, h, "pharmacy_repeats");
+/** Refills need repeats: a refill is supplied only against an authorisation (Law 2). */
+export const pharmacyRefillsLiveFor = (h: string) =>
+  network(process.env.PHARMACY_REFILLS, h, "pharmacy_refills") && pharmacyRepeatsLiveFor(h);

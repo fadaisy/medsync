@@ -25,6 +25,7 @@ const TIME_WORD: Record<LaneId, [string, string]> = {
   in_progress: ["active", "ago"],
   results_to_review: ["released", "ago"],
   to_cosign: ["requested", "ago"],
+  renewal_requests: ["asked", "ago"],
   needs_closing: ["open", ""],
   done: ["", ""],
 };
@@ -38,6 +39,7 @@ const EMR_LANE_HREF: Partial<Record<LaneId, string>> = {
   critical_results: "/doctor/results",
   results_to_review: "/doctor/results",
   to_cosign: "/doctor/cosign-queue",
+  renewal_requests: "/doctor/renewals",
 };
 
 /**

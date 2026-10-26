@@ -21,6 +21,7 @@ import { admittingWards } from "@/lib/emr/read/close";
 import { loadMonitoring } from "@/lib/emr/read/monitoring";
 import { loadPlanFacts } from "@/lib/emr/write/plan";
 import { encounterPrescriptions, prescribeRequirement } from "@/lib/emr/write/prescriptions";
+import { loadRepeatsPayload } from "@/lib/emr/write/repeats";
 import { decrypt } from "@/lib/encryption";
 import { labOneMenuLiveFor } from "@/lib/lab/feature";
 import { menuToday } from "@/lib/lab/one-menu-read";
@@ -183,9 +184,17 @@ export async function loadPlanPayload(
               ),
             )
         : [];
+      // Pharmacy Phase 4 (5.2): the Repeats step, behind PHARMACY_REPEATS.
+      const repeats = await loadRepeatsPayload(
+        tx,
+        actor.hospitalId,
+        rx.map((r) => r.id),
+        input.now,
+      );
       return {
         facts,
         rx,
+        repeats,
         wards: wards.map((w) => ({ id: w.id, name: w.name, counts: countsWords(w.counts) })),
         interactions,
         cosign,
@@ -320,6 +329,16 @@ export async function loadPlanPayload(
     monitoring: reader.monitoring,
     ...(pharmacy ? { pharmacy } : {}),
     ...(owner.interactions ? { interactions: owner.interactions } : {}),
+    ...(owner.repeats
+      ? {
+          repeats: {
+            ...owner.repeats,
+            ...(actor.surface === "doctor" || actor.surface === "clinician"
+              ? { who: { surface: actor.surface, patientUserId: input.patientUserId } }
+              : {}),
+          },
+        }
+      : {}),
     ...((actor.surface === "doctor" || actor.surface === "clinician") &&
     pharmacyStockAnswerLiveFor(actor.hospitalId)
       ? {

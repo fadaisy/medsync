@@ -146,3 +146,12 @@ export function repeatStatus(f: RepeatFacts, today: string): RepeatStatus {
   if (today < next) return { kind: "too_early", on: next };
   return { kind: "allowed", remaining: left, nextAllowed: next };
 }
+
+/** "8 November 2026": the printed and spoken form of a local date. */
+export const longDate = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });

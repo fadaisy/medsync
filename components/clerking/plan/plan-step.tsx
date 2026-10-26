@@ -7,6 +7,7 @@ import type { PrescribeTarget } from "./problem-card";
 import type { PlanBasketRx, PlanDraft, PlanOrderLine } from "@/lib/clerking/plan/draft";
 import type { ObsFrequency } from "@/lib/emr/charts/rules";
 import type { PlanRx } from "@/lib/prescribing/plan-rx";
+import { useSearchParams } from "next/navigation";
 import { useId, useState } from "react";
 import { ChevronLeftIcon, XIcon } from "lucide-react";
 
@@ -372,7 +373,16 @@ function Basket({
 export function PlanStep(props: PlanStepProps) {
   const { v, editable, act, onPlan, on, time } = props;
   const canWrite = editable && act;
-  const [target, setTarget] = useState<PrescribeTarget | null>(null);
+  // Pharmacy Phase 4 (5.3, RN-3): Renew from the renewal list opens the dialog pre-loaded, once. Nothing is placed
+  // until the prescriber places it; the server re-checks the request.
+  const search = useSearchParams();
+  const [target, setTarget] = useState<PrescribeTarget | null>(() => {
+    const renew = search.get("renew");
+    const drugId = search.get("rx");
+    if (!renew || !drugId || !canWrite || !v.payload.repeats || !v.cards.length) return null;
+    const problem = v.cards.find((c) => c.versionId === search.get("for")) ?? v.cards[0]!;
+    return { problem, drugId, renewalId: renew };
+  });
   const [placing, setPlacing] = useState(false);
   const pharmacy = v.payload.pharmacy ?? null;
   // Pharmacy Phase 1 (5.4): the line a dialog opened from a query or notice is changing.

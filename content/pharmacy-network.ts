@@ -60,6 +60,15 @@ export const NETWORK_MESSAGES = {
 /** Words the engines return; shown with the reason they stand for. */
 export const NETWORK_UI = {
   preparedPlace: "Held refills",
+  renewalReasons: {
+    no_authorisation: "No repeats authorised",
+    none_left: "No repeats left",
+    expired: "Repeats past their last date",
+    stopped: "Repeats stopped",
+    blocked: "Held for a clinical review",
+    too_early: "Asked before the interval",
+    asked_by_pharmacy: "Asked by the pharmacy",
+  },
   routeRefusals: {
     no_consent: "No consent recorded for this pharmacy",
     partner_not_in_force: "The partner pharmacy is not in force today",
