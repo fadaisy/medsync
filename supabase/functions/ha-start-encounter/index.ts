@@ -304,12 +304,35 @@ Deno.serve(async (request: Request) => {
     return serverError("audit write failed", init);
   }
 
-  // 1. Reuse this visit's open encounter, or create one.
+  // 1. Claim the booking first: of two people pressing Call at once, only one
+  // changes the row, so only one encounter is opened for it.
+  const { data: claimed, error: claimErr } = await sb
+    .from("appointments")
+    .update({ status: "in_progress" })
+    .eq("id", appt.id)
+    .eq("status", appt.status)
+    .select("id");
+  if (claimErr) {
+    log.error("appointment claim failed", { requestId, reason: claimErr.message });
+    return serverError("could not start the visit", init);
+  }
+  if (!claimed?.length) return conflict("This patient has just been called by someone else.", init);
+  const releaseClaim = () =>
+    sb
+      .from("appointments")
+      .update({ status: appt.status })
+      .eq("id", appt.id)
+      .eq("status", "in_progress");
+
+  // 2. Reuse this visit's open encounter, or create one.
   const nowIso = new Date().toISOString();
   let encounter: { id: string };
   if (open) {
     const reused = await reuseOpenEncounter(open, appt.clinician_user_id, input, nowIso);
-    if (!reused.ok) return conflict(reused.conflict, init);
+    if (!reused.ok) {
+      await releaseClaim();
+      return conflict(reused.conflict, init);
+    }
     encounter = { id: reused.id };
   } else {
     const { data, error: eErr } = await sb
@@ -328,23 +351,10 @@ Deno.serve(async (request: Request) => {
       .single();
     if (eErr || !data) {
       log.error("encounter insert failed", { requestId, reason: eErr?.message });
+      await releaseClaim();
       return serverError("encounter create failed", init);
     }
     encounter = data;
-  }
-
-  // 2. Flip appointment to in_progress.
-  const { error: aUpd } = await sb
-    .from("appointments")
-    .update({ status: "in_progress" })
-    .eq("id", appt.id);
-  if (aUpd) {
-    log.warn("appointment status update failed (encounter created)", {
-      requestId,
-      appointment_id: appt.id,
-      encounter_id: encounter.id,
-      reason: aUpd.message,
-    });
   }
 
   // 3. Update queue entry if there is one (resolved or supplied).

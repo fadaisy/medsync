@@ -33,6 +33,7 @@ export interface QueueRow {
   identity: PatientIdentity;
   appointmentId: string | null;
   encounterId: string | null;
+  encounterClinicianUserId: string | null;
   notes: string | null;
 }
 
@@ -58,9 +59,14 @@ const KIND_LABEL: Record<string, string> = {
 export function QueueRail({
   entries,
   encounterEngineLive = false,
+  emrLive = false,
+  viewerUserId,
 }: {
   entries: ReadonlyArray<QueueRow>;
   encounterEngineLive?: boolean;
+  /** EMR_V1 on here: a visit closes on its encounter page with a disposition, not from the rail. */
+  emrLive?: boolean;
+  viewerUserId: string;
 }) {
   const waiting = entries.filter((e) => e.state === "waiting");
   const beingSeen = entries.filter((e) => e.state === "being_seen");
@@ -85,6 +91,7 @@ export function QueueRail({
                     row={e}
                     variant="being_seen"
                     encounterEngineLive={encounterEngineLive}
+                    canEnd={!emrLive && e.encounterClinicianUserId === viewerUserId}
                   />
                 </li>
               ))}
@@ -105,7 +112,12 @@ export function QueueRail({
             <ul className="stagger-children flex flex-col gap-1">
               {waiting.map((e) => (
                 <li key={e.id}>
-                  <QueueChip row={e} variant="waiting" encounterEngineLive={encounterEngineLive} />
+                  <QueueChip
+                    row={e}
+                    variant="waiting"
+                    encounterEngineLive={encounterEngineLive}
+                    canEnd={false}
+                  />
                 </li>
               ))}
             </ul>
@@ -120,10 +132,13 @@ function QueueChip({
   row,
   variant,
   encounterEngineLive,
+  canEnd,
 }: {
   row: QueueRow;
   variant: "waiting" | "being_seen";
   encounterEngineLive: boolean;
+  /** Only the encounter's own clinician, and only without the EMR, ends it from here. */
+  canEnd: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -188,7 +203,9 @@ function QueueChip({
             from before ADR 0101 may not, and then there is nothing to close. */}
         {variant === "being_seen" && row.encounterId ? (
           <div className="mt-1 flex flex-wrap items-start gap-1.5">
-            <EndVisitButton encounterId={row.encounterId} patientLabel={patientLabel} />
+            {canEnd ? (
+              <EndVisitButton encounterId={row.encounterId} patientLabel={patientLabel} />
+            ) : null}
             {encounterEngineLive ? (
               <Link
                 href={`/doctor/encounters/${row.encounterId}`}

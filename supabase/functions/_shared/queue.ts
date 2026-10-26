@@ -21,11 +21,13 @@ const log = makeLogger("queue");
 export type ArrivalRoute = "triage" | "clinic";
 
 /**
- * ADR 0101 safeguard: an emergency entry is always triaged, whatever the desk
- * picked — the clinic door is for patients who are not an emergency.
+ * ADR 0101 safeguard: an emergency entry, or anything marked urgent (an E-tier
+ * ticket whose patient declined the emergency sheet, an urgent booking), is
+ * always triaged, whatever the desk picked — the clinic door is for patients
+ * who are neither (owner ruling, 26 Oct 2026).
  */
-export function effectiveRoute(requested: ArrivalRoute, isEmergency: boolean): ArrivalRoute {
-  return isEmergency ? "triage" : requested;
+export function effectiveRoute(requested: ArrivalRoute, mustTriage: boolean): ArrivalRoute {
+  return mustTriage ? "triage" : requested;
 }
 
 /**
