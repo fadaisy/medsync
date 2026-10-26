@@ -1,0 +1,100 @@
+import "server-only";
+
+import type { DemoDeps, DemoState } from "./state";
+import type { EmrDb } from "@/lib/emr/db";
+import { sql } from "drizzle-orm";
+
+import { EmrWriteError } from "@/lib/emr/write/context";
+import { isDemoHospital } from "@/lib/lab/demo";
+import { demoMedicines } from "./medicines";
+import { SECTIONS } from "./sections";
+import { setup } from "./setup";
+import { one, q } from "./state";
+import { stockSection } from "./stock";
+
+/**
+ * The pharmacy demo loader (owner request, 26 Oct 2026; ADR 0450, migration 0250). Only in a hospital a superadmin
+ * marked as a demo hospital (`lab_demo_hospitals`). One press fills every pharmacy page with a national referral
+ * hospital's day: setup and stock first, then the sections in `SECTIONS`, each on its own. A section that fails is
+ * recorded on the load and the rest carry on; nothing is rolled back (pharmacy records are append-only).
+ */
+
+export { isDemoHospital };
+
+/** A new load at a demo hospital: its row and the empty state the sections fill. */
+export async function startDemo(
+  db: EmrDb,
+  admin: { userId: string; hospitalId: string },
+  deps: DemoDeps,
+  now = new Date(),
+): Promise<DemoState> {
+  const h = admin.hospitalId;
+  if (!(await isDemoHospital(db, h)))
+    throw new EmrWriteError("forbidden", "This hospital is not a demo hospital. Demo data goes only into a demo hospital.");
+  const [district] = await q<{ id: string }>({ db }, sql`SELECT id FROM districts LIMIT 1`);
+  const load = await one<{ id: string }>(
+    { db },
+    sql`INSERT INTO pharmacy_demo_loads (hospital_id, started_by, scenario)
+      VALUES (${h}, ${admin.userId}, 'national_referral_day') RETURNING id`,
+  );
+  const s: DemoState = {
+    db,
+    h,
+    now,
+    loadId: load.id,
+    deps,
+    district: district?.id ?? null,
+    people: { admin: admin.userId, chief: "", cso: "", author: "", pharmacists: [], techs: [], doctors: [], nurses: [], storekeeper: "" },
+    pharmacyDept: "",
+    points: {} as DemoState["points"],
+    clinics: {} as DemoState["clinics"],
+    wards: {} as DemoState["wards"],
+    patients: [],
+    medicines: demoMedicines(),
+    stock: new Map(),
+    cadreNames: {},
+    counts: {},
+    notes: {},
+  };
+  return s;
+}
+
+export async function loadPharmacyDemo(
+  db: EmrDb,
+  admin: { userId: string; hospitalId: string },
+  deps: DemoDeps,
+  now = new Date(),
+): Promise<{ loadId: string; counts: Record<string, number>; notes: Record<string, string> }> {
+  const s = await startDemo(db, admin, deps, now);
+  const step = async (name: string, fn: () => Promise<void>) => {
+    try {
+      await fn();
+    } catch (e) {
+      s.notes[name] = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+    }
+  };
+  // Setup is the ground every section stands on: if it fails, stop there.
+  await step("setup", () => setup(s));
+  if (!s.notes.setup) {
+    await step("stock", () => stockSection(s));
+    for (const [name, fn] of SECTIONS) await step(name, () => fn(s));
+  }
+  const error = Object.keys(s.notes).length
+    ? Object.entries(s.notes)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(" · ")
+        .slice(0, 1000)
+    : null;
+  await db.execute(sql`UPDATE pharmacy_demo_loads SET finished_at = now(), counts = ${JSON.stringify(s.counts)}::jsonb,
+      notes = ${JSON.stringify(s.notes)}::jsonb, error = ${error} WHERE id = ${s.loadId}`);
+  return { loadId: s.loadId, counts: s.counts, notes: s.notes };
+}
+
+/** The loads at this hospital, newest first, for the demo page. */
+export async function pharmacyDemoLoads(db: EmrDb, hospitalId: string) {
+  return q<{ id: string; startedAt: string; finishedAt: string | null; counts: Record<string, number>; notes: Record<string, string> }>(
+    { db },
+    sql`SELECT id, started_at AS "startedAt", finished_at AS "finishedAt", counts, notes FROM pharmacy_demo_loads
+      WHERE hospital_id = ${hospitalId} ORDER BY started_at DESC LIMIT 20`,
+  );
+}

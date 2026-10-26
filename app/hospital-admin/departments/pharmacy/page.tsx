@@ -8,6 +8,7 @@ import { GOLIVE } from "@/content/pharmacy-golive";
 import { STORE } from "@/content/pharmacy-stores-store";
 import { db } from "@/db";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { isDemoHospital } from "@/lib/lab/demo";
 import { pharmacyDispensingLiveFor, storesFlagsFor } from "@/lib/pharmacy/feature";
 import { hospitalSettings, pointsWithState } from "@/lib/pharmacy/golive/read";
 import { liveSmsAllowed } from "@/lib/pharmacy/golive/store";
@@ -40,7 +41,7 @@ export default async function PharmacySettingsPage() {
   const scope = await requireHospitalAdminScope();
   if (!pharmacyDispensingLiveFor(scope.hospitalId)) notFound();
   const database = db as unknown as EmrDb;
-  const [points, settings, sms] = await Promise.all([
+  const [points, settings, sms, demo] = await Promise.all([
     pointsWithState(database, scope.hospitalId),
     hospitalSettings(database, scope.hospitalId),
     database.transaction((tx) =>
@@ -50,6 +51,7 @@ export default async function PharmacySettingsPage() {
         process.env.VERCEL_ENV === "production",
       ),
     ),
+    isDemoHospital(database, scope.hospitalId),
   ]);
   // Pharmacy Phase 2, 5.12: stores and quarantine (pharmacyStore), wards (pharmacyWardStock), carts (pharmacyCarts).
   const flags = storesFlagsFor(scope.hospitalId);
@@ -86,6 +88,14 @@ export default async function PharmacySettingsPage() {
         </Link>
         <h1 className="text-heading-m">{GOLIVE.settingsTitle}</h1>
         <p className="text-body-s text-muted-foreground max-w-[70ch]">{GOLIVE.settingsLead}</p>
+        {demo ? (
+          <Link
+            href="/hospital-admin/departments/pharmacy/demo"
+            className="text-body-s w-fit text-teal-700 underline-offset-4 hover:underline"
+          >
+            Load the pharmacy demo (demo hospital)
+          </Link>
+        ) : null}
       </header>
 
       <section className="flex flex-col gap-2" aria-labelledby="ph-points">
