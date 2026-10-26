@@ -9,7 +9,7 @@ import { CLINICAL_B, INTERVENTIONS_UI as U } from "@/content/pharmacy-clinical";
 import { asClinicalReader } from "@/lib/emr/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { checksWorthSigning, interventionReport } from "@/lib/pharmacy/clinical/interventions";
-import { queryFacts } from "@/lib/pharmacy/clinical/interventions-read";
+import { nameWards, queryFacts } from "@/lib/pharmacy/clinical/interventions-read";
 import { entriesInForce } from "@/lib/pharmacy/clinical/read";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
 import { pharmacyInterventionReviewLiveFor } from "@/lib/pharmacy/feature";
@@ -37,7 +37,9 @@ export default async function InterventionsPage({
   const to = new Date();
   const from = new Date(to.getTime() - days * 86_400_000);
   const [facts, worthPack, manages] = await Promise.all([
-    asClinicalReader(actor, (tx) => queryFacts(tx, actor.hospitalId, from, to)),
+    asClinicalReader(actor, (tx) => queryFacts(tx, actor.hospitalId, from, to)).then((f) =>
+      nameWards(f, actor.hospitalId),
+    ),
     asClinicalReader(actor, (tx) => entriesInForce(tx, actor.hospitalId, "check_worth_signing")),
     managesPharmacy(actor.userId, actor.hospitalId),
   ]);

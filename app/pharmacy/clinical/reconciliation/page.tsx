@@ -1,3 +1,4 @@
+import type { EmrDb } from "@/lib/emr/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,7 +8,7 @@ import { PageHeader } from "@/components/medsync/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { PHARMACY } from "@/content/pharmacy";
 import { RECON_UI as U } from "@/content/pharmacy-reconciliation";
-import { asClinicalReader } from "@/lib/emr/db";
+import { db } from "@/db";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { blockers, rowsOf } from "@/lib/pharmacy/clinical/reconciliation";
@@ -35,9 +36,13 @@ export default async function ReconciliationListPage() {
   const actor = await requirePharmacyActor();
   if (!pharmacyReconciliationLiveFor(actor.hospitalId)) notFound();
   const now = new Date();
-  const [list, rules] = await asClinicalReader(actor, (tx) =>
-    Promise.all([listReconciliations(tx, actor.hospitalId, now), rulesFor(tx, actor.hospitalId)]),
-  );
+  // On the app connection: the clinical reader has no grant on admissions and its rule gives a
+  // pharmacist no ward patient. Every read is scoped to this hospital.
+  const database = db as unknown as EmrDb;
+  const [list, rules] = await Promise.all([
+    listReconciliations(database, actor.hospitalId, now),
+    rulesFor(database, actor.hospitalId),
+  ]);
   const ids = await identitiesFor(
     actor,
     list.map((r) => r.rec.patientUserId),

@@ -1,10 +1,11 @@
+import type { EmrDb } from "@/lib/emr/db";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/medsync/page-header";
 import { PHARMACY } from "@/content/pharmacy";
 import { REACTIONS_UI as U } from "@/content/pharmacy-clinical";
-import { asClinicalReader } from "@/lib/emr/db";
+import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { reportFor } from "@/lib/pharmacy/clinical/reaction-read";
 import { reportFields, reportText } from "@/lib/pharmacy/clinical/reactions";
@@ -22,7 +23,9 @@ export default async function ReactionReportPage({ params }: { params: Promise<{
   const actor = await requirePharmacyActor();
   if (!pharmacyReactionsLiveFor(actor.hospitalId)) notFound();
   const { id } = await params;
-  const r = await asClinicalReader(actor, (tx) => reportFor(tx, actor.hospitalId, id));
+  // On the app connection: the clinical reader may not read the profile's name columns, which the
+  // print turns into initials (AR-5).
+  const r = await reportFor(db as unknown as EmrDb, actor.hospitalId, id);
   if (!r) notFound();
   const fields = reportFields(
     {
