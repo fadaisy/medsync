@@ -96,3 +96,16 @@ Screenshots of the four named screens were **not taken**, to keep this step chea
 - The record of the 2026 Act's commencement (Appendix F, Q7).
 - The name of the person who will verify partner pharmacies.
 - Q6 counts (helpful to the CSO, not a blocker).
+
+## STOP 1: GATE A proposal (26 Oct 2026)
+
+Written: `gate-a-proposal.md`, `hazard-log.md` (H4-1 to H4-22) and `adr-drafts.md` (0425–0433). Checked once against Step 1's list. Every item is present, and none proposes a clinical value.
+
+**Waiting:**
+
+- the legal answers to questions 1 and 2;
+- the 2026 Act commencement record;
+- the partner verifier's name;
+- the signatures in the proposal's last table.
+
+D-PH4-29 departs from the prompt's header. It proposes the CSO signing alone, by recorded exception, for Steps 2 to 5 only. That needs the owner's explicit choice.
