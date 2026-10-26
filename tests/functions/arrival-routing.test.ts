@@ -208,3 +208,51 @@ describe("ha-register-intake — one live ticket per patient per hospital day (R
     expect(src).toContain("!entryType.is_emergency");
   });
 });
+
+describe("arrival-routing review fixes (Oct 2026)", () => {
+  it("a pre-alert linked to a clinic-routed intake sends it back to triage", () => {
+    const src = stripComments(fn("ha-pre-arrival-arrived"));
+    const link = between(src, 'priority_hint: "urgent",', '.eq("id", existingIntakeId)');
+    expect(link).toContain('routed_to: "triage"');
+  });
+
+  it("registration refuses a receiving department from another hospital", () => {
+    const src = stripComments(read("supabase/functions/_shared/intake.ts"));
+    const check = between(src, 'from("hospital_departments")', "patient_intakes");
+    expect(check).toContain('.eq("hospital_id", input.hospitalId)');
+    expect(src.indexOf('from("hospital_departments")')).toBeLessThan(
+      src.indexOf("recordSaAudit({"),
+    );
+  });
+
+  it("check-in changes a row only from the status it read, and fails loudly without an intake", () => {
+    const src = stripComments(fn("ha-check-in-patient"));
+    expect(src).toContain('.eq("status", "confirmed")');
+    expect(src).toContain('.eq("status", "declared")');
+    expect(src.match(/This patient has just been checked in\./g)).toHaveLength(2);
+    expect(src).not.toContain("intake insert failed (continuing)");
+  });
+
+  it("starting an encounter claims the booking before opening one", () => {
+    const src = stripComments(fn("ha-start-encounter"));
+    const claim = src.indexOf('.eq("status", appt.status)');
+    expect(claim).toBeGreaterThan(-1);
+    expect(claim).toBeLessThan(src.indexOf('.from("encounters")\n      .insert('));
+  });
+
+  it("Expected today orders bookings by when people booked before the limit", () => {
+    const src = read("lib/reception/queries.ts");
+    const today = between(
+      src,
+      "export async function fetchExpectedToday",
+      "fetchDeclaredIntakesToday({",
+    );
+    expect(today).toContain("byBookedAt: true");
+  });
+
+  it("the rail offers End visit only to the encounter's clinician, and never with the EMR on", () => {
+    const src = read("app/doctor/schedule/_components/queue-rail.tsx");
+    expect(src).toContain("canEnd={!emrLive && e.encounterClinicianUserId === viewerUserId}");
+    expect(src).toMatch(/\{canEnd \? \(\s*<EndVisitButton/);
+  });
+});

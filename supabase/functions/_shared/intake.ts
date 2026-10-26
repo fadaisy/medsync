@@ -164,6 +164,19 @@ export async function registerIntake(
   const unmet = entryTypeRequirementsError(entryType, input);
   if (unmet) return fail(badRequest(unmet, init));
 
+  // The receiving department must be this hospital's: its queue row is read by
+  // department alone, so another hospital's department would show the patient there.
+  if (input.receivingDepartmentId) {
+    const { data: dept, error: deptError } = await sb
+      .from("hospital_departments")
+      .select("id")
+      .eq("id", input.receivingDepartmentId)
+      .eq("hospital_id", input.hospitalId)
+      .maybeSingle();
+    if (deptError) return fail(serverError(deptError.message, init));
+    if (!dept) return fail(badRequest("receiving_department_id is not at this hospital", init));
+  }
+
   const priorityHint = derivePriorityHint(entryType, input.priorityHintOverride);
   const arrivedAt = input.arrivedAt ?? new Date().toISOString();
 

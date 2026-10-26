@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { SectionRule } from "@/components/medsync/panel";
 import { Pill } from "@/components/ui/data-table";
 import { requireDoctorScope } from "@/lib/doctor/scope";
+import { emrV1LiveFor } from "@/lib/emr/feature";
 import { encounterEngineLive } from "@/lib/encounter/feature";
 import { fetchClinicianCalendarEvents } from "@/lib/scheduling/calendar";
 import {
@@ -124,7 +125,12 @@ export default async function DoctorSchedulePage() {
         />
         <div className="grid min-w-0 content-start gap-4 md:grid-cols-2 xl:flex xl:flex-col">
           {!settings.autoConfirm ? <PendingApprovalsRail rows={pending} /> : null}
-          <QueueRail entries={queue} encounterEngineLive={encounterEngineLive()} />
+          <QueueRail
+            entries={queue}
+            encounterEngineLive={encounterEngineLive()}
+            emrLive={emrV1LiveFor(scope.hospitalId)}
+            viewerUserId={scope.userId}
+          />
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import {
   availabilityBlocks,
   clinicianSchedulingSettings,
   departmentSchedulingPolicy,
+  encounters,
   queueEntries,
 } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
@@ -184,6 +185,8 @@ export interface DepartmentQueueRow {
    *  closes THIS encounter (ADR 0101 R3), so a being_seen row without one has
    *  nothing to end and offers nothing. */
   encounterId: string | null;
+  /** Who the called encounter belongs to: only they (or an admin) can end it. */
+  encounterClinicianUserId: string | null;
   notes: string | null;
 }
 
@@ -214,6 +217,7 @@ export async function fetchDepartmentQueueToday(args: {
       avatarPath: users.avatarPath,
       appointmentId: queueEntries.appointmentId,
       encounterId: queueEntries.encounterId,
+      encounterClinicianUserId: encounters.clinicianUserId,
       symptoms: appointments.symptoms,
       reasonNote: appointments.reasonNote,
       notes: queueEntries.notes,
@@ -222,6 +226,7 @@ export async function fetchDepartmentQueueToday(args: {
     .leftJoin(patientProfiles, eq(patientProfiles.id, queueEntries.patientUserId))
     .leftJoin(users, eq(users.id, queueEntries.patientUserId))
     .leftJoin(appointments, eq(appointments.id, queueEntries.appointmentId))
+    .leftJoin(encounters, eq(encounters.id, queueEntries.encounterId))
     .where(
       and(
         eq(queueEntries.departmentId, args.departmentId),
@@ -259,6 +264,7 @@ export async function fetchDepartmentQueueToday(args: {
     identity: toPatientIdentity(r, revealed),
     appointmentId: r.appointmentId,
     encounterId: r.encounterId,
+    encounterClinicianUserId: r.encounterClinicianUserId ?? null,
     notes: r.notes,
   }));
 }
