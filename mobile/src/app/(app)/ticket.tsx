@@ -1,19 +1,14 @@
+import type { IconName } from "@/components/tide";
 import type { LiveIntake, PatientProfile } from "@/lib/booking";
-import type { Palette } from "@/theme/tokens";
 import { useCallback, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
-import { EmergencyButton } from "@/components/patient/emergency-button";
-import { Button } from "@/components/ui/button";
-import { Empty } from "@/components/ui/empty";
-import { HeroCard } from "@/components/ui/hero-card";
-import { Screen } from "@/components/ui/screen";
+import { Band, Button, Card, Icon, Note, Screen, TextLink } from "@/components/tide";
 import { cancelIntake, fetchLiveIntake, fetchPatientProfile, STAGE_WORD } from "@/lib/booking";
 import { useSession } from "@/lib/session";
-import { useStyles, useTheme } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { useTide } from "@/theme/theme";
+import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * The ticket: the one screen a patient holds while they wait.
@@ -41,9 +36,8 @@ import { font, radius, space } from "@/theme/tokens";
  */
 export default function TicketScreen() {
   const router = useRouter();
+  const t = useTide();
   const { session } = useSession();
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
   // §2: the confirmation names the ACCOUNT HOLDER, because the person holding
   // the phone is routinely not the person who will arrive. `full_name` is what
   // signup wrote to auth metadata — the same value `users.full_name` mirrors
@@ -108,15 +102,18 @@ export default function TicketScreen() {
     setIntake(null);
   }, [intake, busy]);
 
+  // Back is `router.back()`, the Tide back link's default; Help is the Screen's red disc.
+  const chrome = { back: {}, helpSource: "ticket" };
+
   if (loadError) {
     return (
-      <Screen onBack={router.back} trailing={<EmergencyButton />}>
-        <Empty
-          icon="cloud-offline-outline"
-          title="Couldn't load your place in line."
-          hint="Check your connection and try again."
-          action={<Button variant="secondary" label="Try again" onPress={() => void load()} />}
-        />
+      <Screen {...chrome}>
+        <View style={{ gap: tSpace[3] }}>
+          <Note tone="plain">
+            {"Couldn't load your place in line. Check your connection and try again."}
+          </Note>
+          <Button variant="outline" label="Try again" onPress={() => void load()} />
+        </View>
       </Screen>
     );
   }
@@ -124,49 +121,42 @@ export default function TicketScreen() {
   // `profile` is set in the same tick as `intake`, so past this line it is in.
   if (intake === undefined || !profile) {
     return (
-      <Screen onBack={router.back} trailing={<EmergencyButton />}>
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} accessibilityLabel="Loading" />
-        </View>
+      <Screen {...chrome}>
+        <ActivityIndicator color={t.ink} accessibilityLabel="Loading" />
       </Screen>
     );
   }
 
   if (removed) {
     return (
-      <Screen onBack={router.back} trailing={<EmergencyButton />} title="We removed your place.">
-        <View style={styles.stack}>
-          <View style={styles.card}>
-            <Text style={styles.cardLead}>Nothing is saved for you today.</Text>
-            <Text style={styles.muted}>
-              You can tell us again any time you are coming in today.
-            </Text>
-          </View>
-          <Button
-            variant="link"
-            label="Coming to the hospital today"
-            onPress={() => router.replace("/(app)/today")}
-            style={styles.inlineLink}
-          />
-        </View>
+      <Screen {...chrome} title="We removed your place.">
+        <Card padding={tSpace[4]}>
+          <Text style={[tType.label, { color: t.ink }]}>Nothing is saved for you today.</Text>
+          <Text style={[tType.bodyM, { color: t.ink2 }]}>
+            You can tell us again any time you are coming in today.
+          </Text>
+        </Card>
+        <CenteredLink
+          label="Coming to the hospital today"
+          onPress={() => router.replace("/(app)/today")}
+        />
       </Screen>
     );
   }
 
   if (!intake) {
     return (
-      <Screen onBack={router.back} trailing={<EmergencyButton />}>
-        <Empty
-          icon="business-outline"
-          title="Nothing is saved for you today."
-          hint="If you are coming to the hospital today, we can save your place in line."
-          action={
-            <Button
-              label="Coming to the hospital today"
-              onPress={() => router.replace("/(app)/today")}
-            />
-          }
-        />
+      <Screen {...chrome}>
+        <View style={{ gap: tSpace[3] }}>
+          <Note tone="plain">
+            Nothing is saved for you today. If you are coming to the hospital today, we can save
+            your place in line.
+          </Note>
+          <Button
+            label="Coming to the hospital today"
+            onPress={() => router.replace("/(app)/today")}
+          />
+        </View>
       </Screen>
     );
   }
@@ -174,109 +164,176 @@ export default function TicketScreen() {
   const stage = STAGES[intake.status] ?? STAGES.declared;
   const step = STEP_OF[intake.status] ?? 0;
   const hospitalName = profile.hospitalName ?? "your hospital";
+  const tiles: { icon: IconName; label: string; value: string }[] = [
+    { icon: "card", label: "Patient code", value: profile.patientCode },
+    { icon: "footprints", label: "Stage", value: (STEPS[step] ?? STEPS[0]).word },
+  ];
 
   return (
     <Screen
-      onBack={router.back}
-      trailing={<EmergencyButton />}
+      {...chrome}
       title={headlineFor(intake.status, firstName)}
       footer={
         <Button
-          variant="secondary"
+          variant="outline"
           label="Check for an update"
           onPress={() => void load()}
           busy={checking}
         />
       }
     >
-      <View style={styles.stack}>
-        {/* The place, and the two facts about it that are true: the code the
-            desk matches on, and the stage. Never a position (§6), never an
-            hour (§10). */}
-        <HeroCard
-          eyebrow="Your place today"
-          title={intake.departmentName ?? hospitalName}
-          subtitle={intake.departmentName ? hospitalName : undefined}
-          tiles={[
-            { icon: "pricetag-outline", label: "Patient code", value: profile.patientCode },
-            { icon: "footsteps-outline", label: "Stage", value: (STEPS[step] ?? STEPS[0]).word },
-          ]}
-        />
-
-        <View style={styles.card}>
-          {/* The line as a timeline. State is a shape and a word — a tick
-              for done, weight for now — never the tint alone. */}
-          <View>
-            {STEPS.map((s, i) => {
-              const done = i < step;
-              const current = i === step;
-              return (
-                <View key={s.word} style={styles.step}>
-                  <View style={styles.rail}>
-                    <View
-                      style={[styles.dot, done && styles.dotDone, current && styles.dotCurrent]}
-                      accessibilityElementsHidden
-                      importantForAccessibility="no-hide-descendants"
-                    >
-                      {done ? (
-                        <Ionicons name="checkmark" size={14} color={colors.primaryForeground} />
-                      ) : null}
-                    </View>
-                    {i < STEPS.length - 1 ? <View style={styles.connector} /> : null}
-                  </View>
-                  <Text style={[styles.stepWord, current && styles.stepWordCurrent]}>{s.word}</Text>
-                </View>
-              );
-            })}
-          </View>
-
-          <View style={styles.rule} />
-
-          <Text style={styles.cardLead}>{stage.lead}</Text>
-          <Text style={styles.muted}>{stage.body}</Text>
+      {/* The place, and the two facts about it that are true: the code the
+          desk matches on, and the stage. Never a position (§6), never an
+          hour (§10). */}
+      <Band>
+        <View style={{ gap: 2 }}>
+          <Text style={[tType.overline, { color: t.onBand2 }]}>Your place today</Text>
+          <Text style={[tType.title, { color: t.onBand }]}>
+            {intake.departmentName ?? hospitalName}
+          </Text>
+          {intake.departmentName ? (
+            <Text style={[tType.bodyM, { color: t.onBand2 }]}>{hospitalName}</Text>
+          ) : null}
         </View>
-
-        {intake.status === "declared" ? (
-          confirming ? (
-            <View style={styles.card}>
-              <Text style={styles.cardLead}>
-                Take your place out of today’s line? You can tell us again any time today.
-              </Text>
-              {error ? (
-                <View style={styles.well}>
-                  <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
-                  <Text style={styles.wellText} accessibilityLiveRegion="polite">
-                    {error}
-                  </Text>
-                </View>
-              ) : null}
-              <View style={styles.confirmActions}>
-                <Button
-                  variant="link"
-                  label="Keep my place"
-                  onPress={() => setConfirming(false)}
-                  disabled={busy}
-                />
-                <Button
-                  variant="secondary"
-                  label="Yes, remove my place"
-                  onPress={() => void onCancel()}
-                  busy={busy}
-                  style={styles.confirmYes}
-                />
+        <View style={{ flexDirection: "row", gap: tSpace[2] }}>
+          {tiles.map((tile) => (
+            <View
+              key={tile.label}
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: tSpace[2],
+                padding: tSpace[2.5],
+                borderRadius: tRadius.md,
+                backgroundColor: t.bandGlass,
+              }}
+            >
+              {/* Decorative: the label beside it names the fact. */}
+              <Icon name={tile.icon} size={18} color={t.onBand} />
+              <View style={{ flex: 1, gap: 1 }}>
+                <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.onBand2 }]}>
+                  {tile.label}
+                </Text>
+                <Text style={[tType.labelS, { color: t.onBand }]} numberOfLines={2}>
+                  {tile.value}
+                </Text>
               </View>
             </View>
-          ) : (
-            <Button
-              variant="link"
-              label="I am not coming today"
-              onPress={() => setConfirming(true)}
-              style={styles.inlineLink}
-            />
-          )
-        ) : null}
-      </View>
+          ))}
+        </View>
+      </Band>
+
+      <Card padding={tSpace[4]}>
+        {/* The line as a timeline. State is a shape and a word — a tick for
+            done, a ring and weight for now — never the tint alone. */}
+        <View>
+          {STEPS.map((s, i) => {
+            const done = i < step;
+            const current = i === step;
+            return (
+              <View
+                key={s.word}
+                style={{ flexDirection: "row", alignItems: "flex-start", gap: tSpace[3] }}
+              >
+                <View style={{ alignItems: "center" }}>
+                  <View
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: done ? t.primary : t.surface,
+                      borderWidth: done ? 0 : current ? 2 : 1,
+                      borderColor: current ? t.primary : t.lineStrong,
+                    }}
+                  >
+                    {done ? (
+                      <Icon name="check" size={14} color={t.onPrimary} strokeWidth={2.6} />
+                    ) : null}
+                  </View>
+                  {i < STEPS.length - 1 ? (
+                    <View style={{ width: 1, height: tSpace[5], backgroundColor: t.line }} />
+                  ) : null}
+                </View>
+                <Text
+                  style={[
+                    tType.bodyM,
+                    { lineHeight: 24 },
+                    current ? { fontFamily: tFont.semibold, color: t.ink } : { color: t.ink3 },
+                  ]}
+                >
+                  {s.word}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+
+        <View style={{ height: 1, backgroundColor: t.line, marginVertical: tSpace[1] }} />
+
+        <Text style={[tType.label, { color: t.ink }]}>{stage.lead}</Text>
+        <Text style={[tType.bodyM, { color: t.ink2 }]}>{stage.body}</Text>
+      </Card>
+
+      {intake.status === "declared" ? (
+        confirming ? (
+          <Card padding={tSpace[4]}>
+            <Text style={[tType.label, { color: t.ink }]}>
+              Take your place out of today’s line? You can tell us again any time today.
+            </Text>
+            {/* Amber, not red: a cancel that did not go through is not a clinical
+                emergency. The amber is the frame and the glyph; the words carry the
+                meaning. */}
+            {error ? (
+              <View accessibilityLiveRegion="polite">
+                <Note tone="caution" icon="alert">
+                  {error}
+                </Note>
+              </View>
+            ) : null}
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "flex-end",
+                gap: tSpace[2],
+                marginTop: tSpace[1],
+              }}
+            >
+              <Button
+                variant="soft"
+                size="md"
+                label="Keep my place"
+                onPress={() => setConfirming(false)}
+                disabled={busy}
+              />
+              <Button
+                variant="outline"
+                size="md"
+                label="Yes, remove my place"
+                onPress={() => void onCancel()}
+                busy={busy}
+              />
+            </View>
+          </Card>
+        ) : (
+          <CenteredLink label="I am not coming today" onPress={() => setConfirming(true)} />
+        )
+      ) : null}
     </Screen>
+  );
+}
+
+/** A text link on its own line, centred. */
+function CenteredLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <View style={{ alignItems: "center" }}>
+      <TextLink label={label} onPress={onPress} />
+    </View>
   );
 }
 
@@ -339,77 +396,3 @@ function headlineFor(intakeStatus: string, firstName: string | undefined): strin
       return "Your place in line.";
   }
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    center: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
-    stack: { gap: space[5] },
-    muted: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.mutedForeground },
-
-    card: {
-      gap: space[2],
-      padding: space[4],
-      borderRadius: radius["2xl"],
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    cardLead: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 23, color: c.foreground },
-    rule: { height: 1, backgroundColor: c.border, marginVertical: space[2] },
-
-    step: { flexDirection: "row", alignItems: "flex-start", gap: space[3] },
-    rail: { alignItems: "center" },
-    dot: {
-      width: 24,
-      height: 24,
-      borderRadius: radius.full,
-      borderWidth: 1,
-      borderColor: c.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    dotDone: { backgroundColor: c.primary, borderColor: c.primary },
-    // Done is state (teal); the current step is place (plum) — ADR 0097.
-    dotCurrent: { backgroundColor: c.place, borderColor: c.placeForeground },
-    connector: { width: 1, height: space[5], backgroundColor: c.border },
-    stepWord: {
-      fontFamily: font.body,
-      fontSize: 15,
-      lineHeight: 24,
-      color: c.mutedForeground,
-    },
-    stepWordCurrent: { fontFamily: font.bodyMedium, color: c.foreground },
-
-    inlineLink: { alignSelf: "center" },
-    confirmActions: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: space[2],
-      marginTop: space[1],
-    },
-    // The secondary variant stretches by default; beside "Keep my place" it
-    // takes only its own width.
-    confirmYes: { alignSelf: "auto" },
-
-    // Amber, not red: a cancel that did not go through is not a clinical
-    // emergency. The amber is the frame and the glyph; the words carry the
-    // meaning.
-    well: {
-      flexDirection: "row",
-      gap: space[2],
-      alignItems: "flex-start",
-      padding: space[3],
-      borderRadius: radius.lg,
-      backgroundColor: c.status.cautionBg,
-      borderWidth: 1,
-      borderColor: c.status.cautionFg,
-    },
-    wellText: {
-      flex: 1,
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.foreground,
-    },
-  });

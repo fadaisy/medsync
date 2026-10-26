@@ -1,13 +1,11 @@
 import type { SheetContact } from "@/lib/emergency";
-import type { Palette } from "@/theme/tokens";
 import type { ReactNode } from "react";
-import { Linking, StyleSheet, Text, View } from "react-native";
+import { Linking, Text, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { Screen } from "@/components/ui/screen";
+import { Button, Note, Screen } from "@/components/tide";
 import { emergencyEvent, telUrl } from "@/lib/emergency";
-import { ForcedScheme, useStyles } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { ForcedScheme, useTide } from "@/theme/theme";
+import { tSpace, tType } from "@/theme/tide";
 
 /**
  * The two special routes (PRD §5.5): self-harm and sexual violence. Calm
@@ -15,7 +13,8 @@ import { font, radius, space } from "@/theme/tokens";
  * words are the screen; the contacts are whatever is verified for the
  * route's kind (nothing national is at ship — ADR 0098 ruling 8 — so the
  * hospital's own line stands in until they are sourced). Permanently light
- * (Law 3).
+ * (Law 3). Drawn in Tide without the header's red Help disc (`help="none"`):
+ * no red here is the rule, and the screen's contacts are the help.
  */
 export function CalmScreen({
   title,
@@ -69,63 +68,38 @@ function CalmBody({
   children?: ReactNode;
   onBack: () => void;
 }) {
-  const styles = useStyles(makeStyles);
+  const t = useTide();
   const call = (c: SheetContact) => {
     emergencyEvent("call_tapped", { contact_id: c.id });
     Linking.openURL(telUrl(c.number)).catch(() => {});
   };
   return (
-    <Screen title={title} onBack={onBack}>
-      <View style={styles.column}>
-        <Text style={styles.lead}>{lead}</Text>
-        {body ? <Text style={styles.body}>{body}</Text> : null}
+    <Screen title={title} back={{ onPress: onBack }} help="none" stagger={false} gap={tSpace[5]}>
+      <Text style={[tType.section, { color: t.ink }]}>{lead}</Text>
+      {body ? <Text style={[tType.body, { color: t.ink }]}>{body}</Text> : null}
 
-        {contacts.length ? (
-          <View style={styles.list}>
-            {contacts.map((c) => (
-              <View key={c.id} style={styles.row}>
-                <Text style={styles.rowLabel}>{c.label}</Text>
-                <Button
-                  variant="secondary"
-                  label={`Call ${c.number}`}
-                  accessibilityLabel={`Call ${c.label}, ${c.number}`}
-                  onPress={() => call(c)}
-                />
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.note}>
-            <Text style={styles.noteText}>{fallback}</Text>
-          </View>
-        )}
+      {contacts.length ? (
+        <View style={{ gap: tSpace[4] }}>
+          {contacts.map((c) => (
+            <View key={c.id} style={{ gap: tSpace[2] }}>
+              <Text style={[tType.labelS, { color: t.ink }]}>{c.label}</Text>
+              <Button
+                variant="outline"
+                icon="phone"
+                label={`Call ${c.number}`}
+                accessibilityLabel={`Call ${c.label}, ${c.number}`}
+                onPress={() => call(c)}
+              />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <Note tone="plain" icon={null}>
+          {fallback}
+        </Note>
+      )}
 
-        {children}
-      </View>
+      {children}
     </Screen>
   );
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    column: { gap: space[5] },
-    lead: {
-      fontFamily: font.bodySemiBold,
-      fontSize: 22,
-      lineHeight: 30,
-      letterSpacing: -0.3,
-      color: c.foreground,
-    },
-    body: { fontFamily: font.body, fontSize: 16, lineHeight: 24, color: c.foreground },
-    list: { gap: space[4] },
-    row: { gap: space[2] },
-    rowLabel: { fontFamily: font.bodyMedium, fontSize: 15, color: c.foreground },
-    note: {
-      padding: space[4],
-      borderRadius: radius.xl,
-      backgroundColor: c.muted,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    noteText: { fontFamily: font.body, fontSize: 15, lineHeight: 22, color: c.foreground },
-  });

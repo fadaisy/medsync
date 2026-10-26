@@ -570,11 +570,15 @@ describe("red is reserved — the Expo app", () => {
     }
   });
 
+  // A file drawn in Tide names red through the theme's roles (`t.emergency`, `t.critical`; the
+  // emergency components call the theme `tide`, since `t` is the catalog's translator there).
+  const TIDE_RED = /\b(?:t|tide)\.(?:emergency|emergencyBand|critical)\b/;
+
   it("the allowlist is real — every file in it exists and does use the pair", () => {
     for (const p of RED_ALLOWED) {
       const src = MOBILE.find(([q]) => q === p)?.[1];
       expect(src, p).toBeDefined();
-      expect(src, p).toMatch(MOBILE_RED);
+      expect(MOBILE_RED.test(src ?? "") || TIDE_RED.test(src ?? ""), p).toBe(true);
     }
   });
 

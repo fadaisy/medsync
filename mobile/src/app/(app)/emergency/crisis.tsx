@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 
 import { CalmScreen } from "@/components/emergency/calm-screen";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/tide";
 import { fetchPatientProfile } from "@/lib/booking";
 import { preAlertLive, useEmergencySheet } from "@/lib/emergency";
 
@@ -40,7 +40,7 @@ export default function CrisisScreen() {
     >
       {preAlertLive() ? (
         <Button
-          variant="secondary"
+          variant="outline"
           label="Tell a hospital I'm coming"
           onPress={() => router.push("/(app)/emergency/tell")}
         />

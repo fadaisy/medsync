@@ -1,17 +1,14 @@
 import type { PreArrivalView } from "@/lib/emergency";
-import type { Palette } from "@/theme/tokens";
 import type { PreArrivalStatus } from "@shared/pre-arrival";
 import { useCallback, useEffect, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { ACK_TIMEOUT_MS } from "@shared/pre-arrival";
 import { useFocusEffect } from "expo-router";
-import { Linking, StyleSheet, Text, View } from "react-native";
+import { Linking, Text, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { Screen } from "@/components/ui/screen";
+import { Button, Card, Icon, Screen } from "@/components/tide";
 import { preArrivalStatus, smsUrl, telUrl, writePendingPreArrival } from "@/lib/emergency";
-import { ForcedScheme, useStyles, useTheme } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { ForcedScheme, useTide } from "@/theme/theme";
+import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * E3 — the pre-alert's status (PRD MS-PRD-SYM-001 §8.4). Polls
@@ -53,8 +50,7 @@ export function StatusPanel(props: {
 }
 
 function PanelBody({ id, token, sentAt, smsBody, onBack }: Parameters<typeof StatusPanel>[0]) {
-  const styles = useStyles(makeStyles);
-  const { colors } = useTheme();
+  const t = useTide();
   const [view, setView] = useState<PreArrivalView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -104,13 +100,15 @@ function PanelBody({ id, token, sentAt, smsBody, onBack }: Parameters<typeof Sta
 
   return (
     <Screen
-      onBack={onBack}
+      back={{ onPress: onBack }}
+      helpSource="emergency-status"
+      stagger={false}
       footer={
         live ? (
           <>
             <Button label="We've arrived" busy={busy} onPress={() => void act("arrived")} />
             <Button
-              variant="secondary"
+              variant="outline"
               label="Cancel — I'm no longer coming"
               disabled={busy}
               onPress={() => void act("cancel")}
@@ -119,149 +117,126 @@ function PanelBody({ id, token, sentAt, smsBody, onBack }: Parameters<typeof Sta
         ) : undefined
       }
     >
-      <View style={styles.column}>
-        <View style={styles.head}>
-          <Text style={styles.eyebrow}>
-            {view?.facility.name ? `Pre-alert to ${view.facility.name}` : "Pre-alert"}
-          </Text>
-          {/* The header names the state in a word; red only while the alert is live. */}
-          <Text accessibilityRole="header" style={[styles.title, live && styles.titleLive]}>
-            {saidArrived ? "Arrived" : (STEPS.find((s) => s.status === status)?.word ?? "Closed")}
-          </Text>
-        </View>
-
-        {unconfirmed ? (
-          <View style={styles.warn} accessibilityRole="alert">
-            <Text style={styles.warnTitle}>
-              We couldn&rsquo;t confirm the hospital saw this. Please call them:
-            </Text>
-            {call && phone ? (
-              <Button
-                label={`Call ${phone}`}
-                accessibilityLabel={`Call ${view?.facility.name ?? "the hospital"}, ${phone}`}
-                onPress={() => void call()}
-              />
-            ) : (
-              <Text style={styles.body}>No number is registered for this hospital yet.</Text>
-            )}
-            {sms && smsBody ? (
-              <Button
-                variant="secondary"
-                label="Send the details by SMS"
-                onPress={() => {
-                  Linking.openURL(smsUrl(sms, smsBody)).catch(() => {});
-                }}
-              />
-            ) : null}
-          </View>
-        ) : null}
-
-        {CLOSED_WORD[status] ? <Text style={styles.body}>{CLOSED_WORD[status]}</Text> : null}
-        {saidArrived ? (
-          <Text style={styles.body}>
-            You said you have arrived. Go to the emergency entrance — the desk will find you.
-          </Text>
-        ) : null}
-
-        <View style={styles.steps} accessibilityRole="list">
-          {STEPS.map((step, i) => {
-            const done = stepIndex >= i;
-            const current = stepIndex === i;
-            return (
-              <View key={step.status} style={styles.step}>
-                <View style={[styles.mark, done && styles.markDone]}>
-                  {done ? (
-                    <Ionicons name="checkmark" size={14} color={colors.primaryForeground} />
-                  ) : null}
-                </View>
-                <Text
-                  style={[styles.stepWord, current && styles.stepCurrent]}
-                  accessibilityLabel={`${step.word}${current ? ", current" : done ? ", done" : ""}`}
-                >
-                  {step.word}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-
-        {view?.facility.directions ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Emergency entrance</Text>
-            <Text style={styles.body}>{view.facility.directions}</Text>
-          </View>
-        ) : null}
-
-        {call && phone && !unconfirmed ? (
-          <Button
-            variant="secondary"
-            label={`Call ${phone}`}
-            accessibilityLabel={`Call ${view?.facility.name ?? "the hospital"}, ${phone}`}
-            onPress={() => void call()}
-          />
-        ) : null}
-
-        {error ? (
-          <Text accessibilityRole="alert" style={styles.body}>
-            {error}
-          </Text>
-        ) : null}
+      <View style={{ gap: tSpace[1] }}>
+        <Text style={[tType.overline, { color: t.ink3 }]}>
+          {view?.facility.name ? `Pre-alert to ${view.facility.name}` : "Pre-alert"}
+        </Text>
+        {/* The header names the state in a word; red only while the alert is live. */}
+        <Text
+          accessibilityRole="header"
+          style={[tType.display, { color: live ? t.emergencyBand : t.ink }]}
+        >
+          {saidArrived ? "Arrived" : (STEPS.find((s) => s.status === status)?.word ?? "Closed")}
+        </Text>
       </View>
+
+      {unconfirmed ? (
+        <View
+          accessibilityRole="alert"
+          style={{
+            gap: tSpace[3],
+            padding: tSpace[4],
+            borderRadius: tRadius.card,
+            backgroundColor: t.critical.tint,
+          }}
+        >
+          <Text style={[tType.label, { lineHeight: 23, color: t.ink }]}>
+            We couldn&rsquo;t confirm the hospital saw this. Please call them:
+          </Text>
+          {call && phone ? (
+            <Button
+              icon="phone"
+              label={`Call ${phone}`}
+              accessibilityLabel={`Call ${view?.facility.name ?? "the hospital"}, ${phone}`}
+              onPress={() => void call()}
+            />
+          ) : (
+            <Text style={[tType.bodyM, { color: t.ink }]}>
+              No number is registered for this hospital yet.
+            </Text>
+          )}
+          {sms && smsBody ? (
+            <Button
+              variant="outline"
+              label="Send the details by SMS"
+              onPress={() => {
+                Linking.openURL(smsUrl(sms, smsBody)).catch(() => {});
+              }}
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {CLOSED_WORD[status] ? (
+        <Text style={[tType.bodyM, { color: t.ink }]}>{CLOSED_WORD[status]}</Text>
+      ) : null}
+      {saidArrived ? (
+        <Text style={[tType.bodyM, { color: t.ink }]}>
+          You said you have arrived. Go to the emergency entrance — the desk will find you.
+        </Text>
+      ) : null}
+
+      <View style={{ gap: tSpace[3] }} accessibilityRole="list">
+        {STEPS.map((step, i) => {
+          const done = stepIndex >= i;
+          const current = stepIndex === i;
+          return (
+            <View
+              key={step.status}
+              style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3] }}
+            >
+              <View
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
+                  borderWidth: done ? 0 : 1.5,
+                  borderColor: t.lineStrong,
+                  backgroundColor: done ? t.primary : t.surface,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {done ? (
+                  <Icon name="check" size={14} color={t.onPrimary} strokeWidth={2.6} />
+                ) : null}
+              </View>
+              <Text
+                style={[
+                  tType.body,
+                  current ? { fontFamily: tFont.semibold, color: t.ink } : { color: t.ink3 },
+                ]}
+                accessibilityLabel={`${step.word}${current ? ", current" : done ? ", done" : ""}`}
+              >
+                {step.word}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+
+      {view?.facility.directions ? (
+        <Card padding={tSpace[4]} style={{ gap: tSpace[1] }}>
+          <Text style={[tType.labelS, { color: t.ink }]}>Emergency entrance</Text>
+          <Text style={[tType.bodyM, { color: t.ink }]}>{view.facility.directions}</Text>
+        </Card>
+      ) : null}
+
+      {call && phone && !unconfirmed ? (
+        <Button
+          variant="outline"
+          icon="phone"
+          label={`Call ${phone}`}
+          accessibilityLabel={`Call ${view?.facility.name ?? "the hospital"}, ${phone}`}
+          onPress={() => void call()}
+        />
+      ) : null}
+
+      {error ? (
+        <Text accessibilityRole="alert" style={[tType.bodyM, { color: t.ink }]}>
+          {error}
+        </Text>
+      ) : null}
     </Screen>
   );
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    column: { gap: space[5] },
-    head: { gap: space[1] },
-    eyebrow: {
-      fontFamily: font.body,
-      fontSize: 12.5,
-      letterSpacing: 0.4,
-      textTransform: "uppercase",
-      color: c.mutedForeground,
-    },
-    title: {
-      fontFamily: font.display,
-      fontSize: 30,
-      lineHeight: 36,
-      letterSpacing: -0.6,
-      color: c.foreground,
-    },
-    titleLive: { color: c.status.criticalFg },
-    body: { fontFamily: font.body, fontSize: 15, lineHeight: 22, color: c.foreground },
-
-    warn: {
-      gap: space[3],
-      padding: space[4],
-      borderRadius: radius.xl,
-      backgroundColor: c.status.criticalBg,
-    },
-    warnTitle: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 23, color: c.foreground },
-
-    steps: { gap: space[3] },
-    step: { flexDirection: "row", alignItems: "center", gap: space[3] },
-    mark: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      borderWidth: 1.5,
-      borderColor: c.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    markDone: { backgroundColor: c.primary, borderColor: c.primary },
-    stepWord: { fontFamily: font.body, fontSize: 16, color: c.mutedForeground },
-    stepCurrent: { fontFamily: font.bodyMedium, color: c.foreground },
-
-    card: {
-      gap: space[1],
-      padding: space[4],
-      borderRadius: radius.xl,
-      borderWidth: 1,
-      borderColor: c.border,
-      backgroundColor: c.card,
-    },
-    cardTitle: { fontFamily: font.bodyMedium, fontSize: 15, color: c.foreground },
-  });

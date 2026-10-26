@@ -1,15 +1,13 @@
+import type { IconName } from "@/components/tide";
 import type { ContactKind, PendingPreArrival, SheetContact } from "@/lib/emergency";
-import type { Palette } from "@/theme/tokens";
 import { useEffect, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
 import { t } from "@shared/symptom-catalog/classify";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Text, View } from "react-native";
 
 import { FirstAidCards } from "@/components/emergency/first-aid-cards";
 import { Watermark } from "@/components/emergency/watermark";
-import { Button } from "@/components/ui/button";
-import { Screen } from "@/components/ui/screen";
+import { Card, Icon, Press, Screen, TextLink } from "@/components/tide";
 import {
   e1Tiles,
   emergencyEvent,
@@ -19,15 +17,16 @@ import {
   telUrl,
   useEmergencySheet,
 } from "@/lib/emergency";
-import { ForcedScheme, useStyles } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { ForcedScheme, useTide } from "@/theme/theme";
+import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * E1 — the Emergency sheet (PRD MS-PRD-SYM-001 §8.2; ADR 0098 rulings 7, 8).
  * One screen, both doors: the Emergency tab draws it with the patient's
  * hospital, the pre-auth root route draws it with none. Permanently light
  * (Law 3). This file and the pre-alert's Send and the status header are
- * where the app's red lives (tests/design/red-reserved.test.ts).
+ * where the app's red lives (tests/design/red-reserved.test.ts). Drawn in
+ * Tide (ADR 0340): the red Help disc sits in its header like every screen's.
  *
  * The primary call is the first VERIFIED contact the server returned — the
  * hospital's own `emergency_phone` rides first as `hospital:<id>` when one
@@ -80,13 +79,13 @@ const KIND_WORD: Record<ContactKind, string> = {
 };
 
 /** Catalog icon key → a glyph. The word beside it carries the meaning (PRD §7.1). */
-const TILE_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
-  lungs: "pulse-outline",
-  heart: "heart-outline",
-  brain: "body-outline",
-  child: "person-outline",
-  thermometer: "thermometer-outline",
-  droplet: "water-outline",
+const TILE_ICON: Record<string, IconName> = {
+  lungs: "wind",
+  heart: "heart",
+  brain: "zap",
+  child: "user",
+  thermometer: "activity",
+  droplet: "droplet",
 };
 
 function SheetBody({
@@ -104,7 +103,7 @@ function SheetBody({
   onTell: (picks: string[]) => void;
   onOpenStatus?: (pending: PendingPreArrival) => void;
 }) {
-  const styles = useStyles(makeStyles);
+  const tide = useTide();
   const { sheet } = useEmergencySheet(hospitalId);
   const [picks, setPicks] = useState<string[]>([]);
   const [pending, setPending] = useState<PendingPreArrival | null>(null);
@@ -141,117 +140,159 @@ function SheetBody({
     setPicks((p) => (p.includes(key) ? p.filter((k) => k !== key) : [...p, key]));
 
   return (
-    <Screen onBack={onBack}>
-      <View style={styles.column}>
-        <View style={styles.head}>
-          <Text accessibilityRole="header" style={styles.title}>
-            {t(CATALOG, "tier.E")}
+    <Screen
+      back={onBack ? { onPress: onBack } : undefined}
+      helpSource="emergency-sheet"
+      stagger={false}
+    >
+      <View style={{ gap: tSpace[2] }}>
+        {/* The one red heading in the app: it names the tier in the PRD's word. */}
+        <Text accessibilityRole="header" style={[tType.display, { color: tide.emergencyBand }]}>
+          {t(CATALOG, "tier.E")}
+        </Text>
+        <Text style={[tType.body, { fontFamily: tFont.medium, color: tide.ink }]}>
+          If the person is not breathing or can&rsquo;t be woken, call now.
+        </Text>
+      </View>
+
+      {/* The primary call. One tap, no data: `tel:` rides the cellular
+          network, and the number was verified by a human before it was
+          allowed here. */}
+      {primary ? (
+        <Press
+          accessibilityLabel={`Call ${primary.label}, ${primary.number}`}
+          onPress={() => call(primary)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: tSpace[3],
+            minHeight: 64,
+            paddingHorizontal: tSpace[5],
+            paddingVertical: tSpace[3],
+            borderRadius: tRadius.card,
+            backgroundColor: tide.emergency,
+            boxShadow: tide.shadow.emergency,
+          }}
+        >
+          <Icon name="phone" size={22} color={tide.onEmergency} strokeWidth={2.2} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[tType.heading, { color: tide.onEmergency }]}>Call {primary.label}</Text>
+            <Text
+              style={[
+                tType.bodyM,
+                { fontFamily: tFont.mono, color: tide.onEmergency, fontVariant: ["tabular-nums"] },
+              ]}
+            >
+              {primary.number}
+            </Text>
+          </View>
+        </Press>
+      ) : (
+        <View
+          style={{
+            padding: tSpace[4],
+            borderRadius: tRadius.card,
+            backgroundColor: tide.critical.tint,
+            gap: tSpace[1],
+          }}
+        >
+          <Text style={[tType.heading, { color: tide.critical.text }]}>
+            Go to the nearest emergency unit
           </Text>
-          <Text style={styles.lead}>
-            If the person is not breathing or can&rsquo;t be woken, call now.
+          <Text style={[tType.bodyM, { color: tide.ink }]}>
+            No verified emergency number is available here yet. They see the sickest people first.
           </Text>
         </View>
+      )}
 
-        {/* The primary call. One tap, no data: `tel:` rides the cellular
-            network, and the number was verified by a human before it was
-            allowed here. */}
-        {primary ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Call ${primary.label}, ${primary.number}`}
-            onPress={() => call(primary)}
-            style={({ pressed }) => [styles.primary, pressed && styles.pressed]}
-          >
-            <Ionicons name="call" size={22} color={styles.primaryLabel.color} />
-            <View style={styles.primaryText}>
-              <Text style={styles.primaryLabel}>Call {primary.label}</Text>
-              <Text style={styles.primaryNumber}>{primary.number}</Text>
-            </View>
-          </Pressable>
-        ) : (
-          <View style={styles.noNumber}>
-            <Text style={styles.noNumberTitle}>Go to the nearest emergency unit</Text>
-            <Text style={styles.noNumberBody}>
-              No verified emergency number is available here yet. They see the sickest people first.
-            </Text>
+      {secondary.length ? (
+        <View style={{ gap: tSpace[2] }}>
+          {secondary.map((c) => (
+            <ContactRow key={c.id} contact={c} onPress={() => call(c)} />
+          ))}
+        </View>
+      ) : null}
+
+      {canTell ? (
+        // White fill, red text and border (PRD §8.2 item 3).
+        <Press
+          onPress={() => onTell(picks)}
+          style={{
+            minHeight: 52,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: tSpace[6],
+            borderRadius: tRadius.pill,
+            borderWidth: 1.5,
+            borderColor: tide.emergency,
+            backgroundColor: tide.surface,
+          }}
+        >
+          <Text style={[tType.label, { color: tide.emergencyBand }]}>
+            Tell a hospital I&rsquo;m coming
+          </Text>
+        </Press>
+      ) : null}
+
+      {pending && onOpenStatus ? (
+        <View style={{ alignItems: "center" }}>
+          <TextLink label="See the pre-alert you sent" onPress={() => onOpenStatus(pending)} />
+        </View>
+      ) : null}
+
+      {!fromCatalog ? (
+        <View style={{ gap: tSpace[2], marginTop: tSpace[2] }}>
+          <Text accessibilityRole="header" style={[tType.heading, { color: tide.ink }]}>
+            What&rsquo;s happening?
+          </Text>
+          <Text style={[tType.bodyS, { color: tide.ink2 }]}>
+            Optional. It helps the hospital get ready.
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>
+            {e1Tiles().map((item) => {
+              const selected = picks.includes(item.key);
+              const label = t(CATALOG, item.labelKey);
+              // Chosen = navy, Tide's selection (near-white at night, but this sheet is light).
+              const fg = selected ? tide.onPrimary : tide.ink;
+              return (
+                <Press
+                  key={item.key}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: selected }}
+                  accessibilityLabel={label}
+                  onPress={() => toggle(item.key)}
+                  style={{
+                    width: "48%",
+                    flexGrow: 1,
+                    minHeight: 72,
+                    padding: tSpace[3],
+                    gap: tSpace[1],
+                    borderRadius: tRadius.row,
+                    backgroundColor: selected ? tide.primary : tide.surface,
+                    boxShadow: selected ? undefined : tide.shadow.card,
+                  }}
+                >
+                  <Icon name={TILE_ICON[item.icon] ?? "alert"} size={20} color={fg} />
+                  <Text style={[tType.labelS, { color: fg }]}>{label}</Text>
+                </Press>
+              );
+            })}
           </View>
-        )}
+        </View>
+      ) : null}
 
-        {secondary.length ? (
-          <View style={styles.list}>
-            {secondary.map((c) => (
-              <ContactRow key={c.id} contact={c} onPress={() => call(c)} />
+      {drafts.length ? (
+        <View style={{ gap: tSpace[2], marginTop: tSpace[2] }}>
+          <Watermark>These numbers are not yet verified and do not show in production.</Watermark>
+          <View style={{ gap: tSpace[2] }}>
+            {drafts.map((c) => (
+              <ContactRow key={c.id} contact={c} onPress={() => call(c)} draft />
             ))}
           </View>
-        ) : null}
+        </View>
+      ) : null}
 
-        {canTell ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => onTell(picks)}
-            style={({ pressed }) => [styles.tell, pressed && styles.pressed]}
-          >
-            <Text style={styles.tellLabel}>Tell a hospital I&rsquo;m coming</Text>
-          </Pressable>
-        ) : null}
-
-        {pending && onOpenStatus ? (
-          <Button
-            variant="link"
-            label="See the pre-alert you sent"
-            onPress={() => onOpenStatus(pending)}
-          />
-        ) : null}
-
-        {!fromCatalog ? (
-          <View style={styles.block}>
-            <Text accessibilityRole="header" style={styles.blockTitle}>
-              What&rsquo;s happening?
-            </Text>
-            <Text style={styles.blockHint}>Optional. It helps the hospital get ready.</Text>
-            <View style={styles.grid}>
-              {e1Tiles().map((item) => {
-                const selected = picks.includes(item.key);
-                return (
-                  <Pressable
-                    key={item.key}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: selected }}
-                    onPress={() => toggle(item.key)}
-                    style={({ pressed }) => [
-                      styles.tile,
-                      selected && styles.tileSelected,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <Ionicons
-                      name={TILE_ICON[item.icon] ?? "warning-outline"}
-                      size={20}
-                      color={selected ? styles.tileLabelSelected.color : styles.tileLabel.color}
-                    />
-                    <Text style={[styles.tileLabel, selected && styles.tileLabelSelected]}>
-                      {t(CATALOG, item.labelKey)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-        ) : null}
-
-        {drafts.length ? (
-          <View style={styles.block}>
-            <Watermark>These numbers are not yet verified and do not show in production.</Watermark>
-            <View style={styles.list}>
-              {drafts.map((c) => (
-                <ContactRow key={c.id} contact={c} onPress={() => call(c)} draft />
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {firstAidCardsLive() ? <FirstAidCards /> : null}
-      </View>
+      {firstAidCardsLive() ? <FirstAidCards /> : null}
     </Screen>
   );
 }
@@ -266,133 +307,29 @@ function ContactRow({
   onPress: () => void;
   draft?: boolean;
 }) {
-  const styles = useStyles(makeStyles);
+  const tide = useTide();
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Card
       accessibilityLabel={`Call ${KIND_WORD[contact.kind]}, ${contact.label}, ${contact.number}${draft ? ", unverified" : ""}`}
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+      radius={tRadius.row}
+      style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3], minHeight: 56 }}
     >
-      <View style={styles.rowText}>
-        <Text style={styles.rowKind}>
+      <View style={{ flex: 1, gap: 1 }}>
+        <Text style={[tType.overline, { color: tide.ink3 }]}>
           {KIND_WORD[contact.kind]}
           {draft ? " · Unverified" : ""}
         </Text>
-        <Text style={styles.rowLabel}>{contact.label}</Text>
+        <Text style={[tType.bodyM, { color: tide.ink }]}>{contact.label}</Text>
       </View>
-      <Text style={styles.rowNumber}>{contact.number}</Text>
-    </Pressable>
+      <Text
+        style={[
+          tType.labelS,
+          { fontFamily: tFont.monoSemibold, color: tide.accentText, fontVariant: ["tabular-nums"] },
+        ]}
+      >
+        {contact.number}
+      </Text>
+    </Card>
   );
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    column: { gap: space[4] },
-    head: { gap: space[2], marginBottom: space[1] },
-    // The one red heading in the app: it names the tier in the PRD's word.
-    title: {
-      fontFamily: font.display,
-      fontSize: 30,
-      lineHeight: 36,
-      letterSpacing: -0.6,
-      color: c.status.criticalFg,
-    },
-    lead: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 23, color: c.foreground },
-
-    primary: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: space[3],
-      minHeight: 64,
-      paddingHorizontal: space[5],
-      paddingVertical: space[3],
-      borderRadius: radius.xl,
-      backgroundColor: c.status.criticalFg,
-    },
-    primaryText: { flex: 1, gap: 2 },
-    primaryLabel: { fontFamily: font.bodyMedium, fontSize: 17, color: c.background },
-    primaryNumber: {
-      fontFamily: font.body,
-      fontSize: 15,
-      color: c.background,
-      fontVariant: ["tabular-nums"],
-    },
-    pressed: { opacity: 0.85 },
-
-    noNumber: {
-      padding: space[4],
-      borderRadius: radius.xl,
-      backgroundColor: c.status.criticalBg,
-      gap: space[1],
-    },
-    noNumberTitle: { fontFamily: font.bodySemiBold, fontSize: 17, color: c.status.criticalFg },
-    noNumberBody: { fontFamily: font.body, fontSize: 15, lineHeight: 22, color: c.foreground },
-
-    list: { gap: space[2] },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: space[3],
-      minHeight: 56,
-      paddingHorizontal: space[4],
-      paddingVertical: space[2],
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: c.border,
-      backgroundColor: c.card,
-    },
-    rowText: { flex: 1, gap: 1 },
-    rowKind: {
-      fontFamily: font.bodyMedium,
-      fontSize: 12.5,
-      letterSpacing: 0.3,
-      textTransform: "uppercase",
-      color: c.mutedForeground,
-    },
-    rowLabel: { fontFamily: font.body, fontSize: 15, color: c.foreground },
-    rowNumber: {
-      fontFamily: font.bodyMedium,
-      fontSize: 15,
-      color: c.primary,
-      fontVariant: ["tabular-nums"],
-    },
-
-    // White fill, red text and border (PRD §8.2 item 3).
-    tell: {
-      minHeight: 52,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: space[6],
-      borderRadius: radius.full,
-      borderWidth: 1.5,
-      borderColor: c.status.criticalFg,
-      backgroundColor: c.background,
-    },
-    tellLabel: { fontFamily: font.bodyMedium, fontSize: 16, color: c.status.criticalFg },
-
-    block: { gap: space[2], marginTop: space[2] },
-    blockTitle: {
-      fontFamily: font.bodyMedium,
-      fontSize: 16.5,
-      lineHeight: 22,
-      color: c.foreground,
-    },
-    blockHint: { fontFamily: font.body, fontSize: 13.5, color: c.mutedForeground },
-    grid: { flexDirection: "row", flexWrap: "wrap", gap: space[2] },
-    tile: {
-      width: "48%",
-      flexGrow: 1,
-      minHeight: 72,
-      padding: space[3],
-      gap: space[1],
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: c.border,
-      backgroundColor: c.card,
-    },
-    // Chosen = ink, the app's selection language (handoff §0).
-    tileSelected: { backgroundColor: c.foreground, borderColor: c.foreground },
-    tileLabel: { fontFamily: font.bodyMedium, fontSize: 13.5, lineHeight: 18, color: c.foreground },
-    tileLabelSelected: { color: c.background },
-  });
