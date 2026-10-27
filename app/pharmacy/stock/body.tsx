@@ -12,7 +12,11 @@ import { expiryText, STOCK } from "@/content/pharmacy-stock";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
-import { pharmacyDispensingLiveFor, pharmacyNationalListLiveFor } from "@/lib/pharmacy/feature";
+import {
+  pharmacyCatalogueLiveFor,
+  pharmacyDispensingLiveFor,
+  pharmacyNationalListLiveFor,
+} from "@/lib/pharmacy/feature";
 import { getStockPage } from "@/lib/pharmacy/stock/read";
 import { deliveryFromOffered } from "@/lib/pharmacy/stock/store";
 import { DRUGS } from "@/lib/prescribing/formulary";
@@ -104,7 +108,10 @@ export async function StockBody() {
                 batches={batches}
               />
               <TransferDialog batches={batches} points={data.points} />
-              <AddProductDialog medicines={medicines} />
+              <AddProductDialog
+                medicines={medicines}
+                catalogue={pharmacyCatalogueLiveFor(actor.hospitalId)}
+              />
             </>
           ) : (
             nationalList

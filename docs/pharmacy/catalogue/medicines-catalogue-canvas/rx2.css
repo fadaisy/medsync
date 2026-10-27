@@ -1,0 +1,130 @@
+/* Pharmacy Workspace v2: pieces the lab's ws.css and the Phase 1 rx.css do not have.
+   One rule throughout: every row says what happens next, in words, with one action. */
+
+/* the store flow: where medicines are, left to right, each stop with what waits there */
+.flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; padding: 6px 12px 14px; }
+.flow > a { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; margin: 0 10px; border-radius: 16px; background: var(--bg); color: inherit; text-decoration: none; min-width: 0; }
+.flow > a:hover { background: var(--sunken); }
+.flow > a + a::before { content: ""; position: absolute; left: -16px; top: 50%; width: 12px; height: 2px; background: var(--line-strong); }
+.flow > a + a::after { content: ""; position: absolute; left: -9px; top: calc(50% - 4px); border: 5px solid transparent; border-left-color: var(--line-strong); }
+.flow b { font: 600 14px/18px var(--sans); }
+.flow .v { font: 600 22px/26px var(--sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.flow .s { font-size: 12px; color: var(--ink-2); }
+.flow .s.w { color: var(--caution-fg); font-weight: 600; }
+.flow > a.on { background: var(--accent-tint); }
+
+/* work list: grouped by what can be done now */
+.wl { display: flex; flex-direction: column; }
+.wl__g { display: flex; align-items: center; gap: 8px; padding: 12px 16px 6px; font: 600 12px/16px var(--sans); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+.wl__g b { font: 600 12px/1 var(--mono); color: var(--ink-2); letter-spacing: 0; }
+.wl__g .small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.wr { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr) minmax(0, 1.3fr) auto; gap: 4px 16px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); }
+.wr:hover { background: var(--bg); }
+.wr.on { background: var(--accent-tint); }
+.wr .who b { font-size: 13px; }
+.next { display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; line-height: 17px; color: var(--ink-2); }
+.next b { color: var(--ink); font-weight: 600; font-size: 13px; }
+.next .w { color: var(--caution-fg); font-weight: 600; }
+.wr .btn { justify-self: end; }
+.more { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 9999px; color: var(--ink-2); background: transparent; border: 0; cursor: pointer; }
+.more:hover { background: var(--sunken); }
+.more svg { width: 16px; height: 16px; }
+
+/* queue list, compact (left pane of the window) */
+.ql { display: flex; flex-direction: column; padding: 0 6px 6px; gap: 2px; }
+.ql a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 8px; padding: 9px 10px; border-radius: 12px; color: inherit; text-decoration: none; }
+.ql a:hover { background: var(--bg); }
+.ql a.on { background: var(--accent-tint); }
+.ql .n1 { font: 600 13px/18px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ql .t { font: 500 12px/18px var(--mono); color: var(--ink-2); text-align: right; white-space: nowrap; }
+.ql .n2 { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; font-size: 12px; color: var(--ink-2); }
+
+/* a slim notice line that opens to the full signed wording */
+.limits { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 12px; background: var(--caution-bg); color: var(--caution-fg); font-size: 12.5px; line-height: 17px; box-shadow: inset 0 0 0 1px var(--caution-edge); }
+.limits svg { width: 16px; height: 16px; }
+.limits b { font-weight: 600; }
+.limits a { margin-left: auto; color: var(--caution-fg); font-weight: 600; white-space: nowrap; }
+
+/* status by the numbers of a place: a horizontal strip of figures */
+.strip2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow-card); overflow: hidden; }
+.strip2 > a { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-right: 1px solid var(--line); color: inherit; text-decoration: none; }
+.strip2 > a:last-child { border-right: 0; }
+.strip2 > a:hover { background: var(--bg); }
+.strip2 .k { font: 600 11px/14px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.strip2 .v { font: 600 24px/28px var(--sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.strip2 .v small { font: 500 12px/1 var(--sans); color: var(--ink-2); letter-spacing: 0; }
+.strip2 .d { font-size: 12px; color: var(--ink-2); }
+.strip2 .d.w { color: var(--caution-fg); font-weight: 600; }
+
+/* place cards on a hub page */
+.hub { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.hc { display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 18px; background: var(--surface); box-shadow: var(--shadow-card); color: inherit; text-decoration: none; min-width: 0; }
+.hc__h { display: flex; align-items: center; gap: 10px; }
+.hc__h .ic { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: var(--bg); color: var(--ink); }
+.hc__h .ic svg { width: 18px; height: 18px; }
+.hc__h b { font: 600 15px/20px var(--sans); }
+.hc__h .sp { flex: 1; }
+.hc p { margin: 0; font-size: 12.5px; line-height: 18px; color: var(--ink-2); }
+.hc ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.hc li { display: flex; gap: 8px; align-items: baseline; }
+.hc li b { font: 600 13px/1 var(--mono); min-width: 24px; text-align: right; }
+.hc li.w { color: var(--caution-fg); }
+.hc li.w b { color: var(--caution-fg); }
+
+/* a pack blocks something: show what */
+.blk { display: grid; grid-template-columns: minmax(0, 1.4fr) 150px minmax(0, 1.6fr) auto; gap: 4px 16px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 13px; }
+.blk .what { color: var(--ink-2); font-size: 12.5px; }
+
+/* the search palette's groups */
+.pal__r { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; margin: 0 10px; padding: 9px 14px; border-radius: 14px; font-size: 13.5px; }
+.pal__r.on { background: var(--accent-tint); }
+.pal__r .ic { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: var(--bg); color: var(--ink-2); }
+.pal__r .ic svg { width: 15px; height: 15px; }
+.pal__r span.s { grid-column: 2; font-size: 12px; color: var(--ink-2); }
+
+/* the navigation map */
+.nm { display: grid; grid-template-columns: 220px 28px minmax(0, 1fr); gap: 6px 10px; align-items: center; padding: 6px 16px; font-size: 13px; }
+.nm .old { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+.nm svg { width: 16px; height: 16px; color: var(--ink-3); }
+.nm .new b { font-weight: 600; }
+
+/* Today: is the window keeping up? hourly arrived vs supplied, on the navy hero */
+.pace { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; align-items: end; }
+.pace > div { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.pace .b { display: flex; align-items: flex-end; justify-content: center; gap: 2px; height: 40px; width: 100%; }
+.pace .b i { display: block; width: 7px; border-radius: 3px 3px 0 0; }
+.pace .b i.a { background: var(--on-band); }
+.pace .b i.s { background: #6fb7d1; }
+.pace > div > span { font: 500 11px/1 var(--mono); color: var(--on-band-2); }
+.pace > div.now > span { color: var(--on-band); font-weight: 600; }
+.read { margin: 0; font-size: 13px; line-height: 19px; color: var(--on-band-2); }
+.read b { color: var(--on-band); font-weight: 600; }
+/* where the queue is waiting: one row per stage, bar = how many, figure = oldest */
+.stw { display: flex; flex-direction: column; gap: 3px; padding-top: 8px; border-top: 1px solid var(--navy-600); }
+.stw > div { display: grid; grid-template-columns: 118px minmax(0, 1fr) 26px 72px; gap: 8px; align-items: center; font-size: 12.5px; color: var(--on-band-2); }
+.stw .bar { height: 8px; border-radius: 4px; background: var(--navy-700); overflow: hidden; }
+.stw .bar i { display: block; height: 100%; border-radius: 4px; background: #6fb7d1; }
+.stw b { font: 600 13px/1 var(--mono); color: var(--on-band); text-align: right; }
+.stw .o { font: 500 12px/1 var(--mono); text-align: right; white-space: nowrap; }
+.stw .o.w { color: #fcd34d; font-weight: 600; display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.stw .o.w svg { width: 13px; height: 13px; }
+.stw .hd { font: 600 10.5px/14px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-band-2); }
+/* KPI tiles: the last 7 days, today darkest, instead of an unlabelled line */
+.kg .wk { grid-row: 2 / 4; grid-column: 2; display: flex; align-items: flex-end; gap: 3px; width: 92px; height: 34px; }
+.kg .wk i { flex: 1; border-radius: 2px 2px 0 0; background: var(--line-strong); }
+.kg .wk i.t { background: var(--navy-900); }
+.kg .d .up { font: 600 12px/1 var(--mono); color: var(--ink); }
+.kg .d .up.w { color: var(--caution-fg); }
+
+/* compact hero on Today */
+.hero.hero--c { gap: 8px; padding: 14px 16px; }
+.hero--c .hero__v { font-size: 32px; line-height: 34px; }
+.hero--c .hero__v small { font-size: 13px; }
+.hero--c .read { font-size: 12px; line-height: 17px; }
+.hh { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.stq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; padding-top: 8px; border-top: 1px solid var(--navy-600); font-size: 12px; color: var(--on-band-2); }
+.stq span { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
+.stq b { font: 600 13px/1 var(--mono); color: var(--on-band); }
+.stq em { flex-basis: 100%; font: 500 11.5px/1.3 var(--mono); font-style: normal; display: inline-flex; align-items: center; gap: 4px; }
+.stq em.w { color: #fcd34d; font-weight: 600; }
+.stq em svg { width: 12px; height: 12px; }

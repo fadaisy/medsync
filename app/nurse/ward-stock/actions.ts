@@ -10,6 +10,7 @@ import { WARDS } from "@/content/pharmacy-stores-wards";
 import { actionError } from "@/lib/emr/write/context";
 import { logger } from "@/lib/logger";
 import { requireNurseScope } from "@/lib/nurse/scope";
+import * as distribution from "@/lib/pharmacy/distribution/store";
 import { pharmacyWardStockLiveFor } from "@/lib/pharmacy/feature";
 import * as wards from "@/lib/pharmacy/stores/ward-store";
 import { withLocationRight } from "@/lib/pharmacy/stores/write";
@@ -84,4 +85,12 @@ export async function attestOwnFactor(raw: unknown): Promise<ActionResult> {
 /** `confirmIssueReceipt` at the ward (`ward_confirm`, with the confirmer's second factor): IS-3. */
 export async function confirmWardReceipt(raw: unknown) {
   return act(wards.ConfirmReceiptInput, raw, "ward_confirm", wards.confirmWardIssue);
+}
+/** 4.13 the nurse in charge's reason for a ward-use gap (`ward_act`); never a movement (ADR 0464). */
+export async function recordGapReason(raw: unknown) {
+  return act(distribution.GapReasonInput, raw, "ward_act", distribution.recordGapReason);
+}
+/** 4.14 a cart's seal reported broken by the unit's nurse (`ward_act` at the cart; ADR 0465). */
+export async function reportSealBroken(raw: unknown) {
+  return act(distribution.SealBrokenInput, raw, "ward_act", distribution.reportSealBroken);
 }

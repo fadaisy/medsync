@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { resultWords, STORE } from "@/content/pharmacy-stores-store";
+import { scanProductAction } from "@/app/pharmacy/catalogue-actions";
 import { readScan } from "@/lib/pharmacy/stores/scan-fill";
 import { attestStoreWitness } from "../../actions";
 import { PharmacyDialog, Refusal, type PharmacyDialogProps } from "../../../_components/pharmacy-dialog";
@@ -92,11 +93,20 @@ export function ScanField({
   const id = useId();
   const [value, setValue] = useState("");
   const [note, setNote] = useState<string | null>(null);
-  const read = () => {
+  const read = async () => {
     if (!value.trim()) return;
     const o = readScan(value, products);
     setNote(o.note);
     onRead(o);
+    // Catalogue slice Step 7: a GTIN no product here carries may be linked through the catalogue to one of them.
+    if (o.kind === "gs1" && !o.productId && o.scan.gtin) {
+      const r = await scanProductAction({ raw: value });
+      if (r.ok && r.productId && products.some((p) => p.id === r.productId)) {
+        const found = { ...o, productId: r.productId, note: o.note.replace(STORE.scan.unknownGtin, "").trim() };
+        setNote(found.note);
+        onRead(found);
+      }
+    }
   };
   return (
     <div className="flex flex-col gap-1">

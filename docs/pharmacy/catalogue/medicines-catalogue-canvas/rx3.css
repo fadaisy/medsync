@@ -1,0 +1,97 @@
+/* Medicines catalogue and stocking: pieces new to this canvas. */
+
+/* where a value came from: barcode, catalogue, typed, last delivery */
+.from { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; border-radius: 9999px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line); font: 500 11px/1 var(--sans); color: var(--ink-2); white-space: nowrap; }
+.from svg { width: 11px; height: 11px; stroke-width: 2.25; }
+.from--typed { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-strong); color: var(--ink); }
+
+/* the scan field at the top of a receiving form */
+.scanbox { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: var(--navy-900); color: var(--on-band); }
+.scanbox .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--navy-700); color: var(--accent); }
+.scanbox .ic svg { width: 22px; height: 22px; }
+.scanbox b { display: block; font: 600 15px/20px var(--sans); }
+.scanbox span.s { display: block; font-size: 12.5px; color: var(--on-band-2); }
+.scanbox .code { display: block; font: 500 12px/16px var(--mono); color: var(--on-band-2); overflow-wrap: anywhere; }
+.scanbox .kbd { background: var(--navy-700); color: var(--on-band); box-shadow: none; }
+
+/* a received line: product on top, then the fields with their source */
+.rl { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--line); }
+.rl.on { background: var(--accent-tint); }
+.rl__h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rl__h b { font: 600 15px/20px var(--sans); }
+.rl__h .br { font-size: 13px; color: var(--ink-2); }
+.rl__g { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px 14px; padding: 10px 12px; border-radius: 12px; background: var(--bg); }
+.rl.on .rl__g { background: var(--surface); }
+.rl__g .kv b { font-family: var(--sans); font-weight: 600; font-size: 13px; line-height: 18px; }
+.rl__g .kv em { font-style: normal; }
+.rl__sum { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12.5px; color: var(--ink-2); }
+.rl__sum b { color: var(--ink); font-weight: 600; }
+.rl__sum .sp { flex: 1; }
+
+/* search results in the catalogue picker */
+.cr { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; margin: 0 10px; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; }
+.cr.on { background: var(--accent-tint); }
+.cr .ic { grid-row: span 2; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--bg); color: var(--ink-2); }
+.cr .ic svg { width: 17px; height: 17px; }
+.cr b { font-weight: 600; }
+.cr .s { grid-column: 2; font-size: 12px; color: var(--ink-2); }
+.cr mark { background: #fde68a; color: inherit; border-radius: 3px; padding: 0 1px; }
+.facets { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 24px 6px; }
+
+/* the catalogue's layers: one column each, joined by arrows */
+.cat { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; padding: 6px 12px 14px; }
+.cat > div { position: relative; display: flex; flex-direction: column; gap: 6px; margin: 0 10px; padding: 14px; border-radius: 16px; background: var(--bg); min-width: 0; }
+.cat > div + div::before { content: ""; position: absolute; left: -16px; top: 34px; width: 12px; height: 2px; background: var(--line-strong); }
+.cat > div + div::after { content: ""; position: absolute; left: -9px; top: 30px; border: 5px solid transparent; border-left-color: var(--line-strong); }
+.cat .n { font: 600 11px/14px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.cat b { font: 600 15px/20px var(--sans); }
+.cat p { margin: 0; font-size: 12.5px; line-height: 18px; color: var(--ink-2); }
+.cat .eg { font: 500 12px/17px var(--mono); color: var(--ink); padding: 8px 10px; border-radius: 10px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.cat > div.ours { background: var(--accent-tint); }
+.cat .who { font-size: 11.5px; color: var(--ink-3); }
+
+/* names: the preferred name and its other names */
+.names { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.names .pref { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 9999px; background: var(--navy-900); color: var(--on-band); font: 600 13px/1 var(--sans); }
+.names .alt { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 9999px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-strong); font: 500 13px/1 var(--sans); }
+.names .alt small { margin-left: 6px; font: 500 11px/1 var(--sans); color: var(--ink-3); }
+
+/* route and form chips, read-only */
+.rt { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 6px; background: var(--sunken); font: 600 11.5px/1 var(--sans); color: var(--ink); white-space: nowrap; }
+
+/* a price figure with what it is */
+.pr { display: flex; flex-direction: column; gap: 1px; }
+.pr b { font: 600 13px/18px var(--sans); font-variant-numeric: tabular-nums; }
+.pr span { font-size: 11.5px; color: var(--ink-2); }
+.pr .ns { font-weight: 500; color: var(--ink-3); }
+
+/* mapping rows on an import */
+.mp { display: grid; grid-template-columns: minmax(0, 1.2fr) 24px minmax(0, 1.5fr) 160px auto; gap: 6px 12px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 13px; }
+.mp > svg { width: 16px; height: 16px; color: var(--ink-3); }
+.mp .raw { font-family: var(--mono); font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
+
+/* the patient's bill on the phone */
+.bill { display: flex; flex-direction: column; }
+.bill > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 21px; }
+.bill > div:first-child { border-top: 0; }
+.bill .s { grid-column: 1; font-size: 13px; color: var(--ink-2); }
+.bill .v { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.bill .tot { font-size: 17px; }
+.bill .tot .v { font-size: 20px; }
+.payopt { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 14px; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.payopt i { width: 20px; height: 20px; border-radius: 9999px; box-shadow: inset 0 0 0 1.5px var(--line-strong); margin-top: 1px; }
+.payopt.on { background: var(--accent-tint); box-shadow: inset 0 0 0 1.5px var(--accent-pressed); }
+.payopt.on i { box-shadow: inset 0 0 0 6px var(--navy-900); }
+.payopt b { display: block; font-size: 15px; }
+.payopt span { font-size: 13px; color: var(--ink-2); }
+
+/* a group divider row inside a .sc table */
+.sc tr.div td { background: var(--bg); padding: 9px 12px; font-size: 12.5px; }
+.sc tr.div td b { font-weight: 600; margin-right: 8px; }
+
+/* where a medicine is: one row per place, bar = how many */
+.stw2 { display: flex; flex-direction: column; gap: 6px; padding: 4px 18px 16px; }
+.stw2 > div { display: grid; grid-template-columns: 170px minmax(0, 1fr) 48px 190px; gap: 12px; align-items: center; font-size: 13px; }
+.stw2 .bar { height: 10px; border-radius: 5px; background: var(--sunken); overflow: hidden; }
+.stw2 .bar i { display: block; height: 100%; border-radius: 5px; background: var(--navy-700); }
+.stw2 b { font: 600 13px/1 var(--sans); font-variant-numeric: tabular-nums; text-align: right; }

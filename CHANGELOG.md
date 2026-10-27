@@ -5,6 +5,45 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Shared medicines catalogue, Steps 2–11 (dark) — 27 Oct 2026
+
+Built on `feat/pharmacy-catalogue`. Migrations 0251–0259 are GATED and owner-applied; flag `PHARMACY_CATALOGUE`.
+
+- One catalogue above every hospital: substances, medicines, products, packs and codes, each fact from a proposal
+  two curators confirm. The seed from EMHSLU 2023 writes proposals only
+  ([ADR 0456](docs/adr/0456-shared-medicines-catalogue.md)).
+- Search by any name, abbreviation, brand, maker, misspelling, registration number or barcode, each hit saying why;
+  the picker (a centred dialog) and Set-up › Catalogue.
+- Barcodes: the scan parser reads every GS1 element it meets, plain EAN/UPC codes and the serial, and refuses a wrong
+  check digit in words; a link works at its hospital at once and everywhere after the catalogue team checks it;
+  conflicts are shown, never guessed ([ADR 0458](docs/adr/0458-barcode-links-local-first.md)).
+- Your products link to the catalogue (one-match products together), keeping their batches and movements; a health
+  supply typed from the pack is stocked like any other and never prescribed; local medicines wait for the CSO
+  ([ADR 0459](docs/adr/0459-products-link-to-the-catalogue.md)).
+- Receiving with the catalogue: one scan field per delivery (a rescan adds one pack), Ctrl K to pick, packs shown as
+  units before saving, and a coded reason for a lapsed or unregistered product, listed for the in-charge
+  ([ADR 0467](docs/adr/0467-receiving-with-the-catalogue.md)).
+- A hospital's own prices: payers, a free or charged mode per point, a rule that only proposes (with its
+  arithmetic), prices from a date with their history, and stock value; "Price not set" and free, never UGX 0. Pay
+  before collecting is per point, and never holds an emergency or an admitted patient
+  ([ADR 0460](docs/adr/0460-a-hospitals-own-prices.md)).
+- Billable lines for Accounts: each supply's snapshot price, free or price not set, the total, and a version that
+  changes with any line ([ADR 0461](docs/adr/0461-billable-lines.md)).
+- Imports as drafts from CSV: products, opening stock for a store not yet live, and supplier price lists. Every row
+  shows its match and why, a person decides each one, and commit writes only the accepted rows. A different
+  strength is never proposed, and opening stock still needs its blind count
+  ([ADR 0462](docs/adr/0462-imports-as-drafts.md)).
+- Pick by scan on issues: a wrong medicine or strength is refused in words, a later batch needs its coded reason, a
+  pack with no barcode is ticked by hand, and the issue waits for every line's pick; a pick never moves stock
+  ([ADR 0463](docs/adr/0463-pick-by-scan-on-issues.md)).
+- Ward use against the charts, with the nurse in charge's reason from the signed list; on real data every row reads
+  "Not charted from ward stock" until a dose source exists ([ADR 0464](docs/adr/0464-ward-use-against-the-charts.md)).
+- Cart seals: applied at the check, reported broken from the cart page; a broken seal puts the cart on the check
+  list ([ADR 0465](docs/adr/0465-cart-seals-and-signals.md)).
+- Store › Every place: one row per place with how its stock is known, its value, what is out (vital first), what is
+  expiring, stale counts, unconfirmed issues, broken seals and one next step; Follow one medicine shows where it is,
+  its batches and every movement ([ADR 0466](docs/adr/0466-stock-map-and-medicine-trace.md)).
+
 ### Added — Pharmacy Workspace v2, six places (dark) — 27 Oct 2026
 
 Built on `feat/pharmacy-workspace-v2` behind `PHARMACY_WORKSPACE_V2` (off in production while the copy is draft). No migrations.

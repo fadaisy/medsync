@@ -13,6 +13,8 @@ import {
   DELIVERY_FROM,
   STOCK,
 } from "@/content/pharmacy-stock";
+import { CataloguePicker } from "@/app/pharmacy/_components/catalogue-picker";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import * as actions from "../actions";
 import { PharmacyDialog, type PharmacyDialogProps } from "../../_components/pharmacy-dialog";
 
@@ -626,7 +628,9 @@ export function CorrectDialog({
 
 /* ─── Products ────────────────────────────────────────────────────────── */
 
-function ProductFields({ prefix = "" }: { prefix?: string }) {
+type ProductFill = Partial<Record<keyof ReturnType<typeof productOf>, string>>;
+
+function ProductFields({ prefix = "", fill = {} }: { prefix?: string; fill?: ProductFill }) {
   const ids = {
     name: useId(),
     manufacturer: useId(),
@@ -641,6 +645,7 @@ function ProductFields({ prefix = "" }: { prefix?: string }) {
         <Input
           id={ids.name}
           name={`${prefix}name`}
+          defaultValue={fill.name}
           required
           minLength={2}
           maxLength={160}
@@ -648,15 +653,18 @@ function ProductFields({ prefix = "" }: { prefix?: string }) {
         />
       </Field>
       <Field label={STOCK.product.strength} id={ids.strength}>
-        <Input id={ids.strength} name={`${prefix}strength`} maxLength={80} className={TARGET} />
+        <Input id={ids.strength} name={`${prefix}strength`}
+          defaultValue={fill.strength} maxLength={80} className={TARGET} />
       </Field>
       <Field label={STOCK.product.packSize} id={ids.pack}>
-        <Input id={ids.pack} name={`${prefix}packSize`} maxLength={80} className={TARGET} />
+        <Input id={ids.pack} name={`${prefix}packSize`}
+          defaultValue={fill.packSize} maxLength={80} className={TARGET} />
       </Field>
       <Field label={STOCK.product.issueUnit} id={ids.unit}>
         <Input
           id={ids.unit}
           name={`${prefix}issueUnit`}
+          defaultValue={fill.issueUnit}
           required
           maxLength={40}
           className={TARGET}
@@ -666,6 +674,7 @@ function ProductFields({ prefix = "" }: { prefix?: string }) {
         <Input
           id={ids.manufacturer}
           name={`${prefix}manufacturer`}
+          defaultValue={fill.manufacturer}
           maxLength={160}
           className={TARGET}
         />
@@ -674,6 +683,7 @@ function ProductFields({ prefix = "" }: { prefix?: string }) {
         <Input
           id={ids.reg}
           name={`${prefix}registrationNumber`}
+          defaultValue={fill.registrationNumber}
           maxLength={80}
           className={TARGET}
         />
@@ -694,12 +704,17 @@ const productOf = (d: FormData, prefix = "") => ({
 export function AddProductDialog({
   medicines,
   medicineId,
+  catalogue = false,
 }: {
   /** The medicine list (CT-1). A controlled medicine's product is added here; it moves with a witness. */
   medicines?: { id: string; name: string }[];
   medicineId?: string;
+  /** Catalogue slice Step 7: pick the pack from the catalogue to fill the fields and link it. */
+  catalogue?: boolean;
 }) {
   const id = useId();
+  const [picker, setPicker] = useState(false);
+  const [pick, setPick] = useState<{ packId: string | null; fill: ProductFill } | null>(null);
   return (
     <StockDialog
       label={STOCK.actions.addProduct}
@@ -707,15 +722,47 @@ export function AddProductDialog({
       description={STOCK.product.unitLocks}
       submit={STOCK.product.submit}
       width="wide"
+      onOpen={() => setPick(null)}
       onSave={async (clientKey, d) => {
         return actions.addProduct({
           clientKey,
           medicineId: medicineId ?? str(d, "medicineId"),
           ...productOf(d),
+          cataloguePackId: pick?.packId ?? null,
         });
       }}
     >
-      <div className="grid gap-4 sm:grid-cols-3">
+      {catalogue ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setPicker(true)}
+            className="text-body-s text-primary self-start underline-offset-4 hover:underline"
+          >
+            {CATALOGUE.receive.pickTitle}
+          </button>
+          <CataloguePicker
+            open={picker}
+            onOpenChange={setPicker}
+            onPick={(p) => {
+              if (p.kind !== "pack") return;
+              const m = p.medicine;
+              setPick({
+                packId: p.pack.packId,
+                fill: {
+                  name: [p.pack.brand ?? m.displayName, m.strength].filter(Boolean).join(" "),
+                  strength: m.strength ?? undefined,
+                  packSize: p.pack.packId ? p.pack.description : undefined,
+                  issueUnit: m.issueUnit ?? undefined,
+                  manufacturer: p.pack.maker ?? undefined,
+                  registrationNumber: p.pack.ndaNumber ?? undefined,
+                },
+              });
+            }}
+          />
+        </>
+      ) : null}
+      <div key={pick?.packId ?? "typed"} className="grid gap-4 sm:grid-cols-3">
         {medicineId ? null : (
           <Field label={STOCK.product.medicine} id={id}>
             <select id={id} name="medicineId" required className={SELECT} defaultValue="">
@@ -730,7 +777,7 @@ export function AddProductDialog({
             </select>
           </Field>
         )}
-        <ProductFields />
+        <ProductFields fill={pick?.fill} />
       </div>
     </StockDialog>
   );

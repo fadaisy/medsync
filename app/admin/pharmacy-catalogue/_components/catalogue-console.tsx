@@ -72,7 +72,7 @@ const describe = (c: Candidate) =>
     .join(" · ");
 
 /** One write with the fresh-factor retry and a spoken result. */
-function useWrite() {
+export function useWrite() {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [retry, setRetry] = useState<{ fn: () => Promise<ActionResult>; done: string } | null>(
@@ -108,10 +108,10 @@ type Tab = "single" | "choose" | "check" | "linked";
 const PAGE = 15;
 
 /** One line per item: name, detail, action. Stacks below `md`. */
-const ROW =
+export const ROW =
   "grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1.5 px-4 py-2.5 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_auto] md:items-center";
 /** The action cell: beside the text on a phone, its own column from `md`. */
-const ACT =
+export const ACT =
   "col-start-2 row-span-2 row-start-1 flex flex-wrap items-center justify-end gap-2 self-center md:col-start-auto md:row-span-1 md:row-start-auto";
 const HEAD = `${ROW} text-caption text-muted-foreground bg-muted hidden font-medium md:grid`;
 const SELECT =

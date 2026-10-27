@@ -219,6 +219,8 @@ describe("source rules", () => {
     // (Step 6), controlled (Step 7), downtime (Step 8) and messages (Step 9) actions.
     expect(actions).toEqual([
       "app/pharmacy/actions.ts",
+      // The shared catalogue (ADR 0456): the picker's reads, and a barcode link through runPharmacyWrite.
+      "app/pharmacy/catalogue-actions.ts",
       // Pharmacy Phase 3: Clinical content (Step 4).
       "app/pharmacy/clinical/actions.ts",
       "app/pharmacy/controlled-actions.ts",

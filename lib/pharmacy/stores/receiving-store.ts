@@ -1,9 +1,11 @@
 import type { DeliveryLine, LineRefusal } from "./receiving";
 import type { EmrTx } from "@/lib/emr/db";
+import type { Registration } from "@/lib/pharmacy/shared-catalogue/receive";
 import type { PharmacyCtx } from "@/lib/pharmacy/write";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { STORE } from "@/content/pharmacy-stores-store";
 import {
   pharmacyBatches,
@@ -16,6 +18,14 @@ import {
   pharmacyOrderLines,
   pharmacyOrders,
 } from "@/db/schema/pharmacy-stores";
+import { rowsOf } from "@/lib/exchange/store";
+import { pharmacyCatalogueLiveFor } from "@/lib/pharmacy/feature";
+import {
+  packsToUnits,
+  registrationState,
+  rescanTarget,
+} from "@/lib/pharmacy/shared-catalogue/receive";
+import { resolveScan } from "@/lib/pharmacy/shared-catalogue/scan";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import {
   controlledSet,
@@ -161,6 +171,13 @@ export const DeliveryLineInput = z
       .or(z.literal("").transform(() => null)),
     shortDatedDecision: z.enum(["accept", "accept_tell", "reject"]).nullish(),
     note: optional(300),
+    // Catalogue slice Step 7 (0256).
+    packs: qty.nullish(),
+    identitySource: z.enum(["scan", "catalogue", "typed"]).nullish(),
+    registrationReason: z
+      .enum(["donation", "no_registered_alternative", "renewal_pending", "other"])
+      .nullish(),
+    registrationNote: optional(300),
   })
   .refine((v) => v.rejectedKept + v.rejectedReturned === 0 || !!v.rejectReason, {
     message: "Say why it was rejected.",
@@ -182,8 +199,20 @@ export async function saveDeliveryLine(ctx: PharmacyCtx, input: z.infer<typeof D
     await ctx.tx.delete(pharmacyDeliveryLines).where(where);
     return { id: d.id };
   }
-  await productAt(ctx.tx, ctx.actor.hospitalId, input.productId);
+  const product = await productAt(ctx.tx, ctx.actor.hospitalId, input.productId);
   if (input.noteProductId) await productAt(ctx.tx, ctx.actor.hospitalId, input.noteProductId);
+  const facts = await catalogueFacts(ctx.tx, product.id, ctx.actor.hospitalId);
+  const R = CATALOGUE.receive;
+  if (input.packs != null) {
+    const units = packsToUnits(input.packs, facts.contents);
+    if (units === null) throw fail("invalid", R.notWhole(product.issueUnit));
+    if (units !== input.accepted) throw fail("invalid", R.mismatch);
+  }
+  const entering = input.accepted + input.rejectedKept > 0;
+  if (facts.registration && entering && !input.registrationReason)
+    throw fail("invalid", R.registration.needed(input.lineNo, facts.registration));
+  if (input.registrationReason === "other" && (input.registrationNote ?? "").length < 3)
+    throw fail("invalid", R.registration.noteNeeded);
   if (input.orderLineId) {
     const [ol] = await ctx.tx
       .select({ id: pharmacyOrderLines.id })
@@ -214,6 +243,11 @@ export async function saveDeliveryLine(ctx: PharmacyCtx, input: z.infer<typeof D
     unitCost: input.unitCost ?? null,
     shortDatedDecision: input.shortDatedDecision ?? null,
     note: input.note,
+    packs: input.packs ?? null,
+    packContents: input.packs != null ? facts.contents : null,
+    identitySource: input.identitySource ?? null,
+    registrationReason: facts.registration ? (input.registrationReason ?? null) : null,
+    registrationNote: facts.registration ? input.registrationNote : null,
     updatedAt: ctx.now,
   };
   const [row] = await ctx.tx
@@ -225,6 +259,231 @@ export async function saveDeliveryLine(ctx: PharmacyCtx, input: z.infer<typeof D
     })
     .returning({ id: pharmacyDeliveryLines.id });
   return { id: row!.id };
+}
+
+export interface CatalogueFacts {
+  /** The pack's whole contents in issue units, or null (count in issue units, Law 4). */
+  contents: number | null;
+  registration: Registration;
+}
+
+/** What the catalogue says of the hospital's products at receipt (one, or all): pack contents and registration. */
+export async function productCatalogueFacts(
+  tx: EmrTx,
+  hospitalId: string,
+  productId?: string,
+): Promise<Map<string, CatalogueFacts>> {
+  if (!pharmacyCatalogueLiveFor(hospitalId)) return new Map();
+  const rows = rowsOf<{
+    id: string;
+    contents: number | null;
+    nda_state: string | null;
+    answer: string | null;
+    registration_number: string | null;
+  }>(
+    await tx.execute(sql`
+      SELECT p.id, k.contents, c.nda_state, r.payload->'registration'->>'answer' AS answer, p.registration_number
+        FROM public.pharmacy_products p
+        LEFT JOIN public.cat_packs k ON k.id = p.catalogue_pack_id
+        LEFT JOIN public.cat_products c ON c.id = k.product_id
+        LEFT JOIN public.cat_proposals r ON r.id = p.local_proposal_id
+       WHERE p.hospital_id = ${hospitalId} ${productId ? sql`AND p.id = ${productId}` : sql``}`),
+  );
+  return new Map(
+    rows.map((f) => [
+      f.id,
+      {
+        contents: f.contents,
+        registration: registrationState({
+          ndaState: f.nda_state,
+          answer: f.answer,
+          registrationNumber: f.registration_number,
+        }),
+      },
+    ]),
+  );
+}
+
+const NO_FACTS: CatalogueFacts = { contents: null, registration: null };
+export const catalogueFacts = async (tx: EmrTx, productId: string, hospitalId: string) =>
+  (await productCatalogueFacts(tx, hospitalId, productId)).get(productId) ?? NO_FACTS;
+
+/** The hospital's active products linked to a catalogue pack (Law 5: the caller uses it only when there is one). */
+export async function productsForPack(tx: EmrTx, hospitalId: string, packId: string) {
+  return rowsOf<{ id: string }>(
+    await tx.execute(sql`SELECT id FROM public.pharmacy_products
+      WHERE hospital_id = ${hospitalId} AND active AND catalogue_pack_id = ${packId}`),
+  ).map((r) => r.id);
+}
+
+export const DeliveryScanInput = z.object({
+  deliveryId: z.uuid(),
+  raw: z.string().trim().min(1).max(300),
+});
+
+export type DeliveryScanResult =
+  | { id: string; kind: "added" | "rescan"; lineNo: number; counted: number; note: string }
+  | { id: string; kind: "unknown"; gtin: string | null; note: string }
+  | {
+      id: string;
+      kind: "refused" | "no_product" | "several" | "conflict" | "text" | "no_contents";
+      note: string;
+    };
+
+/**
+ * 4.1 The scan field (catalogue slice Step 7, D-CAT-09). The code resolves through the hospital's own product, its
+ * local link, then the shared link (`resolveScan`); a pack resolves to the one product linked to it here, never a
+ * guess. The same product and batch again adds one pack to its line and says so; otherwise a new line opens with
+ * the batch and expiry a 2D code gives and one pack counted. Nothing moves until the delivery is received.
+ */
+export async function scanIntoDelivery(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof DeliveryScanInput>,
+): Promise<DeliveryScanResult> {
+  const h = ctx.actor.hospitalId;
+  const d = await counting(ctx.tx, h, input.deliveryId);
+  const R = CATALOGUE.receive;
+  const r = await resolveScan(ctx.tx, h, input.raw);
+  const id = d.id;
+  if (r.kind === "refused") return { id, kind: "refused", note: CATALOGUE.checkDigit };
+  if (r.kind === "text") return { id, kind: "text", note: R.text };
+  if (r.kind === "conflict") return { id, kind: "conflict", note: R.conflict };
+  if (r.kind === "unknown")
+    return { id, kind: "unknown", gtin: r.scan.gtin, note: CATALOGUE.newBarcodeTitle };
+  let productId: string;
+  if (r.kind === "product") productId = r.productId;
+  else {
+    const linked = await productsForPack(ctx.tx, h, r.packId);
+    if (linked.length === 0) return { id, kind: "no_product", note: R.noProduct };
+    if (linked.length > 1) return { id, kind: "several", note: R.severalProducts };
+    productId = linked[0]!;
+  }
+  const product = await productAt(ctx.tx, h, productId);
+  const { contents } = await catalogueFacts(ctx.tx, productId, h);
+  const lines = await ctx.tx
+    .select()
+    .from(pharmacyDeliveryLines)
+    .where(eq(pharmacyDeliveryLines.deliveryId, d.id));
+  const scan = r.scan;
+  const target = rescanTarget(lines, productId, scan?.batch ?? null);
+  const serial = scan?.serial ? [scan.serial] : [];
+  if (target !== null) {
+    const line = lines.find((l) => l.lineNo === target)!;
+    if (contents === null || (line.packs === null && line.acceptedQuantity > 0))
+      return { id, kind: "no_contents", note: R.noContents(target) };
+    const packs = (line.packs ?? 0) + 1;
+    await ctx.tx
+      .update(pharmacyDeliveryLines)
+      .set({
+        packs,
+        packContents: contents,
+        acceptedQuantity: packs * contents,
+        serials: [...(line.serials ?? []), ...serial],
+        updatedAt: ctx.now,
+      })
+      .where(eq(pharmacyDeliveryLines.id, line.id));
+    return { id, kind: "rescan", lineNo: target, counted: packs, note: CATALOGUE.rescan(packs) };
+  }
+  const lineNo = Math.max(0, ...lines.map((l) => l.lineNo)) + 1;
+  await ctx.tx.insert(pharmacyDeliveryLines).values({
+    deliveryId: d.id,
+    lineNo,
+    productId: product.id,
+    acceptedQuantity: contents ?? 0,
+    packs: contents === null ? null : 1,
+    packContents: contents,
+    batchNumber: scan?.batch ?? null,
+    expiry: scan?.expiry ?? null,
+    expiryMonthOnly: scan?.expiryMonthOnly ?? false,
+    serials: serial.length ? serial : null,
+    identitySource: "scan",
+    updatedAt: ctx.now,
+  });
+  return {
+    id,
+    kind: "added",
+    lineNo,
+    counted: contents === null ? 0 : 1,
+    note: contents === null ? `${R.added(lineNo)} ${R.noContents(lineNo)}` : R.added(lineNo),
+  };
+}
+
+export const DeliveryPickInput = z
+  .object({ deliveryId: z.uuid(), productId: z.uuid().nullish(), packId: z.uuid().nullish() })
+  .refine((v) => !!v.productId !== !!v.packId, "Pick one product or one pack.");
+
+/**
+ * 4.1 Ctrl K: a product (or a catalogue pack linked to exactly one product here) picked from the catalogue opens a
+ * line with nothing counted yet; the line is then counted in its own dialog. `identity_source` is `catalogue`.
+ */
+export async function pickIntoDelivery(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof DeliveryPickInput>,
+): Promise<DeliveryScanResult> {
+  const h = ctx.actor.hospitalId;
+  const d = await counting(ctx.tx, h, input.deliveryId);
+  const R = CATALOGUE.receive;
+  let productId = input.productId ?? null;
+  if (!productId) {
+    const linked = await productsForPack(ctx.tx, h, input.packId!);
+    if (linked.length !== 1)
+      return {
+        id: d.id,
+        kind: linked.length ? "several" : "no_product",
+        note: linked.length ? R.severalProducts : R.noProduct,
+      };
+    productId = linked[0]!;
+  }
+  await productAt(ctx.tx, h, productId);
+  const [last] = await ctx.tx
+    .select({ n: sql<number>`coalesce(max(${pharmacyDeliveryLines.lineNo}), 0)::int` })
+    .from(pharmacyDeliveryLines)
+    .where(eq(pharmacyDeliveryLines.deliveryId, d.id));
+  const lineNo = (last?.n ?? 0) + 1;
+  await ctx.tx.insert(pharmacyDeliveryLines).values({
+    deliveryId: d.id,
+    lineNo,
+    productId,
+    acceptedQuantity: 0,
+    identitySource: "catalogue",
+    updatedAt: ctx.now,
+  });
+  return { id: d.id, kind: "added", lineNo, counted: 0, note: R.added(lineNo) };
+}
+
+/** 4.3 for a delivery: the order's lines not counted yet whose product has a catalogue pack (never a guess). */
+export async function orderCandidates(tx: EmrTx, hospitalId: string, deliveryId: string) {
+  return rowsOf<{ product_id: string; medicine_id: string; pack_id: string }>(
+    await tx.execute(sql`
+      SELECT DISTINCT p.id AS product_id, p.catalogue_medicine_id AS medicine_id, p.catalogue_pack_id AS pack_id
+        FROM public.pharmacy_deliveries d
+        JOIN public.pharmacy_order_lines o ON o.order_id = d.order_id
+        JOIN public.pharmacy_products p ON p.id = o.product_id AND p.catalogue_pack_id IS NOT NULL
+       WHERE d.id = ${deliveryId} AND d.hospital_id = ${hospitalId}
+         AND NOT EXISTS (SELECT 1 FROM public.pharmacy_delivery_lines l WHERE l.delivery_id = d.id AND l.product_id = p.id)`),
+  );
+}
+
+/** Law 9, D-CAT-08: lines received with a registration reason, newest first, for the in-charge. */
+export async function registrationList(tx: EmrTx, hospitalId: string) {
+  return rowsOf<{
+    delivery_id: string;
+    note_number: string;
+    line_no: number;
+    product: string;
+    reason: string;
+    note: string | null;
+    received_at: string | null;
+  }>(
+    await tx.execute(sql`
+      SELECT d.id AS delivery_id, d.note_number, l.line_no, p.name AS product, l.registration_reason AS reason,
+             l.registration_note AS note, d.finished_at AS received_at
+        FROM public.pharmacy_delivery_lines l
+        JOIN public.pharmacy_deliveries d ON d.id = l.delivery_id
+        JOIN public.pharmacy_products p ON p.id = l.product_id
+       WHERE d.hospital_id = ${hospitalId} AND d.state = 'received' AND l.registration_reason IS NOT NULL
+       ORDER BY d.finished_at DESC, l.line_no LIMIT 200`),
+  );
 }
 
 export const ShortDatedInput = z.object({
@@ -374,6 +633,10 @@ export async function receiveDelivery(
   for (const line of lines) {
     const p = await productAt(ctx.tx, h, line.productId);
     if (line.acceptedQuantity + line.rejectedKeptQuantity === 0) continue;
+    // Law 9: a scanned line skips the line dialog, so the reason is checked again here.
+    const { registration } = await catalogueFacts(ctx.tx, p.id, h);
+    if (registration && !stored.find((s) => s.lineNo === line.lineNo)?.registrationReason)
+      throw fail("conflict", CATALOGUE.receive.registration.needed(line.lineNo, registration));
     witness.set(
       line.lineNo,
       await storeWitness(ctx, controlled(p.medicineId), witnessOf.get(line.lineNo)),

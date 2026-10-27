@@ -8,6 +8,8 @@ import type { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 
+import * as dist from "@/lib/pharmacy/distribution/store";
+import { pharmacyCatalogueLiveFor } from "@/lib/pharmacy/feature";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import * as stock from "@/lib/pharmacy/stock/store";
 import * as carts from "@/lib/pharmacy/stores/cart-store";
@@ -399,6 +401,14 @@ async function requisition(s: DemoState, w: Ward, lines: { productId: string; qu
     answers.push({ lineId: l.id, quantity: n, notIssuedReason: n > 0 ? null : "Demo: not enough at the pharmacy" });
   }
   if (!answers.some((a) => a.quantity > 0)) return null;
+  // Catalogue slice Step 10: with the check on, each issued line is picked first (ticked by hand here).
+  if (pharmacyCatalogueLiveFor(s.h))
+    for (const a of answers.filter((a) => a.quantity > 0))
+      await write(s, chiefActor(s, null), dist.RecordPickInput, STORE, dist.recordPick, {
+        requisitionId: r.id,
+        lineId: a.lineId,
+        raw: null,
+      }, issued);
   const done = await write(s, chiefActor(s, null), issues.IssueRequisitionInput, STORE, issues.issueRequisition, {
     requisitionId: r.id,
     lines: answers,

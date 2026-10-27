@@ -1,0 +1,204 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-27T13:40:00Z"
+ },
+ "title": "Medicines Catalogue and Stocking",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 1180,
+   "title": "0 Read me: one catalogue, five layers, prices",
+   "expand": "fill"
+  },
+  "Receive.dc.html": {
+   "x": 1520,
+   "y": 0,
+   "w": 1440,
+   "h": 1240,
+   "title": "1 Count a delivery: scan, pick or type",
+   "expand": "fill"
+  },
+  "Pick.dc.html": {
+   "x": 3040,
+   "y": 0,
+   "w": 1440,
+   "h": 940,
+   "title": "2 Pick from the catalogue: any name finds the generic",
+   "expand": "fill"
+  },
+  "NewBarcode.dc.html": {
+   "x": 4560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "3 A new barcode: link it once",
+   "expand": "fill"
+  },
+  "Manual.dc.html": {
+   "x": 6080,
+   "y": 0,
+   "w": 1440,
+   "h": 1000,
+   "title": "4 Not in the catalogue: typed, then checked",
+   "expand": "fill"
+  },
+  "Medicine.dc.html": {
+   "x": 0,
+   "y": 1660,
+   "w": 1440,
+   "h": 1160,
+   "title": "5 A medicine: names, forms, brands, packs",
+   "expand": "fill"
+  },
+  "Prices.dc.html": {
+   "x": 1520,
+   "y": 1660,
+   "w": 1440,
+   "h": 1120,
+   "title": "6 Products and prices",
+   "expand": "fill"
+  },
+  "Import.dc.html": {
+   "x": 3040,
+   "y": 1660,
+   "w": 1440,
+   "h": 1000,
+   "title": "7 Import a spreadsheet as a draft",
+   "expand": "fill"
+  },
+  "Curate.dc.html": {
+   "x": 4560,
+   "y": 1660,
+   "w": 1440,
+   "h": 1000,
+   "title": "8 MedSync catalogue team",
+   "expand": "fill"
+  },
+  "Bill.dc.html": {
+   "x": 6080,
+   "y": 1660,
+   "w": 390,
+   "h": 1080,
+   "title": "9 The patient's bill on the phone (later slice)"
+  },
+  "StockMap.dc.html": {
+   "x": 0,
+   "y": 3220,
+   "w": 1440,
+   "h": 1180,
+   "title": "10 Every place that holds medicines, and how each is known",
+   "expand": "fill"
+  },
+  "Requisition.dc.html": {
+   "x": 1520,
+   "y": 3220,
+   "w": 1440,
+   "h": 1120,
+   "title": "11 Issue a requisition: pick by scan, first expiry first",
+   "expand": "fill"
+  },
+  "Confirm.dc.html": {
+   "x": 3040,
+   "y": 3220,
+   "w": 390,
+   "h": 960,
+   "title": "12 The ward confirms arrival (phone)"
+  },
+  "Ward.dc.html": {
+   "x": 3510,
+   "y": 3220,
+   "w": 1440,
+   "h": 1100,
+   "title": "13 A ward's stock: counted use against charted doses",
+   "expand": "fill"
+  },
+  "Cart.dc.html": {
+   "x": 5030,
+   "y": 3220,
+   "w": 1440,
+   "h": 1120,
+   "title": "14 Check and restock an emergency cart",
+   "expand": "fill"
+  },
+  "Trace.dc.html": {
+   "x": 6550,
+   "y": 3220,
+   "w": 1440,
+   "h": 1080,
+   "title": "15 Follow one medicine through the hospital",
+   "expand": "fill"
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Receive.dc.html",
+  "Pick.dc.html",
+  "NewBarcode.dc.html",
+  "Manual.dc.html",
+  "Medicine.dc.html",
+  "Prices.dc.html",
+  "Import.dc.html",
+  "Curate.dc.html",
+  "Bill.dc.html",
+  "StockMap.dc.html",
+  "Requisition.dc.html",
+  "Confirm.dc.html",
+  "Ward.dc.html",
+  "Cart.dc.html",
+  "Trace.dc.html"
+ ],
+ "notes": {
+  "rowA": {
+   "x": 0,
+   "y": -280,
+   "text": "Getting stock in with less typing",
+   "kind": "title1",
+   "maxW": 7520
+  },
+  "rowB": {
+   "x": 0,
+   "y": 1380,
+   "text": "The catalogue, prices and what comes next",
+   "kind": "title1",
+   "maxW": 7030
+  },
+  "disclaimer": {
+   "x": -420,
+   "y": 0,
+   "w": 340,
+   "text": "Illustrative. Brands are demo brands, registration numbers are [placeholders], barcodes are GS1 example numbers, and prices, counts and statistics are examples. Strengths are pack facts used as examples, not doses; patient views show [strength].",
+   "fill": "gray"
+  },
+  "source": {
+   "x": -420,
+   "y": 520,
+   "w": 340,
+   "text": "Builds on the stock ledger as built (Pharmacy Phases 1 and 2, feat/pharmacy-demo) and the Pharmacy Workspace v2 places. The ledger, FEFO, counts and witnesses do not change; this adds a shared catalogue above the hospital's products, scanning, a manual path with review, prices, and an import.",
+   "fill": "gray"
+  },
+  "rowC": {
+   "x": 0,
+   "y": 2940,
+   "text": "From the store to every place, and keeping track of it",
+   "kind": "title1",
+   "maxW": 7990
+  }
+ },
+ "designSystems": [
+  {
+   "title": "MedSync Tide",
+   "namespace": "medsync-tide",
+   "artifact": "https://claude.ai/artifact/5vvCpkVoYk8G11PtLaSRuk",
+   "version": "1792404157-5449",
+   "copiedAt": "2026-10-27T13:40:00Z"
+  }
+ ]
+}

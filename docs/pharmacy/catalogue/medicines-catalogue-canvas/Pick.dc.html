@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pick from the catalogue</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+<link rel="stylesheet" href="rx3.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 940px">
+<nav class="rail" aria-label="Pharmacy places">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Window<span class="rail__n">61</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Shelf</a>
+<a href="Receive.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>Store<span class="rail__n">4</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>Clinical<span class="rail__n">6</span></a>
+<a href="Prices.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharm Guy, pharmacist, signed in with MFA. Open the account menu">PG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Pharmacy · Main store</span><h1>Count a delivery</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a patient, prescription, batch, slip code or page" placeholder="Find a patient, prescription, batch, slip code or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Working at ALVIN Ward, live. Change">ALVIN Ward <span>· Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a><a class="needs" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Needs you <b>12</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<section class="card" style="height: 760px"></section>
+<div style="position: fixed; inset: 0">
+<div class="dim"></div>
+<div class="dlg" role="dialog" aria-label="Add a line from the catalogue" style="width: 980px; margin-left: 0">
+<div class="pal__in"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>acetaminophen<span class="sp" style="flex: 1"></span><span class="kbd">Esc</span></div>
+<div class="facets" style="padding-top: 12px"><span class="small" style="align-self: center">Form</span><a class="chip on" href="#">All</a><a class="chip" href="#">Tablet <span class="n">3</span></a><a class="chip" href="#">Oral liquid <span class="n">2</span></a><a class="chip" href="#">Suppository <span class="n">1</span></a><a class="chip" href="#">Injection <span class="n">1</span></a></div>
+<div class="cols" style="grid-template-columns: minmax(0, 1fr) 400px; gap: 0; border-top: 1px solid var(--line)">
+<div style="padding: 10px 0; border-right: 1px solid var(--line)">
+<div class="pal__g ov">Medicines · generic name first</div>
+<div class="cr on"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span><b>Paracetamol 500 mg tablet</b><span class="rt">Oral</span><span class="s">Also called <mark>acetaminophen</mark> · EMHSLU · 6 brands, 9 packs</span></div>
+<div class="cr"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span><b>Paracetamol 120 mg/5 mL oral suspension</b><span class="rt">Oral</span><span class="s">Also called <mark>acetaminophen</mark> · EMHSLU · 4 brands</span></div>
+<div class="cr"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span><b>Paracetamol 125 mg suppository</b><span class="rt">Rectal</span><span class="s">Also called <mark>acetaminophen</mark> · EMHSLU · 1 brand</span></div>
+<div class="cr"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span><b>Paracetamol 10 mg/mL infusion</b><span class="rt">IV</span><span class="s">Also called <mark>acetaminophen</mark> · not on EMHSLU · 2 brands</span></div>
+<div class="pal__g ov">Brands</div>
+<div class="cr"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5"/></svg></span><b>Demo brand P</b><span></span><span class="s">Paracetamol 500 mg tablet · Demo Labs (U) Ltd</span></div>
+<div class="pal__g ov">Your products</div>
+<div class="cr"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg></span><b>Paracetamol 500 mg tablet · tin of 1,000</b><span class="small">held at 6 places</span><span class="s">Last received Mon 26 Oct at UGX 42,000 a tin</span></div>
+</div>
+<div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 12px">
+<div><span class="ov">Paracetamol 500 mg tablet</span><div class="names" style="margin-top: 8px"><span class="pref">Paracetamol</span><span class="alt">acetaminophen<small>USAN</small></span><span class="alt">APAP<small>abbrev.</small></span></div></div>
+<div class="small">Pick the pack that arrived. Strength, form, route and pack size come with it.</div>
+<div class="opt on"><b style="font-size: 13px">Demo brand P · tin of 1,000</b><span>Demo Labs (U) Ltd · GTIN 6009880123457 · you hold this</span></div>
+<div class="opt"><b style="font-size: 13px">Demo brand P · blister 10 × 10</b><span>Demo Labs (U) Ltd · GTIN known</span></div>
+<div class="opt"><b style="font-size: 13px">Demo brand Q · blister 10 × 10</b><span>Demo Generics, India · no barcode yet</span></div>
+<div class="opt"><b style="font-size: 13px">Unbranded · loose tablets</b><span>Count in tablets; no pack</span></div>
+<a class="small" href="Manual.dc.html">The pack that came is not here</a>
+</div>
+</div>
+<div class="dlg__f"><span class="small">↑↓ move · Enter picks the pack · the line opens with batch, expiry and counts to fill</span><span class="sp"></span><button class="btn">Cancel</button><button class="btn btn--p">Add this pack</button></div>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":940}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -519,7 +519,7 @@ export function OpeningCountDialog({
                     batchNumber: o.scan.batch ?? r.batchNumber,
                     expiry: o.scan.expiry ? expiryForField(o.scan) : r.expiry,
                   });
-                else {
+                else if (o.kind === "text") {
                   const hit = productByText(products, o.text);
                   if (hit) set(r.key, { productId: hit });
                 }

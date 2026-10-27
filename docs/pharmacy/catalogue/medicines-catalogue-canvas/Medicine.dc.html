@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A medicine in the catalogue</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+<link rel="stylesheet" href="rx3.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1160px">
+<nav class="rail" aria-label="Pharmacy places">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Window<span class="rail__n">61</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Shelf</a>
+<a href="Receive.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>Store<span class="rail__n">4</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>Clinical<span class="rail__n">6</span></a>
+<a href="Prices.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharm Guy, pharmacist, signed in with MFA. Open the account menu">PG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Pharmacy · Set-up · Catalogue</span><h1>Amoxicillin</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a patient, prescription, batch, slip code or page" placeholder="Find a patient, prescription, batch, slip code or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Working at ALVIN Ward, live. Change">ALVIN Ward <span>· Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a><a class="needs" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Needs you <b>12</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Set-up"><a class="on" href="#" aria-current="page">Catalogue</a><a href="Prices.dc.html">Products and prices</a><a href="Import.dc.html">Import</a><a href="#">Signed packs</a><a href="#">Places and suppliers</a><a href="#">Downtime records</a></nav>
+<span class="row__sp"></span><a class="btn btn--t btn--s" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Report a mistake</a>
+</div>
+<section class="card">
+<div class="card__b">
+<div class="row"><span class="names"><span class="pref">Amoxicillin</span><span class="alt">amoxycillin<small>former BAN</small></span><span class="alt">amoxicilline<small>French</small></span></span><span class="row__sp"></span><span class="small">Penicillin · ATC J01CA04 · EMHSLU: 4 medicines · catalogue v 2026.10</span></div>
+</div>
+</section>
+
+<section class="card">
+<div class="card__h"><h2>Medicines</h2><span class="sp"></span><span class="small">Substance, strength, form and route. This is what a prescriber writes.</span></div>
+<table class="sc">
+<thead><tr><th>Medicine</th><th>Route</th><th>Issue unit</th><th>National list</th><th class="n">Brands</th><th class="n">Packs</th><th>At this hospital</th></tr></thead>
+<tbody>
+<tr><td><b>Amoxicillin 250 mg dispersible tablet</b></td><td><span class="rt">Oral</span></td><td>tablet</td><td>HC2 · Vital</td><td class="n">5</td><td class="n">8</td><td>2 products · 5 places</td></tr>
+<tr><td><b>Amoxicillin 500 mg capsule</b></td><td><span class="rt">Oral</span></td><td>capsule</td><td>HC3 · Essential</td><td class="n">7</td><td class="n">11</td><td>1 product · 6 places</td></tr>
+<tr><td><b>Amoxicillin 125 mg/5 mL powder for oral suspension</b></td><td><span class="rt">Oral</span></td><td>bottle</td><td>HC2 · Vital</td><td class="n">4</td><td class="n">4</td><td>1 product · 3 places</td></tr>
+<tr><td><b>Amoxicillin + clavulanic acid 500 mg + 125 mg tablet</b></td><td><span class="rt">Oral</span></td><td>tablet</td><td>RRH · Essential</td><td class="n">6</td><td class="n">7</td><td class="small">Not held</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="card">
+<div class="card__h"><h2>Amoxicillin 250 mg dispersible tablet: brands and packs</h2><span class="sp"></span><div class="chips"><a class="chip on" href="#">Registered <span class="n">5</span></a><a class="chip" href="#">Registration lapsed <span class="n">1</span></a></div></div>
+<table class="sc">
+<thead><tr><th>Brand · maker</th><th>NDA registration</th><th>Pack</th><th>Barcode</th><th>Your product</th><th>Your price</th></tr></thead>
+<tbody>
+<tr><td><b>Demo brand A</b><br><span class="small">Demo Pharma Ltd · India</span></td><td><span class="mono small">NDA/[reg no.]</span><br><span class="small">Registered to [date]</span></td><td>Blister 10 × 10</td><td><span class="mono small">09506000134352</span><br><span class="small">confirmed · 14 hospitals</span></td><td>Yes · 5 places</td><td><span class="pr"><b>UGX 300</b><span>a tablet · cash</span></span></td></tr>
+<tr><td><b>Demo brand A</b><br><span class="small">Demo Pharma Ltd · India</span></td><td><span class="mono small">NDA/[reg no.]</span><br><span class="small">Registered to [date]</span></td><td>Tin of 1,000</td><td><span class="mono small">09506000134369</span><br><span class="small">confirmed · 3 hospitals</span></td><td class="small">Not held</td><td><span class="pr"><span class="ns">None</span></span></td></tr>
+<tr><td><b>Demo brand K</b><br><span class="small">Demo Generics · Kenya</span></td><td><span class="mono small">NDA/[reg no.]</span><br><span class="small">Registered to [date]</span></td><td>Blister 10 × 10</td><td><span class="small">No barcode yet</span></td><td>Yes · Outpatient pharmacy</td><td><span class="pr"><b>UGX 300</b><span>a tablet · cash</span></span></td></tr>
+<tr><td><b>Unbranded</b><br><span class="small">National Medical Stores</span></td><td class="small">As supplied</td><td>Tin of 1,000</td><td><span class="mono small">NMS code [code]</span></td><td class="small">Not held</td><td><span class="pr"><span class="ns">None</span></span></td></tr>
+<tr><td><b>Demo brand L</b><br><span class="small">Demo Labs · China</span></td><td><span class="stg stg--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Registration lapsed</span></td><td>Blister 10 × 10</td><td><span class="mono small">06920000000017</span></td><td class="small">Not held</td><td><span class="pr"><span class="ns">None</span></span></td></tr>
+</tbody>
+</table>
+<div class="card__f"><span class="small">A lapsed registration is shown, never hidden: stock already received stays usable unless a recall says otherwise. Receiving new stock of it asks for a reason.</span></div>
+</section>
+
+<div class="g12">
+<section class="card" style="grid-column: span 6">
+<div class="card__h"><h2>What the catalogue holds, and what it does not</h2></div>
+<div class="ck">
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>Facts printed on the pack</b><span class="s">Names, strength, form, route, pack size, maker, registration, barcode.</span></div>
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span><b>No doses</b><span class="s">Doses and limits come only from the dose references your hospital has signed (Set-up · Signed packs).</span></div>
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><b>Clinical notes link out</b><span class="s">Interactions, renal and pregnancy cautions stay in the signed clinical packs, not here.</span></div>
+</div>
+</section>
+<section class="card" style="grid-column: span 6">
+<div class="card__h"><h2>History</h2><span class="sp"></span><span class="small">Every change is kept</span></div>
+<div class="lst">
+<div><span class="small">Mon 26 Oct</span><span>Barcode 09506000134352 confirmed for Demo brand A · 10 × 10</span><span class="small">catalogue team</span></div>
+<div><span class="small">Thu 15 Oct</span><span>Demo brand L registration marked lapsed (NDA register, June edition)</span><span class="small">register import</span></div>
+<div><span class="small">Thu 1 Oct</span><span>Other name "amoxycillin" added</span><span class="small">catalogue team</span></div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1160}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -30,6 +30,25 @@ export async function saveDeliveryLine(raw: unknown) {
     ),
   );
 }
+/** 4.1 The scan field (catalogue slice Step 7): the result in words, and the line it filled. */
+export async function scanIntoDelivery(raw: unknown) {
+  return storeAct(
+    "scanIntoDelivery",
+    receiving.DeliveryScanInput,
+    raw,
+    "pharmacy.store",
+    receiving.scanIntoDelivery,
+  );
+}
+export async function pickIntoDelivery(raw: unknown) {
+  return storeAct(
+    "pickIntoDelivery",
+    receiving.DeliveryPickInput,
+    raw,
+    "pharmacy.store",
+    receiving.pickIntoDelivery,
+  );
+}
 export async function recordShortDatedDecision(raw: unknown) {
   return bare(
     await storeAct(

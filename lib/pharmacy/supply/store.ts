@@ -39,7 +39,9 @@ import {
 import { prescriptions } from "@/db/schema/prescribing";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { blindIndex, decrypt } from "@/lib/encryption";
+import { pharmacyCatalogueLiveFor } from "@/lib/pharmacy/feature";
 import { withdrawListEntry, writeListEntries } from "@/lib/pharmacy/patient-list";
+import { payFirstOn, priceFacts } from "@/lib/pharmacy/prices/store";
 import { foldWith, loadGroupOfLine, loadHospitalContext } from "@/lib/pharmacy/review/load";
 import { nudge } from "@/lib/pharmacy/review/store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
@@ -479,10 +481,18 @@ export async function recordHandover(
         : null,
     });
   }
+  // Catalogue slice Step 8 (ADR 0460): the price in force as the snapshot, per-point pay-first, Law 13.
+  const priced = pharmacyCatalogueLiveFor(hospitalId)
+    ? {
+        prices: await priceFacts(ctx.tx, hospitalId, point.id, productIds, localDate(ctx.now)),
+        payFirst: await payFirstOn(ctx.tx, hospitalId, point.id, localDate(ctx.now)),
+      }
+    : null;
   const facts: HandoverFacts = {
     today: localDate(ctx.now),
     pointLive: point.liveAt !== null && point.switchedOffAt === null,
-    paymentRequired: h.settings.paymentStatusRequired,
+    paymentRequired: priced?.payFirst ?? h.settings.paymentStatusRequired,
+    admitted: priced !== null && group.origin === "ward",
     inpatientSupplyOn: h.settings.individualInpatientSupply,
     collectorIsHospitalStaff: staff.length > 0,
     supplyWithoutReview: {
@@ -493,7 +503,7 @@ export async function recordHandover(
     identityRoutes: routes ? routes.items.map((r) => r.code) : null,
     secondIdentifierMatched: (matched[0]?.identifier as SecondIdentifier | undefined) ?? null,
     lines,
-    products: new Map(products.map((p) => [p.id, p])),
+    products: new Map(products.map((p) => [p.id, { ...p, ...priced?.prices.get(p.id) }])),
     batches: batches.map((b) => ({
       ...b,
       medicineId: products.find((p) => p.id === b.productId)?.medicineId ?? "",

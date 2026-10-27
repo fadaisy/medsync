@@ -15,6 +15,7 @@ import {
   attestOwnFactor,
   confirmWardReceipt,
   raiseWardRequisition,
+  recordGapReason,
   recordWardCount,
   returnWardStock,
 } from "./actions";
@@ -79,6 +80,7 @@ export default async function NurseWardStockPage({
           returnStock: rights.act ? returnWardStock : undefined,
           attestOwn: rights.confirm ? attestOwnFactor : undefined,
           confirm: rights.confirm ? confirmWardReceipt : undefined,
+          gapReason: rights.act ? recordGapReason : undefined,
         }}
       />
     </div>
