@@ -31,6 +31,11 @@ export async function startDemo(
   const h = admin.hospitalId;
   if (!(await isDemoHospital(db, h)))
     throw new EmrWriteError("forbidden", "This hospital is not a demo hospital. Demo data goes only into a demo hospital.");
+  // One load per hospital: a second one meets the first one's stock and registers. A load that stopped at setup wrote
+  // nothing past its departments and people, so it does not count.
+  if ((await q({ db }, sql`SELECT 1 FROM pharmacy_demo_loads WHERE hospital_id = ${h} AND finished_at IS NOT NULL
+      AND NOT (notes ? 'setup') LIMIT 1`)).length)
+    throw new EmrWriteError("conflict", "The pharmacy demo is already loaded in this hospital. It loads once.");
   const [district] = await q<{ id: string }>({ db }, sql`SELECT id FROM districts LIMIT 1`);
   const load = await one<{ id: string }>(
     { db },

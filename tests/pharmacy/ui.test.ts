@@ -224,6 +224,8 @@ describe("source rules", () => {
       "app/pharmacy/controlled-actions.ts",
       "app/pharmacy/downtime/actions.ts",
       "app/pharmacy/downtime/entry-actions.ts",
+      // Workspace v2: Find, reads only (GATE A §1).
+      "app/pharmacy/find-actions.ts",
       "app/pharmacy/open-lines/actions.ts",
       // Pharmacy Phase 4: refills (Step 5).
       "app/pharmacy/refill-actions.ts",

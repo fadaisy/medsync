@@ -1,0 +1,72 @@
+/**
+ * Pharmacy Workspace v2, Needs you (GATE A §7, board NeedsYou). Shares `PHWS2_COPY_STATUS` (draft) in
+ * content/pharmacy-workspace-v2.ts; the CSO signs. Law 4: no role words. No patient names in these rows.
+ */
+export const PHWS2_NEEDS_YOU = {
+  note: "Only what needs a decision from someone with your permissions. Everything else lives in its place.",
+  chipsLabel: "Show",
+  all: "All",
+  groups: {
+    today: "Today, before you leave",
+    store: "Store",
+    clinical: "Clinical",
+    setup: "Set-up",
+  },
+  groupNotes: {
+    setup: "Things that limit what MedSync can check",
+  },
+  kinds: {
+    controlled: "Controlled",
+    lookBack: "Look-back",
+    downtime: "Downtime",
+    delivery: "Deliveries",
+    requisition: "Requisitions",
+    confirm: "Issues to confirm",
+    reaction: "Reactions",
+    reconciliation: "Reconciliation",
+    pack: "Signed packs",
+  },
+  text: {
+    controlled: "Controlled difference to close",
+    lookBack: { one: "A supply to look back at", many: "{n} supplies to look back at" },
+    downtime: { one: "A downtime sheet to enter", many: "{n} downtime sheets to enter" },
+    delivery: "A delivery is still being counted",
+    requisition: "A requisition waiting to be issued",
+    confirm: "An issue to confirm",
+    reaction: "A suspected reaction to report",
+    reactionPastDue: "A suspected reaction to report, past due",
+    reconciliation: "A reconciliation to finish",
+    pack: { one: "A signed pack is missing", many: "{n} signed packs are missing" },
+  },
+  detail: {
+    controlled: "Batch {batch} · counted {counted}, record {recorded}",
+    lookBack: "Supplies recorded without a check a live supply needs",
+    downtime: "Sheets filled in while MedSync was offline",
+    delivery: "{note} · {supplier} · {place} · no stock has moved yet",
+    deliveryNoNote: "{supplier} · {place} · no stock has moved yet",
+    requisition: "{from} to {to} · {lines} lines",
+    confirm: "{from} to {to}",
+    reaction: "{medicine}",
+    reactionDue: "{medicine} · due by {due}",
+    reconciliationOpen: "Open · opened {at}",
+    reconciliationReopened: "Reopened: something changed since it was confirmed · opened {at}",
+    pack: "Without them, what MedSync checks stays limited.",
+  },
+  actions: {
+    controlled: "Close with a note",
+    lookBack: "Look back",
+    downtime: "Enter",
+    delivery: "Continue counting",
+    requisition: "Review",
+    confirm: "Confirm",
+    reaction: "Review",
+    reconciliation: "Open",
+    pack: "See what each blocks",
+  },
+  since: "since {at}",
+  empty: {
+    title: "Nothing needs you",
+    why: "Nothing waiting needs a decision from someone with your permissions.",
+  },
+  emptyChip: "Nothing of this kind needs you.",
+} as const;

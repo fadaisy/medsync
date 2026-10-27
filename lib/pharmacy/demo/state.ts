@@ -116,6 +116,29 @@ export async function demoAccount(s: Pick<DemoState, "db" | "deps">, label: stri
   return id;
 }
 
+/**
+ * Makes a demo person a head of a department without displacing a real one (one open substantive and one open acting
+ * head per department). An open head held by an earlier load's demo account is ended; one held by a real person stays,
+ * and the acting slot is taken instead. Returns false when both slots belong to real people.
+ */
+export async function demoHead(
+  s: Pick<DemoState, "db" | "h">,
+  dept: string,
+  user: string,
+  opts: { acting?: boolean; startsAt?: string; setBy?: string | null } = {},
+) {
+  await s.db.execute(sql`UPDATE department_heads h SET ends_at = greatest(now(), h.starts_at), updated_at = now()
+    FROM users u WHERE u.id = h.user_id AND h.department_id = ${dept} AND h.ends_at IS NULL
+      AND u.email LIKE '%@demo.medsync.invalid'`);
+  for (const acting of opts.acting ? [true] : [false, true]) {
+    const r = await q(s, sql`INSERT INTO department_heads (hospital_id, department_id, user_id, acting, starts_at, set_by_user_id)
+      VALUES (${s.h}, ${dept}, ${user}, ${acting}, coalesce(${opts.startsAt ?? null}::timestamptz, now()), ${opts.setBy ?? null})
+      ON CONFLICT DO NOTHING RETURNING id`);
+    if (r.length) return true;
+  }
+  return false;
+}
+
 /** A demo staff member with an active affiliation in a department, as an approved sign-up leaves them. */
 export async function demoStaff(
   s: Pick<DemoState, "db" | "deps" | "h">,

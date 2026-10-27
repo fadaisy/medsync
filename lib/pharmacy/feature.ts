@@ -4,6 +4,7 @@ import { PHARMACY_CLINICAL_COPY } from "@/content/pharmacy-clinical";
 import { PHARMACY_NETWORK_COPY } from "@/content/pharmacy-network";
 import { PHARMACY_RECONCILIATION_COPY } from "@/content/pharmacy-reconciliation";
 import { PHARMACY_STORES_COPY } from "@/content/pharmacy-stores";
+import { PHWS2_COPY_STATUS } from "@/content/pharmacy-workspace-v2";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -142,3 +143,12 @@ export const pharmacyRefillsLiveFor = (h: string) =>
   network(process.env.PHARMACY_REFILLS, h, "pharmacy_refills") &&
   pharmacyRepeatsLiveFor(h) &&
   pharmacyDispensingLiveFor(h);
+
+/**
+ * Pharmacy Workspace v2 (docs/pharmacy/workspace-v2/gate-a-proposal.md, D-PW-09): "1" or a comma-separated list of
+ * hospital ids. Off, /pharmacy is the Phase 1–4 interface exactly. In production it stays off while the v2 wording
+ * (content/pharmacy-workspace-v2) is draft, as the lab's LAB_WORKSPACE_V2 did.
+ */
+export const pharmacyWorkspaceV2LiveFor = (h: string) =>
+  workspaceLiveFor(process.env.PHARMACY_WORKSPACE_V2, h, [PHWS2_COPY_STATUS], "pharmacy_workspace_v2") &&
+  pharmacyWorkspaceLiveFor(h);

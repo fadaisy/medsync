@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -8,7 +8,12 @@ import { describe, expect, it } from "vitest";
  * through `withLocationRight`. Every pop-up is a centred EditorDialog (ADR 0161); no native date input;
  * no red (Law 13).
  */
-const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
+/** A page reads with its body (Workspace v2 moved old page bodies to a sibling body.tsx). */
+const read = (p: string) => {
+  const f = resolve(process.cwd(), p);
+  const body = f.replace(/page\.tsx$/, "body.tsx");
+  return readFileSync(f, "utf8") + (f.endsWith("page.tsx") && existsSync(body) ? readFileSync(body, "utf8") : "");
+};
 const exportsOf = (src: string) =>
   [...src.matchAll(/^export async function (\w+)/gm)].map((m) => m[1]!);
 const permissionOf = (src: string, name: string) => {

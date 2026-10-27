@@ -33,6 +33,7 @@ export default async function PharmacyDemoPage() {
   if (!pharmacyDispensingLiveFor(scope.hospitalId)) notFound();
   if (!(await isDemoHospital(database, scope.hospitalId))) notFound();
   const loads = await pharmacyDemoLoads(database, scope.hospitalId);
+  const loaded = loads.some((l) => l.finishedAt && !l.notes?.setup);
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:px-6">
       <header className="flex flex-col gap-1">
@@ -56,9 +57,13 @@ export default async function PharmacyDemoPage() {
           Every dose reads &ldquo;[demo dose]&rdquo;. Packs and content are signed by demo staff (&ldquo;Demo chief
           pharmacist&rdquo;, &ldquo;Demo clinical safety officer&rdquo;) in this hospital only. Legal answers are never
           filled in. Nobody can sign in as demo staff or a demo patient, and demo records never reach a real hospital.
-          Each press adds a new set; nothing is removed.
+          The demo loads once per hospital, and nothing is removed.
         </p>
-        <LoadPharmacyDemo />
+        {loaded ? (
+          <p>The demo is loaded. Open the pharmacy workspace to walk through it.</p>
+        ) : (
+          <LoadPharmacyDemo />
+        )}
       </section>
       <section className="border-border bg-card text-body-s flex flex-col gap-2 rounded-lg border p-4">
         <h2 className="text-heading-s">Loads</h2>

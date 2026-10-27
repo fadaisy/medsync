@@ -12,25 +12,16 @@ import { db } from "@/db";
 import { dispensingMap } from "@/lib/pharmacy/access";
 import { POINT_COOKIE } from "@/lib/pharmacy/actor";
 import { countSheetsToEnter } from "@/lib/pharmacy/downtime-store";
-import {
-  pharmacyDispensingLiveFor,
-  pharmacyDowntimeLiveFor,
-  pharmacyInteractionsLiveFor,
-  pharmacyInterventionReviewLiveFor,
-  pharmacyReactionsLiveFor,
-  pharmacyReconciliationLiveFor,
-  pharmacyRefillsLiveFor,
-  pharmacyStewardshipLiveFor,
-  storesFlagsFor,
-} from "@/lib/pharmacy/feature";
 import { pharmacyNavFor, pharmacyNavPermissions } from "@/lib/pharmacy/nav";
 import { dispensingNavCountsFor, dosesCountFor, queueFor } from "@/lib/pharmacy/page-data";
 import { actingPoint, pharmacyPointsFor } from "@/lib/pharmacy/points";
 import { toRows } from "@/lib/pharmacy/queue";
-import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 import { FindField } from "./_components/find-field";
 import { PharmacyCrumb, PharmacyPhoneNav, PharmacySidebarNav } from "./_components/pharmacy-nav";
 import { PointChooser } from "./_components/point-chooser";
+import { PharmacyShellV2 } from "./_components/v2/shell";
+import { shellPayload } from "./_lib/shell-payload";
+import { pharmacyFlagsFor, pharmacyV2 } from "./_lib/v2";
 
 export const metadata: Metadata = {
   title: "Pharmacy",
@@ -48,20 +39,11 @@ export const metadata: Metadata = {
  * the same numbers in the sidebar and the phone row.
  */
 export default async function PharmacyLayout({ children }: { children: ReactNode }) {
-  const scope = await requirePharmacyScope();
-  const flags = {
-    dispensing: pharmacyDispensingLiveFor(scope.hospitalId),
-    downtime: pharmacyDowntimeLiveFor(scope.hospitalId),
-    refills: pharmacyRefillsLiveFor(scope.hospitalId),
-    stores: storesFlagsFor(scope.hospitalId),
-    clinical: {
-      interactions: pharmacyInteractionsLiveFor(scope.hospitalId),
-      interventionReview: pharmacyInterventionReviewLiveFor(scope.hospitalId),
-      stewardship: pharmacyStewardshipLiveFor(scope.hospitalId),
-      reactions: pharmacyReactionsLiveFor(scope.hospitalId),
-      reconciliation: pharmacyReconciliationLiveFor(scope.hospitalId),
-    },
-  };
+  // Pharmacy Workspace v2 (GATE A D-PW-09): behind PHARMACY_WORKSPACE_V2 the six-place shell replaces this one.
+  const v2 = await pharmacyV2();
+  if (v2.live) return <PharmacyShellV2 payload={await shellPayload(v2)}>{children}</PharmacyShellV2>;
+  const scope = v2.scope;
+  const flags = pharmacyFlagsFor(scope.hospitalId);
   const points = flags.dispensing
     ? await pharmacyPointsFor(db as unknown as EmrDb, scope.userId, scope.hospitalId)
     : [];

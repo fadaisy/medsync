@@ -14,7 +14,7 @@ import * as rf from "@/lib/pharmacy/refill-store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { addDays } from "@/lib/pharmacy/stores/ledger";
 import * as supply from "@/lib/pharmacy/supply/store";
-import { at, bump, chiefActor, DAY, demoAccount, DEMO_DOSE, one, pharmacyActor, q, signSet, write } from "./state";
+import { at, bump, chiefActor, DAY, demoAccount, demoHead, DEMO_DOSE, one, pharmacyActor, q, signSet, write } from "./state";
 
 
 type Six<T> = [T, T, T, T, T, T];
@@ -326,9 +326,11 @@ export async function goliveSection(s: DemoState): Promise<void> {
 
   // An in-charge on every point (its pharmacist; the chief, acting, where only technicians work), and its settings.
   for (const [i, k] of keys.entries()) {
-    await s.db.execute(sql`INSERT INTO department_heads (hospital_id, department_id, user_id, acting, starts_at, set_by_user_id)
-      VALUES (${s.h}, ${s.points[k].id}, ${s.people.pharmacists[i] ?? s.people.chief}, ${i >= s.people.pharmacists.length},
-        ${new Date(liveAt.getTime() - 7 * DAY).toISOString()}::timestamptz, ${first.userId})`);
+    await demoHead(s, s.points[k].id, s.people.pharmacists[i] ?? s.people.chief, {
+      acting: i >= s.people.pharmacists.length,
+      startsAt: new Date(liveAt.getTime() - 7 * DAY).toISOString(),
+      setBy: first.userId,
+    });
     await as(first, (tx) =>
       gl.updatePointSettings(tx, first, { pointId: s.points[k].id, phone: "+256 700 000000", labelMode: "printed", countFreshnessDays: 30 }),
     );

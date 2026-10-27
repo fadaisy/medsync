@@ -1,4 +1,8 @@
+import type { EmrDb } from "@/lib/emr/db";
+
+import { db } from "@/db";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { isDemoHospital } from "@/lib/lab/demo";
 import { loadDispensingServes } from "@/lib/pharmacy/dispensing-points";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import {
@@ -74,12 +78,16 @@ export default async function DepartmentsPage() {
       })
     : null;
 
+  const goLive = pharmacyDispensingLiveFor(h);
+  // ADR 0450: a demo hospital reaches the pharmacy demo from here, before it has any pharmacy units.
+  const pharmacyDemo = goLive && (await isDemoHospital(db as unknown as EmrDb, h));
   const obj = (m: Map<string, number>) => Object.fromEntries(m);
   return (
     <DepartmentsView
       departments={departments}
       points={points}
-      goLive={pharmacyDispensingLiveFor(h)}
+      goLive={goLive}
+      pharmacyDemo={pharmacyDemo}
       heads={heads}
       counts={{
         staff: obj(counts.staff),
