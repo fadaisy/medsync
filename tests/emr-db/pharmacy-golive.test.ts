@@ -681,7 +681,7 @@ describe.skipIf(!laneOn)("Pharmacy downtime and going live (Step 8)", () => {
       process.env[k] = "";
     const notFound = { digest: expect.stringContaining("404") };
     const downtime = (await import("@/app/pharmacy/downtime/page")).default;
-    await expect(downtime()).rejects.toMatchObject(notFound);
+    await expect(downtime({ searchParams: Promise.resolve({}) })).rejects.toMatchObject(notFound);
     const sheets = (await import("@/app/pharmacy/downtime/sheets/[from]/[to]/page")).default;
     await expect(sheets({ params: Promise.resolve({ from: "1", to: "2" }) })).rejects.toMatchObject(
       notFound,

@@ -27,7 +27,7 @@ import { fill, PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { placeOf } from "@/lib/pharmacy/workspace-v2/places";
 import { cn } from "@/lib/utils";
 import { chooseActingPoint } from "../../actions";
-import { pharmacyFindAction } from "../../find-actions";
+import { pharmacyFindAction, pharmacyShellCountsAction } from "../../find-actions";
 
 const S = PHWS2.shell;
 const F = PHWS2.find;
@@ -73,11 +73,15 @@ export interface PharmacyShellPayload {
   tabs: PlaceTab[];
   /** Words for each tab, for Find's Pages group. */
   tabWords: Record<string, string>;
-  counts: Partial<Record<PharmacyPlace, number>>;
-  needsYou: number;
   points: ShellPoint[];
   pointId: string | null;
   showWhere: boolean;
+}
+
+/** Rail counts and the Needs you count, asked for after the page (`pharmacyShellCountsAction`). */
+export interface PharmacyShellCounts {
+  counts: Partial<Record<PharmacyPlace, number>>;
+  needsYou: number;
 }
 
 /**
@@ -97,6 +101,23 @@ export function PharmacyShellV2({
   const [findOpen, setFindOpen] = useState(false);
   const here = placeOf(pathname);
   const title = here === "needsYou" ? S.titles.needsYou : S.titles[here ?? "window"];
+  // The counts read slow sources, so they are asked for once the page has finished streaming (so they never hold
+  // its reads), and again on each move.
+  const [live, setLive] = useState<PharmacyShellCounts | null>(null);
+  useEffect(() => {
+    let on = true;
+    const ask = () =>
+      void pharmacyShellCountsAction()
+        .then((c) => on && setLive(c))
+        .catch(() => undefined);
+    if (document.readyState === "complete") ask();
+    else window.addEventListener("load", ask, { once: true });
+    return () => {
+      on = false;
+      window.removeEventListener("load", ask);
+    };
+  }, [pathname]);
+  const needsYou = live?.needsYou ?? 0;
 
   // Ctrl K / Cmd K opens Find; `g` then a letter jumps to a place when focus is not in a field.
   useEffect(() => {
@@ -138,7 +159,7 @@ export function PharmacyShellV2({
       data-ds="tide"
       className="bg-background text-foreground flex min-h-svh flex-col gap-3 p-3 font-sans text-[14px] leading-[1.45] lg:flex-row lg:gap-4 lg:p-4 print:block print:p-0"
     >
-      <Rail payload={payload} here={here} />
+      <Rail payload={payload} counts={live?.counts ?? {}} here={here} />
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <header className="flex flex-wrap items-center gap-x-4 gap-y-2 print:hidden">
           <div className="flex min-w-[12rem] flex-col gap-0.5">
@@ -167,19 +188,19 @@ export function PharmacyShellV2({
           <Link
             href="/pharmacy/needs-you"
             aria-label={
-              payload.needsYou > 0 ? fill(S.needsYouCount, { n: payload.needsYou }) : S.needsYou
+              needsYou > 0 ? fill(S.needsYouCount, { n: needsYou }) : S.needsYou
             }
             aria-current={here === "needsYou" ? "page" : undefined}
             className={cn(
               "focus-visible:shadow-focus inline-flex h-9 items-center gap-2 rounded-full pr-3.5 pl-3 text-[13.5px] font-semibold whitespace-nowrap outline-none",
-              payload.needsYou > 0
+              needsYou > 0
                 ? "bg-status-caution-bg text-amber-800 shadow-[inset_0_0_0_1px_var(--tide-caution-edge)]"
                 : "bg-card text-ink-700 shadow-tide-card",
             )}
           >
             <InboxIcon aria-hidden className="size-4" />
             {S.needsYou}
-            <span className="tabular-nums">{payload.needsYou}</span>
+            {live ? <span className="tabular-nums">{needsYou}</span> : null}
           </Link>
           <EmergencyInline label={S.emergency} />
         </header>
@@ -198,9 +219,11 @@ export function PharmacyShellV2({
 
 function Rail({
   payload,
+  counts,
   here,
 }: {
   payload: PharmacyShellPayload;
+  counts: PharmacyShellCounts["counts"];
   here: PharmacyPlace | "needsYou" | null;
 }) {
   return (
@@ -217,7 +240,7 @@ function Rail({
       </Link>
       {payload.places.map((p) => {
         const Icon = ICON[p];
-        const n = payload.counts[p];
+        const n = counts[p];
         const on = here === p;
         const countWords = n && COUNT_WORDS[p] ? fill(COUNT_WORDS[p]!, { n }) : null;
         return (
