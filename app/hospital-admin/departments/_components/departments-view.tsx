@@ -69,6 +69,8 @@ export function DepartmentsView(props: {
   points: Record<string, string>;
   /** Pharmacy Phase 1 (5.13): each point links to its going-live page while `pharmacyDispensing` is on. */
   goLive?: boolean;
+  /** ADR 0450: a demo hospital links to the pharmacy demo, units or not. */
+  pharmacyDemo?: boolean;
   heads: { current: HeadRow[]; history: HeadRow[] };
   counts: Counts;
   pool: Person[];
@@ -212,6 +214,7 @@ export function DepartmentsView(props: {
           all={departments}
           points={props.points}
           goLive={props.goLive ?? false}
+          pharmacyDemo={props.pharmacyDemo ?? false}
           heads={heads}
           counts={counts}
           pool={props.pool}
@@ -704,6 +707,7 @@ function DepartmentPanel({
   all,
   points,
   goLive,
+  pharmacyDemo,
   heads,
   counts,
   pool,
@@ -717,6 +721,7 @@ function DepartmentPanel({
   all: DepartmentRow[];
   points: Record<string, string>;
   goLive: boolean;
+  pharmacyDemo: boolean;
   heads: { current: HeadRow[]; history: HeadRow[] };
   counts: Counts;
   pool: Person[];
@@ -1011,6 +1016,14 @@ function DepartmentPanel({
                       ) : (
                         <p className="text-body-s text-muted-foreground">No {unitLabel}s yet.</p>
                       )}
+                      {isPharmacy && pharmacyDemo ? (
+                        <Link
+                          href="/hospital-admin/departments/pharmacy/demo"
+                          className="text-body-s w-fit text-teal-700 underline-offset-4 hover:underline"
+                        >
+                          Load the pharmacy demo (demo hospital)
+                        </Link>
+                      ) : null}
                       {!dept.parentId ? (
                         <div className="flex flex-wrap items-end gap-2">
                           {isLab ? (

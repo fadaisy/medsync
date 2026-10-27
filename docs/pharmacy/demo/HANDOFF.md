@@ -17,7 +17,9 @@ Built 26 Oct 2026 on `feat/pharmacy-demo` (worktree `~/Desktop/medsync-pharmdemo
    `PHARMACY_REPEATS`, `PHARMACY_REFILLS`. `PHARMACY_DEV_HOSPITALS` must give it permission map v2: in Vercel it is
    already `1` (every hospital), so nothing to add. Phase 3 and 4
    pages also need their own migrations (0212, 0230–0232) applied.
-4. Deploy, then as that hospital's admin open Pharmacy settings › "Load the pharmacy demo" and press the button.
+4. Deploy, then as that hospital's admin open Departments › Pharmacy › Units (or Pharmacy settings) › "Load the
+   pharmacy demo" and press the button. The link shows before the pharmacy has any units; the address is
+   `/hospital-admin/departments/pharmacy/demo`.
 5. To walk the pages, your own pharmacist account needs an affiliation in the hospital's PHARMACY department (or a
    point under it). Demo staff can't sign in.
 
