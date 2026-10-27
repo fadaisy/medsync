@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 export default async function DowntimePage({
   searchParams,
 }: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-} = {}) {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await toV2("/pharmacy/setup?view=downtime", await searchParams);
   return <DowntimeBody />;
 }

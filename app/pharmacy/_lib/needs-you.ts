@@ -20,7 +20,7 @@ import { buildNeedsYou, needsYouKinds } from "@/lib/pharmacy/workspace-v2/needs-
 /**
  * The Needs you list for this viewer (GATE A §7): only items someone with the viewer's permissions acts on, read
  * through the existing loaders (step-0/data-sources.md). The shell's count is the length of this same list.
- * ponytail: the shell runs these loaders on every pharmacy page; add count-only reads if the timings show it.
+ * ponytail: the shell asks for these after every pharmacy page has loaded (reconciliation is N+1); add count-only reads if the timings show it.
  */
 export const needsYouFor = cache(async (v2: PharmacyV2): Promise<NeedsYouItem[]> => {
   const kinds = new Set(

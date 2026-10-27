@@ -26,6 +26,7 @@ import {
   suppliedPatientIds,
   suppliedRows,
 } from "@/lib/pharmacy/workspace-v2/find";
+import { shellCounts } from "./_lib/shell-payload";
 import { hasTab, pharmacyV2 } from "./_lib/v2";
 import { findByPatientNumber } from "./actions";
 
@@ -181,4 +182,10 @@ export async function pharmacyFindAction(
     ...deliveryRows(read.deliveries),
   );
   return { ok: true, hit: { rows } };
+}
+
+/** The shell's rail and Needs you counts (GATE A §5), asked for after the page is drawn. A read; scope as above. */
+export async function pharmacyShellCountsAction() {
+  const v2 = await pharmacyV2();
+  return v2.live ? shellCounts(v2) : null;
 }

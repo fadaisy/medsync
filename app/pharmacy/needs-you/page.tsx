@@ -20,7 +20,8 @@ import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_NEEDS_YOU as N } from "@/content/pharmacy-workspace-v2-needs-you";
 import { filterNeedsYou, groupNeedsYou } from "@/lib/pharmacy/workspace-v2/needs-you";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
-import { InboxRow, WorkGroup } from "../_components/v2/pieces";
+import { InboxRow } from "../_components/v2/inbox-row";
+import { WorkGroup } from "../_components/v2/pieces";
 import { needsYouFor } from "../_lib/needs-you";
 import { pharmacyV2 } from "../_lib/v2";
 

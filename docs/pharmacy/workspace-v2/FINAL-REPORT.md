@@ -67,7 +67,7 @@
 
 **Ceilings, marked `ponytail:` in code:**
 
-- Needs you runs its nine loaders on every pharmacy page.
+- Needs you runs its nine loaders for the shell's counts on every pharmacy page. Since 27 Oct they run after the page has loaded (a server action), so they never hold it.
 - Today and Store re-read what the rail or the open tab already read.
 - Add a per-request shared cache if timings show it.
 
