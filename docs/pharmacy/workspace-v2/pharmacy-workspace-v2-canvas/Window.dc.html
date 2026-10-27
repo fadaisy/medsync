@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Window</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1180px">
+<nav class="rail" aria-label="Pharmacy places">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+<a href="Window.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Window<span class="rail__n">61</span></a>
+<a href="Shelf.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Shelf</a>
+<a href="Store.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>Store<span class="rail__n">4</span></a>
+<a href="Clinical.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>Clinical<span class="rail__n">6</span></a>
+<a href="Setup.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharm Guy, pharmacist, signed in with MFA. Open the account menu">PG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Pharmacy · Test Hospital-1</span><h1>Window</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a patient, prescription, batch, slip code or page" placeholder="Find a patient, prescription, batch, slip code or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Working at ALVIN Ward, live. Change">ALVIN Ward <span>· Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a><a class="needs" href="NeedsYou.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Needs you <b>12</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Window"><a class="on" href="#" aria-current="page">Queue <span class="n">61</span></a><a href="#">Ready to hand over <span class="n">12</span></a><a href="OpenLines.dc.html">Open lines <span class="n">11</span></a><a href="#">Refills <span class="n">8</span></a><a href="#">Supplied today <span class="n">78</span></a></nav>
+<span class="row__sp"></span>
+<a class="btn btn--t btn--s" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="m2 2 20 20"/></svg>Enter downtime sheets <b>3</b></a>
+</div>
+<div class="row">
+<div class="chips" role="group" aria-label="Show"><a class="chip on" href="#">All <span class="n">61</span></a><a class="chip" href="#">Pharmacist first <span class="n">9</span></a><a class="chip" href="#">To review <span class="n">44</span></a><a class="chip" href="#">Queried <span class="n">3</span></a><a class="chip" href="#">Awaiting co-sign <span class="n">2</span></a><a class="chip" href="#">High-risk</a><a class="chip" href="#">Controlled</a></div>
+<span class="row__sp"></span><span class="small">Oldest first · updates live</span>
+</div>
+<div class="limits"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span><b>What MedSync checks here:</b> 2 signed interaction pairs and 4 of 192 signed dose references. No alert does not mean no interaction.</span><a href="#">Read the full notice</a></div>
+
+<div class="cols" style="grid-template-columns: 330px minmax(0, 1fr) 330px">
+<section class="card">
+<div class="card__h"><h2>Queue</h2><span class="sp"></span><span class="small">61 · oldest first</span></div>
+<div class="wl__g">Pharmacist first <b>9</b></div>
+<div class="ql">
+<a class="on" href="#"><span class="n1">Demo patient 01</span><span class="t" style="color: var(--caution-fg); font-weight: 600">5 h 55</span><span class="n2"><span class="rc rc--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Stop overridden</span>2 lines · 1 not on the shelf</span></a>
+<a href="#"><span class="n1">Demo patient 48</span><span class="t">3 h 12</span><span class="n2"><span class="rc">High-risk</span>Enoxaparin</span></a>
+<a href="#"><span class="n1">Demo patient 38</span><span class="t">2 h 40</span><span class="n2"><span class="rc">High-risk</span>Heparin, omeprazole</span></a>
+<a href="#"><span class="n1">Demo patient 39</span><span class="t">2 h 05</span><span class="n2"><span class="rc"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>Controlled</span>Morphine</span></a>
+<a href="#"><span class="n1">Demo patient 40</span><span class="t">1 h 48</span><span class="n2"><span class="rc">Renal check</span>Paracetamol, omeprazole</span></a>
+<a href="#"><span class="n1">4 more</span><span class="t"></span><span class="n2">Show all pharmacist-first prescriptions</span></a>
+</div>
+<div class="wl__g">To review <b>44</b></div>
+<div class="ql">
+<a href="#"><span class="n1">Demo patient 03</span><span class="t">1 h 31</span><span class="n2">Zinc sulfate · 1 line</span></a>
+<a href="#"><span class="n1">Demo patient 07</span><span class="t">1 h 22</span><span class="n2">Metformin, amlodipine · 2 lines</span></a>
+<a href="#"><span class="n1">Demo patient 12</span><span class="t">1 h 09</span><span class="n2">ORS, zinc · 2 lines</span></a>
+<a href="#"><span class="n1">Demo patient 15</span><span class="t">58 min</span><span class="n2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Prescriber answered your query</span></a>
+<a href="#"><span class="n1">Demo patient 22</span><span class="t">41 min</span><span class="n2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Prescriber answered your query</span></a>
+<a href="#"><span class="n1">39 more</span><span class="t"></span><span class="n2">Scroll for the rest</span></a>
+</div>
+</section>
+
+<section class="card">
+<div class="band">
+<span class="band__name">Demo patient 01</span>
+<span class="kv"><span>MedSync no.</span><b>MS-2026-00177</b></span>
+<span class="kv"><span>Sex, age</span><b>F · 34 y</b></span>
+<span class="kv"><span>Weight</span><b>Not recorded</b></span>
+<span class="kv"><span>Allergies</span><b>Penicillin: rash</b></span>
+<span class="sp"></span>
+<span class="kv"><span>Payment</span><b>Paid</b></span>
+</div>
+<div class="card__b" style="padding-top: 12px">
+<div class="row"><span class="small">General outpatients · written 09:21 by a medical officer · waiting 5 h 55 min</span><span class="row__sp"></span><a class="btn btn--t btn--s" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Medicine history</a></div>
+</div>
+<div class="ln">
+<div class="ln__h"><span class="ln__n">1</span><b>Amoxicillin</b><span class="f">capsule · <span class="ph">[strength]</span></span><span class="rc rc--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Stop overridden</span><span class="sp"></span><span class="small">Needs your decision</span></div>
+<div class="ln__stop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span><b>Allergy stop, overridden by the prescriber.</b> Recorded allergy: penicillin, rash. Reason given: <q>Tolerated amoxicillin in 2024.</q></span></div>
+<div class="dir"><span class="tag">As written</span><span class="ph">[dose]</span> by mouth <span class="ph">[frequency]</span> for <span class="ph">[duration]</span></div>
+<div class="ln__g">
+<span class="kv"><span>On the shelf here</span><b>860 capsules</b><em>Counted 08:10 today</em></span>
+<span class="kv"><span>Batch, first to expire</span><b>A-0417 · exp 11/2026</b><a href="#">Change batch</a></span>
+<span class="kv"><span>The prescriber was told</span><b>On the shelf</b></span>
+<span class="kv"><span>Already supplied</span><b>Nothing yet</b></span>
+</div>
+<div class="dec" role="radiogroup" aria-label="Decision for amoxicillin"><label class="rad"><input type="radio" name="d1"><i></i>Reason accepted, supply</label><label class="rad on"><input type="radio" name="d1" checked><i></i>Ask the prescriber</label><label class="rad"><input type="radio" name="d1"><i></i>Do not supply</label></div>
+</div>
+<div class="ln">
+<div class="ln__h"><span class="ln__n">2</span><b>Ciprofloxacin</b><span class="f">tablet · <span class="ph">[strength]</span></span><span class="rc rc--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Not on the shelf here</span><span class="sp"></span><span class="small">Needs your decision</span></div>
+<div class="dir"><span class="tag">As written</span><span class="ph">[dose]</span> by mouth <span class="ph">[frequency]</span> for <span class="ph">[duration]</span></div>
+<div class="ln__g">
+<span class="kv"><span>On the shelf here</span><b>0 · out since Thu 22 Oct</b><em>Counted 08:10 today</em></span>
+<span class="kv"><span>Elsewhere in the hospital</span><b>Outpatient pharmacy · 300</b><em>Counted 14:00</em></span>
+<span class="kv"><span>The prescriber was told</span><b>Not on the shelf</b><em>Chose "Aware; prescribe anyway"</em></span>
+<span class="kv"><span>Already supplied</span><b>Nothing yet</b></span>
+</div>
+<div class="dec" role="radiogroup" aria-label="Decision for ciprofloxacin"><label class="rad on"><input type="radio" name="d2" checked><i></i>Owe it: supply when it arrives</label><label class="rad"><input type="radio" name="d2"><i></i>Send to the outpatient pharmacy</label><label class="rad"><input type="radio" name="d2"><i></i>Patient buys outside</label><label class="rad"><input type="radio" name="d2"><i></i>Ask the prescriber</label></div>
+</div>
+</section>
+
+<div class="stack">
+<section class="card">
+<div class="card__h"><h2>What happens when you finish</h2></div>
+<div class="told">
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><b>Line 1 goes back to the prescriber</b><span>They see your question in their inbox. The line waits in Queried.</span></div>
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><b>Line 2 becomes an open line, owed</b><span>It moves to Open lines and comes back to you when stock arrives.</span></div>
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><b>The patient is told</b><span>"Your amoxicillin is being checked. Your ciprofloxacin is owed." Printed on the slip.</span></div>
+</div>
+<div class="card__f"><button class="btn btn--p" style="flex: 1">Send the query and owe line 2</button><button class="more" aria-label="More actions"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div>
+</section>
+<section class="card">
+<div class="card__h"><h2>Checks</h2><span class="sp"></span><span class="small">Only what is signed here</span></div>
+<div class="ck">
+<div class="attn"><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><b>Allergy stop overridden</b><span class="s">Amoxicillin against a recorded penicillin allergy.</span></div>
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><b>Interactions: not checked</b><span class="s">Neither pair is among the 2 signed here.</span></div>
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><b>Doses: no signed reference</b><span class="s">Check both doses yourself.</span></div>
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>Not supplied elsewhere</b><span class="s">No supply of either line since it was written.</span></div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

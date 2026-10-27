@@ -1,0 +1,145 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-27T15:20:00Z"
+ },
+ "title": "Pharmacy Workspace v2",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "NavMap.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 1180,
+   "title": "0 Read me: where every old menu item went",
+   "expand": "fill"
+  },
+  "Main.dc.html": {
+   "x": 1520,
+   "y": 0,
+   "w": 1440,
+   "h": 1120,
+   "title": "1 Today: the in-charge home",
+   "expand": "fill"
+  },
+  "Window.dc.html": {
+   "x": 3040,
+   "y": 0,
+   "w": 1440,
+   "h": 1180,
+   "title": "2 Window: queue, prescription, next step",
+   "expand": "fill"
+  },
+  "OpenLines.dc.html": {
+   "x": 4560,
+   "y": 0,
+   "w": 1440,
+   "h": 1000,
+   "title": "3 Open lines: grouped by what you can do now",
+   "expand": "fill"
+  },
+  "NeedsYou.dc.html": {
+   "x": 6080,
+   "y": 0,
+   "w": 1440,
+   "h": 1000,
+   "title": "4 Needs you: one inbox for decisions",
+   "expand": "fill"
+  },
+  "Shelf.dc.html": {
+   "x": 0,
+   "y": 1600,
+   "w": 1440,
+   "h": 1040,
+   "title": "5 Shelf: stock, controlled drugs, emergency doses",
+   "expand": "fill"
+  },
+  "Store.dc.html": {
+   "x": 1520,
+   "y": 1600,
+   "w": 1440,
+   "h": 1060,
+   "title": "6 Store: the flow, then one tab per stop",
+   "expand": "fill"
+  },
+  "Clinical.dc.html": {
+   "x": 3040,
+   "y": 1600,
+   "w": 1440,
+   "h": 860,
+   "title": "7 Clinical: four cards, each with its next step",
+   "expand": "fill"
+  },
+  "Setup.dc.html": {
+   "x": 4560,
+   "y": 1600,
+   "w": 1440,
+   "h": 1000,
+   "title": "8 Set-up: what each missing pack switches off",
+   "expand": "fill"
+  },
+  "Find.dc.html": {
+   "x": 6080,
+   "y": 1600,
+   "w": 1440,
+   "h": 860,
+   "title": "9 Find (Ctrl K): batch to patients in one step",
+   "expand": "fill"
+  }
+ },
+ "order": [
+  "NavMap.dc.html",
+  "Main.dc.html",
+  "Window.dc.html",
+  "OpenLines.dc.html",
+  "NeedsYou.dc.html",
+  "Shelf.dc.html",
+  "Store.dc.html",
+  "Clinical.dc.html",
+  "Setup.dc.html",
+  "Find.dc.html"
+ ],
+ "notes": {
+  "rowA": {
+   "x": 0,
+   "y": -280,
+   "text": "How the pharmacy is organised, and the window",
+   "kind": "title1",
+   "maxW": 7520
+  },
+  "rowB": {
+   "x": 0,
+   "y": 1320,
+   "text": "Behind the window: shelf, store, clinical, set-up",
+   "kind": "title1",
+   "maxW": 7520
+  },
+  "disclaimer": {
+   "x": -420,
+   "y": 0,
+   "w": 340,
+   "text": "Illustrative. No real patients. Medicines, quantities, batches, counts and times are examples drawn from the demo data, not signed values. Strengths and directions appear as [placeholders].",
+   "fill": "gray"
+  },
+  "source": {
+   "x": -420,
+   "y": 520,
+   "w": 340,
+   "text": "A redesign of the pharmacy workspace as built (Next.js app, 48 screens). Same data and permissions; new organisation: 6 places, one inbox, every row with its next step. Mirrors Lab Workspace v2.",
+   "fill": "gray"
+  }
+ },
+ "designSystems": [
+  {
+   "title": "MedSync Tide",
+   "namespace": "medsync-tide",
+   "artifact": "https://claude.ai/artifact/5vvCpkVoYk8G11PtLaSRuk",
+   "version": "1792404157-5449",
+   "copiedAt": "2026-10-27T15:20:00Z"
+  }
+ ]
+}

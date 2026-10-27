@@ -3,7 +3,7 @@
  * Red never (only the existing Emergency); nothing green; amber words carry an icon (StatusWord does); no native
  * date input; centred dialogs only; every page is behind `pharmacyStore`; every action is the house contract.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -21,7 +21,12 @@ const mine = [
   join(ROOT, "app/hospital-admin/departments/pharmacy/_components/location-golive.tsx"),
   join(ROOT, "app/hospital-admin/departments/pharmacy/location-actions.ts"),
 ].filter((p) => /\.tsx?$/.test(p));
-const read = (p: string) => readFileSync(p, "utf8");
+/** A page reads with its body (Workspace v2 moved old page bodies to a sibling body.tsx). */
+const read = (p: string) =>
+  readFileSync(p, "utf8") +
+  (p.endsWith("page.tsx") && existsSync(p.replace(/page\.tsx$/, "body.tsx"))
+    ? readFileSync(p.replace(/page\.tsx$/, "body.tsx"), "utf8")
+    : "");
 const rel = (p: string) => p.slice(ROOT.length + 1);
 
 describe("the store's screens", () => {

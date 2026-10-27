@@ -1,23 +1,12 @@
 "use client";
 
 import type { StockResult } from "@/lib/pharmacy/stock/store";
-import type { FormEvent, ReactNode } from "react";
-import { useId, useState, useTransition } from "react";
-import { TriangleAlertIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import { useId, useState } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { EditorDialog } from "@/components/medsync/editor-dialog";
-import { Button } from "@/components/ui/button";
-import { DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  SheetBody,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import {
   ADJUSTMENT_REASONS,
   COUNT_DIFFERENCE_REASONS,
@@ -25,6 +14,7 @@ import {
   STOCK,
 } from "@/content/pharmacy-stock";
 import * as actions from "../actions";
+import { PharmacyDialog, type PharmacyDialogProps } from "../../_components/pharmacy-dialog";
 
 /**
  * The stock dialogs (5.8, wireframe §8.2): each a centred EditorDialog (ADR 0161) opened by its own
@@ -55,99 +45,21 @@ const FIELD = "flex flex-col";
 const SELECT =
   "border-input bg-card text-body-s focus-visible:shadow-focus min-h-11 w-full rounded-md border px-2.5 outline-none";
 
-const newKey = () => crypto.randomUUID();
-
-/** One dialog: its button, its form, the server's refusal in words, Cancel and the one action. */
-function StockDialog({
-  label,
-  title,
-  description,
-  submit,
-  variant = "secondary",
-  width = "medium",
-  onOpen,
-  onSave,
-  done,
-  children,
-}: {
-  label: string;
-  title: string;
-  description?: ReactNode;
-  submit: string;
-  variant?: "primary" | "secondary" | "ghost";
-  width?: "medium" | "wide";
-  onOpen?: () => void;
-  /** Returns the result; true keeps the dialog open (a count's second step). */
-  onSave: (key: string, data: FormData) => Promise<StockResult<unknown> | "stay">;
-  done?: boolean;
-  children: ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  const [key, setKey] = useState(newKey);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, start] = useTransition();
-  const errorId = useId();
-  const change = (next: boolean) => {
-    if (next) {
-      setKey(newKey());
-      setError(null);
-      onOpen?.();
-    }
-    setOpen(next);
-  };
-  const save = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    start(async () => {
-      const r = await onSave(key, data);
-      if (r === "stay") return;
-      if (r.ok) setOpen(false);
-      else setError(r.error);
-    });
-  };
+/** The stock dialog: the pharmacy's one dialog (D-PW-10) with the stock words; the actions revalidate. */
+function StockDialog(
+  props: Omit<PharmacyDialogProps, "width" | "onSave"> & {
+    width?: "medium" | "wide";
+    /** Returns the result; "stay" keeps the dialog open (a count's second step). */
+    onSave: (key: string, data: FormData) => Promise<StockResult<unknown> | "stay">;
+  },
+) {
   return (
-    <EditorDialog
-      width={width}
-      open={open}
-      onOpenChange={change}
-      trigger={
-        <DialogTrigger render={<Button variant={variant} className={TARGET} />}>
-          {label}
-        </DialogTrigger>
-      }
-    >
-      <form onSubmit={save} className="flex min-h-0 flex-1 flex-col" aria-describedby={errorId}>
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          {description ? <SheetDescription>{description}</SheetDescription> : null}
-        </SheetHeader>
-        <SheetBody className="flex flex-col gap-4">
-          {children}
-          <p id={errorId} role="status" className="empty:hidden">
-            {error ? (
-              <StatusWord tone="caution" glyph={TriangleAlertIcon}>
-                {error}
-              </StatusWord>
-            ) : null}
-          </p>
-        </SheetBody>
-        <SheetFooter>
-          <Button
-            type="button"
-            variant="secondary"
-            className={TARGET}
-            onClick={() => setOpen(false)}
-          >
-            {done ? STOCK.count.done : STOCK.actions.cancel}
-          </Button>
-          {done ? null : (
-            <Button type="submit" className={TARGET} disabled={pending}>
-              {submit}
-            </Button>
-          )}
-        </SheetFooter>
-      </form>
-    </EditorDialog>
+    <PharmacyDialog
+      {...props}
+      cancelLabel={STOCK.actions.cancel}
+      doneLabel={STOCK.count.done}
+      refresh={false}
+    />
   );
 }
 
@@ -480,13 +392,25 @@ export function DifferenceDialog({
 
 /* ─── Adjust ──────────────────────────────────────────────────────────── */
 
-export function AdjustDialog({ what, batches }: { what: string; batches: DialogBatch[] }) {
+export function AdjustDialog({
+  what,
+  batches,
+  label = STOCK.actions.adjust,
+  variant,
+}: {
+  what: string;
+  batches: DialogBatch[];
+  /** Workspace v2's Shelf names it "Record an adjustment", its one lagoon action. */
+  label?: string;
+  variant?: "primary" | "secondary";
+}) {
   const ids = { batch: useId(), qty: useId(), note: useId() };
   const [batchId, setBatchId] = useState(batches[0]?.id ?? "");
   const batch = batches.find((b) => b.id === batchId);
   return (
     <StockDialog
-      label={STOCK.actions.adjust}
+      label={label}
+      variant={variant}
       title={STOCK.adjust.title(what)}
       description={STOCK.adjust.quantity}
       submit={STOCK.adjust.submit}

@@ -1,0 +1,149 @@
+# Pharmacy Workspace v2 parity checklist (Law 2)
+
+Generated from base `4ffcc9d2`. These are the server actions exported by every `"use server"` file under `app/pharmacy`, with the `.tsx` files that call each one now.
+Each v2 tab renders the old page body, so every old caller is still reachable inside the new shell.
+The **Signed** column is for the CSO (☐ = not yet signed). Views, filters, prints and counts are listed place by place in FINAL-REPORT §2.
+
+| Action | File | Old callers | Callers now | Signed |
+| --- | --- | --- | --- | --- |
+| `abandonDelivery` | `app/pharmacy/store/deliveries/actions.ts` | 1 | `app/pharmacy/store/deliveries/_components/delivery-dialogs.tsx` | ☐ |
+| `acceptLine` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-screen.tsx` | ☐ |
+| `acceptRemainingLines` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-screen.tsx` | ☐ |
+| `addBatchFoundOnShelf` | `app/pharmacy/stock/actions.ts` | 1 | `app/pharmacy/stock/_components/stock-dialogs.tsx` | ☐ |
+| `addProduct` | `app/pharmacy/stock/actions.ts` | 1 | `app/pharmacy/stock/_components/stock-dialogs.tsx` | ☐ |
+| `adjustControlled` | `app/pharmacy/controlled-actions.ts` | 0 | — (not called from a page) | ☐ |
+| `adjustStock` | `app/pharmacy/stock/actions.ts` | 1 | `app/pharmacy/stock/_components/stock-dialogs.tsx` | ☐ |
+| `approveMayHaveMessages` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `askClinicToRenew` | `app/pharmacy/refill-actions.ts` | 1 | `app/pharmacy/refills/_components/refill-board.tsx` | ☐ |
+| `attestApprover` | `app/pharmacy/store/month-end/actions.ts` | 1 | `app/pharmacy/store/month-end/_components/month-dialogs.tsx` | ☐ |
+| `attestCartConfirmer` | `app/pharmacy/store/carts/actions.ts` | 1 | `app/pharmacy/store/carts/[locationId]/page.tsx` | ☐ |
+| `attestCartSigner` | `app/pharmacy/store/carts/actions.ts` | 1 | `app/pharmacy/store/carts/[locationId]/page.tsx` | ☐ |
+| `attestSigner` | `app/pharmacy/store/packs/actions.ts` | 4 | `app/pharmacy/clinical/content/_components/content-dialogs.tsx`, `app/pharmacy/store/wards/[locationId]/page.tsx`, `app/pharmacy/store/wards/_components/ward-stock-view.tsx` … | ☐ |
+| `attestStoreWitness` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/places/_components/store-kit.tsx` | ☐ |
+| `attestWardSigner` | `app/pharmacy/store/wards/actions.ts` | 1 | `app/pharmacy/store/wards/[locationId]/page.tsx` | ☐ |
+| `attestWitness` | `app/pharmacy/store/expiry/actions.ts` | 2 | `app/pharmacy/_components/controlled-blocks.tsx`, `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `borrowStock` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `bringIntoQueue` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-dialogs.tsx` | ☐ |
+| `changeOpenOutcome` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-dialogs.tsx` | ☐ |
+| `checkSecondIdentifier` | `app/pharmacy/supply-actions.ts` | 2 | `app/pharmacy/refills/_components/refill-board.tsx`, `app/pharmacy/prescriptions/[key]/handover/_components/handover-screen.tsx` | ☐ |
+| `chooseActingPoint` | `app/pharmacy/actions.ts` | 1 | `app/pharmacy/_components/point-chooser.tsx`, `app/pharmacy/_components/v2/shell.tsx` | ☐ |
+| `closeControlledDifference` | `app/pharmacy/controlled-actions.ts` | 1 | `app/pharmacy/controlled/_components/controlled-page-actions.tsx` | ☐ |
+| `closeLine` | `app/pharmacy/review-actions.ts` | 2 | `app/pharmacy/_components/review-dialogs.tsx`, `app/pharmacy/store/orders/_components/order-forms.tsx` | ☐ |
+| `closeLoan` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `closeMonth` | `app/pharmacy/store/month-end/actions.ts` | 1 | `app/pharmacy/store/month-end/_components/month-dialogs.tsx` | ☐ |
+| `closeOrderLine` | `app/pharmacy/store/orders/actions.ts` | 1 | `app/pharmacy/store/orders/_components/order-forms.tsx` | ☐ |
+| `closePrescriptionNotCollected` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-dialogs.tsx` | ☐ |
+| `closeRecall` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `closeStockRequest` | `app/pharmacy/stock/actions.ts` | 1 | `app/pharmacy/stock/_components/stock-dialogs.tsx` | ☐ |
+| `completeSheet` | `app/pharmacy/downtime/entry-actions.ts` | 1 | `app/pharmacy/downtime/_components/row-form.tsx` | ☐ |
+| `confirmBackEnteredControlledSupply` | `app/pharmacy/controlled-actions.ts` | 1 | `app/pharmacy/controlled/_components/controlled-page-actions.tsx` | ☐ |
+| `confirmCut` | `app/pharmacy/store/orders/actions.ts` | 1 | `app/pharmacy/store/orders/_components/order-forms.tsx` | ☐ |
+| `confirmFilledElsewhere` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-dialogs.tsx` | ☐ |
+| `confirmIssueReceipt` | `app/pharmacy/store/issues/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `confirmLogColumns` | `app/pharmacy/downtime/entry-actions.ts` | 1 | `app/pharmacy/supplied/log/_components/log-controls.tsx` | ☐ |
+| `correctBatchControlled` | `app/pharmacy/controlled-actions.ts` | 0 | — (not called from a page) | ☐ |
+| `correctBatchDetails` | `app/pharmacy/stock/actions.ts` | 1 | `app/pharmacy/stock/_components/stock-dialogs.tsx` | ☐ |
+| `correctRecordControlled` | `app/pharmacy/controlled-actions.ts` | 0 | — (not called from a page) | ☐ |
+| `correctSupplyRecord` | `app/pharmacy/supply-actions.ts` | 1 | `app/pharmacy/_components/supply-dialogs.tsx` | ☐ |
+| `createCartLocation` | `app/pharmacy/store/carts/actions.ts` | 1 | `app/pharmacy/store/carts/body.tsx` | ☐ |
+| `createLocation` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/places/_components/places-dialogs.tsx` | ☐ |
+| `createWardLocation` | `app/pharmacy/store/wards/actions.ts` | 1 | `app/pharmacy/store/wards/body.tsx` | ☐ |
+| `declineLine` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-dialogs.tsx` | ☐ |
+| `directIssue` | `app/pharmacy/store/issues/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `enterDowntimeRow` | `app/pharmacy/downtime/entry-actions.ts` | 1 | `app/pharmacy/downtime/_components/row-form.tsx` | ☐ |
+| `findByPatientNumber` | `app/pharmacy/actions.ts` | 1 | `app/pharmacy/_components/find-field.tsx` | ☐ |
+| `findPatientForEntry` | `app/pharmacy/downtime/entry-actions.ts` | 1 | `app/pharmacy/downtime/_components/row-form.tsx` | ☐ |
+| `handOverPrepared` | `app/pharmacy/refill-actions.ts` | 1 | `app/pharmacy/refills/_components/refill-board.tsx` | ☐ |
+| `holdPreparedLonger` | `app/pharmacy/refill-actions.ts` | 1 | `app/pharmacy/refills/_components/refill-board.tsx` | ☐ |
+| `importAware` | `app/pharmacy/clinical/actions.ts` | 1 | `app/pharmacy/clinical/content/_components/content-dialogs.tsx` | ☐ |
+| `importCandidates` | `app/pharmacy/clinical/actions.ts` | 1 | `app/pharmacy/clinical/content/_components/content-dialogs.tsx` | ☐ |
+| `issueRequisition` | `app/pharmacy/store/issues/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `lendStock` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `logPhoneAnswer` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-dialogs.tsx` | ☐ |
+| `moveToQuarantine` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `notifyOwedInStock` | `app/pharmacy/open-lines/actions.ts` | 1 | `app/pharmacy/open-lines/_components/tell-patient.tsx` | ☐ |
+| `postWardRecallNotice` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `printDiscrepancyReport` | `app/pharmacy/store/deliveries/actions.ts` | 1 | `app/pharmacy/store/deliveries/_components/delivery-dialogs.tsx` | ☐ |
+| `printDispensingLog` | `app/pharmacy/downtime/entry-actions.ts` | 1 | `app/pharmacy/supplied/log/_components/log-controls.tsx` | ☐ |
+| `printGrn` | `app/pharmacy/store/deliveries/actions.ts` | 1 | `app/pharmacy/store/deliveries/_components/delivery-dialogs.tsx` | ☐ |
+| `printLabels` | `app/pharmacy/supply-actions.ts` | 2 | `app/pharmacy/labels/[handoverId]/label-actions.tsx`, `app/pharmacy/prescriptions/[key]/handover/_components/handover-screen.tsx` | ☐ |
+| `printLoanRecord` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `printOrder` | `app/pharmacy/store/orders/actions.ts` | 1 | `app/pharmacy/store/orders/_components/order-forms.tsx` | ☐ |
+| `printRecallList` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `printRecallReconciliation` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `printRegisterEntry` | `app/pharmacy/store/expiry/actions.ts` | 5 | `app/pharmacy/controlled/register/[entryId]/register-print.tsx`, `app/pharmacy/controlled/register/[entryId]/page.tsx`, `app/pharmacy/controlled/_components/controlled-page-actions.tsx` … | ☐ |
+| `printSlip` | `app/pharmacy/review-actions.ts` | 3 | `app/pharmacy/_components/review-screen.tsx`, `app/pharmacy/_components/review-dialogs.tsx`, `app/pharmacy/prescriptions/[key]/handover/_components/handover-screen.tsx` | ☐ |
+| `printStockStatus` | `app/pharmacy/store/month-end/actions.ts` | 1 | `app/pharmacy/store/month-end/_components/month-dialogs.tsx` | ☐ |
+| `printTracerAudit` | `app/pharmacy/store/month-end/actions.ts` | 1 | `app/pharmacy/store/month-end/_components/month-dialogs.tsx` | ☐ |
+| `printVoucher` | `app/pharmacy/store/issues/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `quarantineRecall` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `raiseRequisition` | `app/pharmacy/store/issues/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `raiseWardRequisition` | `app/pharmacy/store/wards/actions.ts` | 1 | `app/pharmacy/store/wards/[locationId]/page.tsx` | ☐ |
+| `receiveControlled` | `app/pharmacy/controlled-actions.ts` | 1 | `app/pharmacy/controlled/_components/controlled-page-actions.tsx` | ☐ |
+| `receiveDelivery` | `app/pharmacy/store/deliveries/actions.ts` | 1 | `app/pharmacy/store/deliveries/_components/delivery-dialogs.tsx` | ☐ |
+| `receiveStock` | `app/pharmacy/stock/actions.ts` | 1 | `app/pharmacy/stock/_components/stock-dialogs.tsx` | ☐ |
+| `recordCartCheck` | `app/pharmacy/store/carts/actions.ts` | 1 | `app/pharmacy/store/carts/[locationId]/page.tsx` | ☐ |
+| `recordControlledCount` | `app/pharmacy/controlled-actions.ts` | 1 | `app/pharmacy/_components/controlled-blocks.tsx` | ☐ |
+| `recordControlledSupply` | `app/pharmacy/controlled-actions.ts` | 1 | `app/pharmacy/prescriptions/[key]/handover/_components/handover-screen.tsx` | ☐ |
+| `recordCount` | `app/pharmacy/stock/actions.ts` | 1 | `app/pharmacy/stock/_components/stock-dialogs.tsx` | ☐ |
+| `recordDifferenceReason` | `app/pharmacy/store/month-end/actions.ts` | 1 | `app/pharmacy/store/month-end/_components/month-dialogs.tsx` | ☐ |
+| `recordDisposalReference` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `recordDowntime` | `app/pharmacy/downtime/actions.ts` | 1 | `app/pharmacy/downtime/_components/downtime-dialogs.tsx` | ☐ |
+| `recordDrill` | `app/pharmacy/downtime/actions.ts` | 1 | `app/pharmacy/downtime/_components/downtime-dialogs.tsx` | ☐ |
+| `recordHandover` | `app/pharmacy/supply-actions.ts` | 2 | `app/pharmacy/prescriptions/[key]/handover/page.tsx`, `app/pharmacy/prescriptions/[key]/handover/_components/handover-screen.tsx` | ☐ |
+| `recordLookBack` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/supply-dialogs.tsx` | ☐ |
+| `recordMonthEndCount` | `app/pharmacy/store/month-end/actions.ts` | 1 | `app/pharmacy/store/month-end/_components/month-dialogs.tsx` | ☐ |
+| `recordNotSupplied` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-screen.tsx` | ☐ |
+| `recordPaperOrderComparison` | `app/pharmacy/store/orders/actions.ts` | 1 | `app/pharmacy/store/orders/_components/order-forms.tsx` | ☐ |
+| `recordRecallContact` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `recordReconciliationEvent` | `app/pharmacy/clinical/actions.ts` | 1 | `app/pharmacy/clinical/reconciliation/[id]/_components/reconciliation-actions.tsx` | ☐ |
+| `recordReportEvent` | `app/pharmacy/clinical/actions.ts` | 1 | `app/pharmacy/clinical/reactions/[id]/_components/report-actions.tsx` | ☐ |
+| `recordShortDatedDecision` | `app/pharmacy/store/deliveries/actions.ts` | 1 | `app/pharmacy/store/deliveries/_components/delivery-dialogs.tsx` | ☐ |
+| `recordStoreCount` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/places/_components/places-dialogs.tsx` | ☐ |
+| `recordSupplyWithoutReview` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-dialogs.tsx` | ☐ |
+| `recordSuspectedReaction` | `app/pharmacy/clinical/actions.ts` | 1 | `app/pharmacy/clinical/reactions/_components/record-dialog.tsx` | ☐ |
+| `recordWardCount` | `app/pharmacy/store/wards/actions.ts` | 1 | `app/pharmacy/store/wards/[locationId]/page.tsx` | ☐ |
+| `refuseRequisitionLine` | `app/pharmacy/store/issues/actions.ts` | 1 | `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `releasePrepared` | `app/pharmacy/refill-actions.ts` | 1 | `app/pharmacy/refills/_components/refill-board.tsx` | ☐ |
+| `reopenTypedCheck` | `app/pharmacy/supply-actions.ts` | 1 | `app/pharmacy/prescriptions/[key]/handover/_components/handover-screen.tsx` | ☐ |
+| `reprintLabels` | `app/pharmacy/supply-actions.ts` | 1 | `app/pharmacy/labels/[handoverId]/label-actions.tsx` | ☐ |
+| `requestRefillAtWindow` | `app/pharmacy/refill-actions.ts` | 0 | — (not called from a page) | ☐ |
+| `requestStock` | `app/pharmacy/stock/actions.ts` | 0 | — (not called from a page) | ☐ |
+| `reserveSheetNumbers` | `app/pharmacy/downtime/actions.ts` | 1 | `app/pharmacy/downtime/_components/downtime-dialogs.tsx` | ☐ |
+| `returnStock` | `app/pharmacy/store/actions.ts` | 2 | `app/pharmacy/store/wards/_components/ward-stock-view.tsx`, `app/pharmacy/store/issues/_components/issue-dialogs.tsx` | ☐ |
+| `returnToSupplier` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `reverseControlled` | `app/pharmacy/controlled-actions.ts` | 0 | — (not called from a page) | ☐ |
+| `reverseSupply` | `app/pharmacy/supply-actions.ts` | 1 | `app/pharmacy/_components/supply-dialogs.tsx` | ☐ |
+| `saveContentDraft` | `app/pharmacy/clinical/actions.ts` | 1 | `app/pharmacy/clinical/content/_components/content-dialogs.tsx` | ☐ |
+| `saveCounterparty` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/places/_components/places-dialogs.tsx` | ☐ |
+| `saveDeliveryLine` | `app/pharmacy/store/deliveries/actions.ts` | 1 | `app/pharmacy/store/deliveries/_components/delivery-dialogs.tsx` | ☐ |
+| `saveLineDecisions` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-screen.tsx` | ☐ |
+| `saveOrder` | `app/pharmacy/store/orders/actions.ts` | 1 | `app/pharmacy/store/orders/_components/order-forms.tsx` | ☐ |
+| `saveOrderProposal` | `app/pharmacy/store/orders/actions.ts` | 1 | `app/pharmacy/store/orders/_components/order-forms.tsx` | ☐ |
+| `saveSignedPack` | `app/pharmacy/store/packs/actions.ts` | 1 | `app/pharmacy/store/packs/_components/pack-dialogs.tsx` | ☐ |
+| `sendQuery` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-screen.tsx` | ☐ |
+| `sendRecallMessage` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `setAsideRefill` | `app/pharmacy/refill-actions.ts` | 1 | `app/pharmacy/refills/_components/refill-board.tsx` | ☐ |
+| `setCartList` | `app/pharmacy/store/carts/actions.ts` | 1 | `app/pharmacy/store/carts/[locationId]/page.tsx` | ☐ |
+| `setCountFreshness` | `app/pharmacy/stock/actions.ts` | 0 | — (not called from a page) | ☐ |
+| `setGtin` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/deliveries/_components/delivery-dialogs.tsx` | ☐ |
+| `setLocationInCharge` | `app/pharmacy/store/actions.ts` | 1 | `app/pharmacy/store/places/_components/places-dialogs.tsx` | ☐ |
+| `setPaymentStatus` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-dialogs.tsx` | ☐ |
+| `setProductPrice` | `app/pharmacy/stock/actions.ts` | 0 | — (not called from a page) | ☐ |
+| `setReorderLevel` | `app/pharmacy/stock/actions.ts` | 1 | `app/pharmacy/stock/_components/stock-dialogs.tsx` | ☐ |
+| `setWardLevels` | `app/pharmacy/store/wards/actions.ts` | 1 | `app/pharmacy/store/wards/[locationId]/page.tsx` | ☐ |
+| `setWardSupplyModel` | `app/pharmacy/store/wards/actions.ts` | 2 | `app/pharmacy/store/wards/[locationId]/page.tsx`, `app/pharmacy/store/places/_components/places-dialogs.tsx` | ☐ |
+| `signCartList` | `app/pharmacy/store/carts/actions.ts` | 1 | `app/pharmacy/store/carts/[locationId]/page.tsx` | ☐ |
+| `signContentEntry` | `app/pharmacy/clinical/actions.ts` | 1 | `app/pharmacy/clinical/content/_components/content-dialogs.tsx` | ☐ |
+| `signPack` | `app/pharmacy/store/packs/actions.ts` | 1 | `app/pharmacy/store/packs/_components/pack-dialogs.tsx` | ☐ |
+| `signWardLevels` | `app/pharmacy/store/wards/actions.ts` | 1 | `app/pharmacy/store/wards/[locationId]/page.tsx` | ☐ |
+| `startDelivery` | `app/pharmacy/store/deliveries/actions.ts` | 1 | `app/pharmacy/store/deliveries/_components/delivery-dialogs.tsx` | ☐ |
+| `startRecall` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+| `transferControlled` | `app/pharmacy/controlled-actions.ts` | 0 | — (not called from a page) | ☐ |
+| `transferStock` | `app/pharmacy/stock/actions.ts` | 1 | `app/pharmacy/stock/_components/stock-dialogs.tsx` | ☐ |
+| `voidSheetNumber` | `app/pharmacy/downtime/actions.ts` | 1 | `app/pharmacy/downtime/_components/downtime-dialogs.tsx` | ☐ |
+| `withdrawContentEntry` | `app/pharmacy/clinical/actions.ts` | 1 | `app/pharmacy/clinical/content/_components/content-dialogs.tsx` | ☐ |
+| `withdrawQuery` | `app/pharmacy/review-actions.ts` | 1 | `app/pharmacy/_components/review-dialogs.tsx` | ☐ |
+| `writeOff` | `app/pharmacy/store/expiry/actions.ts` | 1 | `app/pharmacy/store/expiry/_components/expiry-dialogs.tsx` | ☐ |
+
+Actions that had a caller before and have none now: none.

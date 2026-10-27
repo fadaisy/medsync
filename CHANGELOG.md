@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Pharmacy Workspace v2, six places (dark) — 27 Oct 2026
+
+Built on `feat/pharmacy-workspace-v2` behind `PHARMACY_WORKSPACE_V2` (off in production while the copy is draft). No migrations.
+
+- Today, Window, Shelf, Store, Clinical, Set-up and one Needs you inbox in a Tide shell, with Find on Ctrl K; every tab
+  follows the old nav item's flag and permission ([ADR 0451](docs/adr/0451-pharmacy-workspace-v2-six-places.md),
+  [0452](docs/adr/0452-pharmacy-needs-you.md), [0453](docs/adr/0453-pharmacy-today-figures.md)).
+- Old list pages redirect (307) while the flag is on; detail and print routes stay
+  ([ADR 0455](docs/adr/0455-pharmacy-workspace-v2-rollout-and-redirects.md)).
+- One form dialog for the pharmacy instead of three ([ADR 0454](docs/adr/0454-pharmacy-one-dialog.md)); in v2, Signed packs
+  shows whenever its page opens.
+
 ### Added — Pharmacy demo, a national referral day — 26 Oct 2026
 
 Built on `feat/pharmacy-demo`. Migration 0250 unapplied.

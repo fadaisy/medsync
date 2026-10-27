@@ -3,27 +3,19 @@
 import type { ReviewResult as ActionResult } from "@/lib/pharmacy/review/store";
 import type { LineResult } from "@/lib/pharmacy/stores/receiving";
 import type { ScanOutcome, ScanProduct } from "@/lib/pharmacy/stores/scan-fill";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
-import { CheckIcon, PrinterIcon, ScanLineIcon, TriangleAlertIcon } from "lucide-react";
+import { CheckIcon, PrinterIcon, ScanLineIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
-import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
-import { DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  SheetBody,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { resultWords, STORE } from "@/content/pharmacy-stores-store";
 import { readScan } from "@/lib/pharmacy/stores/scan-fill";
 import { attestStoreWitness } from "../../actions";
+import { PharmacyDialog, Refusal, type PharmacyDialogProps } from "../../../_components/pharmacy-dialog";
 
 export { expiryForField } from "@/lib/pharmacy/stores/scan-fill";
 export type { ScanOutcome, ScanProduct } from "@/lib/pharmacy/stores/scan-fill";
@@ -65,17 +57,7 @@ export function Field({
   );
 }
 
-export function Refusal({ error }: { error: string | null }) {
-  return (
-    <p role="status" className="empty:hidden">
-      {error ? (
-        <StatusWord tone="caution" glyph={TriangleAlertIcon}>
-          {error}
-        </StatusWord>
-      ) : null}
-    </p>
-  );
-}
+export { Refusal };
 
 /** RG-2: Matches is neutral; every other result is amber with an icon and its word (Law 13). */
 export function ResultWords({ results }: { results: readonly LineResult[] }) {
@@ -94,98 +76,9 @@ export function ResultWords({ results }: { results: readonly LineResult[] }) {
   );
 }
 
-/** One centred dialog: its button, its form, the refusal in words, Cancel and the one action. */
-export function StoreDialog({
-  label,
-  title,
-  description,
-  submit,
-  variant = "secondary",
-  width = "medium",
-  onOpen,
-  onSave,
-  done,
-  disabled,
-  children,
-}: {
-  label: string;
-  title: string;
-  description?: ReactNode;
-  submit: string;
-  variant?: "primary" | "secondary" | "ghost";
-  width?: "medium" | "wide" | "xl";
-  onOpen?: () => void;
-  /** "stay" keeps the dialog open (a count's second step). */
-  onSave: (key: string, data: FormData) => Promise<ActionResult<unknown> | "stay">;
-  done?: boolean;
-  disabled?: boolean;
-  children: ReactNode;
-}) {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [key, setKey] = useState(newKey);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, start] = useTransition();
-  const errorId = useId();
-  const change = (next: boolean) => {
-    if (next) {
-      setKey(newKey());
-      setError(null);
-      onOpen?.();
-    }
-    setOpen(next);
-  };
-  const save = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    start(async () => {
-      const r = await onSave(key, data);
-      if (r === "stay") return setError(null);
-      if (!r.ok) return setError(r.error);
-      setOpen(false);
-      router.refresh();
-    });
-  };
-  return (
-    <EditorDialog
-      width={width}
-      open={open}
-      onOpenChange={change}
-      trigger={
-        <DialogTrigger render={<Button variant={variant} className={TARGET} disabled={disabled} />}>
-          {label}
-        </DialogTrigger>
-      }
-    >
-      <form onSubmit={save} className="flex min-h-0 flex-1 flex-col" aria-describedby={errorId}>
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          {description ? <SheetDescription>{description}</SheetDescription> : null}
-        </SheetHeader>
-        <SheetBody className="flex flex-col gap-4">
-          {children}
-          <div id={errorId}>
-            <Refusal error={error} />
-          </div>
-        </SheetBody>
-        <SheetFooter>
-          <Button
-            type="button"
-            variant="secondary"
-            className={TARGET}
-            onClick={() => setOpen(false)}
-          >
-            {done ? STORE.count.done : STORE.places.cancel}
-          </Button>
-          {done ? null : (
-            <Button type="submit" className={TARGET} disabled={pending}>
-              {submit}
-            </Button>
-          )}
-        </SheetFooter>
-      </form>
-    </EditorDialog>
-  );
+/** The store's dialog: the pharmacy's one dialog (D-PW-10) with the store's words. */
+export function StoreDialog(props: PharmacyDialogProps) {
+  return <PharmacyDialog {...props} cancelLabel={STORE.places.cancel} doneLabel={STORE.count.done} />;
 }
 
 /** A keyboard-wedge field: a scanner types the code and presses Enter. Typing works the same. */

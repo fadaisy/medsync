@@ -335,6 +335,7 @@ describe("Law 14 and the design rules, on every Step 6 route and component", () 
     "app/pharmacy/labels/[handoverId]/page.tsx",
     "app/pharmacy/labels/[handoverId]/label-actions.tsx",
     "app/pharmacy/supplied/page.tsx",
+    "app/pharmacy/supplied/body.tsx",
     "app/pharmacy/supplied/_components/supplied.tsx",
     "content/pharmacy-supply.ts",
   ];

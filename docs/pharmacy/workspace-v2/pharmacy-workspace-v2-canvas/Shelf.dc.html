@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shelf</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1040px">
+<nav class="rail" aria-label="Pharmacy places">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+<a href="Window.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Window<span class="rail__n">61</span></a>
+<a href="Shelf.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Shelf</a>
+<a href="Store.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>Store<span class="rail__n">4</span></a>
+<a href="Clinical.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>Clinical<span class="rail__n">6</span></a>
+<a href="Setup.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharm Guy, pharmacist, signed in with MFA. Open the account menu">PG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Pharmacy · Test Hospital-1</span><h1>Shelf</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a patient, prescription, batch, slip code or page" placeholder="Find a patient, prescription, batch, slip code or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Working at ALVIN Ward, live. Change">ALVIN Ward <span>· Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a><a class="needs" href="NeedsYou.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Needs you <b>12</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Shelf"><a class="on" href="#" aria-current="page">Stock</a><a href="#">Controlled drugs <span class="n n--warn">1</span></a><a href="#">Counts</a><a href="#">Emergency doses <span class="n">18</span></a></nav>
+<span class="row__sp"></span>
+<a class="btn btn--t btn--s" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>Record an adjustment</a>
+</div>
+
+<div class="strip2">
+<a href="#"><span class="k">Medicines here</span><span class="v">412</span><span class="d">across 618 batches</span></a>
+<a href="#"><span class="k">Out of stock</span><span class="v">11</span><span class="d w">4 on the vital list</span></a>
+<a href="#"><span class="k">Below reorder level</span><span class="v">23</span><span class="d">covered by order OR-0044</span></a>
+<a href="#"><span class="k">Last full count</span><span class="v">08:10 <small>today</small></span><span class="d">by Pharm Guy</span></a>
+<a href="#"><span class="k">Cold chain</span><span class="v">2 <small>fridges</small></span><span class="d">both logged at 14:00</span></a>
+</div>
+
+<div class="cols" style="grid-template-columns: minmax(0, 1fr) 360px">
+<section class="card">
+<div class="card__h"><h2>Stock at ALVIN Ward</h2><span class="sp"></span><div class="chips"><a class="chip on" href="#">Needs attention <span class="n">34</span></a><a class="chip" href="#">All <span class="n">412</span></a></div></div>
+<table class="sc">
+<thead><tr><th>Medicine</th><th class="n">On the shelf</th><th>First to expire</th><th>Why it is here</th><th>What happens next</th></tr></thead>
+<tbody>
+<tr><td><b>Aspirin</b> <span class="small">tablet</span><br><span class="pill pill--line">Vital</span></td><td class="n">0</td><td class="small">None</td><td><span class="stg stg--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Out 3 days</span></td><td><span class="next"><b>Order OR-0044 arrives Thu</b><span>2 patients owed</span></span></td></tr>
+<tr><td><b>Ciprofloxacin</b> <span class="small">tablet</span></td><td class="n">0</td><td class="small">None</td><td><span class="stg stg--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Out 5 days</span></td><td><span class="next"><b>300 at Outpatient pharmacy</b><a href="#">Request a transfer</a></span></td></tr>
+<tr><td><b>Nifedipine</b> <span class="small">tablet</span><br><span class="pill pill--line">Vital</span></td><td class="n">0</td><td class="small">None</td><td><span class="stg stg--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Out 6 days</span></td><td><span class="next"><b>No order covers it</b><a href="#">Ask the store</a></span></td></tr>
+<tr><td><b>Metformin</b> <span class="small">tablet</span></td><td class="n">1,240</td><td class="mono small">B-2291 · 03/2027</td><td><span class="stg">Below reorder level</span></td><td><span class="next"><b>On order OR-0044</b><span>Nothing to do</span></span></td></tr>
+<tr><td><b>Oxytocin</b> <span class="small">injection</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20"/><path d="M12 2v20"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg></td><td class="n">48</td><td class="mono small">B-3310 · 30/11/2026</td><td><span class="stg">Expires in 34 days</span></td><td><span class="next"><b>Use this batch first</b><span>Shown first at the window</span></span></td></tr>
+<tr><td><b>Ceftriaxone</b> <span class="small">injection</span></td><td class="n">40</td><td class="mono small">C-8812</td><td><span class="stg stg--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>Quarantined, recall</span></td><td><span class="next"><b>Hold for return</b><span>Cannot be supplied</span></span></td></tr>
+</tbody>
+</table>
+</section>
+
+<div class="stack">
+<section class="card">
+<div class="card__h"><h2>Controlled drugs</h2><span class="sp"></span><span class="pill pill--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>1 difference</span></div>
+<div class="card__b">
+<div class="note note--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg><span><b>Morphine oral solution, M-0112.</b> Counted 6, record says 7. Counted at 13:10 by Pharm Guy with a witness. The register stays open until the pharmacist in charge closes it with a note.</span></div>
+</div>
+<div class="card__f"><button class="btn btn--p btn--s">Close with a note</button><span class="sp"></span><a class="btn btn--t btn--s" href="#">Open the register</a></div>
+</section>
+<section class="card">
+<div class="card__h"><h2>Emergency doses</h2><span class="sp"></span><span class="small">today</span></div>
+<div class="card__b">
+<p class="small" style="margin: 0">18 doses given from ward or cart stock before a prescription reached the pharmacy. Each needs a prescription to follow.</p>
+<div class="ck" style="padding: 0">
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>15 matched to a prescription</b><span class="s">Nothing to do.</span></div>
+<div class="attn"><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><b>3 still without a prescription</b><span class="s">Oldest 6 h · Ward 3 · the prescriber has been asked.</span></div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
