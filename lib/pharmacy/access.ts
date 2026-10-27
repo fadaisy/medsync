@@ -72,11 +72,16 @@ export function dispensingMap(
   devHospitals: string | undefined = process.env.PHARMACY_DEV_HOSPITALS,
 ): PermissionMap {
   if (env !== "production") return PHARMACY_MAP_V2;
-  // ADR 0394: the owner's development override, not a legal answer. "1" is every hospital, or a list of ids.
+  return pharmacyDevHospital(hospitalId, devHospitals) ? PHARMACY_MAP_V2 : PERMISSION_MAP;
+}
+
+/** ADR 0394 (and 0468): the owner's development override, not a legal answer. "1" is every hospital, or a list of ids. */
+export function pharmacyDevHospital(
+  hospitalId: string | null,
+  devHospitals: string | undefined = process.env.PHARMACY_DEV_HOSPITALS,
+): boolean {
   const dev = (devHospitals ?? "").split(",").map((x) => x.trim());
-  return dev.includes("1") || (hospitalId && dev.includes(hospitalId))
-    ? PHARMACY_MAP_V2
-    : PERMISSION_MAP;
+  return dev.includes("1") || (!!hospitalId && dev.includes(hospitalId));
 }
 
 export function pharmacyDispensingAccess(

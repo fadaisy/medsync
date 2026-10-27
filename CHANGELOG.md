@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Pharmacy Workspace v2 at test hospitals in production — 27 Oct 2026
+
+- A hospital listed in `PHARMACY_DEV_HOSPITALS` sees Workspace v2 in production when `PHARMACY_WORKSPACE_V2` is on, while the v2 wording is still draft. Every other hospital waits for the signature ([ADR 0468](docs/adr/0468-pharmacy-workspace-v2-dev-hospitals.md)).
+- The shell's rail and Needs you counts load after the page. Today and Needs you render again (InboxRow left the client pieces file).
+
 ### Added — Shared medicines catalogue, Steps 2–11 (dark) — 27 Oct 2026
 
 Built on `feat/pharmacy-catalogue`. Migrations 0251–0259 are GATED and owner-applied; flag `PHARMACY_CATALOGUE`.
