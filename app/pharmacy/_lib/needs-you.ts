@@ -16,6 +16,7 @@ import { packRows } from "@/lib/pharmacy/stores/packs";
 import { getDeliveriesPage, getIssuesPage } from "@/lib/pharmacy/stores/store-read";
 import { getLookBack } from "@/lib/pharmacy/supply/read";
 import { buildNeedsYou, needsYouKinds } from "@/lib/pharmacy/workspace-v2/needs-you";
+import { SOURCE_MS, within } from "./deadline";
 
 /**
  * The Needs you list for this viewer (GATE A §7): only items someone with the viewer's permissions acts on, read
@@ -38,7 +39,7 @@ export const needsYouFor = cache(async (v2: PharmacyV2): Promise<NeedsYouItem[]>
   // The shell reads this on every pharmacy page: a source that fails is logged and left out, never the page.
   const read = <T,>(yes: boolean, kind: string, fn: () => Promise<T>): Promise<T | undefined> =>
     yes
-      ? fn().catch((e: unknown) => {
+      ? within(fn(), SOURCE_MS, `needs_you.${kind}`).catch((e: unknown) => {
           logger.error("pharmacy.needs_you.source_failed", { kind, error: String(e) });
           return undefined;
         })

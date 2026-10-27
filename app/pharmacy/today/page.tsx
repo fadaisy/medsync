@@ -28,6 +28,7 @@ import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { LimitsLine } from "../_components/v2/limits-line";
 import { InboxRow } from "../_components/v2/inbox-row";
 import { FlowStrip } from "../_components/v2/pieces";
+import { PAGE_MS, within } from "../_lib/deadline";
 import { needsYouFor } from "../_lib/needs-you";
 import { loadFlow, loadTodayRows } from "../_lib/today-read";
 import { pharmacyV2 } from "../_lib/v2";
@@ -81,7 +82,11 @@ export default async function TodayPage({
   const sp = await searchParams;
   const now = new Date();
   const scope = sp.scope === "all" || !v2.acting ? "all" : v2.acting.id;
-  const [rows, flow, needs] = await Promise.all([loadTodayRows(v2, now), loadFlow(v2, now), needsYouFor(v2)]);
+  const [rows, flow, needs] = await Promise.all([
+    within(loadTodayRows(v2, now), PAGE_MS, "today.rows"),
+    loadFlow(v2, now),
+    needsYouFor(v2),
+  ]);
   const t = todayFigures(rows, { points: v2.points, scope, now, timeZone: TZ });
   const all = scope === "all" ? t : todayFigures(rows, { points: v2.points, scope: "all", now, timeZone: TZ });
   const f = t.figures;
