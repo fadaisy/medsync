@@ -1,5 +1,6 @@
 "use server";
 
+import { reportSealBroken, SealBrokenInput } from "@/lib/pharmacy/distribution/store";
 import * as carts from "@/lib/pharmacy/stores/cart-store";
 import { createLocation, CreateLocationInput } from "@/lib/pharmacy/stores/location-store";
 import * as wards from "@/lib/pharmacy/stores/ward-store";
@@ -40,4 +41,8 @@ export async function attestCartConfirmer(raw: unknown) {
 /** `recordCartCheck` (`pharmacy.stock` + the unit nurse in charge's confirmation): EC-1 to EC-4. */
 export async function recordCartCheck(raw: unknown) {
   return act("carts", carts.CartCheckInput, raw, "pharmacy.stock", carts.recordCartCheck);
+}
+/** 4.14 a cart's seal reported broken (`pharmacy.stock`); never a movement (ADR 0465). */
+export async function reportCartSealBroken(raw: unknown) {
+  return act("carts", SealBrokenInput, raw, "pharmacy.stock", reportSealBroken);
 }

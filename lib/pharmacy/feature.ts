@@ -1,5 +1,5 @@
 import { PHARMACY_PHASE1_COPY, PHARMACY_SIGNED_COPY } from "@/content/pharmacy";
-import { NATIONAL_LIST_COPY } from "@/content/pharmacy-catalogue";
+import { CATALOGUE_COPY, NATIONAL_LIST_COPY } from "@/content/pharmacy-catalogue";
 import { PHARMACY_CLINICAL_COPY } from "@/content/pharmacy-clinical";
 import { PHARMACY_NETWORK_COPY } from "@/content/pharmacy-network";
 import { PHARMACY_RECONCILIATION_COPY } from "@/content/pharmacy-reconciliation";
@@ -52,6 +52,14 @@ export const pharmacyNationalListLiveFor = (hospitalId: string) =>
     [...PHARMACY_PHASE1_COPY, NATIONAL_LIST_COPY],
     "pharmacy_national_list",
   ) && pharmacyWorkspaceLiveFor(hospitalId);
+
+/**
+ * The shared medicines catalogue in Set-up (ADR 0456): PHARMACY_CATALOGUE, "1" or hospital ids, off by default, inside
+ * the workspace; needs migrations 0251–0253. In production it stays off while its wording (CATALOGUE_COPY) is draft.
+ */
+export const pharmacyCatalogueLiveFor = (hospitalId: string) =>
+  workspaceLiveFor(process.env.PHARMACY_CATALOGUE, hospitalId, [CATALOGUE_COPY], "pharmacy_catalogue") &&
+  pharmacyWorkspaceLiveFor(hospitalId);
 
 /**
  * Pharmacy Phase 2 (Law 14, D-PH2-24): six per-hospital flags, off by default, each inside the workspace. With all

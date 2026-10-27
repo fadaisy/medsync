@@ -27,9 +27,16 @@ import {
   pharmacyStockRequests,
 } from "@/db/schema/pharmacy-dispensing";
 import { EmrWriteError } from "@/lib/emr/write/context";
+import { rowsOf } from "@/lib/exchange/store";
 import { isMedicine } from "@/lib/pharmacy/catalogue";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
-import { pharmacyStoreLiveFor, pharmacyWardStockLiveFor } from "@/lib/pharmacy/feature";
+import {
+  pharmacyCatalogueLiveFor,
+  pharmacyStoreLiveFor,
+  pharmacyWardStockLiveFor,
+} from "@/lib/pharmacy/feature";
+import { ensureCashPayer, setPrice } from "@/lib/pharmacy/prices/store";
+import { catalogueKey, proposeLocalProduct } from "@/lib/pharmacy/shared-catalogue/store";
 import { loadPoint } from "@/lib/pharmacy/write";
 import { drugById } from "@/lib/prescribing/formulary";
 import { correctBatch, expiresOn, isExpired, localDate } from "./ledger";
@@ -68,6 +75,14 @@ const medicineId = z
   .string()
   .regex(/^[a-z0-9_]{2,80}$/)
   .refine(isMedicine, "That medicine is not on the prescribing list.");
+/** A stocked item: a prescribing-list medicine, or a health supply's catalogue key (0255). Products stay strict. */
+const stockItemId = z
+  .string()
+  .regex(/^[a-z0-9_]{2,80}$/)
+  .refine(
+    (id) => isMedicine(id) || /^cat_[0-9a-f]{32}$/.test(id),
+    "That item is not stocked here.",
+  );
 const batchNumber = text(1, 60);
 const quantity = z.number().int().positive().max(1_000_000);
 
@@ -141,7 +156,7 @@ export const CountInput = z.discriminatedUnion("step", [
     step: z.literal("count"),
     clientKey: key,
     /** Null for a full count of the point. */
-    medicineId: medicineId.nullable(),
+    medicineId: stockItemId.nullable(),
     lines: z
       .array(z.object({ batchId: z.uuid(), counted: z.number().int().min(0).max(1_000_000) }))
       .max(500),
@@ -188,13 +203,19 @@ export const TransferInput = z.object({
 export const RequestInput = z.object({
   clientKey: key,
   toPointId: z.uuid(),
-  medicineId,
+  medicineId: stockItemId,
   quantity: quantity.nullable(),
 });
 
 export const CloseRequestInput = z.object({ requestId: z.uuid(), reason: text(2, 200) });
 
-export const ProductInput = z.object({ clientKey: key, medicineId, ...productFields });
+export const ProductInput = z.object({
+  clientKey: key,
+  medicineId,
+  ...productFields,
+  /** Catalogue slice Step 7: the pack picked from the catalogue, linked at once (0255 checks its kind). */
+  cataloguePackId: z.uuid().nullish(),
+});
 
 export const PriceInput = z.object({
   productId: z.uuid(),
@@ -207,7 +228,7 @@ export const PriceInput = z.object({
 
 export const LevelInput = z.object({
   clientKey: key,
-  medicineId,
+  medicineId: stockItemId,
   level: z.number().int().min(0).max(1_000_000).nullable(),
 });
 
@@ -409,6 +430,7 @@ async function newProduct(
   pointId: string,
   p: Omit<z.infer<typeof ProductInput>, "clientKey"> & { clientKey?: string },
   addedAtWindow: boolean,
+  catalogue: Partial<typeof pharmacyProducts.$inferInsert> = {},
 ): Promise<string> {
   const [row] = await ctx.tx
     .insert(pharmacyProducts)
@@ -424,6 +446,7 @@ async function newProduct(
       registrationNumber: p.registrationNumber,
       addedAtWindow,
       createdBy: ctx.actor.userId,
+      ...catalogue,
     })
     .returning({ id: pharmacyProducts.id });
   await placeProduct(ctx, row!.id, pointId);
@@ -831,7 +854,85 @@ export async function addProduct(ctx: PharmacyCtx, input: z.infer<typeof Product
   const point = pointOf(ctx);
   if (await replayed(ctx.tx, pharmacyProducts, input.clientKey, ctx.actor.hospitalId))
     return { id: input.clientKey };
-  return { id: await newProduct(ctx, point.id, input, false) };
+  const { cataloguePackId, ...product } = input;
+  if (cataloguePackId) await packIsMedicine(ctx, cataloguePackId, input.medicineId);
+  return {
+    id: await newProduct(ctx, point.id, product, false, cataloguePackId ? { cataloguePackId } : {}),
+  };
+}
+
+export const HealthSupplyInput = z.object({
+  clientKey: key,
+  catalogueMedicineId: z.uuid().nullable(),
+  kind: z.enum(["health_supply", "local_medicine"]),
+  name: productFields.name,
+  strength: productFields.strength,
+  issueUnit: productFields.issueUnit,
+  pack: z.object({
+    description: text(1, 80),
+    contents: z.number().int().min(1).max(100_000).nullable(),
+  }),
+  brand: optional(160),
+  maker: productFields.manufacturer,
+  registration: z.discriminatedUnion("answer", [
+    z.object({ answer: z.literal("number"), number: text(2, 80) }),
+    z.object({ answer: z.literal("none_on_pack") }),
+  ]),
+  gtin: z
+    .string()
+    .regex(/^\d{14}$/, "A GTIN is 14 digits.")
+    .nullable(),
+});
+
+/**
+ * Catalogue slice 4.4 (S18, S19): a health supply typed from the pack. The product takes the catalogue key (A-1 as
+ * amended), so no prescription ever matches it; the catalogue team checks the `new_product` proposal behind it.
+ * Received, counted, issued and written off like any other product.
+ */
+export async function addHealthSupply(ctx: PharmacyCtx, input: z.infer<typeof HealthSupplyInput>) {
+  const point = pointOf(ctx);
+  if (await replayed(ctx.tx, pharmacyProducts, input.clientKey, ctx.actor.hospitalId))
+    return { id: input.clientKey };
+  const { clientKey, ...payload } = input;
+  const proposalId = await proposeLocalProduct(ctx.tx, ctx.actor, {
+    ...payload,
+    hospitalProductId: clientKey,
+  });
+  const id = await newProduct(
+    ctx,
+    point.id,
+    {
+      clientKey,
+      medicineId: catalogueKey(input.catalogueMedicineId ?? clientKey),
+      name: input.name,
+      manufacturer: input.maker,
+      strength: input.strength,
+      packSize: input.pack.description,
+      issueUnit: input.issueUnit,
+      registrationNumber: input.registration.answer === "number" ? input.registration.number : null,
+    },
+    false,
+    {
+      itemKind: "health_supply",
+      catalogueMedicineId: input.catalogueMedicineId,
+      localProposalId: proposalId,
+      gtin: input.gtin,
+    },
+  );
+  return { id };
+}
+
+/** Law 5: a picked pack links only to a product of the medicine it is linked to on the prescribing list. */
+async function packIsMedicine(ctx: PharmacyCtx, packId: string, medicineId: string) {
+  const ok = await ctx.tx.execute(sql`
+    SELECT 1 FROM public.cat_packs k JOIN public.cat_products c ON c.id = k.product_id
+      JOIN public.cat_medicine_links l ON l.medicine_id = c.medicine_id AND l.link_kind = 'formulary'
+     WHERE k.id = ${packId} AND l.formulary_id = ${medicineId}`);
+  if (!rowsOf(ok).length)
+    throw fail(
+      "invalid",
+      "That pack is not this medicine. Choose the pack of the medicine you picked.",
+    );
 }
 
 /** CT-5: the price in force (manage); a supply snapshots it. */
@@ -841,6 +942,16 @@ export async function setProductPrice(ctx: PharmacyCtx, input: z.infer<typeof Pr
     .update(pharmacyProducts)
     .set({ priceUgx: input.priceUgx, updatedAt: ctx.now })
     .where(eq(pharmacyProducts.id, product.id));
+  // Catalogue slice Step 8: the price is also a cash price from today, so the snapshot reads it (Law 12).
+  const whole = input.priceUgx === null ? 0 : Math.round(Number(input.priceUgx));
+  if (pharmacyCatalogueLiveFor(ctx.actor.hospitalId) && whole > 0)
+    await setPrice(ctx, {
+      kind: "typed",
+      productId: product.id,
+      payerId: await ensureCashPayer(ctx),
+      fromDate: localDate(ctx.now),
+      priceUgx: whole,
+    });
   return { id: product.id };
 }
 

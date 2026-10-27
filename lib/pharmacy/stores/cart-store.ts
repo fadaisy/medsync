@@ -11,6 +11,7 @@ import {
   pharmacyIssues,
 } from "@/db/schema/pharmacy-stores";
 import { isControlledMedicine } from "@/lib/pharmacy/controlled-read";
+import { sealApplied } from "@/lib/pharmacy/distribution/store";
 import { daysBetween, expiresOn, localDate } from "@/lib/pharmacy/stock/ledger";
 import { gapMovement, restockPlan, shortDatedSwaps } from "./carts";
 import { issueAllowed } from "./locations";
@@ -487,6 +488,11 @@ async function completeCheck(
       checkedAt: who.now,
     })
     .returning({ id: pharmacyCartChecks.id });
+  await sealApplied(who, {
+    locationId: cart.id,
+    sealNumber: input.sealNumber,
+    cartCheckId: check!.id,
+  });
   return { id: check!.id, restocked, short, controlled };
 }
 

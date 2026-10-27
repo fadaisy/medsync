@@ -1,5 +1,6 @@
 "use server";
 
+import * as distribution from "@/lib/pharmacy/distribution/store";
 import * as issues from "@/lib/pharmacy/stores/issue-store";
 import { bare, storeAct } from "@/lib/pharmacy/stores/store-action";
 
@@ -72,6 +73,18 @@ export async function printVoucher(raw: unknown) {
       raw,
       "pharmacy.store",
       issues.printVoucher,
+    ),
+  );
+}
+/** 4.11 pick by scan, or ticked by hand: a check before the issue, never a movement (ADR 0463). */
+export async function recordPick(raw: unknown) {
+  return bare(
+    await storeAct(
+      "recordPick",
+      distribution.RecordPickInput,
+      raw,
+      ["pharmacy.store", "pharmacy.dispense"],
+      distribution.recordPick,
     ),
   );
 }

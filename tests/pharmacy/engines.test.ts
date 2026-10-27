@@ -448,7 +448,10 @@ describe("Law 2: no clinical write from the pharmacy's code", () => {
         !/^patient-list\.ts: (insert|update) selfMedications$/.test(w) &&
         // Phase 4 (5.4, 5.5): a renewal request asks the prescriber (it changes no prescription), and a
         // saved collector is the patient's own contact; neither is a clinical record.
-        !/^refill-store\.ts: insert (prescriptionRenewalRequests|patientCollectors)$/.test(w),
+        !/^refill-store\.ts: insert (prescriptionRenewalRequests|patientCollectors)$/.test(w) &&
+        // The shared catalogue (ADR 0456): reference facts and their proposals, no patient's record.
+        // `update key` is the hash in seedKey, not a table; catPackCodes is the team settling a conflict.
+        !/^shared-catalogue\/store\.ts: (insert cat[A-Z]\w*|update (catProposals|catPackCodes|key))$/.test(w),
     );
     expect(foreign).toEqual([]);
     expect(writes.some((w) => / (prescriptions|prescriptionCancellations)$/.test(w))).toBe(false);

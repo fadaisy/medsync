@@ -156,6 +156,8 @@ export interface HandoverFacts {
   today: string;
   pointLive: boolean;
   paymentRequired: boolean;
+  /** Law 13 (catalogue slice Step 8): an admitted patient's supply never waits on payment. */
+  admitted?: boolean;
   inpatientSupplyOn: boolean;
   collectorIsHospitalStaff: boolean;
   supplyWithoutReview: { settingOn: boolean; legalQ1OnRecord: boolean };
@@ -168,7 +170,15 @@ export interface HandoverFacts {
   lines: ReadonlyMap<string, LineFacts>;
   products: ReadonlyMap<
     string,
-    { medicineId: string; strength: string | null; issueUnit: string; priceUgx: string | null }
+    {
+      medicineId: string;
+      strength: string | null;
+      issueUnit: string;
+      priceUgx: string | null;
+      /** Catalogue slice Step 8: the price in force (`priceUgx` above), which of Law 11's three, the payer. */
+      priceKind?: "priced" | "free" | "price_not_set";
+      payerId?: string | null;
+    }
   >;
   batches: readonly Batch[];
   balances: ReadonlyMap<string, number>;
@@ -229,9 +239,12 @@ export const quantityPrefill = (_prescriptionQuantity?: unknown): null => null;
 /** SU-10: the client key's shape (0126: 8–120 characters). The database makes a repeat the same hand-over. */
 export const handoverClientKey = (key: string): boolean => key.length >= 8 && key.length <= 120;
 
-/** SU-12. */
-export const paymentPasses = (status: PaymentStatus, required: boolean): boolean =>
-  status === "emergency" || !required || status !== "not_recorded";
+/** SU-12; Law 13: an emergency or an admitted patient always passes. */
+export const paymentPasses = (
+  status: PaymentStatus,
+  required: boolean,
+  admitted = false,
+): boolean => status === "emergency" || admitted || !required || status !== "not_recorded";
 
 const codeOk = (s: string | null | undefined) =>
   !!s && s.trim().length >= 2 && s.trim().length <= 60;
@@ -452,7 +465,7 @@ export function checkHandover(
 
   if (plan.labelMode === "by_hand" && !plan.labelsWrittenAttested)
     whole("labels", HANDOVER_COPY.labels);
-  if (!paymentPasses(plan.payment.status, facts.paymentRequired))
+  if (!paymentPasses(plan.payment.status, facts.paymentRequired, facts.admitted))
     whole("payment", HANDOVER_COPY.payment);
 
   // Every line, then every batch summed across the hand-over.
@@ -511,6 +524,8 @@ export interface SupplyRow {
   issueUnit: string;
   daysCovered: number | null;
   priceUgx: string | null;
+  priceKind?: "priced" | "free" | "price_not_set";
+  payerId?: string | null;
   prescribedStrength: string | null;
   suppliedStrength: string | null;
   substitutionReason: string | null;
@@ -649,6 +664,10 @@ export function handoverWrites(
         issueUnit: product.issueUnit,
         daysCovered: line.daysCovered ?? null,
         priceUgx: priceSnapshot(product),
+        ...(product.priceKind && {
+          priceKind: product.priceKind,
+          payerId: product.payerId ?? null,
+        }),
         prescribedStrength: f.prescribedStrength,
         suppliedStrength: product.strength,
         substitutionReason: changed ? (line.strengthChange?.reasonCode ?? null) : null,

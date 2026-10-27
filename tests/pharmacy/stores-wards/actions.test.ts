@@ -46,6 +46,7 @@ describe("ward and cart actions name their permission or right", () => {
       signCartList: "pharmacy.manage",
       attestCartConfirmer: "pharmacy.stock",
       recordCartCheck: "pharmacy.stock",
+      reportCartSealBroken: "pharmacy.stock",
     });
   });
   it("the ward's side: hub rights only, never a pharmacy permission", () => {
@@ -56,6 +57,8 @@ describe("ward and cart actions name their permission or right", () => {
       returnWardStock: "ward_act",
       attestOwnFactor: "ward_confirm",
       confirmWardReceipt: "ward_confirm",
+      recordGapReason: "ward_act",
+      reportSealBroken: "ward_act",
     });
     expect(src).not.toMatch(
       /runPharmacyWrite|requirePharmacyActor|"pharmacy\.(manage|stock|store|view)"/,

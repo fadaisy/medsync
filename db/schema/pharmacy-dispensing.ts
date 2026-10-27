@@ -67,6 +67,11 @@ export const pharmacyProducts = pgTable("pharmacy_products", {
   priceUgx: numeric("price_ugx", { precision: 14, scale: 2 }),
   /** SC-3 (0180): optional GS1 GTIN, one active product per hospital. */
   gtin: text("gtin"),
+  /** 0255: formulary (on the prescribing list) or a health supply; non-formulary products carry a `cat_` key. */
+  itemKind: text("item_kind").notNull().default("formulary"),
+  cataloguePackId: uuid("catalogue_pack_id"),
+  catalogueMedicineId: uuid("catalogue_medicine_id"),
+  localProposalId: uuid("local_proposal_id"),
   active: boolean("active").notNull().default(true),
   addedAtWindow: boolean("added_at_window").notNull().default(false),
   createdBy: uuid("created_by").notNull(),
@@ -428,6 +433,9 @@ export const pharmacySupplies = pgTable("pharmacy_supplies", {
   batchChoiceReason: text("batch_choice_reason"),
   suppliedAt: timestamp("supplied_at", tz).notNull(),
   enteredAfterDowntime: boolean("entered_after_downtime").notNull().default(false),
+  // 0257: the payer and which of Law 11's three it was, beside the `price_ugx` snapshot.
+  payerId: uuid("payer_id"),
+  priceKind: text("price_kind").$type<"priced" | "free" | "price_not_set">(),
 });
 
 export const pharmacySupplyReversals = pgTable("pharmacy_supply_reversals", {

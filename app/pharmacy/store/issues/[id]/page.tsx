@@ -121,6 +121,7 @@ export default async function RequisitionPage({ params }: { params: Promise<{ id
                   first: l.first ? `${expiryText(l.first)} · ${l.first.batchNumber}` : null,
                   controlled: l.controlled,
                   decided: l.issued !== null,
+                  picked: l.pick === undefined ? undefined : (l.pick?.method ?? null),
                 }))}
               />
               <span className="flex flex-wrap gap-2">

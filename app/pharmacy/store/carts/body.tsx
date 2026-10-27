@@ -7,6 +7,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { CautionNotice } from "@/components/medsync/caution-notice";
 import { PageHeader } from "@/components/medsync/page-header";
 import { PHARMACY } from "@/content/pharmacy";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { CARTS, WARDS } from "@/content/pharmacy-stores-wards";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
@@ -58,6 +59,13 @@ export async function CartsBody() {
                 {c.overdue ? (
                   <StatusWord tone="caution" glyph={TriangleAlertIcon}>
                     {CARTS.overdue}
+                  </StatusWord>
+                ) : null}
+                {c.signal?.due ? (
+                  <StatusWord tone="caution" glyph={TriangleAlertIcon}>
+                    {`${CATALOGUE.seal.due}: ${c.signal.why
+                      .map((w) => (w === "seal_broken" ? CATALOGUE.seal.sealBroken : CATALOGUE.seal.resusDose))
+                      .join(", ")}`}
                   </StatusWord>
                 ) : null}
               </span>

@@ -7,6 +7,7 @@ import { TriangleAlertIcon } from "lucide-react";
 import { StatusWord } from "@/components/emr/status-word";
 import { PageHeader } from "@/components/medsync/page-header";
 import { PHARMACY } from "@/content/pharmacy";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { CARTS, WARDS } from "@/content/pharmacy-stores-wards";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
@@ -18,12 +19,14 @@ import {
   manages,
 } from "@/lib/pharmacy/stores/ward-read";
 import { CartCheck } from "../_components/cart-check";
+import { SealReport } from "../_components/seal-report";
 import { PackDialog, SignDialog, TARGET } from "../../wards/_components/ward-dialogs";
 import { countItems, when } from "../../wards/_lib/view";
 import {
   attestCartConfirmer,
   attestCartSigner,
   recordCartCheck,
+  reportCartSealBroken,
   setCartList,
   signCartList,
 } from "../actions";
@@ -135,6 +138,26 @@ export default async function CartPage({
             <StatusWord tone="caution" glyph={TriangleAlertIcon}>
               {CARTS.overdue}
             </StatusWord>
+          ) : null}
+          {page.seals ? (
+            <div className="flex flex-wrap items-center gap-3">
+              {(() => {
+                const last = page.seals[0];
+                const sealed = page.seals.find((s) => s.kind === "applied");
+                if (last?.kind === "broken")
+                  return (
+                    <StatusWord tone="caution" glyph={TriangleAlertIcon}>
+                      {CATALOGUE.sealBroken(sealed?.sealNumber ?? "", when(last.reportedAt))}
+                    </StatusWord>
+                  );
+                return sealed?.sealNumber ? (
+                  <span className="text-body-s text-muted-foreground">
+                    {CATALOGUE.seal.applied(sealed.sealNumber)}
+                  </span>
+                ) : null;
+              })()}
+              <SealReport locationId={page.location.id} report={reportCartSealBroken} />
+            </div>
           ) : null}
           {page.list ? (
             <ul className="border-border bg-card divide-border divide-y rounded-lg border">

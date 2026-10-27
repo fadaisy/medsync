@@ -1,0 +1,388 @@
+{
+  "version": "1",
+  "status": "draft",
+  "note": "EMHSLU 2023 form column (lower-cased, spaces collapsed) to the signed form and route codes of migration 0252. A form is mapped only where the printed form names it; anything not listed here maps to no form and is reported for a curator. Each seeded medicine is still reviewed by two curators (0251).",
+  "map": {
+    "aerosol inhalation": {
+      "form": "inhaler_pressurised",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    "capsule": {
+      "form": "capsule",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "capsule"
+    },
+    "capsules": {
+      "form": "capsule",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "capsule"
+    },
+    "concentrate for iv inf": {
+      "form": "concentrate_for_infusion",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "concentrate iv": {
+      "form": "concentrate_for_infusion",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "cream": {
+      "form": "cream",
+      "routes": []
+    },
+    "dispersible tablet": {
+      "form": "dispersible_tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "dried powder for injection": {
+      "form": "powder_for_injection",
+      "routes": []
+    },
+    "ear drops": {
+      "form": "ear_drops",
+      "routes": [
+        "ear"
+      ]
+    },
+    "eye drops": {
+      "form": "eye_drops",
+      "routes": [
+        "eye"
+      ]
+    },
+    "eye ointment": {
+      "form": "eye_ointment",
+      "routes": [
+        "eye"
+      ]
+    },
+    "gel": {
+      "form": "gel",
+      "routes": []
+    },
+    "impregnated gauze": {
+      "form": "medicated_dressing",
+      "routes": []
+    },
+    "infusion": {
+      "form": "infusion_solution",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "inj iv": {
+      "form": null,
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "injectable solution": {
+      "form": "injection_solution",
+      "routes": []
+    },
+    "injectablesolution": {
+      "form": "injection_solution",
+      "routes": []
+    },
+    "injection (aqueous suspension)": {
+      "form": "injection_suspension",
+      "routes": []
+    },
+    "injection (powder for reconstitution)": {
+      "form": "powder_for_injection",
+      "routes": []
+    },
+    "injection iv/im": {
+      "form": null,
+      "routes": [
+        "intravenous",
+        "intramuscular"
+      ]
+    },
+    "intradermal injection": {
+      "form": null,
+      "routes": [
+        "intradermal"
+      ]
+    },
+    "intravenous": {
+      "form": null,
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "iv fluid": {
+      "form": "infusion_solution",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "iv infusion": {
+      "form": "infusion_solution",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "iv infusion 100ml": {
+      "form": "infusion_solution",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "iv infusion 500ml": {
+      "form": "infusion_solution",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "iv inj": {
+      "form": null,
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "iv injection": {
+      "form": null,
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "liquid for inhalation": {
+      "form": "nebuliser_solution",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    "lotion": {
+      "form": "lotion",
+      "routes": []
+    },
+    "nasal drops": {
+      "form": "nasal_drops",
+      "routes": [
+        "nose"
+      ]
+    },
+    "nasal spray": {
+      "form": "nasal_spray",
+      "routes": [
+        "nose"
+      ]
+    },
+    "nebuliser solution": {
+      "form": "nebuliser_solution",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    "ointment": {
+      "form": "ointment",
+      "routes": []
+    },
+    "ophthalmic solution": {
+      "form": "eye_drops",
+      "routes": [
+        "eye"
+      ]
+    },
+    "oral gel": {
+      "form": "oral_gel",
+      "routes": [
+        "oral"
+      ]
+    },
+    "oral powder for solution": {
+      "form": "powder_for_oral_solution",
+      "routes": [
+        "oral"
+      ]
+    },
+    "oral solution": {
+      "form": "oral_solution",
+      "routes": [
+        "oral"
+      ]
+    },
+    "oral suspension": {
+      "form": "oral_suspension",
+      "routes": [
+        "oral"
+      ]
+    },
+    "paediatric nasal drops": {
+      "form": "nasal_drops",
+      "routes": [
+        "nose"
+      ]
+    },
+    "paediatric suppository": {
+      "form": "suppository",
+      "routes": [
+        "rectal"
+      ],
+      "issueUnit": "suppository"
+    },
+    "paste": {
+      "form": "paste",
+      "routes": []
+    },
+    "patch": {
+      "form": "transdermal_patch",
+      "routes": []
+    },
+    "pessary": {
+      "form": "pessary",
+      "routes": [
+        "vaginal"
+      ],
+      "issueUnit": "pessary"
+    },
+    "powder for injection": {
+      "form": "powder_for_injection",
+      "routes": []
+    },
+    "powder forinjection": {
+      "form": "powder_for_injection",
+      "routes": []
+    },
+    "solution for iv infusion": {
+      "form": "infusion_solution",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    "subcuta- neousinjection": {
+      "form": null,
+      "routes": [
+        "subcutaneous"
+      ]
+    },
+    "suppository": {
+      "form": "suppository",
+      "routes": [
+        "rectal"
+      ],
+      "issueUnit": "suppository"
+    },
+    "suspension for injection": {
+      "form": "injection_suspension",
+      "routes": []
+    },
+    "syrup": {
+      "form": "syrup",
+      "routes": [
+        "oral"
+      ]
+    },
+    "tablet": {
+      "form": "tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet (blister)": {
+      "form": "tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet (chewable)": {
+      "form": "chewable_tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet (crushable)": {
+      "form": "tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet (dispersible)": {
+      "form": "dispersible_tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet (scored)": {
+      "form": "tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet (sub- lingual)": {
+      "form": "sublingual_tablet",
+      "routes": [
+        "sublingual"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet (sublingual)": {
+      "form": "sublingual_tablet",
+      "routes": [
+        "sublingual"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet chewable": {
+      "form": "chewable_tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet dispersible": {
+      "form": "dispersible_tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet filmcoated": {
+      "form": "film_coated_tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablet scored": {
+      "form": "tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "tablets": {
+      "form": "tablet",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "tablet"
+    },
+    "vegie capsules": {
+      "form": "capsule",
+      "routes": [
+        "oral"
+      ],
+      "issueUnit": "capsule"
+    }
+  }
+}

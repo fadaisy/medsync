@@ -61,9 +61,11 @@ export interface PlacesInput {
    * item, which Phase 1's baseline keeps hidden with dispensing alone (NavMap gap: the page opened, the item did not).
    */
   packs?: boolean;
+  /** The shared catalogue keeps its own flag (pharmacyCatalogueLiveFor); a tab of Set-up, not an old nav item. */
+  catalogue?: boolean;
 }
 
-export function placesFor({ navIds, dispensing, nationalList, packs }: PlacesInput) {
+export function placesFor({ navIds, dispensing, nationalList, packs, catalogue }: PlacesInput) {
   const visible = new Set(navIds);
   const tabs = ALL.filter((t) => t.from && visible.has(t.from) && (t.key !== "packs" || packs !== false));
   if (packs && visible.has("queue") && !tabs.some((t) => t.key === "packs")) {
@@ -72,6 +74,17 @@ export function placesFor({ navIds, dispensing, nationalList, packs }: PlacesInp
   }
   if (nationalList && visible.has("stock"))
     tabs.push(T("setup", "national", "/pharmacy/setup?view=national", null));
+  if (catalogue && visible.has("stock"))
+    tabs.push(
+      T("setup", "catalogue", "/pharmacy/setup?view=catalogue", null),
+      T("setup", "prices", "/pharmacy/setup?view=prices", null),
+      T("setup", "import", "/pharmacy/setup?view=import", null),
+    );
+  // Catalogue slice Step 11: Store › Every place (4.10), with Follow one medicine (4.15) inside it.
+  if (catalogue && visible.has("stock") && tabs.some((t) => t.place === "store")) {
+    const at = tabs.findLastIndex((t) => t.place === "store");
+    tabs.splice(at + 1, 0, T("store", "map", "/pharmacy/store?tab=map", null));
+  }
   const places = PLACE_ORDER.filter((p) =>
     p === "today" ? dispensing && visible.has("queue") : tabs.some((t) => t.place === p),
   );

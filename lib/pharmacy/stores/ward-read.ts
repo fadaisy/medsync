@@ -2,11 +2,15 @@ import "server-only";
 
 import type { StoreBatch } from "./ledger";
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
+import type { CartSignal, Compared, UseRow } from "@/lib/pharmacy/distribution/engine";
 import type { SQL } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 
 import { expiryText } from "@/content/pharmacy-stock";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
+import { cartSignals, wardUseCheck } from "@/lib/pharmacy/distribution/engine";
+import { gapReasonsOf, sealsOf } from "@/lib/pharmacy/distribution/store";
+import { pharmacyCatalogueLiveFor } from "@/lib/pharmacy/feature";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { drugById } from "@/lib/prescribing/formulary";
 import { wardRow } from "./ward-stock";
@@ -217,6 +221,12 @@ async function signedSet(d: Reader, hospitalId: string, kind: string) {
          ORDER BY version DESC LIMIT 1`,
   );
   return r?.content ?? null;
+}
+
+/** IS-4: the signed confirmation window (ward_rules), in hours; null while unsigned. */
+export async function confirmationWindowHours(d: Reader, hospitalId: string) {
+  const c = await signedSet(d, hospitalId, "ward_rules");
+  return typeof c?.confirmationWindowHours === "number" ? c.confirmationWindowHours : null;
 }
 
 /** SL-18, Appendix D: per-product ward counts wait for the signed allocation rule (ward_rules). */
@@ -676,10 +686,42 @@ export async function getWardStockPage(
       ask: asks.get(p.id) ?? null,
     };
   });
+  // 4.13 (ADR 0464): use at the last count against doses charted from ward stock. The administration record
+  // names no stock source, so `charted` is null on real data and every row reads "Not charted from ward stock".
+  let useCheck: (UseRow & { countId: string; compared: Compared })[] | null = null;
+  if (pharmacyCatalogueLiveFor(hospitalId)) {
+    const reasons = await gapReasonsOf(d, [...new Set([...counts.values()].map((c) => c.countId))]);
+    useCheck = wardUseCheck(
+      stock.products.flatMap((p) => {
+        const last = counts.get(p.id);
+        if (!last) return [];
+        let used = 0;
+        for (const m of stock.movements)
+          if (
+            m.kind === "ward_used" &&
+            productOfBatch.get(m.batch_id) === p.id &&
+            new Date(m.effective_at).getTime() === last.at.getTime()
+          )
+            used -= Number(m.quantity);
+        return [
+          {
+            productId: p.id,
+            name: p.name,
+            used,
+            charted: null,
+            reason: reasons.get(`${last.countId}:${p.id}`) ?? null,
+            countId: last.countId,
+          },
+        ];
+      }),
+      null,
+    ).rows;
+  }
   return {
     location,
     packs,
     rows,
+    useCheck,
     products: stock.products,
     balances: stock.balances,
     receipts,
@@ -720,9 +762,30 @@ export async function getCartsPage(d: Reader, hospitalId: string, now: Date) {
       const overdue =
         !!list?.checkIntervalDays &&
         (!last || now.getTime() - last.getTime() > list.checkIntervalDays * 86_400_000);
-      return { ...c, list, lastCheck: last, overdue };
+      return { ...c, list, lastCheck: last, overdue, signal: null as CartSignal | null };
     }),
   );
+  // 4.14 (ADR 0465): a broken seal, or a resus dose from the cart, since its last check puts it on the list.
+  if (pharmacyCatalogueLiveFor(hospitalId)) {
+    const seals = await sealsOf(
+      d,
+      rows.map((r) => r.id),
+    );
+    for (const r of rows) {
+      const uses = await cartUsesSince(d, {
+        hospitalId,
+        names: r.list?.names ?? [],
+        since: r.lastCheck,
+      });
+      r.signal = cartSignals({
+        lastCheckAt: r.lastCheck,
+        seals: seals
+          .filter((s) => s.locationId === r.id)
+          .map((s) => ({ kind: s.kind, at: s.reportedAt })),
+        resusDoses: uses,
+      });
+    }
+  }
   const unmatched = await unmatchedCartNames(
     d,
     hospitalId,
@@ -763,6 +826,7 @@ export async function getCartPage(d: Reader, hospitalId: string, locationId: str
     issuers: from,
     otherCarts: carts.filter((c) => c.id !== locationId),
     receipts,
+    seals: pharmacyCatalogueLiveFor(hospitalId) ? await sealsOf(d, [locationId]) : null,
     today: localDate(now),
   };
 }

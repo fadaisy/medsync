@@ -7,6 +7,8 @@ import { randomUUID as uuid } from "node:crypto";
 import { sql } from "drizzle-orm";
 
 import { withStoreAccess } from "@/lib/pharmacy/access";
+import * as dist from "@/lib/pharmacy/distribution/store";
+import { pharmacyCatalogueLiveFor } from "@/lib/pharmacy/feature";
 import * as iss from "@/lib/pharmacy/stores/issue-store";
 import * as loc from "@/lib/pharmacy/stores/location-store";
 import { buildProposal } from "@/lib/pharmacy/stores/order-read";
@@ -479,6 +481,14 @@ export async function storesSection(s: DemoState): Promise<void> {
         reason: "Demo: the point holds a month",
       }, ago(s, r.raised, 13));
     if (r.issued === undefined) continue;
+    // Catalogue slice Step 10: with the check on, each issued line is picked first (ticked by hand here).
+    if (pharmacyCatalogueLiveFor(s.h))
+      for (const l of lines.filter((l) => l.medicine !== r.short && l.medicine !== r.refuse))
+        await write(s, keeper, dist.RecordPickInput, STORE_NEED, dist.recordPick, {
+          requisitionId: raised.id,
+          lineId: l.id,
+          raw: null,
+        }, ago(s, r.issued, 10));
     const issued = await write(s, keeper, iss.IssueRequisitionInput, STORE_NEED, iss.issueRequisition, {
       requisitionId: raised.id,
       lines: lines.map((l) =>

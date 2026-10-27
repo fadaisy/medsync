@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 
 import { Input } from "@/components/ui/input";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { RETURN_REASONS, SHORT_DATED_DECISIONS, STORE } from "@/content/pharmacy-stores-store";
+import { pickProblems } from "@/lib/pharmacy/distribution/engine";
 import { productByText } from "@/lib/pharmacy/stores/scan-fill";
 import * as store from "../../actions";
 import {
@@ -21,6 +23,7 @@ import {
   TARGET,
 } from "../../places/_components/store-kit";
 import * as actions from "../actions";
+import { PickCell } from "./pick-cell";
 
 const I = STORE.issues;
 const L = STORE.loans;
@@ -717,6 +720,8 @@ export interface IssueLine {
   first: string | null;
   controlled: boolean;
   decided: boolean;
+  /** 4.11: the line's pick; undefined with the catalogue check off. */
+  picked?: "scan" | "hand" | null;
 }
 
 export function IssueForm({
@@ -737,6 +742,13 @@ export function IssueForm({
   const [why, setWhy] = useState<Record<string, string>>({});
   const [witness, setWitness] = useState<{ attestationId: string; at: string } | null>(null);
   const needsWitness = open.some((l) => l.controlled && Number(qty[l.id] ?? 0) > 0);
+  const picking = open.some((l) => l.picked !== undefined);
+  const unpicked = picking
+    ? pickProblems(
+        open.map((l) => ({ lineId: l.id, name: l.productName, quantity: Number(qty[l.id] ?? 0) })),
+        new Set(open.filter((l) => l.picked).map((l) => l.id)),
+      )
+    : [];
   return (
     <div className="flex flex-col gap-4">
       <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
@@ -761,6 +773,11 @@ export function IssueForm({
               <th scope="col" className="px-3 py-2">
                 {S.columns.notIssued}
               </th>
+              {picking ? (
+                <th scope="col" className="px-3 py-2">
+                  {CATALOGUE.picking.column}
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody className="divide-border divide-y">
@@ -800,6 +817,16 @@ export function IssueForm({
                       />
                     ) : null}
                   </td>
+                  {picking ? (
+                    <td className="px-3 py-2">
+                      <PickCell
+                        requisitionId={requisitionId}
+                        lineId={l.id}
+                        productName={l.productName}
+                        picked={l.picked ?? null}
+                      />
+                    </td>
+                  ) : null}
                 </tr>
               );
             })}
@@ -816,7 +843,7 @@ export function IssueForm({
       ) : null}
       <ActButton
         label={S.issue}
-        disabled={needsWitness && !witness}
+        disabled={(needsWitness && !witness) || unpicked.length > 0}
         run={async () => {
           const r = await actions.issueRequisition({
             requisitionId,
@@ -831,6 +858,11 @@ export function IssueForm({
           return r;
         }}
       />
+      {unpicked.map((u) => (
+        <p key={u.lineId} className="text-caption text-muted-foreground">
+          {u.words}
+        </p>
+      ))}
     </div>
   );
 }

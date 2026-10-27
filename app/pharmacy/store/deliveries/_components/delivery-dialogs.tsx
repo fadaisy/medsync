@@ -1,6 +1,7 @@
 "use client";
 
 import type { WitnessOption } from "../../places/_components/store-kit";
+import type { CatalogueFacts } from "@/lib/pharmacy/stores/receiving-store";
 import type { DeliveryLineView } from "@/lib/pharmacy/stores/store-read";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
@@ -8,12 +9,14 @@ import { useId, useState } from "react";
 import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import {
   REJECT_REASONS,
   SHORT_DATED_DECISIONS,
   STORE,
   STORES_B,
 } from "@/content/pharmacy-stores-store";
+import { packsToUnits } from "@/lib/pharmacy/shared-catalogue/receive";
 import { productByText } from "@/lib/pharmacy/stores/scan-fill";
 import * as places from "../../actions";
 import {
@@ -162,12 +165,15 @@ export function LineDialog({
   line,
   products,
   orderLines,
+  facts = {},
 }: {
   deliveryId: string;
   lineNo: number;
   line?: DeliveryLineView;
   products: readonly LineProduct[];
   orderLines: readonly { id: string; productName: string }[];
+  /** Catalogue slice Step 7: each product's pack contents and registration, when the catalogue is on. */
+  facts?: Readonly<Record<string, CatalogueFacts>>;
 }) {
   const ids = {
     product: useId(),
@@ -181,14 +187,23 @@ export function LineDialog({
     batch: useId(),
     expiry: useId(),
     cost: useId(),
+    packs: useId(),
+    registration: useId(),
+    registrationNote: useId(),
   };
   const [productId, setProductId] = useState(line?.productId ?? "");
   const [batch, setBatch] = useState(line?.batchNumber ?? "");
   const [expiry, setExpiry] = useState(line ? expiryForField(line) : "");
   const [gtin, setGtin] = useState<string | null>(null);
   const [linked, setLinked] = useState<string | null>(null);
+  const [packs, setPacks] = useState(line?.packs != null ? String(line.packs) : "");
+  const [source, setSource] = useState(line?.identitySource ?? "typed");
   const product = products.find((p) => p.id === productId);
   const unit = product?.issueUnit ?? "";
+  const R = CATALOGUE.receive;
+  const fact = facts[productId];
+  const contents = fact?.contents ?? null;
+  const units = packs !== "" && contents !== null ? packsToUnits(Number(packs), contents) : null;
   return (
     <StoreDialog
       label={line ? D.editLine : D.addLine}
@@ -203,6 +218,8 @@ export function LineDialog({
         setExpiry(line ? expiryForField(line) : "");
         setGtin(null);
         setLinked(null);
+        setPacks(line?.packs != null ? String(line.packs) : "");
+        setSource(line?.identitySource ?? "typed");
       }}
       onSave={(_k, d) =>
         actions.saveDeliveryLine({
@@ -220,6 +237,10 @@ export function LineDialog({
           expiry: expiry.trim() || null,
           unitCost: str(d, "unitCost") || null,
           shortDatedDecision: line?.shortDatedDecision ?? null,
+          packs: units !== null ? Number(packs) : null,
+          identitySource: source,
+          registrationReason: str(d, "registrationReason") || null,
+          registrationNote: str(d, "registrationNote") || null,
         })
       }
     >
@@ -227,11 +248,14 @@ export function LineDialog({
         products={products}
         onRead={(o) => {
           if (o.kind === "gs1") {
-            if (o.productId) setProductId(o.productId);
+            if (o.productId) {
+              setProductId(o.productId);
+              setSource("scan");
+            }
             if (o.scan.batch) setBatch(o.scan.batch);
             if (o.scan.expiry) setExpiry(expiryForField(o.scan));
             setGtin(o.productId ? null : o.scan.gtin);
-          } else {
+          } else if (o.kind === "text") {
             const hit = productByText(products, o.text);
             if (hit) setProductId(hit);
           }
@@ -244,7 +268,10 @@ export function LineDialog({
             className={SELECT}
             required
             value={productId}
-            onChange={(e) => setProductId(e.target.value)}
+            onChange={(e) => {
+              setProductId(e.target.value);
+              setSource("typed");
+            }}
           >
             <option value="" disabled>
               {D.product}
@@ -299,17 +326,35 @@ export function LineDialog({
             className={TARGET}
           />
         </Field>
+        {contents !== null ? (
+          <Field label={R.packs} id={ids.packs}>
+            <Input
+              id={ids.packs}
+              type="number"
+              min={0}
+              inputMode="numeric"
+              value={packs}
+              onChange={(e) => setPacks(e.target.value)}
+              className={TARGET}
+            />
+          </Field>
+        ) : null}
         <Field label={`${D.accepted}${unit ? ` (${unit})` : ""}`} id={ids.accepted}>
-          <Input
-            id={ids.accepted}
-            name="accepted"
-            type="number"
-            min={0}
-            required
-            inputMode="numeric"
-            defaultValue={line?.accepted ?? ""}
-            className={TARGET}
-          />
+          {units !== null ? (
+            <Input id={ids.accepted} name="accepted" readOnly value={units} className={TARGET} />
+          ) : (
+            <Input
+              key={productId}
+              id={ids.accepted}
+              name="accepted"
+              type="number"
+              min={0}
+              required
+              inputMode="numeric"
+              defaultValue={line?.accepted ?? ""}
+              className={TARGET}
+            />
+          )}
         </Field>
         <Field label={D.rejectedKept} id={ids.kept}>
           <Input
@@ -376,7 +421,57 @@ export function LineDialog({
             className={TARGET}
           />
         </Field>
+        {fact?.registration ? (
+          <>
+            <Field label={R.registration.label} id={ids.registration}>
+              <select
+                id={ids.registration}
+                name="registrationReason"
+                className={SELECT}
+                required
+                defaultValue={line?.registrationReason ?? ""}
+              >
+                <option value="" disabled>
+                  —
+                </option>
+                {Object.entries(R.registration.reasons).map(([code, word]) => (
+                  <option key={code} value={code}>
+                    {word}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={R.registration.note} id={ids.registrationNote}>
+              <Input
+                id={ids.registrationNote}
+                name="registrationNote"
+                maxLength={300}
+                defaultValue={line?.registrationNote ?? ""}
+                className={TARGET}
+              />
+            </Field>
+          </>
+        ) : null}
       </div>
+      {units !== null ? (
+        <p role="status" className="text-body-s">
+          {CATALOGUE.packsToUnits(
+            units.toLocaleString("en-GB"),
+            unit,
+            Number(packs).toLocaleString("en-GB"),
+            contents!.toLocaleString("en-GB"),
+          )}
+        </p>
+      ) : contents === null && productId && facts[productId] ? (
+        <p className="text-caption text-muted-foreground">{R.unitsOnly(unit)}</p>
+      ) : null}
+      {fact?.registration ? (
+        <p className="text-body-s">
+          <StatusWord tone="caution">
+            {fact.registration === "lapsed" ? R.registration.lapsed : R.registration.none}
+          </StatusWord>
+        </p>
+      ) : null}
       {gtin && productId ? (
         linked ? (
           <p role="status" className="text-body-s">

@@ -8,12 +8,13 @@ import { CautionNotice } from "@/components/medsync/caution-notice";
 import { PageHeader } from "@/components/medsync/page-header";
 import { Tag } from "@/components/medsync/tag";
 import { PHARMACY } from "@/content/pharmacy";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { DELIVERY_FROM, expiryText, stateWord, STOCK } from "@/content/pharmacy-stock";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { noProductText } from "@/lib/pharmacy/catalogue";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
-import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { pharmacyCatalogueLiveFor, pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { getStockDetail, pointsBesides } from "@/lib/pharmacy/stock/read";
 import { deliveryFromOffered } from "@/lib/pharmacy/stock/store";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
@@ -129,7 +130,12 @@ export default async function StockMedicinePage({
                 <FoundDialog what={d.name} medicineId={d.medicineId} products={dialogProducts} />
               </>
             ) : null}
-            {holdsStock ? <AddProductDialog medicineId={d.medicineId} /> : null}
+            {holdsStock ? (
+              <AddProductDialog
+                medicineId={d.medicineId}
+                catalogue={pharmacyCatalogueLiveFor(actor.hospitalId)}
+              />
+            ) : null}
             {d.manages ? (
               <LevelDialog what={d.name} medicineId={d.medicineId} unit={unit} current={d.level} />
             ) : null}
@@ -182,6 +188,14 @@ export default async function StockMedicinePage({
               <span className="text-body-s text-foreground font-medium">{D.product(p)}</span>
               {p.addedAtWindow ? <Tag hue="iris">{STOCK.addedAtWindow}</Tag> : null}
               {p.atPoint ? null : <Tag>{D.notAtPoint}</Tag>}
+              {pharmacyCatalogueLiveFor(actor.hospitalId) ? (
+                <Link
+                  href={`/pharmacy/store?tab=map&product=${p.id}`}
+                  className="text-body-s text-primary ml-auto underline-offset-4 hover:underline"
+                >
+                  {CATALOGUE.traceTitle}
+                </Link>
+              ) : null}
             </div>
             {p.batches.length === 0 ? (
               <p className="text-muted-foreground text-body-s border-border border-t px-4 py-3">

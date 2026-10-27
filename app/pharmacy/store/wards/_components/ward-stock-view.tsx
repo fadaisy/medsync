@@ -7,6 +7,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { CautionNotice } from "@/components/medsync/caution-notice";
 import { STORES_B, SUPPLY_MODEL, WARDS } from "@/content/pharmacy-stores-wards";
 import { countItems, when } from "../_lib/view";
+import { UseCheck } from "./use-check";
 import {
   PackDialog,
   ReceiptDialog,
@@ -34,6 +35,7 @@ export interface WardActions {
   levels?: Act;
   attestSigner?: Act;
   sign?: Act;
+  gapReason?: Act;
 }
 
 export function WardStockView({
@@ -171,6 +173,10 @@ export function WardStockView({
         </CautionNotice>
       ) : null}
 
+      {page.useCheck ? (
+        <UseCheck locationId={l.id} rows={page.useCheck} gapReason={actions.gapReason} />
+      ) : null}
+
       <section aria-labelledby="ward-receipts" className="flex flex-col gap-2">
         <h2 id="ward-receipts" className="text-heading-s text-foreground">
           {WARDS.receipts.title}
@@ -202,6 +208,7 @@ export function WardStockView({
                     me={me}
                     attest={actions.attestOwn}
                     confirm={actions.confirm}
+                    listed={page.useCheck !== null}
                   />
                 ) : null}
               </li>

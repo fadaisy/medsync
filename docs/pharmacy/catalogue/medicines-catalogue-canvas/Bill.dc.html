@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pay for my medicines</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+<link rel="stylesheet" href="rx3.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="pw">
+<header class="pw__bar"><span class="pw__mark"><i>M</i>MedSync</span><span class="sp" style="flex: 1"></span><a class="helpbtn" href="#" aria-label="Help, emergency"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Help</a></header>
+<div class="pw__body">
+<div><span class="pw__ov">My medicines</span><h1>Your bill</h1><p class="pw__sub">Test Hospital-1 · Private wing pharmacy · set by the pharmacist at 15:42</p></div>
+<section class="pw__card">
+<div class="bill">
+<div><span>Amoxicillin dispersible tablets · <span class="ph">[strength]</span></span><span class="v">UGX 4,200</span><span class="s">14 tablets × UGX 300</span></div>
+<div><span>Paracetamol tablets · <span class="ph">[strength]</span></span><span class="v">UGX 1,500</span><span class="s">15 tablets × UGX 100</span></div>
+<div><span>ORS sachets</span><span class="v">Free</span><span class="s">Government supply</span></div>
+<div><span>Zinc tablets · <span class="ph">[strength]</span></span><span class="v">Owed</span><span class="s">Not on the shelf today. You pay when you collect it.</span></div>
+<div class="tot"><b>To pay now</b><span class="v">UGX 5,700</span></div>
+</div>
+</section>
+<div class="pw__ov">Pay with</div>
+<label class="payopt on"><i></i><span><b>MTN Mobile Money</b><span>0772 ••• 418 · you approve with your PIN on your phone</span></span></label>
+<label class="payopt"><i></i><span><b>Airtel Money</b><span>Use another number</span></span></label>
+<label class="payopt"><i></i><span><b>At the accounts desk</b><span>Show this code: <b class="mono">RX-4K7Q</b></span></span></label>
+<button class="btn btn--p" style="align-self: stretch">Pay UGX 5,700</button>
+<div class="pw__from"><b>After you pay</b>The pharmacy sees it at once. Go to the window and show your name and MedSync number; your medicines are being prepared.</div>
+<span class="pw__meta" style="font-size: 13px; line-height: 19px">If the pharmacist changes a line, this bill is replaced and you are told. Illustrative; a separate payment slice builds this.</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

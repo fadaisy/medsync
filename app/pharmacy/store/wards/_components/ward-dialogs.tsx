@@ -10,6 +10,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { COUNT_DIFFERENCE_REASONS } from "@/content/pharmacy-stock";
 import {
   CARTS,
@@ -719,6 +720,7 @@ export function ReceiptDialog({
   me,
   attest,
   confirm,
+  listed,
 }: {
   locationId: string;
   issue: {
@@ -735,6 +737,8 @@ export function ReceiptDialog({
   me: string;
   attest: Act;
   confirm: Act;
+  /** 4.12 (catalogue check on): say that the numbers are filled in as listed. */
+  listed?: boolean;
 }) {
   const [factor, setFactor] = useState<string | null>(null);
   const reasonId = useId();
@@ -761,6 +765,7 @@ export function ReceiptDialog({
         });
       }}
     >
+      {listed ? <p className="text-body-s">{CATALOGUE.receiptListed}</p> : null}
       {issue.lines.some((l) => l.controlled) ? <p className="text-body-s">{R.controlled}</p> : null}
       <div className="grid gap-3 sm:grid-cols-2">
         {issue.lines.map((l) => (

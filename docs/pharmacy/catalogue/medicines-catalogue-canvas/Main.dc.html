@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How the catalogue works</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+<link rel="stylesheet" href="rx3.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1180px">
+<nav class="rail" aria-label="Pharmacy places">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Window<span class="rail__n">61</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Shelf</a>
+<a href="Receive.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>Store<span class="rail__n">4</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>Clinical<span class="rail__n">6</span></a>
+<a href="Prices.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharm Guy, pharmacist, signed in with MFA. Open the account menu">PG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Medicines catalogue · read me first</span><h1>One medicines catalogue for every hospital</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a patient, prescription, batch, slip code or page" placeholder="Find a patient, prescription, batch, slip code or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Working at ALVIN Ward, live. Change">ALVIN Ward <span>· Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a><a class="needs" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Needs you <b>12</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<section class="card">
+<div class="card__h"><h2>From a medicine to what is on your shelf</h2><span class="sp"></span><span class="small">The first four layers are shared by every MedSync hospital. The last is yours.</span></div>
+<div class="cat">
+<div><span class="n">1 · Substance</span><b>What is in it</b><p>One preferred name (the WHO INN), and every other name it goes by.</p><span class="eg">Paracetamol<br>also: acetaminophen, APAP</span><span class="who">Curated by MedSync</span></div>
+<div><span class="n">2 · Medicine</span><b>Substance, strength, form, route</b><p>What a prescriber writes and the national list names. Generic, never a brand.</p><span class="eg">Paracetamol 500 mg tablet<br>Oral</span><span class="who">Linked to the EMHSLU row</span></div>
+<div><span class="n">3 · Brand</span><b>Who makes it, under what name</b><p>Brand name, manufacturer, country, and the NDA registration number and its state.</p><span class="eg">Demo brand P<br>Demo Pharma Ltd · NDA/[reg no.]</span><span class="who">From the NDA register</span></div>
+<div><span class="n">4 · Pack</span><b>What arrives in the box</b><p>How many units, in what, and its barcode. One medicine can have many packs.</p><span class="eg">Blister 10 × 10 = 100 tablets<br>GTIN 09506000134352</span><span class="who">Learned from every scan</span></div>
+<div class="ours"><span class="n">5 · Your product</span><b>What this hospital keeps</b><p>Your link to a pack, your price, the places that hold it, then batches and the ledger, as today.</p><span class="eg">Pack above, sold per tablet<br>UGX 100 · Main store, 4 points</span><span class="who">Set by your pharmacy in charge</span></div>
+</div>
+<div class="card__f"><span class="small">The ledger does not change: every unit is still a signed movement on a batch. The catalogue only decides what a product <b>is</b>, so nobody types it again.</span></div>
+</section>
+
+<div class="g12">
+<section class="card" style="grid-column: span 7">
+<div class="card__h"><h2>Three ways a product gets onto a delivery line</h2></div>
+<div class="told">
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></svg></span><b>Scan the pack</b><span>A GS1 DataMatrix gives the pack, the batch and the expiry at once. A plain barcode gives the pack; you type the batch and expiry from the box.</span></div>
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span><b>Pick from the catalogue</b><span>Type any name: generic, another generic name, the brand or the NDA number. Then pick the pack. The strength, form, route and pack size fill themselves.</span></div>
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg></span><b>Type it, when it is not there</b><span>The same fields, typed. The line is received at once as a local product and sent to MedSync's catalogue team, who check it and add it for everyone.</span></div>
+</div>
+</section>
+<section class="card" style="grid-column: span 5">
+<div class="card__h"><h2>Where the catalogue comes from</h2></div>
+<table class="sc">
+<thead><tr><th>Source</th><th>Gives</th></tr></thead>
+<tbody>
+<tr><td><b>EMHSLU 2023</b></td><td>Generic medicines, strengths, forms, level of care, VEN (already loaded)</td></tr>
+<tr><td><b>NDA register</b></td><td>Brands, manufacturers, registration numbers</td></tr>
+<tr><td><b>WHO INN, RxNorm</b></td><td>Other generic names, brand-to-generic links</td></tr>
+<tr><td><b>EDQM terms</b></td><td>Codes behind our dose forms and routes</td></tr>
+<tr><td><b>Every scan</b></td><td>Barcodes, confirmed once, shared after review</td></tr>
+<tr><td><b>Supplier price lists</b></td><td>Pack prices and codes, per hospital</td></tr>
+</tbody>
+</table>
+</section>
+</div>
+
+<div class="g12">
+<section class="card" style="grid-column: span 7">
+<div class="card__h"><h2>Prices: from the supplier to the patient's phone</h2></div>
+<div class="flow" style="grid-template-columns: repeat(4, minmax(0, 1fr))">
+<a href="#"><b>What it cost</b><span class="s">Unit cost from each counted delivery, per batch</span><span class="s">Already stored today</span></a>
+<a href="Prices.dc.html" class="on"><b>What you charge</b><span class="s">Per product, per payer, from a date. Markup is proposed, a person sets it</span></a>
+<a href="#"><b>The bill</b><span class="s">Price × quantity, issued when the pharmacist settles the line</span></a>
+<a href="Bill.dc.html"><b>The patient pays</b><span class="s">On their phone, by mobile money, or at accounts</span><span class="s w">Separate slice</span></a>
+</div>
+</section>
+<section class="card" style="grid-column: span 5">
+<div class="card__h"><h2>What the catalogue will not do</h2></div>
+<ul class="will" style="padding: 0 18px 16px">
+<li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg><span><b>Give doses.</b> Strength is a fact on the pack. Dosing stays with signed dose references.</span></li>
+<li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg><span><b>Convert strengths.</b> 500 mg is never 0.5 g by guess; packs convert to units only by the pack's own count.</span></li>
+<li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg><span><b>Guess a barcode.</b> An unknown barcode is linked by a person, once.</span></li>
+<li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg><span><b>Hold up a patient for payment</b> in an emergency or on a ward.</span></li>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

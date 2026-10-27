@@ -7,6 +7,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { PageHeader } from "@/components/medsync/page-header";
 import { SectionNumber } from "@/components/medsync/section-number";
 import { PHARMACY } from "@/content/pharmacy";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { expiryText } from "@/content/pharmacy-stock";
 import {
   REJECT_REASONS,
@@ -28,6 +29,7 @@ import {
   RemoveLine,
   ShortDatedChoice,
 } from "../_components/delivery-dialogs";
+import { DeliveryScan } from "../_components/delivery-scan";
 import { ResultWords } from "../../places/_components/store-kit";
 
 export const metadata: Metadata = { title: "Delivery · Pharmacy" };
@@ -147,9 +149,25 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
                 lineNo={nextLineNo}
                 products={v.products}
                 orderLines={v.orderLines}
+                facts={v.catalogue.facts}
               />
             ) : null}
           </div>
+          {open && v.catalogue.live ? (
+            <DeliveryScan
+              deliveryId={d.id}
+              typed={
+                v.lines.length
+                  ? CATALOGUE.receive.typed(
+                      v.lines.filter(
+                        (l) => l.identitySource === null || l.identitySource === "typed",
+                      ).length,
+                      v.lines.length,
+                    )
+                  : null
+              }
+            />
+          ) : null}
           <p className="text-body-s text-muted-foreground">{STORES_B.onlyCounted}</p>
           {v.lookaheadDays === null ? (
             <p role="status">
@@ -207,6 +225,18 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
                           {l.controlled ? (
                             <span className="text-caption">{D.controlled}</span>
                           ) : null}
+                          {l.packs !== null && l.packContents !== null ? (
+                            <span className="text-caption text-muted-foreground tabular-nums">
+                              {l.packs} × {l.packContents}
+                            </span>
+                          ) : null}
+                          {l.registrationReason ? (
+                            <span className="text-caption">
+                              {CATALOGUE.receive.registration.reasons[
+                                l.registrationReason as keyof typeof CATALOGUE.receive.registration.reasons
+                              ] ?? l.registrationReason}
+                            </span>
+                          ) : null}
                         </span>
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums">{l.noteQuantity ?? "—"}</td>
@@ -244,6 +274,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
                               line={l}
                               products={v.products}
                               orderLines={v.orderLines}
+                              facts={v.catalogue.facts}
                             />
                             <RemoveLine deliveryId={d.id} line={l} />
                           </span>

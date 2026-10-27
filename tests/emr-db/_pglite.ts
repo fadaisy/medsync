@@ -105,13 +105,17 @@ export async function migrate(
 // Variables, not literals: the specifiers must stay invisible to tsc and the bundler.
 const PGLITE = "@electric-sql/pglite";
 const PGCRYPTO = "@electric-sql/pglite/contrib/pgcrypto";
+const PG_TRGM = "@electric-sql/pglite/contrib/pg_trgm";
+const UNACCENT = "@electric-sql/pglite/contrib/unaccent";
 const DRIZZLE_PGLITE = "drizzle-orm/pglite";
 
 /** A fresh, uncached instance: bootstrap only (the caller migrates). */
 export async function bootEmpty(): Promise<Pg> {
   const { PGlite } = await import(/* @vite-ignore */ PGLITE);
   const { pgcrypto } = await import(/* @vite-ignore */ PGCRYPTO);
-  const pg = new PGlite({ extensions: { pgcrypto } }) as Pg;
+  const { pg_trgm } = await import(/* @vite-ignore */ PG_TRGM);
+  const { unaccent } = await import(/* @vite-ignore */ UNACCENT);
+  const pg = new PGlite({ extensions: { pgcrypto, pg_trgm, unaccent } }) as Pg;
   await pg.exec(BOOTSTRAP);
   return pg;
 }

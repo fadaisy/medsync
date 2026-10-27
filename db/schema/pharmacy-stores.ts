@@ -195,6 +195,17 @@ export const pharmacyDeliveryLines = pgTable("pharmacy_delivery_lines", {
   unitCost: numeric("unit_cost", { precision: 14, scale: 2 }),
   shortDatedDecision: text("short_dated_decision").$type<"accept" | "accept_tell" | "reject">(),
   note: text("note"),
+  // 0254: each scanned pack's serial, kept on the receipt line only; nothing reads it.
+  serials: text("serials").array(),
+  // 0256: packs counted and the pack's whole contents (accepted = packs × contents), how the product was found, and
+  // the coded reason a lapsed or unregistered product needs (Law 9, D-CAT-08).
+  packs: integer("packs"),
+  packContents: integer("pack_contents"),
+  identitySource: text("identity_source").$type<"scan" | "catalogue" | "typed">(),
+  registrationReason: text("registration_reason").$type<
+    "donation" | "no_registered_alternative" | "renewal_pending" | "other"
+  >(),
+  registrationNote: text("registration_note"),
   updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
 });
 

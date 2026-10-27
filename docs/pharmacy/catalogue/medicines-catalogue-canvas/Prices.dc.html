@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Products and prices</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+<link rel="stylesheet" href="rx3.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1120px">
+<nav class="rail" aria-label="Pharmacy places">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Window<span class="rail__n">61</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Shelf</a>
+<a href="Receive.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>Store<span class="rail__n">4</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>Clinical<span class="rail__n">6</span></a>
+<a href="Prices.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharm Guy, pharmacist, signed in with MFA. Open the account menu">PG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Pharmacy · Set-up</span><h1>Products and prices</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a patient, prescription, batch, slip code or page" placeholder="Find a patient, prescription, batch, slip code or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Working at ALVIN Ward, live. Change">ALVIN Ward <span>· Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a><a class="needs" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Needs you <b>12</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Set-up"><a href="Medicine.dc.html">Catalogue</a><a class="on" href="#" aria-current="page">Products and prices <span class="n n--warn">23</span></a><a href="Import.dc.html">Import</a><a href="#">Signed packs</a><a href="#">Places and suppliers</a><a href="#">Downtime records</a></nav>
+<span class="row__sp"></span><a class="btn btn--t btn--s" href="Import.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>Upload a supplier price list</a>
+</div>
+
+<div class="g12">
+<section class="card" style="grid-column: span 5">
+<div class="card__h"><h2>How prices are proposed here</h2><span class="sp"></span><a class="btn btn--t btn--s" href="#">Change</a></div>
+<div class="card__b">
+<div class="kv"><span>Rule, set by the pharmacy in charge on Fri 2 Oct</span><b>Last unit cost × 1.67, rounded up to the next UGX 50</b></div>
+<div class="kv"><span>Payers</span><b>Cash · Insurance (+10 %) · Staff (cost)</b></div>
+<div class="kv"><span>Who pays at each point</span><b>Private wing: charged · General wards and OPD: free (government supply)</b></div>
+<p class="small" style="margin: 0">The rule only proposes. A price changes when a person accepts it, from a date, and the old price is kept.</p>
+</div>
+</section>
+<div class="strip2" style="grid-column: span 7; align-self: start">
+<a href="#"><span class="k">Products</span><span class="v">412</span><span class="d">at this hospital</span></a>
+<a href="#"><span class="k">No price set</span><span class="v">23</span><span class="d w">Cannot be billed at charged points</span></a>
+<a href="#"><span class="k">Cost went up</span><span class="v">9</span><span class="d">since the price was set</span></a>
+<a href="#"><span class="k">Stock value</span><span class="v">UGX 48.2 M</span><span class="d">at cost, all places</span></a>
+</div>
+</div>
+
+<section class="card">
+<div class="card__h"><h2>Needs a price</h2><div class="chips" style="margin-left: 12px"><a class="chip on" href="#">No price <span class="n">23</span></a><a class="chip" href="#">Cost went up <span class="n">9</span></a><a class="chip" href="#">All <span class="n">412</span></a></div><span class="sp"></span><button class="btn btn--p btn--s">Review 23 proposals</button></div>
+<table class="sc">
+<thead><tr><th>Product</th><th>Sold per</th><th>Last cost</th><th>Price lists</th><th>Proposed (cash)</th><th>Insurance</th><th>Staff</th><th>From</th><th></th></tr></thead>
+<tbody>
+<tr><td><b>Amoxicillin 250 mg dispersible tablet</b><br><span class="small">Demo brand A · blister 10 × 10</span></td><td>tablet</td><td><span class="pr"><b>UGX 180</b><span>Tue 27 Oct delivery</span></span></td><td><span class="pr"><b>UGX 165</b><span>JMS list · Sep 2026</span></span></td><td><span class="pr"><b>UGX 350</b><span>rule</span></span></td><td><span class="pr"><b>UGX 400</b></span></td><td><span class="pr"><b>UGX 180</b></span></td><td>Today</td><td><button class="btn btn--s">Accept</button> <button class="more" aria-label="More actions"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td></tr>
+<tr><td><b>Ceftriaxone 1 g powder for injection</b><br><span class="small">Demo brand C · carton of 10 vials</span></td><td>vial</td><td><span class="pr"><b>UGX 5,000</b><span>Tue 27 Oct delivery</span></span></td><td><span class="pr"><span class="ns">No list</span></span></td><td><span class="pr"><b>UGX 8,350</b><span>rule</span></span></td><td><span class="pr"><b>UGX 9,200</b></span></td><td><span class="pr"><b>UGX 5,000</b></span></td><td>Today</td><td><button class="btn btn--s">Accept</button> <button class="more" aria-label="More actions"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td></tr>
+<tr><td><b>Demo cough syrup 100 mL</b><br><span class="small">Local product · waiting for the catalogue team</span></td><td>bottle</td><td><span class="pr"><b>UGX 2,100</b><span>Tue 27 Oct delivery</span></span></td><td><span class="pr"><span class="ns">No list</span></span></td><td><span class="pr"><b>UGX 3,550</b><span>rule</span></span></td><td><span class="pr"><b>UGX 3,950</b></span></td><td><span class="pr"><b>UGX 2,100</b></span></td><td>Today</td><td><button class="btn btn--s">Accept</button> <button class="more" aria-label="More actions"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td></tr>
+<tr><td><b>Morphine oral solution 10 mg/5 mL</b><br><span class="small">Unbranded · bottle 100 mL</span></td><td>bottle</td><td><span class="pr"><span class="ns">No cost recorded</span><span>opening count</span></span></td><td><span class="pr"><span class="ns">No list</span></span></td><td><span class="pr"><span class="ns">Type a price</span></span></td><td></td><td></td><td></td><td><button class="btn btn--s">Set price</button></td></tr>
+</tbody>
+</table>
+<div class="card__f"><span class="small">Prices show at the hand-over, on the patient's bill and, once Accounts exists, in its reports. A product with no price at a charged point shows "Price not set" at the window and is never billed as zero.</span></div>
+</section>
+
+<div class="g12">
+<section class="card" style="grid-column: span 6">
+<div class="card__h"><h2>Three kinds of nothing</h2></div>
+<div class="ck">
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><b>Free</b><span class="s">The point does not charge for this product. The bill shows it as free.</span></div>
+<div><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><b>UGX 0</b><span class="s">Never used. A real zero is "Free".</span></div>
+<div class="attn"><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><b>Price not set</b><span class="s">The line can still be supplied. The bill waits for the pharmacy in charge to set a price.</span></div>
+</div>
+</section>
+<section class="card" style="grid-column: span 6">
+<div class="card__h"><h2>Price history · Amoxicillin 250 mg tablet</h2></div>
+<div class="lst">
+<div><span class="small">From Tue 27 Oct</span><span>UGX 350 cash · 400 insurance · 180 staff</span><span class="small">proposed, not accepted</span></div>
+<div><span class="small">From Fri 2 Oct</span><span>UGX 300 cash · 330 insurance · 160 staff</span><span class="small">set by the in charge</span></div>
+<div><span class="small">From Mon 1 Jun</span><span>UGX 250 cash</span><span class="small">set by the in charge</span></div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

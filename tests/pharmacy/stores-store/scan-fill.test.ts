@@ -6,6 +6,7 @@
 import { describe, expect, it } from "vitest";
 
 import { STORE } from "@/content/pharmacy-stores-store";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { expiryForField, productByText, readScan } from "@/lib/pharmacy/stores/scan-fill";
 
 const GS = "\u001d";
@@ -53,8 +54,11 @@ describe("S45: a scan that does not parse is typed text", () => {
     const o = readScan("syrup", products);
     expect(o).toEqual({ kind: "text", text: "syrup", note: STORE.scan.asText });
   });
-  it("a broken check digit is not GS1", () => {
-    expect(readScan(`01${GTIN.slice(0, 13)}9`, products).kind).toBe("text");
+  it("a broken check digit is refused in words, and fills nothing (catalogue S12)", () => {
+    expect(readScan(`01${GTIN.slice(0, 13)}9`, products)).toEqual({
+      kind: "refused",
+      note: CATALOGUE.checkDigit,
+    });
   });
   it("text picks a product only when one name matches", () => {
     expect(productByText(products, "syrup")).toBe("p-b");

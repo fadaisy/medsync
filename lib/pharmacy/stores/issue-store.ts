@@ -19,6 +19,7 @@ import {
   pharmacyRequisitions,
 } from "@/db/schema/pharmacy-stores";
 import { pharmacyLoanClosures } from "@/db/schema/pharmacy-stores-0182";
+import { assertPicked } from "@/lib/pharmacy/distribution/store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import {
   confirmationAdjustments,
@@ -260,7 +261,7 @@ export async function raiseRequisition(
   return { id: row!.id };
 }
 
-async function lockedRequisition(tx: EmrTx, hospitalId: string, id: string) {
+export async function lockedRequisition(tx: EmrTx, hospitalId: string, id: string) {
   const [r] = await tx
     .select()
     .from(pharmacyRequisitions)
@@ -271,7 +272,7 @@ async function lockedRequisition(tx: EmrTx, hospitalId: string, id: string) {
 }
 
 /** Section 8: `pharmacy.store`, or `pharmacy.dispense` at the issuing place when it is the acting point. */
-function mayIssueFrom(ctx: PharmacyCtx, issuingLocationId: string) {
+export function mayIssueFrom(ctx: PharmacyCtx, issuingLocationId: string) {
   const p = ctx.actor.access.permissions;
   if (p.has("pharmacy.store")) return;
   if (p.has("pharmacy.dispense") && ctx.actor.pointId === issuingLocationId) return;
@@ -351,6 +352,7 @@ export async function issueRequisition(
           ? "Say why each line issued as zero is not issued."
           : "Give each quantity as a whole number.",
     );
+  await assertPicked(ctx.tx, h, r.id, input.lines);
   const from = await loadLocation(ctx.tx, h, r.issuingLocationId);
   const to = await loadLocation(ctx.tx, h, r.requestingLocationId);
   const issue = await issueStock(ctx, {

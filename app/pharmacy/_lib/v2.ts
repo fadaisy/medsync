@@ -9,6 +9,7 @@ import { db } from "@/db";
 import { dispensingMap } from "@/lib/pharmacy/access";
 import { POINT_COOKIE } from "@/lib/pharmacy/actor";
 import {
+  pharmacyCatalogueLiveFor,
   pharmacyDispensingLiveFor,
   pharmacyDowntimeLiveFor,
   pharmacyInteractionsLiveFor,
@@ -67,6 +68,7 @@ export const pharmacyV2 = cache(async () => {
     dispensing: flags.dispensing,
     nationalList: pharmacyNationalListLiveFor(scope.hospitalId),
     packs: supplyFlagOn("packs", scope.hospitalId),
+    catalogue: pharmacyCatalogueLiveFor(scope.hospitalId),
   });
   const points = flags.dispensing
     ? await pharmacyPointsFor(db as unknown as EmrDb, scope.userId, scope.hospitalId)

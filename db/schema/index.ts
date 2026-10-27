@@ -151,3 +151,7 @@ export * from "./pharmacy-stores-0184";
 export * from "./pharmacy-clinical";
 export * from "./pharmacy-network";
 export * from "./pharmacy-demo";
+export * from "./pharmacy-catalogue";
+export * from "./pharmacy-prices";
+export * from "./pharmacy-imports";
+export * from "./pharmacy-distribution";

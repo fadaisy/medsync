@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { getAuthState } from "@/lib/auth";
 import { loadCatalogueConsole } from "@/lib/pharmacy/national-catalogue";
+import { loadCatalogueQueue } from "@/lib/pharmacy/shared-catalogue/queue";
 import { CatalogueConsole } from "./_components/catalogue-console";
+import { CatalogueQueue } from "./_components/catalogue-queue";
 
 export const metadata: Metadata = { title: "National medicines list · Admin · MedSync" };
 export const dynamic = "force-dynamic";
@@ -20,6 +22,10 @@ export default async function PharmacyCataloguePage() {
   const state = await getAuthState();
   if (!state.user || !state.roles.includes("superadmin")) redirect("/admin");
   const data = await loadCatalogueConsole(db as unknown as EmrDb);
+  // The shared catalogue's queue (4.8, ADR 0456) shows once its flag is set: 0251–0254 are applied with it.
+  const queue = process.env.PHARMACY_CATALOGUE
+    ? await loadCatalogueQueue(db as unknown as EmrDb, state.user.id)
+    : null;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
@@ -76,6 +82,24 @@ export default async function PharmacyCataloguePage() {
             <code className="font-mono">scripts/pharmacy/load-national-list.ts</code>.
           </p>
         </div>
+      )}
+      {queue && (
+        <CatalogueQueue
+          data={{
+            barcodes: queue.barcodes.map((b) => ({
+              proposalId: b.proposalId,
+              code: b.code,
+              hospital: b.hospital,
+              medicine: b.medicine,
+              brand: b.brand,
+              pack: b.pack,
+              state: b.state,
+              mine: b.mine,
+            })),
+            conflicts: queue.conflicts,
+            sources: queue.sources,
+          }}
+        />
       )}
     </div>
   );

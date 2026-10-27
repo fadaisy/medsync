@@ -30,6 +30,16 @@ describe("Workspace v2 places (D-PW-03)", () => {
     expect(places).toEqual(["today", "window", "shelf", "store", "clinical", "setup"]);
   });
 
+  it("the shared catalogue is a Set-up tab only with its own flag (ADR 0456)", () => {
+    const navIds = pharmacyNavFor(ALL, on).map((i) => i.id);
+    const key = (catalogue: boolean) =>
+      placesFor({ navIds, dispensing: true, nationalList: true, catalogue }).tabs.some(
+        (t) => t.place === "setup" && t.key === "catalogue",
+      );
+    expect(key(false)).toBe(false);
+    expect(key(true)).toBe(true);
+  });
+
   it("with every Phase 1+ flag off only Window (the Phase 0 queue) and Shelf (emergency doses) remain", () => {
     const view = new Set(["pharmacy.view"] as const);
     const navIds = pharmacyNavFor(view, { dispensing: false, downtime: false }).map((i) => i.id);

@@ -2,6 +2,7 @@ import "server-only";
 
 import type { StoreBatch } from "./ledger";
 import type { LineResult } from "./receiving";
+import type { CatalogueFacts } from "./receiving-store";
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 
@@ -35,11 +36,13 @@ import { crashCarts } from "@/db/schema/prescribing";
 import { cadres } from "@/db/schema/reference-data";
 import { users } from "@/db/schema/users";
 import { asClinicalReader } from "@/lib/emr/db";
+import { pickedLines } from "@/lib/pharmacy/distribution/store";
+import { pharmacyCatalogueLiveFor } from "@/lib/pharmacy/feature";
 import { expiresOn, isExpired, localDate } from "@/lib/pharmacy/stock/ledger";
-import { planIssue } from "./issue";
+import { controlledRefusals, planIssue } from "./issue";
 import { controlledSet } from "./location-store";
 import { discrepancyLines, lineResults, stillOwed } from "./receiving";
-import { asLine, expiryLookahead } from "./receiving-store";
+import { asLine, expiryLookahead, productCatalogueFacts } from "./receiving-store";
 import { locationLive } from "./write";
 
 /**
@@ -116,7 +119,7 @@ async function withControlled(tx: EmrTx, hospitalId: string) {
 }
 
 /** The batch ids under an open recall (RC-1: product, and its current or first number). */
-async function recalledBatches(tx: EmrTx, hospitalId: string, batchIds: readonly string[]) {
+export async function recalledBatches(tx: EmrTx, hospitalId: string, batchIds: readonly string[]) {
   if (!batchIds.length) return new Set<string>();
   const rows = await tx
     .select({ id: pharmacyBatches.id })
@@ -142,7 +145,7 @@ async function recalledBatches(tx: EmrTx, hospitalId: string, batchIds: readonly
 }
 
 /** Batches at some places, with their products (and balances only where the caller asks). */
-async function batchesAtPlaces(tx: EmrTx, locationIds: readonly string[]) {
+export async function batchesAtPlaces(tx: EmrTx, locationIds: readonly string[]) {
   if (!locationIds.length) return [];
   return tx
     .select({
@@ -167,7 +170,7 @@ async function batchesAtPlaces(tx: EmrTx, locationIds: readonly string[]) {
     .orderBy(asc(pharmacyProducts.name), asc(pharmacyBatches.expiry));
 }
 
-async function balancesOf(tx: EmrTx, batchIds: readonly string[]) {
+export async function balancesOf(tx: EmrTx, batchIds: readonly string[]) {
   if (!batchIds.length) return new Map<string, number>();
   const rows = await tx
     .select({
@@ -382,6 +385,12 @@ export interface DeliveryLineView {
   controlled: boolean;
   results: LineResult[];
   needsDecision: boolean;
+  // Catalogue slice Step 7 (0256).
+  packs: number | null;
+  packContents: number | null;
+  identitySource: "scan" | "catalogue" | "typed" | null;
+  registrationReason: string | null;
+  registrationNote: string | null;
 }
 
 /** RG-2, RG-5, RG-6: the delivery, its lines with their results, the report lines, and what the order still owes. */
@@ -446,7 +455,12 @@ export async function getDelivery(
               ),
             )
         : [];
+      const facts = await productCatalogueFacts(tx, scope.hospitalId);
       return {
+        catalogue: {
+          live: pharmacyCatalogueLiveFor(scope.hospitalId),
+          facts: Object.fromEntries(facts) as Record<string, CatalogueFacts>,
+        },
         d,
         stored,
         products,
@@ -508,6 +522,11 @@ export async function getDelivery(
       controlled: !!p?.controlled,
       results,
       needsDecision: results.some((r) => r.kind === "expires_within") && s.acceptedQuantity > 0,
+      packs: s.packs,
+      packContents: s.packContents,
+      identitySource: s.identitySource,
+      registrationReason: s.registrationReason,
+      registrationNote: s.registrationNote,
     };
   });
   const report = discrepancyLines(lines, { ...ctx, owed: owedBefore }).map((x) => x.line.lineNo);
@@ -536,6 +555,7 @@ export async function getDelivery(
       productName: productOf.get(o.productId)?.name ?? "",
     })),
     products: products.filter((p) => p.active),
+    catalogue: read.catalogue,
   };
 }
 export type DeliveryView = NonNullable<Awaited<ReturnType<typeof getDelivery>>>;
@@ -838,7 +858,9 @@ export async function getRequisition(
         .orderBy(desc(pharmacyCounts.countedAt))
         .limit(1);
       const controlled = await controlledSet(tx, scope.hospitalId);
+      const picks = pharmacyCatalogueLiveFor(scope.hospitalId) ? await pickedLines(tx, r.id) : null;
       return {
+        picks,
         r,
         locations,
         lines,
@@ -873,10 +895,24 @@ export async function getRequisition(
           !read.recalled.has(b.id) && !isExpired(b, today) && (read.balances.get(b.id) ?? 0) > 0,
       )
       .sort((a, b) => expiresOn(a).localeCompare(expiresOn(b)))[0];
+    const byId = new Map(batches.map((b) => [b.id, b]));
     return {
       ...l,
       held: plan.held,
       prefill: plan.issue,
+      /** 4.11: the plan's batches, first to expire first, and the line's pick (null with the check off). */
+      planned: plan.rows.map((p) => ({
+        ...p,
+        batchNumber: byId.get(p.batchId)!.batchNumber,
+        expiry: byId.get(p.batchId)!.expiry,
+      })),
+      pick: read.picks ? (read.picks.get(l.id) ?? null) : undefined,
+      needs: controlledRefusals({
+        controlled: read.controlled(l.medicineId),
+        movement: "issue",
+        witnessAttestationId: null,
+        confirmerSecondFactor: false,
+      }),
       first: first
         ? {
             batchNumber: first.batchNumber,

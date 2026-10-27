@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Follow one medicine</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+<link rel="stylesheet" href="rx3.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1080px">
+<nav class="rail" aria-label="Pharmacy places">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Window<span class="rail__n">61</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Shelf</a>
+<a href="Receive.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>Store<span class="rail__n">4</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>Clinical<span class="rail__n">6</span></a>
+<a href="Prices.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharm Guy, pharmacist, signed in with MFA. Open the account menu">PG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Pharmacy · Store · Follow one medicine</span><h1>Ceftriaxone 1 g powder for injection</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a patient, prescription, batch, slip code or page" placeholder="Find a patient, prescription, batch, slip code or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Working at ALVIN Ward, live. Change">ALVIN Ward <span>· Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a><a class="needs" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Needs you <b>12</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="strip2">
+<a href="#"><span class="k">In the hospital</span><span class="v">412 <small>vials</small></span><span class="d">at 9 places · UGX 2.06 M</span></a>
+<a href="#"><span class="k">Used per month</span><span class="v">310</span><span class="d">adjusted for days out of stock</span></a>
+<a href="#"><span class="k">Cover</span><span class="v">5.3 <small>weeks</small></span><span class="d">at this rate, all places</span></a>
+<a href="#"><span class="k">Batches</span><span class="v">4</span><span class="d">first expires 03/2027</span></a>
+<a href="#"><span class="k">On order</span><span class="v">400</span><span class="d">OR-0044, due Thu 29 Oct</span></a>
+</div>
+
+<div class="g12">
+<section class="card" style="grid-column: span 7">
+<div class="card__h"><h2>Where it is now</h2><span class="sp"></span><span class="small">Vials, by place</span></div>
+<div class="stw2">
+<div><span>Main store</span><span class="bar"><i style="width: 100%"></i></span><b>244</b><span class="small">batches C-8790, C-9031</span></div>
+<div><span>ALVIN Ward point</span><span class="bar"><i style="width: 18%"></i></span><b>44</b><span class="small">C-8790</span></div>
+<div><span>Ward 3 · Medical</span><span class="bar"><i style="width: 16%"></i></span><b>40</b><span class="small">count Mon 26 + issue today</span></div>
+<div><span>Outpatient pharmacy</span><span class="bar"><i style="width: 13%"></i></span><b>30</b><span class="small">C-8790</span></div>
+<div><span>Emergency pharmacy</span><span class="bar"><i style="width: 8%"></i></span><b>20</b><span class="small">C-7702</span></div>
+<div><span>Maternity</span><span class="bar"><i style="width: 6%"></i></span><b>14</b><span class="small">counted yesterday</span></div>
+<div><span>Emergency carts (3)</span><span class="bar"><i style="width: 4%"></i></span><b>10</b><span class="small">sealed</span></div>
+<div><span>Quarantine</span><span class="bar"><i style="width: 4%"></i></span><b>10</b><span class="small">C-8812, recalled</span></div>
+</div>
+</section>
+<section class="card" style="grid-column: span 5">
+<div class="card__h"><h2>Batches</h2></div>
+<table class="sc">
+<thead><tr><th>Batch</th><th>Expires</th><th class="n">Held</th><th>State</th></tr></thead>
+<tbody>
+<tr><td class="mono">C-7702</td><td>01 2027</td><td class="n">20</td><td><span class="stg">Use first</span></td></tr>
+<tr><td class="mono">C-8790</td><td>03 2027</td><td class="n">286</td><td><span class="stg">Usable</span></td></tr>
+<tr><td class="mono">C-9031</td><td>08 2027</td><td class="n">96</td><td><span class="stg">Usable</span></td></tr>
+<tr><td class="mono">C-8812</td><td>11 2026</td><td class="n">10</td><td><span class="stg stg--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>Recalled</span></td></tr>
+</tbody>
+</table>
+<div class="card__f"><a class="btn btn--t btn--s" href="#">Who received C-8812</a></div>
+</section>
+</div>
+
+<section class="card">
+<div class="card__h"><h2>The last 7 days, every movement</h2><span class="sp"></span><div class="chips"><a class="chip on" href="#">All</a><a class="chip" href="#">Arrived</a><a class="chip" href="#">Between places</a><a class="chip" href="#">To patients</a><a class="chip" href="#">Used on wards</a><a class="chip" href="#">Losses</a></div></div>
+<div class="lst">
+<div><span class="small">Tue 27 · 10:02</span><span>Main store → Ward 3 · issue RQ-0219 · 34 vials (C-8790 24, C-9031 10) · confirmed 10:40</span><span class="small">Pharm Guy</span></div>
+<div><span class="small">Tue 27 · 08:20</span><span>Demo supplier A → Main store · delivery DSA-INV-2311 · 50 vials C-9031</span><span class="small">counted, scanned</span></div>
+<div><span class="small">Tue 27 · all day</span><span>ALVIN Ward point → 9 patients · 18 vials supplied</span><span class="small">hand-overs</span></div>
+<div><span class="small">Mon 26 · 16:10</span><span>Ward 3 · count: 22 used since Tue 20 · matches 22 charted</span><span class="small">Sr Demo Nurse</span></div>
+<div><span class="small">Sat 24 · 11:00</span><span>Recall C-8812 started · 10 vials moved to quarantine · 12 supplied to 9 patients traced</span><span class="small">Pharmacy in charge</span></div>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { NotSet, Panel } from "@/app/lab/_components/v2/kit";
 import { PillTabs, SpaceHeader } from "@/app/lab/_components/v2/space";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { fill, PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_STORE as S } from "@/content/pharmacy-workspace-v2-store";
 import { db } from "@/db";
@@ -22,6 +23,7 @@ import { CartsBody } from "./carts/body";
 import { DeliveriesBody } from "./deliveries/body";
 import { ExpiryBody } from "./expiry/body";
 import { IssuesBody } from "./issues/body";
+import { StockMapBody } from "./map/body";
 import { MonthEndBody } from "./month-end/body";
 import { OrdersBody } from "./orders/body";
 import { WardsBody } from "./wards/body";
@@ -95,7 +97,10 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
     .filter((t) => t.place === "store")
     .map((t) => ({
       key: t.key,
-      label: (PHWS2.tabs.store as Record<string, string>)[t.key] ?? t.key,
+      label:
+        t.key === "map"
+          ? CATALOGUE.map.title
+          : ((PHWS2.tabs.store as Record<string, string>)[t.key] ?? t.key),
       href: t.href,
     }));
 
@@ -125,7 +130,12 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
         <SpaceHeader className="mb-0" tabs={<PillTabs tabs={tabs} current={tab} label={S.tabsLabel} />} />
       </div>
 
-      {tab === "deliveries" ? (
+      {tab === "map" ? (
+        <StockMapBody
+          product={typeof sp.product === "string" ? sp.product : undefined}
+          show={typeof sp.show === "string" ? sp.show : undefined}
+        />
+      ) : tab === "deliveries" ? (
         <DeliveriesBody />
       ) : tab === "issues" ? (
         <IssuesBody />

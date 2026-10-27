@@ -1,5 +1,6 @@
 import type { Scan } from "./scan";
 
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { STORE } from "@/content/pharmacy-stores-store";
 import { parseGs1, productForGtin } from "./scan";
 
@@ -18,7 +19,9 @@ export interface ScanProduct {
 
 export type ScanOutcome =
   | { kind: "gs1"; scan: Extract<Scan, { ok: true }>; productId: string | null; note: string }
-  | { kind: "text"; text: string; note: string };
+  | { kind: "text"; text: string; note: string }
+  /** A GTIN whose check digit is wrong: nothing is filled (S12). */
+  | { kind: "refused"; note: string };
 
 /** An expiry for the text field: a month the pack gives stays a month (Phase 1 stores it as the month). */
 export const expiryForField = (s: { expiry: string | null; expiryMonthOnly: boolean }) =>
@@ -27,6 +30,7 @@ export const expiryForField = (s: { expiry: string | null; expiryMonthOnly: bool
 /** 5.11, SC-1 to SC-3: what a scan (or typed text) gives. */
 export function readScan(raw: string, products: readonly ScanProduct[]): ScanOutcome {
   const s = parseGs1(raw);
+  if (!s.ok && s.reason === "check_digit") return { kind: "refused", note: CATALOGUE.checkDigit };
   if (!s.ok) return { kind: "text", text: raw.trim(), note: STORE.scan.asText };
   const hit = s.gtin ? productForGtin(products, s.gtin) : null;
   const parts = [
@@ -36,10 +40,18 @@ export function readScan(raw: string, products: readonly ScanProduct[]): ScanOut
   ]
     .filter(Boolean)
     .join(", ");
-  const note =
+  const note = [
+    STORE.scan.read(parts),
     hit && !hit.ok
-      ? `${STORE.scan.read(parts)} ${hit.reason === "ambiguous" ? STORE.scan.ambiguous : STORE.scan.unknownGtin}`
-      : STORE.scan.read(parts);
+      ? hit.reason === "ambiguous"
+        ? STORE.scan.ambiguous
+        : STORE.scan.unknownGtin
+      : null,
+    s.plain ? CATALOGUE.plainBarcode : null,
+    s.skipped.length ? CATALOGUE.unknownElement(s.skipped.join(", ")) : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
   return { kind: "gs1", scan: s, productId: hit?.ok ? hit.productId : null, note };
 }
 

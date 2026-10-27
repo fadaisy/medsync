@@ -6,7 +6,16 @@ const F = PHWS2_STORE.flow;
 const WEEK_MS = 7 * 86_400_000;
 
 /** Store tabs, in v2.tabs order (GATE A §3). */
-export const STORE_TABS = ["deliveries", "issues", "wards", "carts", "expiry", "orders", "monthEnd"] as const;
+export const STORE_TABS = [
+  "deliveries",
+  "issues",
+  "wards",
+  "carts",
+  "expiry",
+  "orders",
+  "monthEnd",
+  "map",
+] as const;
 export type StoreTab = (typeof STORE_TABS)[number];
 
 /**

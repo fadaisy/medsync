@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Not in the catalogue</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+<link rel="stylesheet" href="rx3.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1000px">
+<nav class="rail" aria-label="Pharmacy places">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Window<span class="rail__n">61</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Shelf</a>
+<a href="Receive.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>Store<span class="rail__n">4</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>Clinical<span class="rail__n">6</span></a>
+<a href="Prices.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharm Guy, pharmacist, signed in with MFA. Open the account menu">PG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Pharmacy · Main store</span><h1>Count a delivery</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a patient, prescription, batch, slip code or page" placeholder="Find a patient, prescription, batch, slip code or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Working at ALVIN Ward, live. Change">ALVIN Ward <span>· Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a><a class="needs" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Needs you <b>12</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<section class="card" style="height: 820px"></section>
+<div style="position: fixed; inset: 0">
+<div class="dim"></div>
+<div class="dlg" role="dialog" aria-label="Type a product that is not in the catalogue">
+<div class="dlg__h"><div><h2>Type a product that is not in the catalogue</h2><p>Every field is a choice where it can be. You can receive it now; the catalogue team adds it for everyone after a check.</p></div><span class="sp"></span><button class="more" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+<div class="dlg__b">
+<div class="sx"><div class="row" style="padding: 4px 0 10px"><span class="num">1</span><b>What it is</b></div>
+<div class="form" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+<div class="fld"><label for="g">Generic name</label><span class="in in--focus"><input id="g" value="Dextromethorphan"></span><span class="small">Matched: dextromethorphan · in the catalogue as a substance</span></div>
+<div class="fld"><label for="s">Strength, as printed</label><span class="in"><input id="s" value="15 mg/5 mL"></span><span class="small">Kept as text. MedSync never converts it.</span></div>
+<div class="fld"><label for="bn">Brand name (if any)</label><span class="in"><input id="bn" value="Demo cough syrup"></span></div>
+</div>
+<div class="row" style="padding-top: 12px"><span class="small" style="width: 110px">Form</span><div class="chips"><a class="chip" href="#">Tablet</a><a class="chip" href="#">Capsule</a><a class="chip on" href="#">Oral liquid</a><a class="chip" href="#">Injection</a><a class="chip" href="#">Cream or ointment</a><a class="chip" href="#">Drops</a><a class="chip" href="#">Inhaler</a><a class="chip" href="#">More…</a></div></div>
+<div class="row" style="padding-top: 8px"><span class="small" style="width: 110px">Route</span><div class="chips"><a class="chip on" href="#">Oral</a><a class="chip" href="#">IV</a><a class="chip" href="#">IM</a><a class="chip" href="#">Subcutaneous</a><a class="chip" href="#">Topical</a><a class="chip" href="#">Rectal</a><a class="chip" href="#">More…</a></div></div>
+</div>
+<div class="sx"><div class="row" style="padding: 12px 0 10px"><span class="num">2</span><b>The pack</b></div>
+<div class="form" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+<div class="fld"><label for="pk">Pack</label><span class="in"><input id="pk" value="Bottle"></span></div>
+<div class="fld"><label for="pq">Contents</label><span class="in"><input id="pq" value="100"></span><span class="small">mL in one bottle</span></div>
+<div class="fld"><label for="iu">Issue unit</label><span class="in"><input id="iu" value="Bottle"></span><span class="small">Locks after the first movement</span></div>
+<div class="fld"><label for="gt">Barcode</label><span class="in"><input id="gt" value="" placeholder="Scan the box"></span><span class="small">Optional</span></div>
+</div></div>
+<div class="sx"><div class="row" style="padding: 12px 0 10px"><span class="num">3</span><b>Maker and registration</b></div>
+<div class="form" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+<div class="fld"><label for="mf">Manufacturer</label><span class="in"><input id="mf" value="Demo Labs (U) Ltd"></span><span class="small">Known maker · picked from the list</span></div>
+<div class="fld"><label for="rg">NDA registration number</label><span class="in in--err"><input id="rg" value=""></span><span class="small" style="color: var(--caution-fg)">Not on the box? Say so below, and the team will check the register.</span></div>
+<div class="fld"><label for="ct">Country of manufacture</label><span class="in"><input id="ct" value="Uganda"></span></div>
+</div></div>
+</div>
+<div class="dlg__f"><label class="rad on"><input type="checkbox" checked><i></i>No registration number on the pack</label><span class="sp"></span><button class="btn">Cancel</button><button class="btn btn--p">Receive as a local product</button></div>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

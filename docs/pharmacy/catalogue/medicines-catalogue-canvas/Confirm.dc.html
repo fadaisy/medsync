@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Confirm stock arrived</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+<link rel="stylesheet" href="rx3.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="pw">
+<header class="pw__bar"><span class="pw__mark"><i>M</i>MedSync</span><span class="sp" style="flex: 1"></span><a class="helpbtn" href="#" aria-label="Help, emergency"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Help</a></header>
+<div class="pw__body">
+<div><span class="pw__ov">Ward 3 · stock</span><h1 style="font-size: 30px; line-height: 34px">Stock has arrived</h1><p class="pw__sub">RQ-0219 from Main store · issued 10:02 by Pharm Guy · 5 lines</p></div>
+<section class="pw__card">
+<div class="bill">
+<div><span>Ceftriaxone 1 g injection</span><span class="v">34 vials</span><span class="s">2 batches · first expires 03/2027</span></div>
+<div><span>Paracetamol 500 mg tablets</span><span class="v">880 tablets</span><span class="s">from an opened tin, counted</span></div>
+<div><span>Sodium chloride 0.9 % 500 mL</span><span class="v">34 bags</span><span class="s">12 still owed by the store</span></div>
+<div><span>Metronidazole 500 mg/100 mL</span><span class="v">18 bottles</span><span class="s">batch MZ-6610</span></div>
+<div><span>Morphine 10 mg/mL injection</span><span class="v">6 amps</span><span class="s">Controlled · count with a witness</span></div>
+</div>
+</section>
+<label class="payopt on"><i></i><span><b>Everything arrived as listed</b><span>Counted on arrival</span></span></label>
+<label class="payopt"><i></i><span><b>Something is different</b><span>Say which line, what you counted, and why</span></span></label>
+<button class="btn btn--p" style="align-self: stretch">Confirm with my code</button>
+<div class="pw__from"><b>What this does</b>Ward 3's stock is confirmed. If you report a difference, it is recorded at the ward with your reason, and both in-charges see it.</div>
+<span class="pw__meta" style="font-size: 13px; line-height: 19px">Illustrative. Strengths here are pack facts, not doses.</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

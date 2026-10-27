@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Check an emergency cart</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ws.css">
+<link rel="stylesheet" href="rx.css">
+<link rel="stylesheet" href="rx2.css">
+<link rel="stylesheet" href="rx3.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#f6f7f9}
+</style>
+</helmet>
+<div class="ws" style="min-height: 1120px">
+<nav class="rail" aria-label="Pharmacy places">
+<span class="rail__mark" aria-hidden="true">M</span>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>Window<span class="rail__n">61</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>Shelf</a>
+<a href="Receive.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>Store<span class="rail__n">4</span></a>
+<a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>Clinical<span class="rail__n">6</span></a>
+<a href="Prices.dc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Set-up<span class="rail__n">3</span></a>
+<span class="rail__sp"></span>
+<span class="rail__me" aria-label="Pharm Guy, pharmacist, signed in with MFA. Open the account menu">PG</span>
+</nav>
+<div class="col">
+<header class="top">
+<div class="top__where"><span class="ov">Pharmacy · Store · Carts</span><h1>Emergency unit, cart 2</h1></div>
+<label class="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input aria-label="Find a patient, prescription, batch, slip code or page" placeholder="Find a patient, prescription, batch, slip code or page"><span class="kbd">Ctrl K</span></label>
+<span class="top__sp"></span>
+<a class="pt" href="#" aria-label="Working at ALVIN Ward, live. Change">ALVIN Ward <span>· Live</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a><a class="needs" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Needs you <b>12</b></a>
+<a class="sos" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1-1v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1a1 1 0 0 0 1 1z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.93 4.93.71.71"/></svg>Emergency</a>
+</header>
+<div class="row">
+<nav class="seg" aria-label="Store"><a href="StockMap.dc.html">Every place</a><a href="#">Deliveries</a><a href="Requisition.dc.html">Issues</a><a href="Ward.dc.html">Wards</a><a class="on" href="#" aria-current="page">Carts <span class="n n--warn">1</span></a><a href="#">Expiry and recall</a><a href="#">Orders</a><a href="#">Month end</a></nav>
+<span class="row__sp"></span><span class="small">Cart list signed Mon 12 Oct · checked weekly · unit nurse in charge confirms</span>
+</div>
+<div class="note note--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span><b>Seal 004418 was broken at 03:12 today.</b> The resus desk recorded 2 doses from this cart for Demo patient 61 (adrenaline, amiodarone). Check and restock before it is sealed again.</span></div>
+
+<div class="cols" style="grid-template-columns: minmax(0, 1fr) 340px">
+<section class="card">
+<div class="card__h"><h2>Check against the signed list</h2><span class="sp"></span><span class="small">Count first; MedSync shows its figure after you save the count.</span></div>
+<table class="sc">
+<thead><tr><th>Item on the list</th><th class="n">Should hold</th><th class="n">Counted</th><th class="n">Record said</th><th>First expiry</th><th>Gap</th><th class="n">Restock</th></tr></thead>
+<tbody>
+<tr><td><b>Adrenaline 1 mg/mL injection</b><br><span class="small">ampoule</span></td><td class="n">10</td><td class="n">7</td><td class="n">10</td><td class="mono small">AD-552 · 02/2027</td><td><span class="small">3 used · 2 on the resus record, 1 not recorded</span></td><td class="n">3</td></tr>
+<tr><td><b>Amiodarone 50 mg/mL injection</b><br><span class="small">ampoule</span></td><td class="n">6</td><td class="n">4</td><td class="n">6</td><td class="mono small">AM-118 · 07/2027</td><td><span class="small">2 used · on the resus record</span></td><td class="n">2</td></tr>
+<tr><td><b>Atropine 1 mg/mL injection</b><br><span class="small">ampoule</span></td><td class="n">6</td><td class="n">6</td><td class="n">6</td><td><span class="stg stg--warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>AT-201 · 12/2026</span></td><td><span class="small">None · swap 6 short-dated</span></td><td class="n">6 swap</td></tr>
+<tr><td><b>Dextrose 50 % injection</b><br><span class="small">50 mL vial</span></td><td class="n">4</td><td class="n">4</td><td class="n">4</td><td class="mono small">DX-090 · 10/2027</td><td class="small">None</td><td class="n">None</td></tr>
+<tr><td><b>Sodium chloride 0.9 % 500 mL</b><br><span class="small">bag</span></td><td class="n">4</td><td class="n">3</td><td class="n">4</td><td class="mono small">NS-2611 · 06/2028</td><td><span class="small">1 · reason: used, not recorded</span></td><td class="n">1</td></tr>
+<tr><td><b>Midazolam 5 mg/mL injection</b> <span class="pill pill--lock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>Controlled</span><br><span class="small">ampoule</span></td><td class="n">5</td><td class="n">5</td><td class="n">5</td><td class="mono small">MD-301 · 04/2027</td><td class="small">None</td><td class="n">Through Issues</td></tr>
+</tbody>
+</table>
+<div class="card__f"><span class="small">Restock comes from the store's first-to-expire batches. Controlled items are restocked through Issues, with a witness.</span></div>
+</section>
+<div class="stack">
+<section class="card">
+<div class="card__h"><h2>Finish the check</h2></div>
+<div class="card__b">
+<div class="kv"><span>Restock from Main store</span><b>12 items, 6 swapped</b></div>
+<div class="fld"><label for="seal">New seal number</label><span class="in in--focus"><input id="seal" value="004421"></span></div>
+<div class="kv"><span>Confirmed by</span><b>Unit nurse in charge, with their code</b></div>
+</div>
+<div class="card__f"><button class="btn btn--p" style="flex: 1">Restock and seal</button><button class="more" aria-label="More actions"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div>
+</section>
+<section class="card">
+<div class="card__h"><h2>How a cart's stock is known</h2></div>
+<div class="told">
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg></span><b>Sealed between checks</b><span>A broken seal reported on the resus desk or by the unit puts the cart on this list at once.</span></div>
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span><b>Doses on the resus record are matched</b><span>Each one explains a gap. What is left needs a reason from the list.</span></div>
+<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><b>Carts never feed each other</b><span>Except cart to cart, as built. Restock always comes from a store.</span></div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

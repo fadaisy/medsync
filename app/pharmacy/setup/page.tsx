@@ -2,22 +2,36 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { PillTabs } from "@/app/lab/_components/v2/space";
+import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_SETUP as S } from "@/content/pharmacy-workspace-v2-setup";
 import { setupView } from "@/lib/pharmacy/workspace-v2/setup";
+import { pharmacyV2 } from "../_lib/v2";
 import { ClinicalContentBody } from "../clinical/content/body";
 import { DowntimeBody } from "../downtime/body";
 import { NationalListBody } from "../stock/national-list/body";
 import { PlacesBody } from "../store/places/body";
-import { pharmacyV2 } from "../_lib/v2";
+import { CatalogueView } from "./_components/catalogue-view";
 import { GoingLiveView } from "./_components/going-live";
+import { ImportView } from "./_components/import-view";
 import { PacksView } from "./_components/packs-view";
+import { PricesView } from "./_components/prices-view";
 
 export const metadata: Metadata = { title: "Set-up · Pharmacy" };
 export const dynamic = "force-dynamic";
 
 /** Board order; each view exists only when its tab does (places.ts), plus Going live where there are points. */
-const ORDER = ["packs", "places", "content", "national", "downtime", "golive"] as const;
+const ORDER = [
+  "packs",
+  "places",
+  "content",
+  "national",
+  "catalogue",
+  "prices",
+  "import",
+  "downtime",
+  "golive",
+] as const;
 type View = (typeof ORDER)[number];
 
 /**
@@ -38,7 +52,13 @@ export default async function SetupPage({
   const views = ORDER.filter((k) => keys.has(k));
   const view = setupView(typeof sp.view === "string" ? sp.view : undefined, views) as View | null;
   if (!view) notFound();
-  const words: Record<View, string> = { ...PHWS2.tabs.setup, golive: S.goLive };
+  const words: Record<View, string> = {
+    ...PHWS2.tabs.setup,
+    catalogue: CATALOGUE.tab,
+    prices: CATALOGUE.prices.tab,
+    import: CATALOGUE.imports.tab,
+    golive: S.goLive,
+  };
   const one = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
 
   return (
@@ -64,6 +84,12 @@ export default async function SetupPage({
         <NationalListBody
           searchParams={Promise.resolve({ q: one("q"), kind: one("kind"), vital: one("vital") })}
         />
+      ) : view === "catalogue" ? (
+        <CatalogueView v2={v2} medicineId={one("medicine")} />
+      ) : view === "prices" ? (
+        <PricesView v2={v2} />
+      ) : view === "import" ? (
+        <ImportView v2={v2} draftId={one("draft")} />
       ) : view === "downtime" ? (
         <DowntimeBody />
       ) : (
@@ -72,4 +98,3 @@ export default async function SetupPage({
     </>
   );
 }
-

@@ -1,0 +1,329 @@
+{
+  "version": "1",
+  "status": "signed",
+  "signed": "GATE A \u00a75, Fadhul (CSO), 27 Oct 2026. Preferred names follow D-CAT-05 (WHO INN).",
+  "preferred": [
+    {
+      "inn": "epinephrine",
+      "others": [
+        [
+          "adrenaline",
+          "BAN"
+        ]
+      ]
+    },
+    {
+      "inn": "norepinephrine",
+      "others": [
+        [
+          "noradrenaline",
+          "BAN"
+        ]
+      ]
+    },
+    {
+      "inn": "paracetamol",
+      "others": [
+        [
+          "acetaminophen",
+          "USAN"
+        ]
+      ]
+    },
+    {
+      "inn": "salbutamol",
+      "others": [
+        [
+          "albuterol",
+          "USAN"
+        ]
+      ]
+    },
+    {
+      "inn": "glibenclamide",
+      "others": [
+        [
+          "glyburide",
+          "USAN"
+        ]
+      ]
+    },
+    {
+      "inn": "pethidine",
+      "others": [
+        [
+          "meperidine",
+          "USAN"
+        ]
+      ]
+    },
+    {
+      "inn": "rifampicin",
+      "others": [
+        [
+          "rifampin",
+          "USAN"
+        ]
+      ]
+    },
+    {
+      "inn": "ciclosporin",
+      "others": [
+        [
+          "cyclosporine",
+          "USAN"
+        ]
+      ]
+    },
+    {
+      "inn": "isoprenaline",
+      "others": [
+        [
+          "isoproterenol",
+          "USAN"
+        ]
+      ]
+    },
+    {
+      "inn": "levothyroxine",
+      "others": [
+        [
+          "thyroxine",
+          "former"
+        ]
+      ]
+    },
+    {
+      "inn": "furosemide",
+      "others": [
+        [
+          "frusemide",
+          "former"
+        ]
+      ]
+    },
+    {
+      "inn": "lidocaine",
+      "others": [
+        [
+          "lignocaine",
+          "former"
+        ]
+      ]
+    },
+    {
+      "inn": "amoxicillin",
+      "others": [
+        [
+          "amoxycillin",
+          "former"
+        ]
+      ]
+    },
+    {
+      "inn": "cefalexin",
+      "others": [
+        [
+          "cephalexin",
+          "former"
+        ]
+      ]
+    },
+    {
+      "inn": "sulfamethoxazole",
+      "others": [
+        [
+          "sulphamethoxazole",
+          "former"
+        ]
+      ]
+    },
+    {
+      "inn": "chlorphenamine",
+      "others": [
+        [
+          "chlorpheniramine",
+          "former"
+        ]
+      ]
+    },
+    {
+      "inn": "bendroflumethiazide",
+      "others": [
+        [
+          "bendrofluazide",
+          "former"
+        ]
+      ]
+    },
+    {
+      "inn": "phenobarbital",
+      "others": [
+        [
+          "phenobarbitone",
+          "former"
+        ]
+      ]
+    },
+    {
+      "inn": "estradiol",
+      "others": [
+        [
+          "oestradiol",
+          "former"
+        ]
+      ]
+    }
+  ],
+  "abbreviations": [
+    {
+      "name": "PCM",
+      "type": "local",
+      "substance": [
+        "paracetamol"
+      ]
+    },
+    {
+      "name": "ORS",
+      "type": "abbreviation",
+      "substance": [
+        "oral rehydration salts"
+      ]
+    },
+    {
+      "name": "GV",
+      "type": "local",
+      "substance": [
+        "gentian violet",
+        "methylrosanilinium chloride"
+      ]
+    },
+    {
+      "name": "INH",
+      "type": "abbreviation",
+      "substance": [
+        "isoniazid"
+      ]
+    },
+    {
+      "name": "MgSO4",
+      "type": "abbreviation",
+      "substance": [
+        "magnesium sulfate",
+        "magnesium sulphate"
+      ]
+    },
+    {
+      "name": "KCl",
+      "type": "abbreviation",
+      "substance": [
+        "potassium chloride"
+      ]
+    },
+    {
+      "name": "TEO",
+      "type": "local",
+      "medicine": {
+        "all": [
+          "tetracycline"
+        ],
+        "form": "eye_ointment"
+      }
+    },
+    {
+      "name": "AL",
+      "type": "abbreviation",
+      "medicine": {
+        "all": [
+          "artemether",
+          "lumefantrine"
+        ]
+      }
+    },
+    {
+      "name": "SP",
+      "type": "abbreviation",
+      "medicine": {
+        "all": [
+          "sulfadoxine",
+          "pyrimethamine"
+        ]
+      }
+    },
+    {
+      "name": "CTX",
+      "type": "abbreviation",
+      "medicine": {
+        "all": [
+          "sulfamethoxazole",
+          "trimethoprim"
+        ]
+      },
+      "substance": [
+        "co trimoxazole",
+        "cotrimoxazole"
+      ]
+    },
+    {
+      "name": "TLD",
+      "type": "abbreviation",
+      "medicine": {
+        "all": [
+          "tenofovir",
+          "lamivudine",
+          "dolutegravir"
+        ]
+      }
+    },
+    {
+      "name": "RHZE",
+      "type": "abbreviation",
+      "medicine": {
+        "all": [
+          "rifampicin",
+          "isoniazid",
+          "pyrazinamide",
+          "ethambutol"
+        ]
+      }
+    },
+    {
+      "name": "NS",
+      "type": "local",
+      "medicine": {
+        "all": [
+          "sodium chloride"
+        ],
+        "strength": "0.9%"
+      }
+    },
+    {
+      "name": "RL",
+      "type": "local",
+      "substance": [
+        "sodium lactate compound",
+        "ringer s lactate",
+        "ringers lactate"
+      ]
+    },
+    {
+      "name": "ACT",
+      "type": "class_abbreviation",
+      "medicine": {
+        "anyCombinationOf": [
+          "artemether",
+          "artesunate",
+          "dihydroartemisinin"
+        ]
+      }
+    },
+    {
+      "name": "ARVs",
+      "type": "class_abbreviation",
+      "medicine": {
+        "classMatches": "antiretroviral"
+      }
+    }
+  ],
+  "note": "Substance keys are lower case with punctuation as spaces. A name that fits no substance or medicine in the catalogue is reported, never forced. Where a key has spelling variants on the list (sulphate, co-trimoxazole), each is listed; the first that exists is used."
+}
