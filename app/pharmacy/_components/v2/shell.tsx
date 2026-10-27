@@ -187,9 +187,8 @@ export function PharmacyShellV2({
           <PointPill payload={payload} />
           <Link
             href="/pharmacy/needs-you"
-            aria-label={
-              needsYou > 0 ? fill(S.needsYouCount, { n: needsYou }) : S.needsYou
-            }
+            prefetch={false}
+            aria-label={needsYou > 0 ? fill(S.needsYouCount, { n: needsYou }) : S.needsYou}
             aria-current={here === "needsYou" ? "page" : undefined}
             className={cn(
               "focus-visible:shadow-focus inline-flex h-9 items-center gap-2 rounded-full pr-3.5 pl-3 text-[13.5px] font-semibold whitespace-nowrap outline-none",
@@ -247,6 +246,9 @@ function Rail({
           <Link
             key={p}
             href={PLACE_HREF[p]}
+            // Every place is dynamic and reads the pharmacy scope; prefetching all seven on every render looped in
+            // production (each place requested again every ~1.5 s). They load on click.
+            prefetch={false}
             aria-current={on ? "page" : undefined}
             aria-label={countWords ? `${S.places[p]}, ${countWords}` : undefined}
             className={cn(
@@ -291,10 +293,7 @@ function PointPill({ payload }: { payload: PharmacyShellPayload }) {
     <>
       <span
         aria-hidden
-        className={cn(
-          "size-2 rounded-full",
-          point.live ? "bg-tide-lagoon" : "bg-ink-400",
-        )}
+        className={cn("size-2 rounded-full", point.live ? "bg-tide-lagoon" : "bg-ink-400")}
       />
       {fill(S.point, { point: point.name, state })}
     </>

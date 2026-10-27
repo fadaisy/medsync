@@ -26,6 +26,7 @@ import { getExpiryPage, listRecalls } from "@/lib/pharmacy/stores/recall-read";
 import { getDeliveriesPage, getIssuesPage } from "@/lib/pharmacy/stores/store-read";
 import { getCartsPage, listPlaces } from "@/lib/pharmacy/stores/ward-read";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
+import { SOURCE_MS, within } from "./deadline";
 import { hasTab } from "./v2";
 
 const DAY_MS = 86_400_000;
@@ -168,7 +169,8 @@ export async function loadTodayRows(v2: PharmacyV2, now: Date): Promise<TodayRow
 }
 
 /** A flow step's loader failing reads as "No data", never as 0 (Law 6). */
-const safe = <T>(p: Promise<T>) => p.catch(() => null);
+const safe = <T>(p: Promise<T>, what: string) =>
+  within(p, SOURCE_MS, `today.flow.${what}`).catch(() => null);
 
 /**
  * "Where the hospital's medicines are" (§6 Medicines flow): each step from its own page's loader, only where that
@@ -179,12 +181,12 @@ export async function loadFlow(v2: PharmacyV2, now: Date) {
   const s = v2.flags.stores;
   const on = (flag: boolean | undefined, key: string) => !!flag && hasTab(v2, "store", key);
   const [deliveries, issues, wards, carts, expiry, recalls] = await Promise.all([
-    on(s?.store, "deliveries") ? safe(getDeliveriesPage(who)) : null,
-    on(s?.store, "issues") ? safe(getIssuesPage(who)) : null,
-    on(s?.wardStock, "wards") ? safe(listPlaces(appDb(), who.hospitalId, "ward")) : null,
-    on(s?.carts, "carts") ? safe(getCartsPage(appDb(), who.hospitalId, now)) : null,
-    on(s?.recall, "expiry") ? safe(getExpiryPage(who, now)) : null,
-    on(s?.recall, "expiry") ? safe(listRecalls(who)) : null,
+    on(s?.store, "deliveries") ? safe(getDeliveriesPage(who), "deliveries") : null,
+    on(s?.store, "issues") ? safe(getIssuesPage(who), "issues") : null,
+    on(s?.wardStock, "wards") ? safe(listPlaces(appDb(), who.hospitalId, "ward"), "wards") : null,
+    on(s?.carts, "carts") ? safe(getCartsPage(appDb(), who.hospitalId, now), "carts") : null,
+    on(s?.recall, "expiry") ? safe(getExpiryPage(who, now), "expiry") : null,
+    on(s?.recall, "expiry") ? safe(listRecalls(who), "recalls") : null,
   ]);
   return {
     suppliers: deliveries && {
