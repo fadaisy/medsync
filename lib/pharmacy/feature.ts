@@ -5,6 +5,7 @@ import { PHARMACY_NETWORK_COPY } from "@/content/pharmacy-network";
 import { PHARMACY_RECONCILIATION_COPY } from "@/content/pharmacy-reconciliation";
 import { PHARMACY_STORES_COPY } from "@/content/pharmacy-stores";
 import { PHWS2_COPY_STATUS } from "@/content/pharmacy-workspace-v2";
+import { pharmacyDevHospital } from "@/lib/pharmacy/access";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -58,8 +59,12 @@ export const pharmacyNationalListLiveFor = (hospitalId: string) =>
  * the workspace; needs migrations 0251–0253. In production it stays off while its wording (CATALOGUE_COPY) is draft.
  */
 export const pharmacyCatalogueLiveFor = (hospitalId: string) =>
-  workspaceLiveFor(process.env.PHARMACY_CATALOGUE, hospitalId, [CATALOGUE_COPY], "pharmacy_catalogue") &&
-  pharmacyWorkspaceLiveFor(hospitalId);
+  workspaceLiveFor(
+    process.env.PHARMACY_CATALOGUE,
+    hospitalId,
+    [CATALOGUE_COPY],
+    "pharmacy_catalogue",
+  ) && pharmacyWorkspaceLiveFor(hospitalId);
 
 /**
  * Pharmacy Phase 2 (Law 14, D-PH2-24): six per-hospital flags, off by default, each inside the workspace. With all
@@ -158,5 +163,10 @@ export const pharmacyRefillsLiveFor = (h: string) =>
  * (content/pharmacy-workspace-v2) is draft, as the lab's LAB_WORKSPACE_V2 did.
  */
 export const pharmacyWorkspaceV2LiveFor = (h: string) =>
-  workspaceLiveFor(process.env.PHARMACY_WORKSPACE_V2, h, [PHWS2_COPY_STATUS], "pharmacy_workspace_v2") &&
-  pharmacyWorkspaceLiveFor(h);
+  workspaceLiveFor(
+    process.env.PHARMACY_WORKSPACE_V2,
+    h,
+    // ADR 0468: a PHARMACY_DEV_HOSPITALS test hospital sees v2 in production while its wording is still draft.
+    pharmacyDevHospital(h) ? [] : [PHWS2_COPY_STATUS],
+    "pharmacy_workspace_v2",
+  ) && pharmacyWorkspaceLiveFor(h);
