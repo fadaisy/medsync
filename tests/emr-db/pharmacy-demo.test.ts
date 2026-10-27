@@ -44,6 +44,7 @@ describe.skipIf(!laneOn)("Pharmacy demo loader: every page (ADR 0450)", () => {
   let h: string;
   let real: string;
   let admin: string;
+  let realHead: string;
   let result: Awaited<ReturnType<typeof import("@/lib/pharmacy/demo").loadPharmacyDemo>>;
   const one = async <T = Record<string, unknown>>(q: string, params: unknown[] = []) =>
     (await pg.query<T>(q, params)).rows[0] as T;
@@ -79,6 +80,18 @@ describe.skipIf(!laneOn)("Pharmacy demo loader: every page (ADR 0450)", () => {
     const sa = await superadmin(pg);
     admin = sa;
     await pg.query(`INSERT INTO lab_demo_hospitals (hospital_id, marked_by, note) VALUES ($1, $2, 'Demo sandbox')`, [h, sa]);
+    // As at Test Hospital-1 (27 Oct): the pharmacy already exists with a real head, which the demo must not displace.
+    const pharm = await one<{ id: string }>(
+      `INSERT INTO hospital_departments (hospital_id, name, slug, kind, catalogue_code)
+       VALUES ($1, 'Pharmacy', 'pharmacy', 'support', 'PHARMACY') RETURNING id`,
+      [h],
+    );
+    realHead = (await one<{ id: string }>(`INSERT INTO auth.users (email) VALUES ('real-head@example.org') RETURNING id`)).id;
+    await pg.query(`INSERT INTO department_heads (hospital_id, department_id, user_id, acting) VALUES ($1, $2, $3, false)`, [
+      h,
+      pharm.id,
+      realHead,
+    ]);
     const { loadPharmacyDemo } = await import("@/lib/pharmacy/demo");
     result = await loadPharmacyDemo(lane.db, { userId: admin, hospitalId: h }, deps);
   }, 900_000);
@@ -92,6 +105,18 @@ describe.skipIf(!laneOn)("Pharmacy demo loader: every page (ADR 0450)", () => {
     expect(result.notes).toEqual({});
     expect(result.counts.patients).toBe(60);
     expect(result.counts.products).toBeGreaterThan(50);
+  });
+
+  it("keeps the real pharmacy head (the demo chief takes the acting slot) and refuses a second load", async () => {
+    const heads = await pg.query<{ user_id: string; acting: boolean }>(
+      `SELECT h.user_id, h.acting FROM department_heads h JOIN hospital_departments d ON d.id = h.department_id
+        WHERE d.hospital_id = $1 AND d.catalogue_code = 'PHARMACY' AND h.ends_at IS NULL ORDER BY h.acting`,
+      [h],
+    );
+    expect(heads.rows).toHaveLength(2);
+    expect(heads.rows[0]).toMatchObject({ user_id: realHead, acting: false });
+    const { loadPharmacyDemo } = await import("@/lib/pharmacy/demo");
+    await expect(loadPharmacyDemo(lane.db, { userId: admin, hospitalId: h }, deps)).rejects.toThrow(/already loaded/);
   });
 
   it("every demo patient is recorded against the load and named Demo", async () => {

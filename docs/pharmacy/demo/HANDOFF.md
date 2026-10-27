@@ -29,12 +29,14 @@ One press writes, through the real stores: 8 points, 31 demo staff, 60 demo pati
 lines and 78 hand-overs, 30 queries, the controlled register, downtime forms, 7 resus episodes, three stores with
 deliveries, orders and issues, 6 wards and 3 carts, a recall, a closed month at quarantine, 14 clinical content entries,
 stewardship, 6 reaction reports, 5 reconciliations, refills on every tab and the going-live records. Every dose reads
-`[demo dose]`; legal answers are never filled in. Each press adds a new set; nothing is removed.
+`[demo dose]`; legal answers are never filled in. It loads once per hospital (a load that stopped at setup does not count); nothing is removed.
 
 The whole load takes 23 s on PGlite. Over the network to Supabase it will be slower; the page allows 300 s. If a load
 stops, the Loads list says at which section.
 
 ## Known gaps
+
+- **A real pharmacy head** stays in place: the demo chief pharmacist takes the acting slot (Test Hospital-1, 27 Oct).
 
 - **Look-back tab** stays empty: it fills only from supply without review, which needs a legal answer.
 - **Order proposal** shows zero consumption: no supplies are dated last month.

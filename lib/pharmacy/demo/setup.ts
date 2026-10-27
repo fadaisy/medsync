@@ -3,7 +3,7 @@ import "server-only";
 import type { ClinicKey, DemoPatient, DemoPoint, DemoState, PointKey, WardKey } from "./state";
 import { sql } from "drizzle-orm";
 
-import { bump, DAY, demoAccount, demoPatientProfile, demoStaff, one, q } from "./state";
+import { bump, DAY, demoAccount, demoHead, demoPatientProfile, demoStaff, one, q } from "./state";
 
 /**
  * Section 1: the national referral hospital's pharmacy and the people around it. Departments, points and wards are
@@ -103,8 +103,8 @@ export async function setup(s: DemoState) {
   p.author = await demoAccount(s, "Demo author");
   p.cso = await demoAccount(s, "Demo clinical safety officer");
   p.chief = await demoStaff(s, "Demo chief pharmacist", s.pharmacyDept, "PHARMACIST");
-  await s.db.execute(sql`INSERT INTO department_heads (hospital_id, department_id, user_id, acting)
-    VALUES (${s.h}, ${s.pharmacyDept}, ${p.chief}, false)`);
+  if (!(await demoHead(s, s.pharmacyDept, p.chief)))
+    throw new Error("The pharmacy already has a head and an acting head; the demo chief pharmacist needs one of the two.");
   p.storekeeper = await demoStaff(s, "Demo stores officer", s.pharmacyDept, "PHARMACY_TECH");
   const keys = POINTS.map(([k]) => k);
   for (const [i, k] of keys.entries()) {
