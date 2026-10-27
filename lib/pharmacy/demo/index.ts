@@ -16,7 +16,8 @@ import { stockSection } from "./stock";
  * The pharmacy demo loader (owner request, 26 Oct 2026; ADR 0450, migration 0250). Only in a hospital a superadmin
  * marked as a demo hospital (`lab_demo_hospitals`). One press fills every pharmacy page with a national referral
  * hospital's day: setup and stock first, then the sections in `SECTIONS`, each on its own. A section that fails is
- * recorded on the load and the rest carry on; nothing is rolled back (pharmacy records are append-only).
+ * recorded on the load and the rest carry on; nothing is rolled back (pharmacy records are append-only). The admin
+ * removes the whole demo in one go (`removePharmacyDemo`, migration 0260).
  */
 
 export { isDemoHospital };
@@ -32,9 +33,10 @@ export async function startDemo(
   if (!(await isDemoHospital(db, h)))
     throw new EmrWriteError("forbidden", "This hospital is not a demo hospital. Demo data goes only into a demo hospital.");
   // One load per hospital: a second one meets the first one's stock and registers. A load that stopped at setup wrote
-  // nothing past its departments and people, so it does not count.
-  if ((await q({ db }, sql`SELECT 1 FROM pharmacy_demo_loads WHERE hospital_id = ${h} AND finished_at IS NOT NULL
-      AND NOT (notes ? 'setup') LIMIT 1`)).length)
+  // nothing past its departments and people, and a removed one left nothing (0260), so neither counts. `to_jsonb`
+  // reads removed_at without failing before 0260 is applied.
+  if ((await q({ db }, sql`SELECT 1 FROM pharmacy_demo_loads l WHERE hospital_id = ${h} AND finished_at IS NOT NULL
+      AND NOT (notes ? 'setup') AND to_jsonb(l) ->> 'removed_at' IS NULL LIMIT 1`)).length)
     throw new EmrWriteError("conflict", "The pharmacy demo is already loaded in this hospital. It loads once.");
   const [district] = await q<{ id: string }>({ db }, sql`SELECT id FROM districts LIMIT 1`);
   const load = await one<{ id: string }>(
@@ -97,9 +99,36 @@ export async function loadPharmacyDemo(
 
 /** The loads at this hospital, newest first, for the demo page. */
 export async function pharmacyDemoLoads(db: EmrDb, hospitalId: string) {
-  return q<{ id: string; startedAt: string; finishedAt: string | null; counts: Record<string, number>; notes: Record<string, string> }>(
+  return q<{
+    id: string;
+    startedAt: string;
+    finishedAt: string | null;
+    removedAt: string | null;
+    counts: Record<string, number>;
+    notes: Record<string, string>;
+  }>(
     { db },
-    sql`SELECT id, started_at AS "startedAt", finished_at AS "finishedAt", counts, notes FROM pharmacy_demo_loads
+    sql`SELECT id, started_at AS "startedAt", finished_at AS "finishedAt", to_jsonb(l) ->> 'removed_at' AS "removedAt",
+        counts, notes FROM pharmacy_demo_loads l
       WHERE hospital_id = ${hospitalId} ORDER BY started_at DESC LIMIT 20`,
   );
+}
+
+/** What a removal would delete here, by kind; null until migration 0260 is applied. */
+export async function pharmacyDemoFootprint(db: EmrDb, hospitalId: string, actorId: string) {
+  try {
+    return (await one<{ r: Record<string, number> }>({ db }, sql`SELECT public.pharmacy_demo_remove(${hospitalId}, ${actorId}, true) AS r`)).r;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Removes every demo row in this demo hospital in one transaction (owner request 28 Oct 2026; migration 0260): the
+ * demo patients and staff, every record naming them or hanging off their records, and the places the demo made that
+ * nothing real uses. A real record pointing at demo data stops it all. Returns what went, by kind.
+ */
+export async function removePharmacyDemo(db: EmrDb, hospitalId: string, actorId: string) {
+  // One statement is one transaction: the function's temp tables and SET LOCAL end with it.
+  return (await one<{ r: Record<string, number> }>({ db }, sql`SELECT public.pharmacy_demo_remove(${hospitalId}, ${actorId}, false) AS r`)).r;
 }

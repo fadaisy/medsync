@@ -29,10 +29,21 @@ One press writes, through the real stores: 8 points, 31 demo staff, 60 demo pati
 lines and 78 hand-overs, 30 queries, the controlled register, downtime forms, 7 resus episodes, three stores with
 deliveries, orders and issues, 6 wards and 3 carts, a recall, a closed month at quarantine, 14 clinical content entries,
 stewardship, 6 reaction reports, 5 reconciliations, refills on every tab and the going-live records. Every dose reads
-`[demo dose]`; legal answers are never filled in. It loads once per hospital (a load that stopped at setup does not count); nothing is removed.
+`[demo dose]`; legal answers are never filled in. It loads once per hospital (a load that stopped at setup, or one removed, does not count).
 
 The whole load takes 23 s on PGlite. Over the network to Supabase it will be slower; the page allows 300 s. If a load
 stops, the Loads list says at which section.
+
+## Removing the demo (migration 0260, 28 Oct 2026)
+
+"Remove the demo data" on the same page opens a centred dialog with counts from a dry run, then calls
+`pharmacy_demo_remove` (GATED; apply with `npm run db:migrate` from the branch that holds it). In one transaction, demo
+hospitals only: the demo patients and staff (`pharmacy-demo-…@demo.medsync.invalid`), every row naming one of them,
+every row hanging off those rows that names nobody else, then the departments, wards and carts the demo made, each kept
+when anything real still uses it. A real record pointing at demo data stops it all and nothing is removed. Kept: the
+audit log and the demo accounts it names as actors (banned, never sign in), the settings and cosign policy the demo set,
+and the loads (marked removed). A real pack the demo retired stays retired. Test:
+`tests/emr-db/pharmacy-demo-remove.test.ts`.
 
 ## Known gaps
 

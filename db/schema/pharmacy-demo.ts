@@ -13,6 +13,8 @@ export const pharmacyDemoLoads = pgTable("pharmacy_demo_loads", {
   counts: jsonb("counts").notNull().default({}),
   notes: jsonb("notes").notNull().default({}),
   error: text("error"),
+  /** 0260: set when the demo was removed from the hospital. */
+  removedAt: timestamp("removed_at", tz),
 });
 
 export const pharmacyDemoPatients = pgTable(
