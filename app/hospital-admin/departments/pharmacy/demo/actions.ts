@@ -9,7 +9,7 @@ import { db } from "@/db";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { logger } from "@/lib/logger";
-import { isDemoHospital, loadPharmacyDemo } from "@/lib/pharmacy/demo";
+import { isDemoHospital, loadPharmacyDemo, removePharmacyDemo } from "@/lib/pharmacy/demo";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -59,5 +59,29 @@ export async function loadPharmacyDemoAction(): Promise<ActionResult> {
     const message = e instanceof Error ? e.message : String(e);
     logger.error("pharmacy.demo.load_failed", { message: message.slice(0, 300) });
     return { ok: false, code: "config", error: `The demo load stopped: ${message.slice(0, 200)}. See Loads below.` };
+  }
+}
+
+/**
+ * "Remove the pharmacy demo" (owner request, 28 Oct 2026; migration 0260): the hospital admin, a demo hospital only.
+ * One transaction deletes every demo row; the SQL function writes the audit row. A second press removes nothing.
+ */
+export async function removePharmacyDemoAction(): Promise<ActionResult> {
+  try {
+    const scope = await requireHospitalAdminScope();
+    const database = db as unknown as EmrDb;
+    if (!(await isDemoHospital(database, scope.hospitalId)))
+      throw new EmrWriteError("forbidden", "Demo data is removed only from a demo hospital.");
+    await removePharmacyDemo(database, scope.hospitalId, scope.userId);
+    revalidatePath("/pharmacy", "layout");
+    revalidatePath("/hospital-admin/departments/pharmacy", "layout");
+    return { ok: true, id: scope.hospitalId, serverTime: new Date().toISOString() };
+  } catch (e) {
+    unstable_rethrow(e);
+    if (e instanceof EmrWriteError) return actionError(e);
+    // A real record pointing at demo data, or a busy table: the transaction rolled back, so nothing went.
+    const message = e instanceof Error ? e.message : String(e);
+    logger.error("pharmacy.demo.remove_failed", { message: message.slice(0, 300) });
+    return { ok: false, code: "config", error: `Nothing was removed: ${message.slice(0, 200)}.` };
   }
 }

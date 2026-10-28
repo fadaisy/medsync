@@ -58,6 +58,7 @@ renumbers its ADR.
 | ADR 0415–0429 | Patient web Tide (0415–0425 used) | `feat/patient-web-tide` | 26 Oct 2026 | claimed |
 | migration 0230–0249, ADR 0434–0449 | Pharmacy Phase 4 (repeats, refills, partner network) | `feat/pharmacy-network` | 26 Oct 2026 | claimed (0230–0232 used, unapplied; ADRs 0434–0437 used. Moved from 0425–0444 on 26 Oct, when patient web claimed up to 0429: 0426→0435, 0427→0436, 0428→0437, the 0425 draft became 0434) |
 | migration 0250–0254, ADR 0450–0454 | Pharmacy demo (one button, national referral day, every pharmacy page) | `feat/pharmacy-demo` | 26 Oct 2026 | claimed |
+| migration 0260                     | Pharmacy: remove the demo (`pharmacy_demo_remove`)                     | `feat/pharmacy-demo-remove` | 28 Oct 2026 | used (unapplied) |
 
 **Resolved 25 Oct 2026:** merging `feat/mobile-tide-v1` into `feat/patient-web-tide` met main's lab migrations 0171–0173
 and lab ADRs 0343–0355. The phone's became migrations 0185–0191 (pharmacy Phase 2, merged, keeps 0192–0204) and ADRs

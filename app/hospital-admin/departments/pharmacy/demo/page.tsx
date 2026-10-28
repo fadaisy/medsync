@@ -5,10 +5,11 @@ import { notFound } from "next/navigation";
 
 import { db } from "@/db";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
-import { isDemoHospital, pharmacyDemoLoads } from "@/lib/pharmacy/demo";
+import { isDemoHospital, pharmacyDemoFootprint, pharmacyDemoLoads } from "@/lib/pharmacy/demo";
 import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { LoadPharmacyDemo } from "./load-button";
+import { RemovePharmacyDemo } from "./remove-button";
 
 export const metadata: Metadata = { title: "Pharmacy demo · MedSync" };
 export const dynamic = "force-dynamic";
@@ -32,8 +33,11 @@ export default async function PharmacyDemoPage() {
   const database = db as unknown as EmrDb;
   if (!pharmacyDispensingLiveFor(scope.hospitalId)) notFound();
   if (!(await isDemoHospital(database, scope.hospitalId))) notFound();
-  const loads = await pharmacyDemoLoads(database, scope.hospitalId);
-  const loaded = loads.some((l) => l.finishedAt && !l.notes?.setup);
+  const [loads, footprint] = await Promise.all([
+    pharmacyDemoLoads(database, scope.hospitalId),
+    pharmacyDemoFootprint(database, scope.hospitalId, scope.userId),
+  ]);
+  const loaded = loads.some((l) => l.finishedAt && !l.notes?.setup && !l.removedAt);
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:px-6">
       <header className="flex flex-col gap-1">
@@ -57,13 +61,14 @@ export default async function PharmacyDemoPage() {
           Every dose reads &ldquo;[demo dose]&rdquo;. Packs and content are signed by demo staff (&ldquo;Demo chief
           pharmacist&rdquo;, &ldquo;Demo clinical safety officer&rdquo;) in this hospital only. Legal answers are never
           filled in. Nobody can sign in as demo staff or a demo patient, and demo records never reach a real hospital.
-          The demo loads once per hospital, and nothing is removed.
+          The demo loads once per hospital; removing it deletes every demo record and lets it load again.
         </p>
         {loaded ? (
           <p>The demo is loaded. Open the pharmacy workspace to walk through it.</p>
         ) : (
           <LoadPharmacyDemo />
         )}
+        <RemovePharmacyDemo footprint={footprint} />
       </section>
       <section className="border-border bg-card text-body-s flex flex-col gap-2 rounded-lg border p-4">
         <h2 className="text-heading-s">Loads</h2>
@@ -79,6 +84,7 @@ export default async function PharmacyDemoPage() {
                   {l.finishedAt
                     ? `${l.counts.patients ?? 0} patients, ${l.counts.products ?? 0} products, ${l.counts.signed_sets ?? 0} packs signed`
                     : "Still loading, or stopped before it finished"}
+                  {l.removedAt ? ` · Removed ${when.format(new Date(l.removedAt))}` : null}
                   {stopped.map(([k, v]) => (
                     <span key={k} className="text-muted-foreground block">
                       Stopped at {k}: {v}
