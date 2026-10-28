@@ -31,7 +31,8 @@ const pgClient =
     max: env.NODE_ENV === "production" ? 10 : 3,
     // One query in flight per connection. Pipelined queries through Supavisor's transaction
     // pooler (6543) stall now and then, a statement left in ClientRead until it times out:
-    // the pharmacy Today hang (28 Oct 2026). 0 is the value that turns pipelining off.
+    // the pharmacy Today hang (28 Oct 2026). 0 is the value that turns pipelining off; 1 still
+    // stalled. It also stops sql.begin working, so transactions use `begin` below.
     // @ts-expect-error read at runtime (postgres/src/index.js) but missing from postgres 3.4's types
     max_pipeline: 0,
     // Reap connections idle longer than 30s so stuck handles get
@@ -56,6 +57,47 @@ const pgClient =
 if (env.NODE_ENV !== "production") {
   globalForDb.pgClient = pgClient;
 }
+
+/**
+ * sql.begin for a pool without pipelining. postgres-js reserves the transaction's connection in a
+ * hook it only calls while under max_pipeline, so with 0 every BEGIN failed with UNSAFE_TRANSACTION
+ * (production, 28 Oct 2026). This takes a reserved connection instead; `savepoint` serves Drizzle's
+ * nested `tx.transaction`. Queries sent together inside the transaction queue on that connection.
+ */
+async function begin(...args: unknown[]): Promise<unknown> {
+  const fn = args[args.length - 1] as (sql: postgres.ReservedSql) => unknown;
+  const mode = args.length > 1 ? String(args[0]).replace(/[^a-z ]/gi, "") : "";
+  const c = await pgClient.reserve();
+  let savepoints = 0;
+  const tx = Object.assign(c, {
+    async savepoint(inner: (sql: postgres.ReservedSql) => unknown) {
+      const name = `s${++savepoints}`;
+      await c.unsafe(`savepoint ${name}`);
+      try {
+        const out = await inner(tx);
+        await c.unsafe(`release savepoint ${name}`);
+        return out;
+      } catch (error) {
+        await c.unsafe(`rollback to savepoint ${name}`);
+        throw error;
+      }
+    },
+  });
+  try {
+    await c.unsafe(`begin ${mode}`);
+    try {
+      const out = await fn(tx);
+      await c.unsafe("commit");
+      return out;
+    } catch (error) {
+      await c.unsafe("rollback").catch(() => {});
+      throw error;
+    }
+  } finally {
+    c.release();
+  }
+}
+(pgClient as unknown as { begin: typeof begin }).begin = begin;
 
 export const db = drizzle(pgClient, { schema });
 
