@@ -29,6 +29,11 @@ const pgClient =
     // (we used to run max:1 and a single stall would jam the whole
     // session). Prod: max 10 matches Fluid Compute per-instance budget.
     max: env.NODE_ENV === "production" ? 10 : 3,
+    // One query in flight per connection. Pipelined queries through Supavisor's transaction
+    // pooler (6543) stall now and then, a statement left in ClientRead until it times out:
+    // the pharmacy Today hang (28 Oct 2026). 0 is the value that turns pipelining off.
+    // @ts-expect-error read at runtime (postgres/src/index.js) but missing from postgres 3.4's types
+    max_pipeline: 0,
     // Reap connections idle longer than 30s so stuck handles get
     // recycled. Longer than 20s tolerates mobile networks where the
     // cold TCP+TLS handshake to the EU pooler can eat ~2–3s.
