@@ -8,10 +8,12 @@ import { DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
 import { confirmBatchAction, reviewCatalogueAction, settleConflictAction } from "../queue-actions";
 import { ACT, ROW, useWrite } from "./catalogue-console";
 
 const Q = CATALOGUE.queue;
+const CQ = STOCK_UP_POLISH.queue;
 
 export interface QueueData {
   barcodes: {
@@ -36,13 +38,26 @@ export interface QueueData {
     }[];
   }[];
   sources: { kind: string; source: string; open: number; forYou: number }[];
+  /** Owner item 10: corrections, their changes already in words. */
+  corrections: {
+    proposalId: string;
+    medicine: string;
+    lines: string[];
+    by: string;
+    confirmations: number;
+    mine: boolean;
+    reviewed: boolean;
+  }[];
 }
 
 const section = "bg-card border-border flex flex-col rounded-lg border";
 const head = "text-heading-s text-foreground border-border border-b px-4 py-3";
 const empty = "text-body-s text-muted-foreground px-4 py-3";
 
-/** The catalogue team's queue (4.8): barcodes to check, conflicts to settle, open proposals by source. */
+/**
+ * The catalogue team's queue (4.8): barcodes to check, conflicts to settle, corrections to a medicine (each on its
+ * own, owner item 10), and open proposals by source.
+ */
 export function CatalogueQueue({ data }: { data: QueueData }) {
   return (
     <section aria-label={Q.title} className="flex flex-col gap-4">
@@ -78,6 +93,21 @@ export function CatalogueQueue({ data }: { data: QueueData }) {
         )}
       </div>
       <div className={section}>
+        <h3 className={head}>{CQ.title}</h3>
+        {data.corrections.length ? (
+          <>
+            <p className={empty}>{CQ.lead}</p>
+            <ul className="divide-border divide-y">
+              {data.corrections.map((c) => (
+                <CorrectionRow key={c.proposalId} c={c} />
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className={empty}>{CQ.none}</p>
+        )}
+      </div>
+      <div className={section}>
         <h3 className={head}>{Q.proposals}</h3>
         {data.sources.length ? (
           <ul className="divide-border divide-y">
@@ -95,8 +125,6 @@ export function CatalogueQueue({ data }: { data: QueueData }) {
 
 function BarcodeRow({ b }: { b: QueueData["barcodes"][number] }) {
   const w = useWrite();
-  const [open, setOpen] = useState(false);
-  const [why, setWhy] = useState("");
   return (
     <li className={ROW}>
       <span className="text-body-s text-foreground font-mono tabular-nums">{b.code}</span>
@@ -115,66 +143,99 @@ function BarcodeRow({ b }: { b: QueueData["barcodes"][number] }) {
         {b.mine ? (
           <span className="text-caption text-muted-foreground">{Q.yours}</span>
         ) : (
-          (w.fresh ?? (
-            <>
-              <Button
-                variant="secondary"
-                disabled={w.pending || b.state === "conflict"}
-                onClick={() =>
-                  w.run(
-                    () => reviewCatalogueAction({ ids: [b.proposalId], decision: "confirm" }),
-                    Q.done,
-                  )
-                }
-              >
-                {Q.confirm}
-              </Button>
-              <EditorDialog
-                width="medium"
-                open={open}
-                onOpenChange={setOpen}
-                trigger={
-                  <DialogTrigger render={<Button variant="ghost" />}>{Q.reject}</DialogTrigger>
-                }
-              >
-                <div className="flex flex-col gap-3 p-5">
-                  <DialogTitle className="text-heading-s">{Q.rejectTitle}</DialogTitle>
-                  <Label htmlFor={`why-${b.proposalId}`}>{Q.reason}</Label>
-                  <Input
-                    id={`why-${b.proposalId}`}
-                    value={why}
-                    onChange={(e) => setWhy(e.target.value)}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button variant="secondary" onClick={() => setOpen(false)}>
-                      {CATALOGUE.cancel}
-                    </Button>
-                    <Button
-                      disabled={!why.trim() || w.pending}
-                      onClick={() => {
-                        setOpen(false);
-                        w.run(
-                          () =>
-                            reviewCatalogueAction({
-                              ids: [b.proposalId],
-                              decision: "reject",
-                              note: why,
-                            }),
-                          Q.rejected,
-                        );
-                      }}
-                    >
-                      {Q.reject}
-                    </Button>
-                  </div>
-                </div>
-              </EditorDialog>
-            </>
-          ))
+          <Review id={b.proposalId} w={w} disabled={b.state === "conflict"} />
         )}
         {w.status}
       </span>
     </li>
+  );
+}
+
+/** Owner item 10: one correction, reviewed on its own (two curators, neither the proposer). */
+function CorrectionRow({ c }: { c: QueueData["corrections"][number] }) {
+  const w = useWrite();
+  return (
+    <li className={ROW}>
+      <span className="text-body-s text-foreground font-medium">{c.medicine}</span>
+      <span className="text-body-s text-muted-foreground flex flex-col gap-0.5">
+        {c.lines.map((l) => (
+          <span key={l} className="text-foreground">
+            {l}
+          </span>
+        ))}
+        <span>
+          {c.by} · {CQ.confirmations(c.confirmations)}
+        </span>
+      </span>
+      <span className={ACT}>
+        {c.mine ? (
+          <span className="text-caption text-muted-foreground">{Q.yours}</span>
+        ) : c.reviewed ? (
+          <span className="text-caption text-muted-foreground">{CQ.youConfirmed}</span>
+        ) : (
+          <Review id={c.proposalId} w={w} />
+        )}
+        {w.status}
+      </span>
+    </li>
+  );
+}
+
+/** Confirm, or reject with a reason, one proposal. */
+function Review({
+  id,
+  w,
+  disabled,
+}: {
+  id: string;
+  w: ReturnType<typeof useWrite>;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [why, setWhy] = useState("");
+  return (
+    w.fresh ?? (
+      <>
+        <Button
+          variant="secondary"
+          disabled={w.pending || disabled}
+          onClick={() =>
+            w.run(() => reviewCatalogueAction({ ids: [id], decision: "confirm" }), Q.done)
+          }
+        >
+          {Q.confirm}
+        </Button>
+        <EditorDialog
+          width="medium"
+          open={open}
+          onOpenChange={setOpen}
+          trigger={<DialogTrigger render={<Button variant="ghost" />}>{Q.reject}</DialogTrigger>}
+        >
+          <div className="flex flex-col gap-3 p-5">
+            <DialogTitle className="text-heading-s">{Q.rejectTitle}</DialogTitle>
+            <Label htmlFor={`why-${id}`}>{Q.reason}</Label>
+            <Input id={`why-${id}`} value={why} onChange={(e) => setWhy(e.target.value)} />
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setOpen(false)}>
+                {CATALOGUE.cancel}
+              </Button>
+              <Button
+                disabled={!why.trim() || w.pending}
+                onClick={() => {
+                  setOpen(false);
+                  w.run(
+                    () => reviewCatalogueAction({ ids: [id], decision: "reject", note: why }),
+                    Q.rejected,
+                  );
+                }}
+              >
+                {Q.reject}
+              </Button>
+            </div>
+          </div>
+        </EditorDialog>
+      </>
+    )
   );
 }
 

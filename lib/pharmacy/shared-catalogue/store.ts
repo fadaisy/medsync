@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createHash } from "node:crypto";
+import type { CorrectionFacts, CorrectionPayload } from "./correction";
 import type { PlannedName } from "./names";
 import type { SeedMedicine } from "./seed";
 import type { EmrTx } from "@/lib/emr/db";
@@ -8,6 +9,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 
 import {
   catChanges,
+  catDoseForms,
   catManufacturers,
   catMedicineIngredients,
   catMedicineLinks,
@@ -19,12 +21,14 @@ import {
   catProducts,
   catProposalReviews,
   catProposals,
+  catRoutes,
   catSubstanceNames,
   catSubstances,
 } from "@/db/schema/pharmacy-catalogue";
 import { pharmacyProducts } from "@/db/schema/pharmacy-dispensing";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { rowsOf } from "@/lib/exchange/store";
+import { sameFacts, sortedRoutes } from "./correction";
 
 /**
  * The shared catalogue's writes (ADR 0456). Run as the clinical writer by a curator (or the owner's seed
@@ -136,6 +140,7 @@ export async function reviewProposals(
     else if (p.kind === "new_name") await applyNewName(tx, reviewer.userId, p.id);
     else if (p.kind === "new_barcode") await applyNewBarcode(tx, reviewer.userId, p.id);
     else if (p.kind === "new_product") await applyNewProduct(tx, reviewer.userId, p.id);
+    else if (p.kind === "correction") await applyCorrection(tx, reviewer.userId, p.id);
     else
       throw new EmrWriteError(
         "invalid",
@@ -621,4 +626,124 @@ async function applyNewProduct(tx: EmrTx, by: string, proposalId: string) {
     .update(pharmacyProducts)
     .set({ cataloguePackId: pack!.id, updatedAt: sql`now()` })
     .where(eq(pharmacyProducts.id, n.hospitalProductId));
+}
+
+/** A medicine's form and routes as they stand, locked for the rest of the transaction when `lock`. */
+async function medicineFacts(tx: EmrTx, medicineId: string, lock = false) {
+  const [m] = await tx
+    .select({ kind: catMedicines.kind, formCode: catMedicines.doseFormCode })
+    .from(catMedicines)
+    .where(and(eq(catMedicines.id, medicineId), eq(catMedicines.status, "active")))
+    .for(lock ? "update" : "share");
+  if (!m) return null;
+  const routes = await tx
+    .select({ code: catMedicineRoutes.routeCode })
+    .from(catMedicineRoutes)
+    .where(eq(catMedicineRoutes.medicineId, medicineId));
+  const facts: CorrectionFacts = {
+    formCode: m.formCode,
+    routes: sortedRoutes(routes.map((r) => r.code)),
+  };
+  return { kind: m.kind, facts };
+}
+
+/**
+ * Owner item 10: a hospital user proposes a medicine's form and routes from the signed lists. A `correction`
+ * proposal (0251: two curators, neither the proposer); nothing changes until it is applied. One open correction per
+ * medicine at a time.
+ */
+export async function proposeCorrection(
+  tx: EmrTx,
+  actor: { userId: string; hospitalId: string },
+  input: { medicineId: string; formCode: string | null; routes: readonly string[] },
+): Promise<string> {
+  const now = await medicineFacts(tx, input.medicineId);
+  if (!now) throw new EmrWriteError("not_found", "That medicine is not in the catalogue.");
+  const after: CorrectionFacts = { formCode: input.formCode, routes: sortedRoutes(input.routes) };
+  if (now.kind === "health_supply" && after.formCode)
+    throw new EmrWriteError("invalid", "A health supply has no form.");
+  if (now.facts.formCode && !after.formCode) throw new EmrWriteError("invalid", "Choose the form.");
+  if (sameFacts(now.facts, after)) throw new EmrWriteError("invalid", "Nothing has changed.");
+  const forms = after.formCode
+    ? await tx
+        .select({ code: catDoseForms.code })
+        .from(catDoseForms)
+        .where(and(eq(catDoseForms.code, after.formCode), eq(catDoseForms.status, "signed")))
+    : [];
+  const routes = after.routes.length
+    ? await tx
+        .select({ code: catRoutes.code })
+        .from(catRoutes)
+        .where(and(inArray(catRoutes.code, after.routes), eq(catRoutes.status, "signed")))
+    : [];
+  if ((after.formCode && forms.length !== 1) || routes.length !== after.routes.length)
+    throw new EmrWriteError("invalid", "Choose the form and routes from the signed lists.");
+  const [open] = await tx
+    .select({ id: catProposals.id })
+    .from(catProposals)
+    .where(
+      and(
+        eq(catProposals.kind, "correction"),
+        eq(catProposals.state, "open"),
+        sql`${catProposals.payload}->>'medicineId' = ${input.medicineId}`,
+      ),
+    )
+    .limit(1);
+  if (open)
+    throw new EmrWriteError(
+      "conflict",
+      "A change to this medicine is already waiting for the catalogue team.",
+    );
+  const payload: CorrectionPayload = { medicineId: input.medicineId, before: now.facts, after };
+  const [prop] = await tx
+    .insert(catProposals)
+    .values({
+      kind: "correction",
+      payload,
+      source: "Corrected at the hospital from Set-up › Catalogue",
+      hospitalId: actor.hospitalId,
+      proposedBy: actor.userId,
+      requiredReviews: 2,
+    })
+    .returning({ id: catProposals.id });
+  return prop!.id;
+}
+
+/**
+ * The second curator's confirmation applies a correction: the form set and the routes replaced exactly as proposed,
+ * the medicine's version raised, and the change logged with what it replaced. A medicine that changed since the
+ * proposal is refused, so nothing proposed against old facts overwrites a newer one; the curators reject it instead.
+ */
+async function applyCorrection(tx: EmrTx, by: string, proposalId: string) {
+  const [p] = await tx
+    .update(catProposals)
+    .set({ state: "applied", decidedAt: sql`now()` })
+    .where(eq(catProposals.id, proposalId))
+    .returning({ payload: catProposals.payload, source: catProposals.source });
+  const c = p!.payload as CorrectionPayload;
+  const now = await medicineFacts(tx, c.medicineId, true);
+  if (!now) throw new EmrWriteError("not_found", "That medicine is no longer in the catalogue.");
+  if (!sameFacts(now.facts, c.before))
+    throw new EmrWriteError(
+      "conflict",
+      "This medicine changed after the change was proposed. Reject it, and propose again from the medicine's page.",
+    );
+  await tx
+    .update(catMedicines)
+    .set({ doseFormCode: c.after.formCode, version: sql`${catMedicines.version} + 1` })
+    .where(eq(catMedicines.id, c.medicineId));
+  await tx.delete(catMedicineRoutes).where(eq(catMedicineRoutes.medicineId, c.medicineId));
+  if (c.after.routes.length)
+    await tx
+      .insert(catMedicineRoutes)
+      .values(c.after.routes.map((routeCode) => ({ medicineId: c.medicineId, routeCode })));
+  await tx.insert(catChanges).values({
+    tableName: "cat_medicines",
+    rowId: c.medicineId,
+    before: c.before,
+    after: c.after,
+    source: p!.source,
+    proposalId,
+    changedBy: by,
+  });
 }

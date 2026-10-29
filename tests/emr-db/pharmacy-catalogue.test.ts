@@ -18,6 +18,7 @@ import { resolveScan } from "@/lib/pharmacy/shared-catalogue/scan";
 import { catalogueSearch } from "@/lib/pharmacy/shared-catalogue/search";
 import {
   linkBarcode,
+  proposeCorrection,
   resolveCodeConflict,
   reviewProposals,
 } from "@/lib/pharmacy/shared-catalogue/store";
@@ -252,6 +253,113 @@ describe.skipIf(!laneOn)("the shared medicines catalogue (ADR 0456, 0251–0252)
         [open],
       ),
     ).rejects.toThrow(/needs an applied proposal/);
+  });
+
+  it("owner item 10: a pharmacist's route correction waits for two curators, then applies and is logged", async () => {
+    const med = (
+      await one(`SELECT id FROM public.cat_medicines WHERE proposal_id = $1`, [
+        await proposalFor(lineOf("Rifampicin + Isoniazid", "150 mg + 75 mg")),
+      ])
+    ).id;
+    const at = { userId: f.pharmacist, hospitalId: f.h };
+    await fails(
+      write((tx) =>
+        proposeCorrection(tx, at, { medicineId: med, formCode: "tablet", routes: ["oral"] }),
+      ),
+      /Nothing has changed/,
+    );
+    await fails(
+      write((tx) =>
+        proposeCorrection(tx, at, { medicineId: med, formCode: "tablet", routes: ["made_up"] }),
+      ),
+      /signed lists/,
+    );
+    const id = await write((tx) =>
+      proposeCorrection(tx, at, {
+        medicineId: med,
+        formCode: "tablet",
+        routes: ["oral", "intravenous"],
+      }),
+    );
+    expect(
+      await one(
+        `SELECT kind, required_reviews, proposed_by, payload FROM public.cat_proposals WHERE id = $1`,
+        [id],
+      ),
+    ).toMatchObject({
+      kind: "correction",
+      required_reviews: 2,
+      proposed_by: f.pharmacist,
+      payload: {
+        medicineId: med,
+        before: { formCode: "tablet", routes: ["oral"] },
+        after: { formCode: "tablet", routes: ["intravenous", "oral"] },
+      },
+    });
+    await fails(
+      write((tx) =>
+        proposeCorrection(tx, at, { medicineId: med, formCode: "tablet", routes: ["topical"] }),
+      ),
+      /already waiting/,
+    );
+    // Curators only, never the proposer; one confirmation applies nothing.
+    await fails(
+      write((tx) => reviewProposals(tx, { userId: f.pharmacist }, [id], "confirm")),
+      /nobody reviews their own proposal/,
+    );
+    await write((tx) => reviewProposals(tx, { userId: f.curatorA }, [id], "confirm"));
+    expect(await count(`cat_medicine_routes WHERE medicine_id = '${med}'`)).toBe(1);
+    await expect(
+      pg.query(
+        `UPDATE public.cat_proposals SET state = 'applied', decided_at = now() WHERE id = $1`,
+        [id],
+      ),
+    ).rejects.toThrow(/2 confirmation\(s\) needed, 1 given/);
+    const second = await write((tx) =>
+      reviewProposals(tx, { userId: f.curatorB }, [id], "confirm"),
+    );
+    expect(second.applied).toEqual([id]);
+    const routes = await pg.query<{ route_code: string }>(
+      `SELECT route_code FROM public.cat_medicine_routes WHERE medicine_id = $1 ORDER BY 1`,
+      [med],
+    );
+    expect(routes.rows.map((r) => r.route_code)).toEqual(["intravenous", "oral"]);
+    expect(
+      await one(`SELECT before, after, changed_by FROM public.cat_changes WHERE proposal_id = $1`, [
+        id,
+      ]),
+    ).toEqual({
+      before: { formCode: "tablet", routes: ["oral"] },
+      after: { formCode: "tablet", routes: ["intravenous", "oral"] },
+      changed_by: f.curatorB,
+    });
+
+    // A correction proposed against facts that have since changed is refused, and changes nothing.
+    const stale = await write((tx) =>
+      proposeCorrection(tx, at, { medicineId: med, formCode: "tablet", routes: ["oral"] }),
+    );
+    await pg.query(`UPDATE public.cat_medicines SET dose_form_code = 'capsule' WHERE id = $1`, [
+      med,
+    ]);
+    await write((tx) => reviewProposals(tx, { userId: f.curatorA }, [stale], "confirm"));
+    await fails(
+      write((tx) => reviewProposals(tx, { userId: f.curatorB }, [stale], "confirm")),
+      /changed after the change was proposed/,
+    );
+    expect(await count(`cat_medicine_routes WHERE medicine_id = '${med}'`)).toBe(2);
+    expect(
+      (
+        await one<{ state: string }>(`SELECT state FROM public.cat_proposals WHERE id = $1`, [
+          stale,
+        ])
+      ).state,
+    ).toBe("open");
+    await pg.query(`UPDATE public.cat_medicines SET dose_form_code = 'tablet' WHERE id = $1`, [
+      med,
+    ]);
+    await write((tx) =>
+      reviewProposals(tx, { userId: f.curatorB }, [stale], "reject", "Proposed before a change."),
+    );
   });
 
   it("S4: no hospital user or client role writes the catalogue; pharmacy viewers read it", async () => {

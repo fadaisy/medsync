@@ -14,7 +14,11 @@ import * as prices from "@/lib/pharmacy/prices/store";
 import { catalogueMedicine } from "@/lib/pharmacy/shared-catalogue/medicine";
 import { resolveScan } from "@/lib/pharmacy/shared-catalogue/scan";
 import { catalogueSearch } from "@/lib/pharmacy/shared-catalogue/search";
-import { linkBarcode, linkProducts } from "@/lib/pharmacy/shared-catalogue/store";
+import {
+  linkBarcode,
+  linkProducts,
+  proposeCorrection,
+} from "@/lib/pharmacy/shared-catalogue/store";
 import { addHealthSupply, HealthSupplyInput, MANAGE, STOCK_NEED } from "@/lib/pharmacy/stock/store";
 import { orderCandidates, productsForPack } from "@/lib/pharmacy/stores/receiving-store";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
@@ -130,6 +134,32 @@ export async function linkProductsAction(raw: unknown) {
   const r = await runPharmacyWrite(Links, raw, actor, STOCK_NEED, async (ctx, input) => ({
     id: String(await linkProducts(ctx.tx, ctx.actor, input.links)),
   }));
+  if (r.ok) revalidatePath("/pharmacy/setup");
+  return r;
+}
+
+const VOCAB = /^[a-z0-9_]{2,40}$/;
+const Correction = z.object({
+  medicineId: z.uuid(),
+  formCode: z.string().regex(VOCAB).nullable(),
+  routes: z.array(z.string().regex(VOCAB)).max(20),
+});
+
+/**
+ * Owner item 10: a medicine's form and routes, corrected from the signed lists by anyone who can open Set-up ›
+ * Catalogue here. Written as a `correction` proposal for the catalogue team (two curators); nothing changes until
+ * they apply it.
+ */
+export async function proposeCorrectionAction(raw: unknown) {
+  if (!(await catalogueScope())) return OFF;
+  const actor = await requirePharmacyActor();
+  const r = await runPharmacyWrite(
+    Correction,
+    raw,
+    actor,
+    { permission: "pharmacy.view", point: "none" },
+    async (ctx, input) => ({ id: await proposeCorrection(ctx.tx, ctx.actor, input) }),
+  );
   if (r.ok) revalidatePath("/pharmacy/setup");
   return r;
 }

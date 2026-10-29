@@ -29,4 +29,33 @@ export const STOCK_UP_POLISH = {
     add: (n: number) => (n === 1 ? "Add 1 line" : `Add ${n} lines`),
     untick: (name: string) => `Untick ${name}`,
   },
+  /** Set-up › Catalogue › a medicine: correct its form and routes (owner item 10). */
+  correction: {
+    edit: "Edit",
+    title: "Correct this medicine",
+    lead: "The change waits for two catalogue curators to check it. Until then the medicine stays as it is, here and at every hospital.",
+    fixed:
+      "Strength, national list level and VEN come from the national list and are not changed here.",
+    chooseForm: "Choose the form",
+    addRoute: "Add a route",
+    noRoute: "No route yet",
+    removeRoute: (route: string) => `Remove ${route}`,
+    none: "None",
+    send: "Send to the catalogue team",
+    field: { form: "Form", routes: "Route" },
+    pending: (changes: string) => `A change is waiting for the catalogue team: ${changes}`,
+    pendingLine: (field: string, to: string) => `${field} → ${to}`,
+    waiting: "A change to this medicine is already waiting for the catalogue team.",
+  },
+  /** The curators' queue: corrections, each reviewed on its own (owner item 10). */
+  queue: {
+    title: "Changes to a medicine",
+    lead: "Each change is checked on its own by two curators, neither of them the person who proposed it.",
+    none: "No change is waiting.",
+    line: (field: string, from: string, to: string) => `${field}: ${from} → ${to}`,
+    by: (who: string | null, where: string | null) =>
+      `Proposed by ${who ?? "someone at a hospital"}${where ? ` at ${where}` : ""}`,
+    confirmations: (n: number) => `${n} of 2 confirmations`,
+    youConfirmed: "You confirmed it",
+  },
 } as const;

@@ -4,11 +4,15 @@ import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
 import { pharmacyProducts } from "@/db/schema/pharmacy-dispensing";
 import { asClinicalReader } from "@/lib/emr/db";
 import { pharmacyCatalogueLiveFor } from "@/lib/pharmacy/feature";
+import { correctionChanges } from "@/lib/pharmacy/shared-catalogue/correction";
 import { catalogueMedicine } from "@/lib/pharmacy/shared-catalogue/medicine";
 import { productLinkRows } from "@/lib/pharmacy/shared-catalogue/products";
+import { correctionContext, vocabularies } from "@/lib/pharmacy/shared-catalogue/queue";
+import { CatalogueCorrection } from "./catalogue-correction";
 import { CatalogueOpen } from "./catalogue-open";
 import { CatalogueProducts } from "./catalogue-products";
 
@@ -71,6 +75,17 @@ export async function CatalogueView({ v2, medicineId }: { v2: PharmacyV2; medici
     [P.ven, m.emhsluVen],
   ];
   const packs = m.packs.filter((p) => p.packId);
+  // Owner item 10: the form and routes as codes, the signed lists, and any correction still waiting.
+  const { fix, vocab } = await asClinicalReader(actor, async (tx) => ({
+    fix: await correctionContext(tx, m.id),
+    vocab: await vocabularies(tx),
+  }));
+  const K = STOCK_UP_POLISH.correction;
+  const pending = fix.pending
+    ? correctionChanges(fix.pending, vocab, K.none)
+        .map((c) => K.pendingLine(K.field[c.field], c.to))
+        .join(" · ")
+    : null;
   // Step 11: the hospital's own products of this medicine, each opening Follow one medicine (4.15).
   const own = await asClinicalReader(actor, (tx) =>
     tx
@@ -113,9 +128,27 @@ export async function CatalogueView({ v2, medicineId }: { v2: PharmacyV2; medici
           </ul>
         </section>
         <section aria-label={P.facts} className={card}>
-          <h3 className="text-heading-s text-foreground border-border border-b px-4 py-3">
-            {P.facts}
-          </h3>
+          <div className="border-border flex items-center justify-between gap-3 border-b px-4 py-2">
+            <h3 className="text-heading-s text-foreground">{P.facts}</h3>
+            {pending ? null : (
+              <CatalogueCorrection
+                medicineId={m.id}
+                healthSupply={m.kind === "health_supply"}
+                formCode={fix.formCode}
+                routeCodes={fix.routes}
+                forms={vocab.signedForms}
+                routes={vocab.signedRoutes}
+              />
+            )}
+          </div>
+          {pending ? (
+            <p
+              role="status"
+              className="text-body-s text-foreground border-border border-b px-4 py-2"
+            >
+              {K.pending(pending)}
+            </p>
+          ) : null}
           <dl className="divide-border divide-y">
             {facts.map(([k, v]) => (
               <div key={k} className="text-body-s flex justify-between gap-3 px-4 py-2">
