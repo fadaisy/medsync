@@ -3,7 +3,7 @@ import type { SignedCopy } from "@/content/signed-copy";
 /**
  * Stocking-up polish (29 Oct 2026): the few new words the reworked "Start a delivery" dialog and the delivery page
  * (canvas board 1, "Count a delivery") need. Every other string on those screens is the signed Phase 2 store copy
- * (PHARMACY_STORES_COPY) or CATALOGUE, reused as written. Item 9 adds the picker's multi-mode words; item 11 the words for a product made from the catalogue; item 12 the signed packs' starting drafts; item 1 the supplier list. Draft until the CSO signs it; not tied to any flag.
+ * (PHARMACY_STORES_COPY) or CATALOGUE, reused as written. Item 9 adds the picker's multi-mode words; item 11 the words for a product made from the catalogue; item 12 the signed packs' starting drafts; item 1 the supplier list; item 13 controlled classes. Draft until the CSO signs it; not tied to any flag.
  */
 export const STOCK_UP_POLISH_COPY: SignedCopy = {
   status: "draft",
@@ -94,5 +94,16 @@ export const STOCK_UP_POLISH = {
     pick: (name: string, short: string) => `${name} (${short})`,
     added: "Added",
     orType: "Or type another supplier or facility below.",
+  },
+  /** Catalogue medicines' controlled status from the signed substance list (owner item 13, ADR 0470). */
+  controlled: {
+    classes: {
+      narcotic: "Narcotic drug (Cap. 37, Schedule 2)",
+      psychotropic: "Psychotropic substance (Cap. 37, Schedule 3)",
+      policy: "Controlled by MedSync policy",
+    },
+    made: (cls: string) => `It is controlled (${cls}): it moves only with a witness.`,
+    noIngredients:
+      "The catalogue does not list this medicine's ingredients, so its controlled status is not known. Open a line and choose the product.",
   },
 } as const;

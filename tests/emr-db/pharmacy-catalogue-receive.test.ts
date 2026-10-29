@@ -72,7 +72,14 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
   /** A catalogue medicine (and, with a brand, one product and pack of it), linked to a prescribing-list id or not. */
   const catalogued = async (
     tag: string,
-    o: { kind?: string; formulary?: string; brand?: string; unit?: string | null } = {},
+    o: {
+      kind?: string;
+      formulary?: string;
+      brand?: string;
+      unit?: string | null;
+      /** Ingredient substance keys, as the catalogue stores them. */
+      ingredients?: string[];
+    } = {},
   ) => {
     const m = await one(
       `INSERT INTO cat_medicines (key, display_name, kind, issue_unit_kind, strength_text, proposal_id)
@@ -85,6 +92,17 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
         f.prop,
       ],
     );
+    for (const [i, key] of (o.ingredients ?? []).entries()) {
+      const sub = await one(
+        `INSERT INTO cat_substances (key, preferred_name, kind, proposal_id) VALUES ($1, $1, 'medicine', $2)
+         ON CONFLICT (key) DO UPDATE SET key = EXCLUDED.key RETURNING id`,
+        [key, f.prop],
+      );
+      await L.pg.query(
+        `INSERT INTO cat_medicine_ingredients (medicine_id, position, substance_id) VALUES ($1, $2, $3)`,
+        [m.id, i + 1, sub.id],
+      );
+    }
     if (o.formulary)
       await L.pg.query(
         `INSERT INTO cat_medicine_links (medicine_id, link_kind, formulary_id, proposal_id) VALUES ($1, 'formulary', $2, $3)`,
@@ -493,12 +511,12 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
     const count = (await lines(d)).length;
     expect(await pick(d, { medicineId: two.medicine })).toMatchObject({ kind: "several" });
 
-    // D-CAT-18: a medicine off the prescribing list has no signed controlled class; nothing is made.
+    // ADR 0470: a medicine off the prescribing list with no ingredient listed: its status is not known; nothing is made.
     const off = await catalogued("off");
     const before = await productCount();
     expect(await pick(d, { medicineId: off.medicine })).toMatchObject({
       kind: "refused",
-      note: expect.stringMatching(/clinical safety officer/),
+      note: expect.stringMatching(/controlled status is not known/),
     });
     const noUnit = await catalogued("nounit", { kind: "health_supply", unit: null });
     expect(await pick(d, { medicineId: noUnit.medicine })).toMatchObject({ kind: "refused" });
@@ -583,5 +601,95 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
     });
     expect(await productCount()).toBe(before + 2);
     expect((await lines(d)).length).toBe(1);
+  });
+  it("item 13 (ADR 0470): off-list catalogue medicines become local medicines, controlled by the substance list", async () => {
+    const { controlledMedicineIds } = await import("@/lib/pharmacy/controlled-read");
+    const { controlledSet } = await import("@/lib/pharmacy/stores/location-store");
+    const ketamine = await catalogued("ketamine", { ingredients: ["ketamine"] });
+    const diazepam = await catalogued("diazepam", { ingredients: ["diazepam"] });
+    const thiopental = await catalogued("thiopental", { ingredients: ["thiopental sodium"] });
+    const amoxicillin = await catalogued("amoxicillin", { ingredients: ["amoxicillin"] });
+    const d = await start(`CAT-CD-${randomUUID().slice(0, 6)}`);
+    for (const c of [ketamine, diazepam, thiopental]) {
+      const r = await pick(d, { medicineId: c.medicine });
+      expect(r).toMatchObject({ kind: "added" });
+      expect((r as { note: string }).note).toMatch(/moves only with a witness/);
+    }
+    const plain = await start(`CAT-NCD-${randomUUID().slice(0, 6)}`);
+    const r = await pick(plain, { medicineId: amoxicillin.medicine });
+    expect((r as { note: string }).note).not.toMatch(/witness/);
+
+    const product = (m: string) =>
+      one<{ medicine_id: string; item_kind: string }>(
+        `SELECT medicine_id, item_kind FROM pharmacy_products WHERE hospital_id = $1 AND catalogue_medicine_id = $2`,
+        [L.h, m],
+      );
+    const classes = await controlledMedicineIds(held.db, L.h);
+    const is = await controlledSet(held.db as never, L.h);
+    for (const [c, cls] of [
+      [ketamine, "Controlled by MedSync policy"],
+      [diazepam, "Psychotropic substance (Cap. 37, Schedule 3)"],
+      [thiopental, "Controlled by MedSync policy"],
+    ] as const) {
+      const p = await product(c.medicine);
+      expect(p).toEqual({
+        medicine_id: `cat_${c.medicine.replace(/-/g, "")}`,
+        item_kind: "local_medicine",
+      });
+      expect(classes.get(p.medicine_id)).toBe(cls);
+      expect(is(p.medicine_id)).toBe(true);
+    }
+    const amox = await product(amoxicillin.medicine);
+    expect(amox.item_kind).toBe("local_medicine");
+    expect(is(amox.medicine_id)).toBe(false);
+
+    // The controlled route: counted, the controlled lines are refused without their witnesses.
+    const count = (deliveryId: string) =>
+      L.pg.query(
+        `UPDATE pharmacy_delivery_lines SET accepted_quantity = 10, batch_number = 'CD-' || line_no, expiry = '2029-12-31'
+          WHERE delivery_id = $1`,
+        [deliveryId],
+      );
+    await count(d);
+    await fails(
+      write(L.s, keeper, rcv.ReceiveDeliveryInput, NEED, rcv.receiveDelivery, {
+        deliveryId: d,
+        witnesses: [],
+      }),
+      /witness|controlled/i,
+    );
+    await count(plain);
+    await write(L.s, keeper, rcv.ReceiveDeliveryInput, NEED, rcv.receiveDelivery, {
+      deliveryId: plain,
+      witnesses: [],
+    });
+
+    // The database keeps a local medicine linked to its catalogue medicine.
+    await fails(
+      L.pg.query(
+        `INSERT INTO pharmacy_products (hospital_id, medicine_id, name, issue_unit, item_kind, created_by)
+         VALUES ($1, $2, 'Local tablets', 'tablet', 'local_medicine', $3)`,
+        [L.h, `cat_${randomUUID().replace(/-/g, "")}`, L.admin],
+      ),
+      /pp_local_medicine_linked/,
+    );
+  });
+
+  it("item 13: while the substance list is unsigned in production, an off-list medicine is refused as before", async () => {
+    const c = await catalogued("prod-ketamine", { ingredients: ["ketamine"] });
+    const d = await start(`CAT-PROD-${randomUUID().slice(0, 6)}`);
+    const before = await productCount();
+    const env = process.env.VERCEL_ENV;
+    process.env.VERCEL_ENV = "production";
+    try {
+      expect(await pick(d, { medicineId: c.medicine })).toMatchObject({
+        kind: "refused",
+        note: expect.stringMatching(/clinical safety officer/),
+      });
+    } finally {
+      if (env === undefined) delete process.env.VERCEL_ENV;
+      else process.env.VERCEL_ENV = env;
+    }
+    expect(await productCount()).toBe(before);
   });
 });

@@ -21,6 +21,8 @@ import {
   pharmacyOrders,
 } from "@/db/schema/pharmacy-stores";
 import { rowsOf } from "@/lib/exchange/store";
+import { catalogueMedicineClass } from "@/lib/pharmacy/controlled-read";
+import { controlledListLive } from "@/lib/pharmacy/controlled-substances";
 import { pharmacyCatalogueLiveFor } from "@/lib/pharmacy/feature";
 import {
   packsToUnits,
@@ -436,7 +438,8 @@ type Refusal = { kind: "refused" | "no_product" | "several"; note: string };
  * from the catalogue's own facts, in this transaction (or, if the hospital has exactly one product of that medicine
  * not yet linked to the catalogue, that product is linked instead), only where its controlled class is known (D-CAT-18): a health
  * supply (never controlled) under its catalogue key, or a medicine linked to exactly one prescribing-list medicine
- * (whose signed class it takes). Anything else is refused in words, nothing written.
+ * (whose signed class it takes), or (ADR 0470) a medicine off the prescribing list as a local medicine under its
+ * catalogue key, its class from the signed substance list. Anything else is refused in words, nothing written.
  */
 async function productForPick(
   ctx: PharmacyCtx,
@@ -490,13 +493,21 @@ async function productForPick(
     : [];
   if (!m) return { kind: "no_product", note: R.noProduct };
   const supply = m.kind === "health_supply";
-  // D-CAT-18: a medicine off the prescribing list has no signed controlled class. Refused, never guessed.
-  if (!supply && m.formulary.length === 0)
-    return { kind: "refused", note: CATALOGUE.supply.medicines };
+  // ADR 0470 (superseding D-CAT-18 for catalogue medicines): a medicine off the prescribing list is a local medicine
+  // whose controlled class comes from the signed substance list, by its ingredients. While that list is unsigned in
+  // production (CS-5), refused as before; a medicine with no ingredient listed is refused, never guessed.
+  const local = !supply && m.formulary.length === 0;
+  let controlled: string | null = null;
+  if (local) {
+    if (!controlledListLive()) return { kind: "refused", note: CATALOGUE.supply.medicines };
+    const c = await catalogueMedicineClass(ctx.tx, medicineId!);
+    if (c === "unknown") return { kind: "refused", note: STOCK_UP_POLISH.controlled.noIngredients };
+    controlled = c;
+  }
   const formularyId = m.formulary[0];
-  if (!supply && (m.formulary.length > 1 || !drugById(formularyId!)))
+  if (!supply && !local && (m.formulary.length > 1 || !drugById(formularyId!)))
     return { kind: "refused", note: P.unclear };
-  const key = supply ? catalogueKey(medicineId!) : formularyId!;
+  const key = supply || local ? catalogueKey(medicineId!) : formularyId!;
   const cataloguePackId = "packId" in pick ? pick.packId : null;
 
   // A product of the same medicine here that is not linked to the catalogue yet is linked, not doubled.
@@ -519,7 +530,7 @@ async function productForPick(
     .values({
       hospitalId: h,
       medicineId: key,
-      itemKind: supply ? "health_supply" : "formulary",
+      itemKind: supply ? "health_supply" : local ? "local_medicine" : "formulary",
       name,
       manufacturer: pack?.maker ?? null,
       strength: m.strength_text,
@@ -531,7 +542,12 @@ async function productForPick(
       createdBy: ctx.actor.userId,
     })
     .returning({ id: pharmacyProducts.id });
-  return { id: row!.id, said: P.made(name) };
+  return {
+    id: row!.id,
+    said: controlled
+      ? `${P.made(name)} ${STOCK_UP_POLISH.controlled.made(controlled)}`
+      : P.made(name),
+  };
 }
 
 /**

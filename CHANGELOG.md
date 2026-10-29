@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Local medicines from the catalogue, controlled by a signed substance list — 29 Oct 2026
+
+- A catalogue medicine that is not on the prescribing list can be received as a local medicine. Its controlled
+  class comes from the list of controlled substances (2024 Act Schedules 2 and 3, plus five by MedSync policy), by
+  its ingredients; it is never typed ([ADR 0470](docs/adr/0470-local-medicines-controlled-by-substance-list.md)).
+- GATED migration 0264 replaces `pp_no_local_medicine` with `pp_local_medicine_linked`. While the list is unsigned,
+  production refuses these medicines as before.
+
 ### Changed — Signed packs start from MedSync's sourced drafts — 29 Oct 2026
 
 - "Write a draft" on Signed packs opens already filled when the hospital has no draft and no version in force: a

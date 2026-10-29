@@ -315,14 +315,14 @@ describe.skipIf(!laneOn)("products and the catalogue (ADR 0459, 0255)", () => {
       ),
       /pp_kind_key/,
     );
-    // D-CAT-18 in the database too.
+    // ADR 0470 (0264): a local medicine only with its catalogue medicine.
     await fails(
       L.pg.query(
         `INSERT INTO pharmacy_products (hospital_id, medicine_id, name, issue_unit, item_kind, created_by)
          VALUES ($1, $2, 'Local tablets', 'tablet', 'local_medicine', $3)`,
         [L.h, catalogueKey(randomUUID()), s.people.chief],
       ),
-      /pp_no_local_medicine/,
+      /pp_local_medicine_linked/,
     );
     // A supply's product cannot link to a medicine.
     await fails(
