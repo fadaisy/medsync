@@ -401,6 +401,14 @@ describe.skipIf(!laneOn)("the shared medicines catalogue (ADR 0456, 0251–0252)
     expect((await search(GTIN.slice(1)))[0]).toMatchObject({ id: f.brand });
   });
 
+  it("three letters also match by prefix, the exact abbreviation still first; two stay whole-name", async () => {
+    const cef = await search("cef");
+    expect(cef.some((h) => h.group === "medicine" && /^Cef/i.test(h.title))).toBe(true);
+    expect((await search("PCM"))[0]).toMatchObject({ why: "Also called PCM" });
+    expect((await search("PCM"))[0]!.title).toMatch(/^Paracetamol/);
+    expect((await search("ce")).some((h) => /^Cef/i.test(h.title))).toBe(false);
+  });
+
   it("4.2: a medicine shows its names, then its packs: barcoded first, Unbranded · loose last", async () => {
     const m = (await catalogueMedicine(lane.db, f.paracetamolMedicine, f.h))!;
     expect(m.names[0]).toMatchObject({ name: "paracetamol", type: "preferred" });

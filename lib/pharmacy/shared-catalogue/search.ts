@@ -81,11 +81,17 @@ export async function catalogueSearch(
   const [{ folded }] = rowsOf<{ folded: string }>(
     await db.execute(sql`SELECT coalesce(private.cat_fold(${text}), '') AS folded`),
   ) as [{ folded: string }];
-  // A short term (an abbreviation) matches whole names only; a longer one by prefix or similarity.
+  // Two letters (an abbreviation) match whole names only; three letters also match names by prefix ("cef"), with
+  // the exact name still scored first (AL, TLD, ACT); four or more by prefix or similarity.
   const short = folded.length < 4;
+  const prefixOnly = folded.length === 3;
   const prefix = `${folded.replace(/[\\%_]/g, "\\$&")}%`;
   const nameMatch = (col: ReturnType<typeof sql>) =>
-    short ? sql`${col} = ${folded}` : sql`(${col} % ${folded} OR ${col} LIKE ${prefix})`;
+    prefixOnly
+      ? sql`${col} LIKE ${prefix}`
+      : short
+        ? sql`${col} = ${folded}`
+        : sql`(${col} % ${folded} OR ${col} LIKE ${prefix})`;
   const score = (col: ReturnType<typeof sql>) => sql`
     CASE WHEN ${col} = ${folded} THEN 1.0
          WHEN ${col} LIKE ${prefix} THEN 0.9
@@ -134,7 +140,10 @@ export async function catalogueSearch(
           FROM public.cat_medicine_names mn WHERE mn.name_fold = ${folded}
         ${
           short
-            ? sql``
+            ? prefixOnly
+              ? sql`UNION ALL SELECT m2.id, NULL, ${score(sql`m2.name_fold`)} * 0.95
+          FROM public.cat_medicines m2 WHERE m2.name_fold LIKE ${prefix}`
+              : sql``
             : sql`UNION ALL SELECT m2.id, NULL, ${score(sql`m2.name_fold`)} * 0.95
           FROM public.cat_medicines m2 WHERE m2.name_fold % ${folded}`
         }
@@ -143,7 +152,7 @@ export async function catalogueSearch(
         FROM h JOIN public.cat_medicines m ON m.id = h.medicine_id
       WHERE ${medicineFilter(o)}
       ORDER BY m.id, h.score DESC, h.why NULLS FIRST`);
-    if (!short) {
+    if (!short || prefixOnly) {
       parts.push(sql`SELECT ${brandOf},
         CASE WHEN p.name_fold IS NOT NULL AND ${nameMatch(sql`p.name_fold`)} THEN NULL ELSE 'Made by ' || f.name END,
         greatest(coalesce(${score(sql`p.name_fold`)}, 0), coalesce(${score(sql`f.name_fold`)}, 0))
