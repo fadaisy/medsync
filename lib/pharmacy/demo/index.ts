@@ -117,7 +117,7 @@ export async function pharmacyDemoLoads(db: EmrDb, hospitalId: string) {
 /** What a removal would delete here, by kind; null until migration 0260 is applied. */
 export async function pharmacyDemoFootprint(db: EmrDb, hospitalId: string, actorId: string) {
   try {
-    return (await one<{ r: Record<string, number> }>({ db }, sql`SELECT public.pharmacy_demo_remove(${hospitalId}, ${actorId}, true) AS r`)).r;
+    return await runRemove(db, hospitalId, actorId, true);
   } catch {
     return null;
   }
@@ -129,9 +129,13 @@ export async function pharmacyDemoFootprint(db: EmrDb, hospitalId: string, actor
  * nothing real uses. A real record pointing at demo data stops it all. Returns what went, by kind.
  */
 export async function removePharmacyDemo(db: EmrDb, hospitalId: string, actorId: string) {
-  // The app's 30s statement cap (db/index.ts) is too short for the whole demo; this transaction gets five minutes.
+  return runRemove(db, hospitalId, actorId, false);
+}
+
+/** The app's 30s statement cap (db/index.ts) is too short for the whole demo; this transaction gets five minutes. */
+function runRemove(db: EmrDb, hospitalId: string, actorId: string, dryRun: boolean) {
   return db.transaction(async (tx) => {
     await tx.execute(sql`SET LOCAL statement_timeout = '290s'`);
-    return (await one<{ r: Record<string, number> }>({ db: tx as unknown as EmrDb }, sql`SELECT public.pharmacy_demo_remove(${hospitalId}, ${actorId}, false) AS r`)).r;
+    return (await one<{ r: Record<string, number> }>({ db: tx as unknown as EmrDb }, sql`SELECT public.pharmacy_demo_remove(${hospitalId}, ${actorId}, ${dryRun}) AS r`)).r;
   });
 }

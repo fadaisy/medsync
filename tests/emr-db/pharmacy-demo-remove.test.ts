@@ -21,7 +21,7 @@ vi.mock("@/db", () => ({
 
 type Snap = Record<string, string[]>;
 
-describe.skipIf(!laneOn)("Pharmacy demo: remove (0260)", () => {
+describe.skipIf(!laneOn)("Pharmacy demo: remove (0260–0262)", () => {
   let lane: Lane;
   let pg: Pg;
   let h: string;
@@ -29,6 +29,8 @@ describe.skipIf(!laneOn)("Pharmacy demo: remove (0260)", () => {
   let admin: string;
   let before: Snap;
   let realEntry: string;
+  let realCount: string;
+  let realPharmacist: string;
   const one = async <T = Record<string, unknown>>(q: string, params: unknown[] = []) =>
     (await pg.query<T>(q, params)).rows[0] as T;
   /** Every table's rows, as text, so a changed row shows as well as a missing one. */
@@ -140,7 +142,9 @@ describe.skipIf(!laneOn)("Pharmacy demo: remove (0260)", () => {
     ).toBe(60);
   });
 
-  it("stops at a real record that points at demo data, and removes nothing", async () => {
+  it("a real pharmacist's work on demo records waits for the removal", async () => {
+    // Production, 29 Oct 2026: real staff accepted and dispensed demo patients' prescriptions. A real pharmacist at a
+    // demo point counts a demo batch and accepts a demo prescription; the removal (next test) takes that work too.
     const demoPoint = (
       await one<{ id: string }>(
         `SELECT id FROM hospital_departments WHERE hospital_id = $1 AND name = 'Main outpatient pharmacy'`,
@@ -153,30 +157,33 @@ describe.skipIf(!laneOn)("Pharmacy demo: remove (0260)", () => {
         h,
       ])
     ).id;
-    await pg.query(
-      `INSERT INTO pharmacy_counts (hospital_id, dispensing_point_id, scope, counted_by) VALUES ($1, $2, 'full', $3)`,
-      [h, demoPoint, real.userId],
-    );
-    const count = (
-      await one<{ id: string }>(`SELECT id FROM pharmacy_counts WHERE counted_by = $1`, [
-        real.userId,
-      ])
+    realCount = (
+      await one<{ id: string }>(
+        `INSERT INTO pharmacy_counts (hospital_id, dispensing_point_id, scope, counted_by) VALUES ($1, $2, 'full', $3)
+         RETURNING id`,
+        [h, demoPoint, real.userId],
+      )
     ).id;
     await pg.query(
       `INSERT INTO pharmacy_count_lines (count_id, batch_id, counted_quantity, recorded_balance) VALUES ($1, $2, 1, 1)`,
-      [count, batch],
+      [realCount, batch],
     );
-    await expect(remove(false)).rejects.toThrow(/not demo data still points at demo data/);
-    expect(
-      (await one<{ n: number }>(`SELECT count(*)::int AS n FROM pharmacy_demo_patients`)).n,
-    ).toBe(60);
-    // The real count goes; the real pharmacist stays affiliated to the demo point for the next test.
-    for (const t of ["pharmacy_count_lines", "pharmacy_counts"])
-      await pg.query(`ALTER TABLE ${t} DISABLE TRIGGER USER`);
-    await pg.query(`DELETE FROM pharmacy_count_lines WHERE count_id = $1`, [count]);
-    await pg.query(`DELETE FROM pharmacy_counts WHERE id = $1`, [count]);
-    for (const t of ["pharmacy_count_lines", "pharmacy_counts"])
-      await pg.query(`ALTER TABLE ${t} ENABLE TRIGGER USER`);
+    const rx = await one<{ id: string; patient_user_id: string }>(
+      `SELECT id, patient_user_id FROM prescriptions
+        WHERE patient_user_id IN (SELECT patient_user_id FROM pharmacy_demo_patients) LIMIT 1`,
+    );
+    await pg.query(
+      `INSERT INTO pharmacy_line_events (hospital_id, prescription_id, patient_user_id, kind, actor_user_id)
+       VALUES ($1, $2, $3, 'reviewed', $4)`,
+      [h, rx.id, rx.patient_user_id, real.userId],
+    );
+    // A table the demo itself never writes: the payment the real pharmacist recorded on the demo prescription.
+    await pg.query(
+      `INSERT INTO pharmacy_payment_statuses (hospital_id, patient_user_id, prescription_id, status, dispensing_point_id,
+         actor_user_id) VALUES ($1, $2, $3, 'paid', $4, $5)`,
+      [h, rx.patient_user_id, rx.id, demoPoint, real.userId],
+    );
+    realPharmacist = real.userId;
   });
 
   it("removes every demo row and touches nothing else; a second removal changes nothing", async () => {
@@ -200,6 +207,9 @@ describe.skipIf(!laneOn)("Pharmacy demo: remove (0260)", () => {
       "public.user_roles",
       "public.hospital_departments",
       "public.pharmacy_content_entries",
+      "public.pharmacy_counts",
+      // The real count is at the demo point, so the point stays a dispensing point.
+      "public.pharmacy_dispensing_points",
     ]);
     const changed = Object.keys(before).filter(
       (t) => !kept.has(t) && JSON.stringify(before[t]) !== JSON.stringify(after[t]),
@@ -215,6 +225,16 @@ describe.skipIf(!laneOn)("Pharmacy demo: remove (0260)", () => {
     expect(
       after["public.hospital_departments"]!.length - before["public.hospital_departments"]!.length,
     ).toBe(1);
+    // The real pharmacist's work on demo records went; their count itself stays, without the demo batch's line.
+    expect(
+      await one<{ counts: number; lines: number; events: number }>(
+        `SELECT (SELECT count(*)::int FROM pharmacy_counts WHERE id = $1) AS counts,
+                (SELECT count(*)::int FROM pharmacy_count_lines WHERE count_id = $1) AS lines,
+                (SELECT count(*)::int FROM pharmacy_line_events WHERE actor_user_id = $2) +
+                (SELECT count(*)::int FROM pharmacy_payment_statuses WHERE actor_user_id = $2) AS events`,
+        [realCount, realPharmacist],
+      ),
+    ).toEqual({ counts: 1, lines: 0, events: 0 });
     // The real edition the demo replaced stays (withdrawn), with its real signature.
     expect(after["public.pharmacy_content_entries"]!.length).toBe(
       before["public.pharmacy_content_entries"]!.length,
