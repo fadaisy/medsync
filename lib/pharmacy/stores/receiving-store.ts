@@ -28,7 +28,7 @@ import {
   rescanTarget,
 } from "@/lib/pharmacy/shared-catalogue/receive";
 import { resolveScan } from "@/lib/pharmacy/shared-catalogue/scan";
-import { catalogueKey } from "@/lib/pharmacy/shared-catalogue/store";
+import { catalogueKey, linkProducts } from "@/lib/pharmacy/shared-catalogue/store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { drugById } from "@/lib/prescribing/formulary";
 import {
@@ -355,12 +355,13 @@ export async function scanIntoDelivery(
   if (r.kind === "unknown")
     return { id, kind: "unknown", gtin: r.scan.gtin, note: CATALOGUE.newBarcodeTitle };
   let productId: string;
+  let said: string | null = null;
   if (r.kind === "product") productId = r.productId;
   else {
-    const linked = await productsForPack(ctx.tx, h, r.packId);
-    if (linked.length === 0) return { id, kind: "no_product", note: R.noProduct };
-    if (linked.length > 1) return { id, kind: "several", note: R.severalProducts };
-    productId = linked[0]!;
+    // Owner item 11: a known pack with no product here gets one, as a pick does.
+    const p = await productForPick(ctx, { packId: r.packId });
+    if (!("id" in p)) return { id, ...p };
+    ({ id: productId, said } = p);
   }
   const product = await productAt(ctx.tx, h, productId);
   const { contents } = await catalogueFacts(ctx.tx, productId, h);
@@ -408,7 +409,9 @@ export async function scanIntoDelivery(
     kind: "added",
     lineNo,
     counted: contents === null ? 0 : 1,
-    note: contents === null ? `${R.added(lineNo)} ${R.noContents(lineNo)}` : R.added(lineNo),
+    note: [R.added(lineNo), said, contents === null ? R.noContents(lineNo) : null]
+      .filter(Boolean)
+      .join(" "),
   };
 }
 
@@ -430,14 +433,15 @@ type Refusal = { kind: "refused" | "no_product" | "several"; note: string };
 /**
  * Owner item 11 (MedSync prepares, people confirm): the hospital's product for a picked catalogue pack, or a medicine
  * picked loose. One linked product is reused; several are left for a person to choose. None: the product is made
- * from the catalogue's own facts, in this transaction, only where its controlled class is known (D-CAT-18): a health
+ * from the catalogue's own facts, in this transaction (or, if the hospital has exactly one product of that medicine
+ * not yet linked to the catalogue, that product is linked instead), only where its controlled class is known (D-CAT-18): a health
  * supply (never controlled) under its catalogue key, or a medicine linked to exactly one prescribing-list medicine
  * (whose signed class it takes). Anything else is refused in words, nothing written.
  */
 async function productForPick(
   ctx: PharmacyCtx,
   pick: { packId: string } | { medicineId: string },
-): Promise<{ id: string; made: string | null } | Refusal> {
+): Promise<{ id: string; said: string | null } | Refusal> {
   const h = ctx.actor.hospitalId;
   const R = CATALOGUE.receive;
   const P = STOCK_UP_POLISH.make;
@@ -451,7 +455,7 @@ async function productForPick(
         ).map((r) => r.id);
   if (linked.length > 1)
     return { kind: "several", note: "packId" in pick ? R.severalProducts : P.severalLoose };
-  if (linked.length === 1) return { id: linked[0]!, made: null };
+  if (linked.length === 1) return { id: linked[0]!, said: null };
 
   const [pack] =
     "packId" in pick
@@ -492,14 +496,29 @@ async function productForPick(
   const formularyId = m.formulary[0];
   if (!supply && (m.formulary.length > 1 || !drugById(formularyId!)))
     return { kind: "refused", note: P.unclear };
-  if (!m.issue_unit_kind) return { kind: "refused", note: P.noIssueUnit };
+  const key = supply ? catalogueKey(medicineId!) : formularyId!;
+  const cataloguePackId = "packId" in pick ? pick.packId : null;
 
+  // A product of the same medicine here that is not linked to the catalogue yet is linked, not doubled.
+  const unlinked = rowsOf<{ id: string; name: string }>(
+    await ctx.tx.execute(sql`SELECT id, name FROM public.pharmacy_products
+      WHERE hospital_id = ${h} AND active AND medicine_id = ${key} AND catalogue_medicine_id IS NULL`),
+  );
+  if (unlinked.length > 1) return { kind: "several", note: P.severalUnlinked };
+  if (unlinked.length === 1) {
+    await linkProducts(ctx.tx, ctx.actor, [
+      { productId: unlinked[0]!.id, catalogueMedicineId: medicineId!, cataloguePackId },
+    ]);
+    return { id: unlinked[0]!.id, said: P.linked(unlinked[0]!.name) };
+  }
+
+  if (!m.issue_unit_kind) return { kind: "refused", note: P.noIssueUnit };
   const name = pack?.brand ?? m.display_name;
   const [row] = await ctx.tx
     .insert(pharmacyProducts)
     .values({
       hospitalId: h,
-      medicineId: supply ? catalogueKey(medicineId!) : formularyId!,
+      medicineId: key,
       itemKind: supply ? "health_supply" : "formulary",
       name,
       manufacturer: pack?.maker ?? null,
@@ -507,12 +526,12 @@ async function productForPick(
       packSize: pack?.description ?? null,
       issueUnit: m.issue_unit_kind,
       catalogueMedicineId: medicineId!,
-      cataloguePackId: "packId" in pick ? pick.packId : null,
+      cataloguePackId,
       addedAtWindow: false,
       createdBy: ctx.actor.userId,
     })
     .returning({ id: pharmacyProducts.id });
-  return { id: row!.id, made: name };
+  return { id: row!.id, said: P.made(name) };
 }
 
 /**
@@ -528,14 +547,14 @@ export async function pickIntoDelivery(
   const d = await counting(ctx.tx, h, input.deliveryId);
   const R = CATALOGUE.receive;
   let productId = input.productId ?? null;
-  let made: string | null = null;
+  let said: string | null = null;
   if (!productId) {
     const p = await productForPick(
       ctx,
       input.packId ? { packId: input.packId } : { medicineId: input.medicineId! },
     );
     if (!("id" in p)) return { id: d.id, ...p };
-    ({ id: productId, made } = p);
+    ({ id: productId, said } = p);
   }
   await productAt(ctx.tx, h, productId);
   const [last] = await ctx.tx
@@ -551,7 +570,7 @@ export async function pickIntoDelivery(
     identitySource: "catalogue",
     updatedAt: ctx.now,
   });
-  const note = made ? `${R.added(lineNo)} ${STOCK_UP_POLISH.make.made(made)}` : R.added(lineNo);
+  const note = said ? `${R.added(lineNo)} ${said}` : R.added(lineNo);
   return { id: d.id, kind: "added", lineNo, counted: 0, note };
 }
 

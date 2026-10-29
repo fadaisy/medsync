@@ -58,9 +58,12 @@ export const STOCK_UP_POLISH = {
     confirmations: (n: number) => `${n} of 2 confirmations`,
     youConfirmed: "You confirmed it",
   },
-  /** A catalogue pick on a delivery with no product here: the product is made from the catalogue (owner item 11). */
+  /** A catalogue pick or scan on a delivery with no product here: the product is made from the catalogue, or an unlinked one linked (owner item 11). */
   make: {
     made: (name: string) => `${name} is now one of your products, set up from the catalogue.`,
+    linked: (name: string) => `${name}, one of your products, is now linked to the catalogue.`,
+    severalUnlinked:
+      "More than one of your products is this medicine and none is linked to the catalogue yet. Open a line and choose the product.",
     severalLoose:
       "More than one of your products is linked to this medicine, loose. Open a line and choose the product.",
     unclear:

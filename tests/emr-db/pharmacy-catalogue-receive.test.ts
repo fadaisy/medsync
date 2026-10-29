@@ -101,6 +101,19 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
     );
     return { medicine: m.id, pack: k.id };
   };
+  /** Prescribing-list ids, not controlled, that no product here carries yet. */
+  const freshFormulary = async () => {
+    const { DRUGS } = await import("@/lib/prescribing/formulary");
+    const used = new Set(
+      (
+        await L.pg.query<{ medicine_id: string }>(
+          `SELECT medicine_id FROM pharmacy_products WHERE hospital_id = $1`,
+          [L.h],
+        )
+      ).rows.map((r) => r.medicine_id),
+    );
+    return DRUGS.filter((x) => !x.flags.controlled && !used.has(x.id)).map((x) => x.id);
+  };
   const productCount = async () =>
     (
       await one<{ n: number }>(
@@ -417,8 +430,7 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
     ).toEqual({ n: 0 });
   });
   it("item 11: a medicine picked loose with no product here gets one from the catalogue; picked again, it is reused", async () => {
-    const { DRUGS } = await import("@/lib/prescribing/formulary");
-    const formulary = DRUGS.find((x) => !x.flags.controlled)!.id;
+    const [formulary] = await freshFormulary();
     const c = await catalogued("loose", { formulary });
     const d = await start(`CAT-MAKE-${randomUUID().slice(0, 6)}`);
     const before = await productCount();
@@ -470,8 +482,7 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
       catalogue_medicine_id: s.medicine,
     });
 
-    const { DRUGS } = await import("@/lib/prescribing/formulary");
-    const two = await catalogued("two", { formulary: DRUGS.find((x) => !x.flags.controlled)!.id });
+    const two = await catalogued("two", { formulary: (await freshFormulary())[0] });
     await pick(d, { medicineId: two.medicine });
     await L.pg.query(
       `INSERT INTO pharmacy_products (hospital_id, medicine_id, name, issue_unit, created_by, catalogue_medicine_id)
@@ -496,10 +507,9 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
   });
 
   it("item 11 with item 9: several picks at once, one call each in order, make each product once", async () => {
-    const { DRUGS } = await import("@/lib/prescribing/formulary");
-    const plain = DRUGS.filter((x) => !x.flags.controlled);
-    const a = await catalogued("many-a", { formulary: plain[1]!.id });
-    const b = await catalogued("many-b", { formulary: plain[2]!.id, brand: "Brand many-b" });
+    const plain = await freshFormulary();
+    const a = await catalogued("many-a", { formulary: plain[0] });
+    const b = await catalogued("many-b", { formulary: plain[1], brand: "Brand many-b" });
     const d = await start(`CAT-MANY-${randomUUID().slice(0, 6)}`);
     const before = await productCount();
     const picks = [{ medicineId: a.medicine }, { packId: b.pack }, { medicineId: a.medicine }];
@@ -511,5 +521,67 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
     expect(l.map((x) => x.line_no)).toEqual([1, 2, 3]);
     expect(l[0]!.product_id).toBe(l[2]!.product_id);
     expect(l[1]!.product_id).not.toBe(l[0]!.product_id);
+  });
+  it("item 11 follow-up (a): a scanned pack with no product here gets one, through the same rules", async () => {
+    const [formulary] = await freshFormulary();
+    const c = await catalogued("scan", { formulary, brand: "Brand scan" });
+    const g = gtin("0600988000500");
+    await L.pg.query(
+      `INSERT INTO cat_pack_codes (pack_id, code_type, code, state, proposal_id, created_by) VALUES ($1, 'GTIN', $2, 'confirmed', $3, $4)`,
+      [c.pack, g, f.prop, L.admin],
+    );
+    const d = await start(`CAT-SCANMAKE-${randomUUID().slice(0, 6)}`);
+    const before = await productCount();
+    const r = await scan(d, dataMatrix(g, "S1"));
+    expect(r).toMatchObject({ kind: "added", lineNo: 1, counted: 1 });
+    expect((r as { note: string }).note).toMatch(/set up from the catalogue/);
+    expect(await productCount()).toBe(before + 1);
+    const made = await one<{ id: string; medicine_id: string; catalogue_medicine_id: string }>(
+      `SELECT id, medicine_id, catalogue_medicine_id FROM pharmacy_products WHERE hospital_id = $1 AND catalogue_pack_id = $2`,
+      [L.h, c.pack],
+    );
+    expect(made).toMatchObject({ medicine_id: formulary, catalogue_medicine_id: c.medicine });
+    expect(await scan(d, dataMatrix(g, "S1"))).toMatchObject({ kind: "rescan", counted: 2 });
+    expect(await productCount()).toBe(before + 1);
+    expect(await lines(d)).toEqual([{ line_no: 1, product_id: made.id, identity_source: "scan" }]);
+  });
+
+  it("item 11 follow-up (b): one unlinked product of the medicine is linked, not doubled; two unlinked ask", async () => {
+    const [one1, two2] = await freshFormulary();
+    const unlinked = async (medicineId: string, name: string) =>
+      (
+        await one(
+          `INSERT INTO pharmacy_products (hospital_id, medicine_id, name, issue_unit, created_by)
+           VALUES ($1, $2, $3, 'tablet', $4) RETURNING id`,
+          [L.h, medicineId, name, L.admin],
+        )
+      ).id;
+    const own = await unlinked(one1!, "Our own tablets");
+    const c = await catalogued("link", { formulary: one1, brand: "Brand link" });
+    const d = await start(`CAT-LINK-${randomUUID().slice(0, 6)}`);
+    const before = await productCount();
+    const r = await pick(d, { packId: c.pack });
+    expect(r).toMatchObject({ kind: "added", lineNo: 1 });
+    expect((r as { note: string }).note).toMatch(
+      /Our own tablets, one of your products, is now linked/,
+    );
+    expect(await productCount()).toBe(before);
+    expect(
+      await one(
+        `SELECT catalogue_medicine_id AS medicine, catalogue_pack_id AS pack, name FROM pharmacy_products WHERE id = $1`,
+        [own],
+      ),
+    ).toEqual({ medicine: c.medicine, pack: c.pack, name: "Our own tablets" });
+    expect((await lines(d))[0]!.product_id).toBe(own);
+
+    await unlinked(two2!, "First of two");
+    await unlinked(two2!, "Second of two");
+    const both = await catalogued("link-two", { formulary: two2 });
+    expect(await pick(d, { medicineId: both.medicine })).toMatchObject({
+      kind: "several",
+      note: expect.stringMatching(/none is linked/),
+    });
+    expect(await productCount()).toBe(before + 2);
+    expect((await lines(d)).length).toBe(1);
   });
 });
