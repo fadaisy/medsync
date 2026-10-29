@@ -6,11 +6,13 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
 import { STORE } from "@/content/pharmacy-stores-store";
 import {
   pharmacyBatches,
   pharmacyHospitalSettings,
   pharmacyPrintEvents,
+  pharmacyProducts,
 } from "@/db/schema/pharmacy-dispensing";
 import {
   pharmacyDeliveries,
@@ -26,7 +28,9 @@ import {
   rescanTarget,
 } from "@/lib/pharmacy/shared-catalogue/receive";
 import { resolveScan } from "@/lib/pharmacy/shared-catalogue/scan";
+import { catalogueKey } from "@/lib/pharmacy/shared-catalogue/store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
+import { drugById } from "@/lib/prescribing/formulary";
 import {
   controlledSet,
   counterpartyOf,
@@ -409,12 +413,112 @@ export async function scanIntoDelivery(
 }
 
 export const DeliveryPickInput = z
-  .object({ deliveryId: z.uuid(), productId: z.uuid().nullish(), packId: z.uuid().nullish() })
-  .refine((v) => !!v.productId !== !!v.packId, "Pick one product or one pack.");
+  .object({
+    deliveryId: z.uuid(),
+    productId: z.uuid().nullish(),
+    packId: z.uuid().nullish(),
+    /** A catalogue medicine picked "Unbranded · loose": no pack, counted in issue units. */
+    medicineId: z.uuid().nullish(),
+  })
+  .refine(
+    (v) => [v.productId, v.packId, v.medicineId].filter(Boolean).length === 1,
+    "Pick one product, one pack or one medicine.",
+  );
+
+type Refusal = { kind: "refused" | "no_product" | "several"; note: string };
 
 /**
- * 4.1 Ctrl K: a product (or a catalogue pack linked to exactly one product here) picked from the catalogue opens a
- * line with nothing counted yet; the line is then counted in its own dialog. `identity_source` is `catalogue`.
+ * Owner item 11 (MedSync prepares, people confirm): the hospital's product for a picked catalogue pack, or a medicine
+ * picked loose. One linked product is reused; several are left for a person to choose. None: the product is made
+ * from the catalogue's own facts, in this transaction, only where its controlled class is known (D-CAT-18): a health
+ * supply (never controlled) under its catalogue key, or a medicine linked to exactly one prescribing-list medicine
+ * (whose signed class it takes). Anything else is refused in words, nothing written.
+ */
+async function productForPick(
+  ctx: PharmacyCtx,
+  pick: { packId: string } | { medicineId: string },
+): Promise<{ id: string; made: string | null } | Refusal> {
+  const h = ctx.actor.hospitalId;
+  const R = CATALOGUE.receive;
+  const P = STOCK_UP_POLISH.make;
+  const linked =
+    "packId" in pick
+      ? await productsForPack(ctx.tx, h, pick.packId)
+      : rowsOf<{ id: string }>(
+          await ctx.tx.execute(sql`SELECT id FROM public.pharmacy_products
+            WHERE hospital_id = ${h} AND active AND catalogue_medicine_id = ${pick.medicineId}
+              AND catalogue_pack_id IS NULL`),
+        ).map((r) => r.id);
+  if (linked.length > 1)
+    return { kind: "several", note: "packId" in pick ? R.severalProducts : P.severalLoose };
+  if (linked.length === 1) return { id: linked[0]!, made: null };
+
+  const [pack] =
+    "packId" in pick
+      ? rowsOf<{
+          medicine_id: string;
+          brand: string | null;
+          maker: string | null;
+          description: string;
+        }>(
+          await ctx.tx.execute(sql`
+            SELECT p.medicine_id, p.brand_name AS brand, f.name AS maker, k.description
+              FROM public.cat_packs k JOIN public.cat_products p ON p.id = k.product_id
+              LEFT JOIN public.cat_manufacturers f ON f.id = p.manufacturer_id
+             WHERE k.id = ${pick.packId} AND k.status = 'active' AND p.status = 'active'`),
+        )
+      : [null];
+  const medicineId = "packId" in pick ? pack?.medicine_id : pick.medicineId;
+  const [m] = medicineId
+    ? rowsOf<{
+        display_name: string;
+        kind: "medicine" | "health_supply" | "other";
+        strength_text: string | null;
+        issue_unit_kind: string | null;
+        formulary: string[];
+      }>(
+        await ctx.tx.execute(sql`
+          SELECT m.display_name, m.kind, m.strength_text, m.issue_unit_kind,
+                 ARRAY(SELECT l.formulary_id FROM public.cat_medicine_links l
+                        WHERE l.medicine_id = m.id AND l.link_kind = 'formulary' ORDER BY 1) AS formulary
+            FROM public.cat_medicines m WHERE m.id = ${medicineId} AND m.status = 'active'`),
+      )
+    : [];
+  if (!m) return { kind: "no_product", note: R.noProduct };
+  const supply = m.kind === "health_supply";
+  // D-CAT-18: a medicine off the prescribing list has no signed controlled class. Refused, never guessed.
+  if (!supply && m.formulary.length === 0)
+    return { kind: "refused", note: CATALOGUE.supply.medicines };
+  const formularyId = m.formulary[0];
+  if (!supply && (m.formulary.length > 1 || !drugById(formularyId!)))
+    return { kind: "refused", note: P.unclear };
+  if (!m.issue_unit_kind) return { kind: "refused", note: P.noIssueUnit };
+
+  const name = pack?.brand ?? m.display_name;
+  const [row] = await ctx.tx
+    .insert(pharmacyProducts)
+    .values({
+      hospitalId: h,
+      medicineId: supply ? catalogueKey(medicineId!) : formularyId!,
+      itemKind: supply ? "health_supply" : "formulary",
+      name,
+      manufacturer: pack?.maker ?? null,
+      strength: m.strength_text,
+      packSize: pack?.description ?? null,
+      issueUnit: m.issue_unit_kind,
+      catalogueMedicineId: medicineId!,
+      cataloguePackId: "packId" in pick ? pick.packId : null,
+      addedAtWindow: false,
+      createdBy: ctx.actor.userId,
+    })
+    .returning({ id: pharmacyProducts.id });
+  return { id: row!.id, made: name };
+}
+
+/**
+ * 4.1 Ctrl K: a product, a catalogue pack or a medicine picked loose opens a line with nothing counted yet; the line
+ * is then counted in its own dialog. `identity_source` is `catalogue`. A pick with no product here gets one made
+ * from the catalogue (owner item 11, `productForPick`).
  */
 export async function pickIntoDelivery(
   ctx: PharmacyCtx,
@@ -424,15 +528,14 @@ export async function pickIntoDelivery(
   const d = await counting(ctx.tx, h, input.deliveryId);
   const R = CATALOGUE.receive;
   let productId = input.productId ?? null;
+  let made: string | null = null;
   if (!productId) {
-    const linked = await productsForPack(ctx.tx, h, input.packId!);
-    if (linked.length !== 1)
-      return {
-        id: d.id,
-        kind: linked.length ? "several" : "no_product",
-        note: linked.length ? R.severalProducts : R.noProduct,
-      };
-    productId = linked[0]!;
+    const p = await productForPick(
+      ctx,
+      input.packId ? { packId: input.packId } : { medicineId: input.medicineId! },
+    );
+    if (!("id" in p)) return { id: d.id, ...p };
+    ({ id: productId, made } = p);
   }
   await productAt(ctx.tx, h, productId);
   const [last] = await ctx.tx
@@ -448,7 +551,8 @@ export async function pickIntoDelivery(
     identitySource: "catalogue",
     updatedAt: ctx.now,
   });
-  return { id: d.id, kind: "added", lineNo, counted: 0, note: R.added(lineNo) };
+  const note = made ? `${R.added(lineNo)} ${STOCK_UP_POLISH.make.made(made)}` : R.added(lineNo);
+  return { id: d.id, kind: "added", lineNo, counted: 0, note };
 }
 
 /** 4.3 for a delivery: the order's lines not counted yet whose product has a catalogue pack (never a guess). */

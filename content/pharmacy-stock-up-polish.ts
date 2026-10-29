@@ -3,7 +3,7 @@ import type { SignedCopy } from "@/content/signed-copy";
 /**
  * Stocking-up polish (29 Oct 2026): the few new words the reworked "Start a delivery" dialog and the delivery page
  * (canvas board 1, "Count a delivery") need. Every other string on those screens is the signed Phase 2 store copy
- * (PHARMACY_STORES_COPY) or CATALOGUE, reused as written. Item 9 adds the picker's multi-mode words. Draft until the CSO signs it; not tied to any flag.
+ * (PHARMACY_STORES_COPY) or CATALOGUE, reused as written. Item 9 adds the picker's multi-mode words; item 11 the words for a product made from the catalogue. Draft until the CSO signs it; not tied to any flag.
  */
 export const STOCK_UP_POLISH_COPY: SignedCopy = {
   status: "draft",
@@ -57,5 +57,15 @@ export const STOCK_UP_POLISH = {
       `Proposed by ${who ?? "someone at a hospital"}${where ? ` at ${where}` : ""}`,
     confirmations: (n: number) => `${n} of 2 confirmations`,
     youConfirmed: "You confirmed it",
+  },
+  /** A catalogue pick on a delivery with no product here: the product is made from the catalogue (owner item 11). */
+  make: {
+    made: (name: string) => `${name} is now one of your products, set up from the catalogue.`,
+    severalLoose:
+      "More than one of your products is linked to this medicine, loose. Open a line and choose the product.",
+    unclear:
+      "This medicine is linked to the prescribing list in a way MedSync cannot read on its own. Open a line and choose the product.",
+    noIssueUnit:
+      "The catalogue does not say how this medicine is issued. Open a line and choose the product.",
   },
 } as const;

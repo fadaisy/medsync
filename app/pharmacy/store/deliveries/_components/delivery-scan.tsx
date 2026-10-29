@@ -82,14 +82,12 @@ export function DeliveryScan({ deliveryId }: { deliveryId: string }) {
       const out: { ok: boolean; text: string }[] = [];
       for (const p of picks) {
         const named = (text: string) => (picks.length > 1 ? `${pickTitle(p)}: ${text}` : text);
-        if (p.kind === "pack" && !p.pack.packId) {
-          out.push({ ok: false, text: named(C.receive.noProduct) });
-          continue;
-        }
         const r = await pickIntoDelivery(
           p.kind === "product"
             ? { deliveryId, productId: p.productId }
-            : { deliveryId, packId: p.pack.packId },
+            : p.pack.packId
+              ? { deliveryId, packId: p.pack.packId }
+              : { deliveryId, medicineId: p.medicine.id },
         );
         out.push(
           r.ok

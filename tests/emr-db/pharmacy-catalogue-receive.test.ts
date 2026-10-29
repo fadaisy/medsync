@@ -38,6 +38,7 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
     products: [] as { id: string; gtin: string; pack: string; catProduct: string }[],
     loose: [] as string[],
     controlled: { id: "", gtin: "" },
+    prop: "",
   };
   const one = async <T = { id: string }>(q: string, p: unknown[] = []) =>
     (await L.pg.query<T>(q, p)).rows[0] as T;
@@ -64,6 +65,56 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
         locationId: f.store,
       })
     ).id;
+  const pick = (
+    deliveryId: string,
+    p: { productId?: string; packId?: string; medicineId?: string },
+  ) => write(L.s, keeper, rcv.DeliveryPickInput, NEED, rcv.pickIntoDelivery, { deliveryId, ...p });
+  /** A catalogue medicine (and, with a brand, one product and pack of it), linked to a prescribing-list id or not. */
+  const catalogued = async (
+    tag: string,
+    o: { kind?: string; formulary?: string; brand?: string; unit?: string | null } = {},
+  ) => {
+    const m = await one(
+      `INSERT INTO cat_medicines (key, display_name, kind, issue_unit_kind, strength_text, proposal_id)
+       VALUES ($1, $2, $3, $4, '500 mg', $5) RETURNING id`,
+      [
+        `test:pick:${tag}`,
+        `Pick medicine ${tag}`,
+        o.kind ?? "medicine",
+        o.unit === undefined ? "tablet" : o.unit,
+        f.prop,
+      ],
+    );
+    if (o.formulary)
+      await L.pg.query(
+        `INSERT INTO cat_medicine_links (medicine_id, link_kind, formulary_id, proposal_id) VALUES ($1, 'formulary', $2, $3)`,
+        [m.id, o.formulary, f.prop],
+      );
+    if (!o.brand) return { medicine: m.id, pack: "" };
+    const c = await one(
+      `INSERT INTO cat_products (medicine_id, brand_name, proposal_id) VALUES ($1, $2, $3) RETURNING id`,
+      [m.id, o.brand, f.prop],
+    );
+    const k = await one(
+      `INSERT INTO cat_packs (product_id, description, contents, proposal_id) VALUES ($1, 'Box of 100', 100, $2) RETURNING id`,
+      [c.id, f.prop],
+    );
+    return { medicine: m.id, pack: k.id };
+  };
+  const productCount = async () =>
+    (
+      await one<{ n: number }>(
+        `SELECT count(*)::int AS n FROM pharmacy_products WHERE hospital_id = $1`,
+        [L.h],
+      )
+    ).n;
+  const lines = async (d: string) =>
+    (
+      await L.pg.query<{ line_no: number; product_id: string; identity_source: string }>(
+        `SELECT line_no, product_id, identity_source FROM pharmacy_delivery_lines WHERE delivery_id = $1 ORDER BY line_no`,
+        [d],
+      )
+    ).rows;
   const scan = (deliveryId: string, raw: string) =>
     write(L.s, keeper, rcv.DeliveryScanInput, NEED, rcv.scanIntoDelivery, { deliveryId, raw });
 
@@ -105,6 +156,7 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
       `INSERT INTO cat_proposals (kind, payload, source, proposer_source, required_reviews, state, decided_at)
        VALUES ('new_pack', '{}', 'Test catalogue rows', 'test', 1, 'applied', now()) RETURNING id`,
     );
+    f.prop = prop.id;
     const pack = async (productId: string, i: number) => {
       const m = await one(
         `INSERT INTO cat_medicines (key, display_name, kind, proposal_id) VALUES ($1, $2, 'medicine', $3) RETURNING id`,
@@ -363,5 +415,101 @@ describe.skipIf(!laneOn)("receiving against the catalogue (Step 7, 0256)", () =>
         [d],
       ),
     ).toEqual({ n: 0 });
+  });
+  it("item 11: a medicine picked loose with no product here gets one from the catalogue; picked again, it is reused", async () => {
+    const { DRUGS } = await import("@/lib/prescribing/formulary");
+    const formulary = DRUGS.find((x) => !x.flags.controlled)!.id;
+    const c = await catalogued("loose", { formulary });
+    const d = await start(`CAT-MAKE-${randomUUID().slice(0, 6)}`);
+    const before = await productCount();
+    const first = await pick(d, { medicineId: c.medicine });
+    expect(first).toMatchObject({ kind: "added", lineNo: 1 });
+    expect((first as { note: string }).note).toMatch(/set up from the catalogue/);
+    expect(await productCount()).toBe(before + 1);
+    const made = await one<Record<string, unknown>>(
+      `SELECT id, medicine_id, item_kind, name, strength, issue_unit, catalogue_medicine_id, catalogue_pack_id, created_by
+         FROM pharmacy_products WHERE hospital_id = $1 AND catalogue_medicine_id = $2`,
+      [L.h, c.medicine],
+    );
+    expect(made).toMatchObject({
+      medicine_id: formulary,
+      item_kind: "formulary",
+      name: "Pick medicine loose",
+      strength: "500 mg",
+      issue_unit: "tablet",
+      catalogue_pack_id: null,
+      created_by: keeper.userId,
+    });
+    expect(await pick(d, { medicineId: c.medicine })).toMatchObject({ kind: "added", lineNo: 2 });
+    expect(await productCount()).toBe(before + 1);
+    expect(await lines(d)).toEqual([
+      { line_no: 1, product_id: made.id, identity_source: "catalogue" },
+      { line_no: 2, product_id: made.id, identity_source: "catalogue" },
+    ]);
+  });
+
+  it("item 11: a health supply's pack is made under its catalogue key; two linked still ask; off the list is refused", async () => {
+    const d = await start(`CAT-MAKE2-${randomUUID().slice(0, 6)}`);
+    const s = await catalogued("supply", {
+      kind: "health_supply",
+      brand: "Gloves Co",
+      unit: "pair",
+    });
+    expect(await pick(d, { packId: s.pack })).toMatchObject({ kind: "added" });
+    expect(
+      await one(
+        `SELECT medicine_id, item_kind, name, pack_size, catalogue_medicine_id FROM pharmacy_products
+          WHERE hospital_id = $1 AND catalogue_pack_id = $2`,
+        [L.h, s.pack],
+      ),
+    ).toEqual({
+      medicine_id: `cat_${s.medicine.replace(/-/g, "")}`,
+      item_kind: "health_supply",
+      name: "Gloves Co",
+      pack_size: "Box of 100",
+      catalogue_medicine_id: s.medicine,
+    });
+
+    const { DRUGS } = await import("@/lib/prescribing/formulary");
+    const two = await catalogued("two", { formulary: DRUGS.find((x) => !x.flags.controlled)!.id });
+    await pick(d, { medicineId: two.medicine });
+    await L.pg.query(
+      `INSERT INTO pharmacy_products (hospital_id, medicine_id, name, issue_unit, created_by, catalogue_medicine_id)
+       SELECT hospital_id, medicine_id, name || ' (copy)', issue_unit, created_by, catalogue_medicine_id
+         FROM pharmacy_products WHERE hospital_id = $1 AND catalogue_medicine_id = $2`,
+      [L.h, two.medicine],
+    );
+    const count = (await lines(d)).length;
+    expect(await pick(d, { medicineId: two.medicine })).toMatchObject({ kind: "several" });
+
+    // D-CAT-18: a medicine off the prescribing list has no signed controlled class; nothing is made.
+    const off = await catalogued("off");
+    const before = await productCount();
+    expect(await pick(d, { medicineId: off.medicine })).toMatchObject({
+      kind: "refused",
+      note: expect.stringMatching(/clinical safety officer/),
+    });
+    const noUnit = await catalogued("nounit", { kind: "health_supply", unit: null });
+    expect(await pick(d, { medicineId: noUnit.medicine })).toMatchObject({ kind: "refused" });
+    expect(await productCount()).toBe(before);
+    expect((await lines(d)).length).toBe(count);
+  });
+
+  it("item 11 with item 9: several picks at once, one call each in order, make each product once", async () => {
+    const { DRUGS } = await import("@/lib/prescribing/formulary");
+    const plain = DRUGS.filter((x) => !x.flags.controlled);
+    const a = await catalogued("many-a", { formulary: plain[1]!.id });
+    const b = await catalogued("many-b", { formulary: plain[2]!.id, brand: "Brand many-b" });
+    const d = await start(`CAT-MANY-${randomUUID().slice(0, 6)}`);
+    const before = await productCount();
+    const picks = [{ medicineId: a.medicine }, { packId: b.pack }, { medicineId: a.medicine }];
+    const out = [];
+    for (const p of picks) out.push(await pick(d, p));
+    expect(out.map((r) => r.kind)).toEqual(["added", "added", "added"]);
+    expect(await productCount()).toBe(before + 2);
+    const l = await lines(d);
+    expect(l.map((x) => x.line_no)).toEqual([1, 2, 3]);
+    expect(l[0]!.product_id).toBe(l[2]!.product_id);
+    expect(l[1]!.product_id).not.toBe(l[0]!.product_id);
   });
 });
