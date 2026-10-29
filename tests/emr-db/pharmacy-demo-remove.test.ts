@@ -21,7 +21,7 @@ vi.mock("@/db", () => ({
 
 type Snap = Record<string, string[]>;
 
-describe.skipIf(!laneOn)("Pharmacy demo: remove (0260–0262)", () => {
+describe.skipIf(!laneOn)("Pharmacy demo: remove (0260–0263)", () => {
   let lane: Lane;
   let pg: Pg;
   let h: string;
@@ -183,6 +183,12 @@ describe.skipIf(!laneOn)("Pharmacy demo: remove (0260–0262)", () => {
          actor_user_id) VALUES ($1, $2, $3, 'paid', $4, $5)`,
       [h, rx.patient_user_id, rx.id, demoPoint, real.userId],
     );
+    // Production, 29 Oct 2026: the append-only "who viewed which patient" log names the demo patient they opened.
+    await pg.query(
+      `INSERT INTO clinical_phi_access_log (hospital_id, clinician_user_id, patient_user_id, access_basis)
+       VALUES ($1, $2, $3, 'care_team')`,
+      [h, real.userId, rx.patient_user_id],
+    );
     realPharmacist = real.userId;
   });
 
@@ -210,6 +216,8 @@ describe.skipIf(!laneOn)("Pharmacy demo: remove (0260–0262)", () => {
       "public.pharmacy_counts",
       // The real count is at the demo point, so the point stays a dispensing point.
       "public.pharmacy_dispensing_points",
+      // Append-only: the real pharmacist's view of a demo patient stays, and so does that patient's account.
+      "public.clinical_phi_access_log",
     ]);
     const changed = Object.keys(before).filter(
       (t) => !kept.has(t) && JSON.stringify(before[t]) !== JSON.stringify(after[t]),
@@ -254,7 +262,8 @@ describe.skipIf(!laneOn)("Pharmacy demo: remove (0260–0262)", () => {
       ).n,
     ).toBe(0);
     const left = await one<{ n: number; named: number }>(
-      `SELECT count(*)::int AS n, count(*) FILTER (WHERE EXISTS (SELECT 1 FROM audit_log a WHERE a.actor_id = u.id))::int AS named
+      `SELECT count(*)::int AS n, count(*) FILTER (WHERE EXISTS (SELECT 1 FROM audit_log a WHERE a.actor_id = u.id)
+              OR EXISTS (SELECT 1 FROM clinical_phi_access_log l WHERE l.patient_user_id = u.id))::int AS named
          FROM auth.users u WHERE u.email LIKE 'pharmacy-demo-%'`,
     );
     expect(left.n).toBe(left.named);
