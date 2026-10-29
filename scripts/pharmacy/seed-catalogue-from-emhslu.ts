@@ -9,6 +9,9 @@
  *   npm run pharmacy:seed-catalogue -- data/pharmacy/national-list/emhslu-2023.csv --edition "EMHSLU 2023"
  *   ... --apply --actor <your auth user id>
  */
+// First: the env, before the imports below reach lib/env (it validates at import).
+import "./_env";
+
 import { readFileSync, writeFileSync } from "node:fs";
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import type { SeedReport } from "@/lib/pharmacy/shared-catalogue/seed";
