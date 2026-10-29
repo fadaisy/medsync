@@ -44,10 +44,15 @@ export const NATIONAL_LIST = {
 
 /**
  * The shared medicines catalogue (ADR 0456; GATE A §11): Appendix A of the brief and the strings the GATE A
- * proposal adds, plus the picker's and Set-up › Catalogue's own words (STOP 3 lists them). All `draft`: the
- * catalogue stays off in production (PHARMACY_CATALOGUE, CS-5) until they are signed.
+ * proposal adds, plus the picker's and Set-up › Catalogue's own words (STOP 3 lists them). Signed by the CSO on
+ * 29 Oct 2026, in session, every string as written. Any change returns it to `draft`, and the catalogue off in
+ * production (PHARMACY_CATALOGUE, CS-5), until it is signed again.
  */
-export const CATALOGUE_COPY: SignedCopy = { status: "draft", signedBy: null, signedOn: null };
+export const CATALOGUE_COPY: SignedCopy = {
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-10-29",
+};
 
 export const CATALOGUE = {
   // Appendix A
