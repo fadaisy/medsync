@@ -1,12 +1,14 @@
 "use client";
 
 import type { WitnessOption } from "./store-kit";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { Input } from "@/components/ui/input";
 import { COUNT_DIFFERENCE_REASONS } from "@/content/pharmacy-stock";
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
 import { LOCATION_KIND_WORDS, STORE } from "@/content/pharmacy-stores-store";
+import SUPPLIERS from "@/data/pharmacy/suppliers.v1.json";
 import { productByText } from "@/lib/pharmacy/stores/scan-fill";
 import * as actions from "../../actions";
 import {
@@ -204,8 +206,14 @@ export function SupplyModelDialog({ locationId, name }: { locationId: string; na
 
 /* ─── Suppliers and facilities ────────────────────────────────────────── */
 
+/**
+ * Add or edit a supplier or facility. Adding offers MedSync's sourced supplier list (`data/pharmacy/suppliers.v1.json`,
+ * owner item 1) as one-click choices that fill the form; one already at this hospital (`added`, by name) shows as
+ * added. Typing stays for anyone else. Saved by the same `saveCounterparty`.
+ */
 export function CounterpartyDialog({
   existing,
+  added = [],
 }: {
   existing?: {
     id: string;
@@ -214,8 +222,14 @@ export function CounterpartyDialog({
     code: string | null;
     takesReturns: boolean;
   };
+  added?: readonly string[];
 }) {
   const ids = { kind: useId(), name: useId(), code: useId() };
+  const kindRef = useRef<HTMLSelectElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const codeRef = useRef<HTMLInputElement>(null);
+  const have = new Set(added.map((n) => n.trim().toLowerCase()));
+  const L = STOCK_UP_POLISH.suppliers;
   return (
     <StoreDialog
       label={existing ? P.editCounterparty : P.addCounterparty}
@@ -234,9 +248,43 @@ export function CounterpartyDialog({
         })
       }
     >
+      {existing ? null : (
+        <div className="flex flex-col gap-2">
+          <p className="text-body-s text-foreground">{L.fromList}</p>
+          <span className="flex flex-wrap gap-2">
+            {SUPPLIERS.suppliers.map((s) =>
+              have.has(s.name.toLowerCase()) ? (
+                <span
+                  key={s.name}
+                  className="border-border text-body-s text-muted-foreground inline-flex min-h-11 items-center gap-2 rounded-md border px-3"
+                >
+                  {L.pick(s.name, s.shortName)}
+                  <StatusWord>{L.added}</StatusWord>
+                </span>
+              ) : (
+                <button
+                  key={s.name}
+                  type="button"
+                  className="border-border text-body-s text-foreground hover:bg-ink-50 min-h-11 rounded-md border px-3"
+                  onClick={() => {
+                    if (kindRef.current) kindRef.current.value = "supplier";
+                    if (nameRef.current) nameRef.current.value = s.name;
+                    if (codeRef.current) codeRef.current.value = s.shortName;
+                    nameRef.current?.focus();
+                  }}
+                >
+                  {L.pick(s.name, s.shortName)}
+                </button>
+              ),
+            )}
+          </span>
+          <p className="text-caption text-muted-foreground">{L.orType}</p>
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={P.counterpartyKind} id={ids.kind}>
           <select
+            ref={kindRef}
             id={ids.kind}
             name="kind"
             className={SELECT}
@@ -248,6 +296,7 @@ export function CounterpartyDialog({
         </Field>
         <Field label={P.name} id={ids.name}>
           <Input
+            ref={nameRef}
             id={ids.name}
             name="name"
             required
@@ -258,6 +307,7 @@ export function CounterpartyDialog({
         </Field>
         <Field label={P.code} id={ids.code}>
           <Input
+            ref={codeRef}
             id={ids.code}
             name="code"
             maxLength={40}

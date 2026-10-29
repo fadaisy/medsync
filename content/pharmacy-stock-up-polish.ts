@@ -3,7 +3,7 @@ import type { SignedCopy } from "@/content/signed-copy";
 /**
  * Stocking-up polish (29 Oct 2026): the few new words the reworked "Start a delivery" dialog and the delivery page
  * (canvas board 1, "Count a delivery") need. Every other string on those screens is the signed Phase 2 store copy
- * (PHARMACY_STORES_COPY) or CATALOGUE, reused as written. Item 9 adds the picker's multi-mode words; item 11 the words for a product made from the catalogue; item 12 the signed packs' starting drafts. Draft until the CSO signs it; not tied to any flag.
+ * (PHARMACY_STORES_COPY) or CATALOGUE, reused as written. Item 9 adds the picker's multi-mode words; item 11 the words for a product made from the catalogue; item 12 the signed packs' starting drafts; item 1 the supplier list. Draft until the CSO signs it; not tied to any flag.
  */
 export const STOCK_UP_POLISH_COPY: SignedCopy = {
   status: "draft",
@@ -87,5 +87,12 @@ export const STOCK_UP_POLISH = {
     choose: (value: string) => `Use ${value}`,
     fieldBasis: "Where each part comes from",
     unmapped: (items: string) => `Not on MedSync's medicine list, so not included: ${items}.`,
+  },
+  /** Store › Places and suppliers › Add: suppliers from MedSync's list in one click (owner item 1). */
+  suppliers: {
+    fromList: "From MedSync's list",
+    pick: (name: string, short: string) => `${name} (${short})`,
+    added: "Added",
+    orType: "Or type another supplier or facility below.",
   },
 } as const;

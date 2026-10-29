@@ -177,7 +177,7 @@ export async function PlacesBody() {
           <h2 id="counterparties" className="text-heading-s">
             {STORE.places.counterparties}
           </h2>
-          {manages ? <CounterpartyDialog /> : null}
+          {manages ? <CounterpartyDialog added={data.counterparties.map((c) => c.name)} /> : null}
         </div>
         {data.counterparties.length === 0 ? (
           <p className="text-body-s text-muted-foreground">{STORE.places.noCounterparties}</p>
