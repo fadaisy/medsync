@@ -42,7 +42,7 @@ hospitals only: the demo patients and staff (`pharmacy-demo-…@demo.medsync.inv
 every row hanging off those rows that names nobody else, then the departments, wards and carts the demo made, each kept
 when anything real still uses it. A real record pointing at demo data stops it all and nothing is removed. Kept: the
 audit log and the demo accounts it names as actors (banned, never sign in), the settings and cosign policy the demo set,
-and the loads (marked removed). A real pack the demo retired stays retired. Test:
+and the loads (marked removed). A real pack the demo retired stays retired. Since 0261 a row naming any real user other than the admin who pressed Load is never demo data, even when the demo touched it (a real content entry the demo replaced stays, withdrawn, with its real signatures). Test:
 `tests/emr-db/pharmacy-demo-remove.test.ts`.
 
 ## Known gaps
