@@ -129,6 +129,9 @@ export async function pharmacyDemoFootprint(db: EmrDb, hospitalId: string, actor
  * nothing real uses. A real record pointing at demo data stops it all. Returns what went, by kind.
  */
 export async function removePharmacyDemo(db: EmrDb, hospitalId: string, actorId: string) {
-  // One statement is one transaction: the function's temp tables and SET LOCAL end with it.
-  return (await one<{ r: Record<string, number> }>({ db }, sql`SELECT public.pharmacy_demo_remove(${hospitalId}, ${actorId}, false) AS r`)).r;
+  // The app's 30s statement cap (db/index.ts) is too short for the whole demo; this transaction gets five minutes.
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SET LOCAL statement_timeout = '290s'`);
+    return (await one<{ r: Record<string, number> }>({ db: tx as unknown as EmrDb }, sql`SELECT public.pharmacy_demo_remove(${hospitalId}, ${actorId}, false) AS r`)).r;
+  });
 }

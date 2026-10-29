@@ -79,9 +79,12 @@ export async function removePharmacyDemoAction(): Promise<ActionResult> {
   } catch (e) {
     unstable_rethrow(e);
     if (e instanceof EmrWriteError) return actionError(e);
-    // A real record pointing at demo data, or a busy table: the transaction rolled back, so nothing went.
-    const message = e instanceof Error ? e.message : String(e);
+    // A real record pointing at demo data, or a busy table: the transaction rolled back, so nothing went. Drizzle's
+    // "Failed query" hides the database's own words in `cause`.
+    const cause = e instanceof Error && e.cause instanceof Error ? e.cause : e;
+    const detail = (cause as { detail?: string }).detail;
+    const message = (cause instanceof Error ? cause.message : String(cause)) + (detail ? ` (${detail})` : "");
     logger.error("pharmacy.demo.remove_failed", { message: message.slice(0, 300) });
-    return { ok: false, code: "config", error: `Nothing was removed: ${message.slice(0, 200)}.` };
+    return { ok: false, code: "config", error: `Nothing was removed: ${message.slice(0, 400)}.` };
   }
 }
