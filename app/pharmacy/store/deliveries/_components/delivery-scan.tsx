@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { ScanLineIcon } from "lucide-react";
 
-import { CataloguePicker } from "@/app/pharmacy/_components/catalogue-picker";
+import { CataloguePicker, pickTitle } from "@/app/pharmacy/_components/catalogue-picker";
 import { NewBarcodeDialog } from "@/app/pharmacy/_components/new-barcode-dialog";
 import { orderCandidatesAction } from "@/app/pharmacy/catalogue-actions";
 import { StatusWord } from "@/components/emr/status-word";
@@ -30,7 +30,7 @@ export function DeliveryScan({ deliveryId }: { deliveryId: string }) {
   const router = useRouter();
   const field = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
-  const [said, setSaid] = useState<{ ok: boolean; text: string } | null>(null);
+  const [said, setSaid] = useState<{ ok: boolean; text: string }[]>([]);
   const [picker, setPicker] = useState(false);
   const [unknown, setUnknown] = useState<{ scan: Parsed; raw: string } | null>(null);
   const [candidates, setCandidates] = useState<PackPick[]>([]);
@@ -61,7 +61,7 @@ export function DeliveryScan({ deliveryId }: { deliveryId: string }) {
   }, []);
 
   const after = (r: Awaited<ReturnType<typeof scanIntoDelivery>>, raw?: string) => {
-    if (!r.ok) return setSaid({ ok: false, text: r.error });
+    if (!r.ok) return setSaid([{ ok: false, text: r.error }]);
     const data = r.data!;
     if (data.kind === "unknown" && raw) {
       const s = parseGs1(raw);
@@ -72,9 +72,37 @@ export function DeliveryScan({ deliveryId }: { deliveryId: string }) {
         );
       }
     }
-    setSaid({ ok: data.kind === "added" || data.kind === "rescan", text: data.note });
+    setSaid([{ ok: data.kind === "added" || data.kind === "rescan", text: data.note }]);
     if (data.kind === "added" || data.kind === "rescan") router.refresh();
   };
+  // Ctrl K: one pick or several (owner item 9), each through the same one-line action, in the order ticked; each
+  // result is said on its own line, named when there are several.
+  const pickAll = (picks: CataloguePick[]) =>
+    start(async () => {
+      const out: { ok: boolean; text: string }[] = [];
+      for (const p of picks) {
+        const named = (text: string) => (picks.length > 1 ? `${pickTitle(p)}: ${text}` : text);
+        if (p.kind === "pack" && !p.pack.packId) {
+          out.push({ ok: false, text: named(C.receive.noProduct) });
+          continue;
+        }
+        const r = await pickIntoDelivery(
+          p.kind === "product"
+            ? { deliveryId, productId: p.productId }
+            : { deliveryId, packId: p.pack.packId },
+        );
+        out.push(
+          r.ok
+            ? {
+                ok: r.data!.kind === "added" || r.data!.kind === "rescan",
+                text: named(r.data!.note),
+              }
+            : { ok: false, text: named(r.error) },
+        );
+      }
+      setSaid(out);
+      if (out.some((o) => o.ok)) router.refresh();
+    });
   const scan = (raw: string) =>
     start(async () => {
       setValue("");
@@ -124,25 +152,16 @@ export function DeliveryScan({ deliveryId }: { deliveryId: string }) {
           {C.receive.pickTitle}
         </Button>
       </div>
-      <p role="status" aria-live="polite" className="text-body-s">
-        {said ? said.ok ? said.text : <StatusWord tone="caution">{said.text}</StatusWord> : null}
-      </p>
+      <div role="status" aria-live="polite" className="text-body-s flex flex-col gap-0.5">
+        {said.map((x, i) => (
+          <span key={i}>{x.ok ? x.text : <StatusWord tone="caution">{x.text}</StatusWord>}</span>
+        ))}
+      </div>
       <CataloguePicker
         open={picker}
         onOpenChange={setPicker}
-        onPick={(p) => {
-          if (p.kind === "pack" && !p.pack.packId)
-            return setSaid({ ok: false, text: C.receive.noProduct });
-          start(async () =>
-            after(
-              await pickIntoDelivery(
-                p.kind === "product"
-                  ? { deliveryId, productId: p.productId }
-                  : { deliveryId, packId: p.pack.packId },
-              ),
-            ),
-          );
-        }}
+        onPick={(p) => pickAll([p])}
+        onPickMany={pickAll}
       />
       {unknown ? (
         <NewBarcodeDialog

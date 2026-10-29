@@ -3,12 +3,14 @@
 import type { CatalogueMedicine, MedicinePack } from "@/lib/pharmacy/shared-catalogue/medicine";
 import type { CatalogueHit, HitGroup } from "@/lib/pharmacy/shared-catalogue/search";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { SearchIcon } from "lucide-react";
+import { CheckIcon, SearchIcon, XIcon } from "lucide-react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
 import { DialogTitle } from "@/components/ui/dialog";
 import { CATALOGUE as C } from "@/content/pharmacy-catalogue";
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
+import { pickKey, setPick, togglePick } from "@/lib/pharmacy/shared-catalogue/picks";
 import { cn } from "@/lib/utils";
 import { catalogueMedicineAction, catalogueSearchAction } from "../catalogue-actions";
 
@@ -17,6 +19,13 @@ export type CataloguePick =
   | { kind: "product"; productId: string; title: string };
 
 const GROUPS: readonly HitGroup[] = ["medicine", "brand", "product"];
+const M = STOCK_UP_POLISH.pick;
+
+/** A pick in words: the product, or the medicine and its pack. */
+export const pickTitle = (p: CataloguePick) =>
+  p.kind === "product"
+    ? p.title
+    : `${p.medicine.displayName} · ${p.pack.packId ? `${p.pack.brand ?? C.loose} · ${p.pack.description}` : C.loose}`;
 
 /** Each chip's value and how many hits carry it, most first. */
 function countBy(hits: readonly CatalogueHit[], pick: (h: CatalogueHit) => string[]) {
@@ -29,11 +38,15 @@ function countBy(hits: readonly CatalogueHit[], pick: (h: CatalogueHit) => strin
  * Pick from the catalogue (4.2, board 2): one centred dialog. Results are grouped (medicines, generic name first;
  * brands; your products), each saying why it matched, narrowed by form and route chips. Choosing a medicine shows
  * its other names and its packs; "The pack that came is not here" hands back to the caller (4.4, Step 6).
+ * `onPickMany` (the delivery only) turns on multi mode: a pack, or one of your products, is ticked instead of picked,
+ * a medicine whose only pack is "Unbranded · loose" (or a brand hit) is ticked with that pack, and "Add N lines"
+ * hands every tick back at once. Without it the picker picks one and closes, as before.
  */
 export function CataloguePicker({
   open,
   onOpenChange,
   onPick,
+  onPickMany,
   onNotHere,
   prescribing,
   pickLabel = C.pick,
@@ -41,6 +54,8 @@ export function CataloguePicker({
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onPick: (p: CataloguePick) => void;
+  /** Multi mode: every ticked pick, in the order ticked. */
+  onPickMany?: (p: CataloguePick[]) => void;
   onNotHere?: () => void;
   prescribing?: boolean;
   pickLabel?: string;
@@ -53,6 +68,12 @@ export function CataloguePicker({
   const [medicine, setMedicine] = useState<CatalogueMedicine | null>(null);
   const [pack, setPack] = useState<number | null>(null);
   const [failed, setFailed] = useState(false);
+  const [ticked, setTicked] = useState<CataloguePick[]>([]);
+  const multi = !!onPickMany;
+  const close = () => {
+    setTicked([]);
+    onOpenChange(false);
+  };
   const [pending, start] = useTransition();
   const seq = useRef(0);
 
@@ -83,7 +104,9 @@ export function CataloguePicker({
   const choose = (h: CatalogueHit | undefined) => {
     if (!h) return;
     if (h.group === "product") {
-      onPick({ kind: "product", productId: h.id, title: h.title });
+      const p: CataloguePick = { kind: "product", productId: h.id, title: h.title };
+      if (multi) return setTicked((t) => togglePick(t, p));
+      onPick(p);
       return onOpenChange(false);
     }
     if (!h.medicineId) return;
@@ -94,6 +117,11 @@ export function CataloguePicker({
       const i =
         r.ok && h.group === "brand" ? r.medicine.packs.findIndex((p) => p.productId === h.id) : -1;
       setPack(i >= 0 ? i : null);
+      if (!multi || !r.ok) return;
+      // Multi mode: a brand hit names its pack, and a medicine whose only pack is loose takes that one.
+      const only = r.medicine.packs.length === 1 ? 0 : i;
+      const p = r.medicine.packs[only];
+      if (p) setTicked((t) => setPick(t, { kind: "pack", medicine: r.medicine, pack: p }));
     });
   };
   const chosen = medicine && pack !== null ? medicine.packs[pack] : undefined;
@@ -102,6 +130,15 @@ export function CataloguePicker({
     onPick({ kind: "pack", medicine, pack: chosen });
     onOpenChange(false);
   };
+  const finish = () => {
+    if (!ticked.length) return;
+    onPickMany?.(ticked);
+    close();
+  };
+  const tickedKeys = new Set(ticked.map(pickKey));
+  const tickedHere = medicine
+    ? ticked.find((t) => t.kind === "pack" && t.medicine.id === medicine.id)
+    : undefined;
 
   const chips = (
     label: string,
@@ -134,7 +171,7 @@ export function CataloguePicker({
 
   const text = q.trim();
   return (
-    <EditorDialog width="wide" open={open} onOpenChange={onOpenChange}>
+    <EditorDialog width="wide" open={open} onOpenChange={(o) => (o ? onOpenChange(o) : close())}>
       <DialogTitle className="sr-only">{C.pickerTitle}</DialogTitle>
       <div className="border-border flex items-center gap-3 border-b px-4">
         <SearchIcon aria-hidden className="text-muted-foreground size-5" />
@@ -162,7 +199,7 @@ export function CataloguePicker({
               setActive((a) => Math.max(a - 1, 0));
             } else if (e.key === "Enter") {
               e.preventDefault();
-              if (chosen) add();
+              if (chosen && !multi) add();
               else choose(ordered[active]);
             }
           }}
@@ -179,6 +216,7 @@ export function CataloguePicker({
           id="catalogue-picker-list"
           role="listbox"
           aria-label={C.pickerTitle}
+          aria-multiselectable={multi || undefined}
           aria-busy={pending}
           className="min-h-0 overflow-y-auto p-2 md:max-h-[60vh]"
         >
@@ -196,12 +234,18 @@ export function CataloguePicker({
                   {items.map((h) => {
                     const i = ordered.indexOf(h);
                     const on = medicine?.id === h.medicineId && h.group !== "product";
+                    const isTicked =
+                      multi &&
+                      tickedKeys.has(
+                        h.group === "product" ? `product:${h.id}` : `medicine:${h.medicineId}`,
+                      );
                     return (
                       <div
                         key={`${h.group}${h.id}`}
                         id={`catalogue-hit-${i}`}
                         role="option"
                         aria-selected={i === active}
+                        aria-checked={multi ? isTicked : undefined}
                         onMouseEnter={() => setActive(i)}
                         onClick={() => choose(h)}
                         className={cn(
@@ -209,7 +253,10 @@ export function CataloguePicker({
                           i === active || on ? "bg-muted" : "",
                         )}
                       >
-                        <span className="text-body-s text-foreground font-medium">{h.title}</span>
+                        <span className="text-body-s text-foreground inline-flex items-center gap-1.5 font-medium">
+                          {isTicked ? <CheckIcon aria-hidden className="size-4 shrink-0" /> : null}
+                          {h.title}
+                        </span>
                         <span className="text-caption text-muted-foreground">
                           {[h.detail, h.routes.join(", "), h.why].filter(Boolean).join(" · ")}
                         </span>
@@ -236,35 +283,53 @@ export function CataloguePicker({
                 <p className="text-caption text-muted-foreground">{C.notPrescribable}</p>
               )}
               <p className="text-body-s text-muted-foreground">{C.choose}</p>
-              <div role="radiogroup" aria-label={C.page.packs} className="flex flex-col gap-1.5">
-                {medicine.packs.map((p, i) => (
-                  <button
-                    key={p.packId ?? "loose"}
-                    type="button"
-                    role="radio"
-                    aria-checked={pack === i}
-                    onClick={() => setPack(i)}
-                    className={cn(
-                      "focus-visible:shadow-focus flex flex-col items-start gap-0.5 rounded-md border px-3 py-2 text-left outline-none",
-                      pack === i ? "border-primary bg-muted" : "border-input hover:bg-muted",
-                    )}
-                  >
-                    <span className="text-body-s text-foreground font-medium">
-                      {p.packId ? `${p.brand ?? C.loose} · ${p.description}` : C.loose}
-                    </span>
-                    <span className="text-caption text-muted-foreground">
-                      {p.packId
-                        ? [
-                            p.maker,
-                            p.gtin ? `GTIN ${p.gtin}` : C.noBarcode,
-                            p.ndaState === "lapsed" ? C.lapsed : null,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")
-                        : C.looseDetail(medicine.issueUnit)}
-                    </span>
-                  </button>
-                ))}
+              <div
+                role={multi ? "group" : "radiogroup"}
+                aria-label={C.page.packs}
+                className="flex flex-col gap-1.5"
+              >
+                {medicine.packs.map((p, i) => {
+                  // Multi mode: a pack button ticks (or unticks) this medicine with that pack.
+                  const checked = multi
+                    ? tickedHere?.kind === "pack" && tickedHere.pack.packId === p.packId
+                    : pack === i;
+                  return (
+                    <button
+                      key={p.packId ?? "loose"}
+                      type="button"
+                      role={multi ? undefined : "radio"}
+                      aria-checked={multi ? undefined : checked}
+                      aria-pressed={multi ? checked : undefined}
+                      onClick={() => {
+                        setPack(i);
+                        if (multi)
+                          setTicked((t) => togglePick(t, { kind: "pack", medicine, pack: p }));
+                      }}
+                      className={cn(
+                        "focus-visible:shadow-focus flex flex-col items-start gap-0.5 rounded-md border px-3 py-2 text-left outline-none",
+                        checked ? "border-primary bg-muted" : "border-input hover:bg-muted",
+                      )}
+                    >
+                      <span className="text-body-s text-foreground inline-flex items-center gap-1.5 font-medium">
+                        {multi && checked ? (
+                          <CheckIcon aria-hidden className="size-4 shrink-0" />
+                        ) : null}
+                        {p.packId ? `${p.brand ?? C.loose} · ${p.description}` : C.loose}
+                      </span>
+                      <span className="text-caption text-muted-foreground">
+                        {p.packId
+                          ? [
+                              p.maker,
+                              p.gtin ? `GTIN ${p.gtin}` : C.noBarcode,
+                              p.ndaState === "lapsed" ? C.lapsed : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")
+                          : C.looseDetail(medicine.issueUnit)}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
               {onNotHere && (
                 <button
@@ -279,15 +344,52 @@ export function CataloguePicker({
           ) : null}
         </div>
       </div>
+      {multi && ticked.length ? (
+        <ul
+          aria-label={M.ticked(ticked.length)}
+          className="border-border flex flex-wrap gap-1.5 border-t px-4 py-2.5"
+        >
+          {ticked.map((t) => {
+            const title = pickTitle(t);
+            return (
+              <li
+                key={pickKey(t)}
+                className="bg-muted text-caption text-foreground inline-flex h-7 items-center gap-1 rounded-full pr-0.5 pl-2.5"
+              >
+                {title}
+                <button
+                  type="button"
+                  aria-label={M.untick(title)}
+                  onClick={() => setTicked((x) => x.filter((y) => y !== t))}
+                  className="hover:bg-ink-200 focus-visible:shadow-focus grid size-6 place-items-center rounded-full outline-none"
+                >
+                  <XIcon aria-hidden className="size-3.5" />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
       <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
-        <span className="text-caption text-muted-foreground">{C.keys}</span>
-        <span className="flex gap-2">
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+        <span className="text-caption text-muted-foreground">{multi ? M.keys : C.keys}</span>
+        <span className="flex items-center gap-2">
+          {multi ? (
+            <span role="status" className="text-caption text-muted-foreground tabular-nums">
+              {M.ticked(ticked.length)}
+            </span>
+          ) : null}
+          <Button variant="secondary" onClick={close}>
             {C.cancel}
           </Button>
-          <Button disabled={!chosen} onClick={add}>
-            {pickLabel}
-          </Button>
+          {multi ? (
+            <Button disabled={!ticked.length} onClick={finish}>
+              {M.add(ticked.length)}
+            </Button>
+          ) : (
+            <Button disabled={!chosen} onClick={add}>
+              {pickLabel}
+            </Button>
+          )}
         </span>
       </div>
     </EditorDialog>
