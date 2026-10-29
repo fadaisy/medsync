@@ -20,11 +20,12 @@ type Parsed = Extract<ReturnType<typeof parseGs1>, { ok: true }> & { gtin: strin
 type PackPick = Extract<CataloguePick, { kind: "pack" }>;
 
 /**
- * 4.1 The scan field at the top of a delivery (catalogue slice Step 7): always listening for a keyboard-wedge
- * scanner; Ctrl K opens the catalogue picker (the delivery takes it from Find). A known pack fills or adds to its
- * line (D-CAT-09); a new barcode opens 4.3, which never chooses. Nothing moves until the delivery is received.
+ * 4.1 The scan field at the top of a delivery (catalogue slice Step 7; board 1's navy scan band): always listening
+ * for a keyboard-wedge scanner, which may type anywhere on the page outside a field or dialog; Ctrl K opens the
+ * catalogue picker (the delivery takes it from Find). A known pack fills or adds to its line (D-CAT-09); a new
+ * barcode opens 4.3, which never chooses. Nothing moves until the delivery is received.
  */
-export function DeliveryScan({ deliveryId, typed }: { deliveryId: string; typed: string | null }) {
+export function DeliveryScan({ deliveryId }: { deliveryId: string }) {
   const id = useId();
   const router = useRouter();
   const field = useRef<HTMLInputElement>(null);
@@ -43,8 +44,20 @@ export function DeliveryScan({ deliveryId, typed }: { deliveryId: string; typed:
         setPicker(true);
       }
     };
+    // A wedge types its characters wherever focus is: outside a field or dialog, send them to the scan field.
+    // Space is left alone so it still presses a focused button.
+    const onType = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || e.key === " ") return;
+      const t = e.target instanceof Element ? e.target : null;
+      if (t?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")) return;
+      field.current?.focus();
+    };
     window.addEventListener("keydown", onKey, { capture: true });
-    return () => window.removeEventListener("keydown", onKey, { capture: true });
+    window.addEventListener("keydown", onType);
+    return () => {
+      window.removeEventListener("keydown", onKey, { capture: true });
+      window.removeEventListener("keydown", onType);
+    };
   }, []);
 
   const after = (r: Awaited<ReturnType<typeof scanIntoDelivery>>, raw?: string) => {
@@ -70,18 +83,27 @@ export function DeliveryScan({ deliveryId, typed }: { deliveryId: string; typed:
     });
 
   return (
-    <div className="bg-card border-border flex flex-col gap-2 rounded-lg border p-3">
-      <div className="flex flex-wrap items-end gap-2">
-        <div className="flex min-w-0 flex-1 basis-72 flex-col gap-1">
-          <Label htmlFor={id} className="inline-flex items-center gap-1.5">
-            <ScanLineIcon aria-hidden className="size-4" />
+    <div className="flex flex-col gap-2">
+      <div className="bg-tide-navy-900 text-tide-on-band rounded-tide-tile grid items-center gap-3 p-3.5 sm:grid-cols-[2.75rem_minmax(0,1fr)_auto]">
+        <span
+          aria-hidden
+          className="bg-tide-navy-700 hidden size-11 place-items-center rounded-xl sm:grid"
+        >
+          <ScanLineIcon className="size-5" />
+        </span>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <Label htmlFor={id} className="text-heading-s text-tide-on-band">
             {C.scanField}
           </Label>
+          <p id={`${id}-help`} className="text-caption text-tide-on-band-2">
+            {C.scanHelp}
+          </p>
           <Input
             id={id}
             ref={field}
             autoFocus
             autoComplete="off"
+            aria-describedby={`${id}-help`}
             value={value}
             disabled={pending}
             onChange={(e) => setValue(e.target.value)}
@@ -91,17 +113,19 @@ export function DeliveryScan({ deliveryId, typed }: { deliveryId: string; typed:
                 scan(value);
               }
             }}
-            className="min-h-11 font-mono"
+            className="bg-card text-foreground min-h-11 font-mono"
           />
         </div>
-        <Button variant="secondary" className="min-h-11" onClick={() => setPicker(true)}>
+        <Button
+          variant="secondary"
+          className="min-h-11 sm:self-end"
+          onClick={() => setPicker(true)}
+        >
           {C.receive.pickTitle}
         </Button>
       </div>
-      <p className="text-caption text-muted-foreground">{C.scanHelp}</p>
       <p role="status" aria-live="polite" className="text-body-s">
         {said ? said.ok ? said.text : <StatusWord tone="caution">{said.text}</StatusWord> : null}
-        {typed ? <span className="text-muted-foreground"> {typed}</span> : null}
       </p>
       <CataloguePicker
         open={picker}

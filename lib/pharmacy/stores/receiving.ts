@@ -6,6 +6,10 @@ import { daysBetween, expiresOn, isExpired } from "@/lib/pharmacy/stock/ledger";
  * and the result says which setting is missing.
  */
 
+/** "YYYY-MM-DD HH:MM" in Kampala time (UTC+3, no daylight saving): the arrival field's default, read back by `parseArrival`. */
+export const arrivalText = (at: Date): string =>
+  new Date(at.getTime() + 3 * 3_600_000).toISOString().slice(0, 16).replace("T", " ");
+
 export type DeliveryState = "counting" | "received" | "abandoned";
 export type RejectReason = "damaged" | "wrong_product" | "expired" | "short_dated" | "other";
 export type ShortDatedDecision = "accept" | "accept_tell" | "reject";
