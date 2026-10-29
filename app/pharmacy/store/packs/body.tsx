@@ -6,12 +6,13 @@ import { StatusWord } from "@/components/emr/status-word";
 import { PageHeader } from "@/components/medsync/page-header";
 import { PHARMACY } from "@/content/pharmacy";
 import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
 import { PACKS, SUPPLY_COMMON } from "@/content/pharmacy-stores-supply";
 import { db } from "@/db";
 import { asClinicalReader } from "@/lib/emr/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
-import { isPhase2Kind, packRows, peopleAt } from "@/lib/pharmacy/stores/packs";
+import { isPhase2Kind, packChoices, packRows, peopleAt } from "@/lib/pharmacy/stores/packs";
 import { supplyFlagOn } from "@/lib/pharmacy/stores/supply-action";
 import { PackDraftDialog, SignPackDialog } from "./_components/pack-dialogs";
 
@@ -30,10 +31,11 @@ const day = new Intl.DateTimeFormat("en-GB", {
 export async function PacksBody() {
   const actor = await requirePharmacyActor();
   if (!supplyFlagOn("packs", actor.hospitalId)) notFound();
-  const [rows, manages, people] = await Promise.all([
+  const [rows, manages, people, choices] = await Promise.all([
     asClinicalReader(actor, (tx) => packRows(tx, actor.hospitalId)),
     managesPharmacy(actor.userId, actor.hospitalId),
     peopleAt(db as unknown as EmrDb, actor.hospitalId),
+    packChoices(db as unknown as EmrDb, actor.hospitalId),
   ]);
   const me = people.find((p) => p.userId === actor.userId) ?? {
     userId: actor.userId,
@@ -49,7 +51,9 @@ export async function PacksBody() {
         place={PHARMACY.place}
         placeInTopBar
         title={PACKS.title}
-        subline={<span className="text-body-s text-muted-foreground">{PACKS.intro}</span>}
+        subline={
+          <span className="text-body-s text-muted-foreground">{STOCK_UP_POLISH.packs.intro}</span>
+        }
       />
       {groups.map((g) => (
         <section key={g.title} aria-labelledby={`packs-${g.title}`} className="flex flex-col gap-2">
@@ -107,7 +111,12 @@ export async function PacksBody() {
                       <td className="px-3 py-2">
                         {manages ? (
                           <span className="flex flex-wrap gap-2">
-                            <PackDraftDialog kind={r.kind} draft={r.draft?.content ?? null} />
+                            <PackDraftDialog
+                              kind={r.kind}
+                              draft={r.draft?.content ?? null}
+                              signed={r.signed?.content ?? null}
+                              choices={choices}
+                            />
                             {r.draft ? (
                               <SignPackDialog
                                 kind={r.kind}

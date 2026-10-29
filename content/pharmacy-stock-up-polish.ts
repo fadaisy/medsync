@@ -3,7 +3,7 @@ import type { SignedCopy } from "@/content/signed-copy";
 /**
  * Stocking-up polish (29 Oct 2026): the few new words the reworked "Start a delivery" dialog and the delivery page
  * (canvas board 1, "Count a delivery") need. Every other string on those screens is the signed Phase 2 store copy
- * (PHARMACY_STORES_COPY) or CATALOGUE, reused as written. Item 9 adds the picker's multi-mode words; item 11 the words for a product made from the catalogue. Draft until the CSO signs it; not tied to any flag.
+ * (PHARMACY_STORES_COPY) or CATALOGUE, reused as written. Item 9 adds the picker's multi-mode words; item 11 the words for a product made from the catalogue; item 12 the signed packs' starting drafts. Draft until the CSO signs it; not tied to any flag.
  */
 export const STOCK_UP_POLISH_COPY: SignedCopy = {
   status: "draft",
@@ -70,5 +70,22 @@ export const STOCK_UP_POLISH = {
       "This medicine is linked to the prescribing list in a way MedSync cannot read on its own. Open a line and choose the product.",
     noIssueUnit:
       "The catalogue does not say how this medicine is issued. Open a line and choose the product.",
+  },
+  /** Signed packs start from MedSync's sourced drafts (owner item 12, ADR 0469). */
+  packs: {
+    intro:
+      "Each pack is a hospital's own figures and lists. Write a draft opens with MedSync's starting draft: a national figure where one is printed, MedSync's proposal where none is, and empty where only your hospital can say. A pack acts only once signed.",
+    unsigned: "MedSync's starting draft, not yet signed by MedSync's clinical safety officer.",
+    fromTemplate:
+      "Starts from MedSync's draft. Check each field, change what does not fit your hospital, then save.",
+    fromSigned: "Starts from the version in force.",
+    basis: {
+      national: (source: string) => `National figure · ${source}`,
+      medsync: (reason: string) => `MedSync's proposal · ${reason}`,
+      hospital: (reason: string) => `Your hospital decides · ${reason}`,
+    },
+    choose: (value: string) => `Use ${value}`,
+    fieldBasis: "Where each part comes from",
+    unmapped: (items: string) => `Not on MedSync's medicine list, so not included: ${items}.`,
   },
 } as const;
