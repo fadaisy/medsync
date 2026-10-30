@@ -88,7 +88,7 @@ export async function openChecksOnHandover(
   lines: readonly GroupLine[],
   givenLineIds: readonly string[],
 ): Promise<RxFlag[]> {
-  const flags = rxFlags(lines.map((l) => ({ id: l.row.id, ...l.row })));
+  const flags = rxFlags(lines.map((l) => l.row));
   if (!flags.length) return [];
   return rxChecksOpen(flags, await answersFor(tx, hospitalId, givenLineIds), givenLineIds);
 }

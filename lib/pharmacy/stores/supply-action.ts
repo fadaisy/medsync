@@ -53,7 +53,7 @@ export async function supplyAct<I, R extends { id: string }>(
     if (!supplyFlagOn(flag, actor.hospitalId))
       return { ok: false, code: "config", error: SUPPLY_COMMON.flagOff };
     const result = await runPharmacyWrite(schema, raw, actor, storeNeed(permission), write);
-    if (result.ok) revalidatePath("/pharmacy/store", "layout");
+    if (result.ok) revalidatePath("/pharmacy", "layout");
     return result;
   } catch (e) {
     unstable_rethrow(e);

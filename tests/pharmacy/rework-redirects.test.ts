@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 
 import { PAGES, REDIRECTS, SETUP_HREF } from "@/lib/pharmacy/ia";
 
-const KEPT = ["/pharmacy/labels/:x", "/pharmacy/prescriptions/:x", "/pharmacy/prescriptions/:x/handover", "/pharmacy/slip/:x"];
+const KEPT = ["/pharmacy/stock/recall/:x", "/pharmacy/labels/:x", "/pharmacy/prescriptions/:x", "/pharmacy/prescriptions/:x/handover", "/pharmacy/slip/:x"];
 
 function routes(dir: string): string[] {
   return readdirSync(dir).flatMap((n) => {

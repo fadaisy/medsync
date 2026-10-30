@@ -608,25 +608,24 @@ export function FinishDelivery({
   witnesses: readonly WitnessOption[];
 }) {
   const router = useRouter();
-  const [witnessed, setWitnessed] = useState<Record<number, { attestationId: string; at: string }>>(
-    {},
-  );
+  // Rework PRD §6.4: one witness for the whole delivery, covering every controlled line.
+  const [witnessed, setWitnessed] = useState<{ attestationId: string; at: string } | null>(null);
   const [saved, setSaved] = useState(false);
   return (
     <div className="flex flex-col gap-4">
-      {controlledLines.map((c) => (
-        <div key={c.lineNo} className="border-border flex flex-col gap-2 rounded-md border p-3">
+      {controlledLines.length ? (
+        <div className="border-border flex flex-col gap-2 rounded-md border p-3">
           <p className="text-body-s font-medium">
-            {c.label} · {D.controlled}
+            {controlledLines.map((c) => c.label).join(", ")} · {D.controlled}
           </p>
           <StoreWitness
             witnesses={witnesses}
             action="controlled_receipt"
-            witnessed={witnessed[c.lineNo] ?? null}
-            onWitnessed={(w) => setWitnessed((m) => ({ ...m, [c.lineNo]: w }))}
+            witnessed={witnessed}
+            onWitnessed={setWitnessed}
           />
         </div>
-      ))}
+      ) : null}
       <div className="flex flex-wrap items-center gap-3">
         <Button
           type="button"
@@ -634,21 +633,20 @@ export function FinishDelivery({
           className={TARGET}
           onClick={() => {
             setSaved(true);
-            router.push("/pharmacy/store/deliveries");
+            router.push("/pharmacy/stock/store?tab=receive");
           }}
         >
           {D.saveLater}
         </Button>
         <ActButton
           label={D.addToStock(stockLines)}
-          disabled={stockLines === 0 || controlledLines.some((c) => !witnessed[c.lineNo])}
+          disabled={stockLines === 0 || (controlledLines.length > 0 && !witnessed)}
           run={() =>
             actions.receiveDelivery({
               deliveryId,
-              witnesses: Object.entries(witnessed).map(([lineNo, w]) => ({
-                lineNo: Number(lineNo),
-                attestationId: w.attestationId,
-              })),
+              witnesses: witnessed
+                ? controlledLines.map((c) => ({ lineNo: c.lineNo, attestationId: witnessed.attestationId }))
+                : [],
             })
           }
         />

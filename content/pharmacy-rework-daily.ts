@@ -39,3 +39,67 @@ export const RX_CHECKS = {
     open: "Answer the checks first: {titles}.",
   },
 } as const;
+
+export const COUNT = {
+  start: "Start a count",
+  startTitle: "Start a count",
+  where: "Where are you counting?",
+  whole: "Everything at this place",
+  label: "{place}, {date}",
+  open: "Counts in progress",
+  none: "No count is running. Start one for a shelf of medicines or the whole place; it saves as you type.",
+  status: { counting: "Counting", approval: "Waiting for approval", done: "Approved", cancelled: "Cancelled" },
+  continue: "Continue",
+  review: "Review",
+  progress: "{done} of {total} lines counted",
+  packs: "Packs of {n}",
+  loose: "Loose {unit}",
+  expires: "Expires {date}",
+  saved: "Saved",
+  diffsTitle: "Differences from the record",
+  diffsLead: "Every line is counted. Choose why each one differs.",
+  diff: "Counted {counted}, record says {recorded}",
+  reasons: {
+    damaged: "Damaged",
+    expired: "Expired",
+    broken_in_transit: "Broken in transit",
+    given_not_recorded: "Given but not recorded",
+    miscounted_last_time: "Miscounted last time",
+    found_other_shelf: "Found on another shelf",
+    received_not_recorded: "Received but not recorded",
+    other: "Other",
+  },
+  send: "Send for approval",
+  sendBlocked: "{n} lines left to count",
+  explainBlocked: "{n} differences need a reason",
+  waiting: "Sent for approval. The in-charge approves it; the record changes only then.",
+  approve: "Approve and post the differences",
+  sendBack: "Send back to recount",
+  approved: "Approved. The record now matches the count.",
+  back: "All counts",
+} as const;
+
+export const STORE = {
+  coldSoon: "The cold chain opens here when its part of the pharmacy is switched on.",
+} as const;
+
+export const TODAY = {
+  yourWork: "Your work",
+  inOrder: "{n} for you, in the order to do it",
+  nextUp: "Next up",
+  showAll: "Show all {n}",
+  showFewer: "Show fewer",
+  others: "{n} for other roles on shift",
+  othersTitle: "For other roles on shift",
+  nothing: "Nothing waits for you now. New work appears here as it arrives.",
+  late: "Late",
+  roles: { pharmacist: "Pharmacist on duty", storekeeper: "Store", incharge: "In-charge" },
+  count: {
+    run: "Continue the count: {label}",
+    runMeta: "Saved as you go",
+    approve: "Approve the count: {label}",
+    approveMeta: "Sent for approval; the record changes only when you approve",
+    continue: "Continue",
+    review: "Review",
+  },
+} as const;
