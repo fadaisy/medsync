@@ -350,3 +350,27 @@ $$;
 ALTER TABLE public.pharmacy_attestations DROP CONSTRAINT IF EXISTS pharmacy_attestations_method_check;
 ALTER TABLE public.pharmacy_attestations ADD CONSTRAINT pharmacy_attestations_method_check
   CHECK (method IN ('password+totp','session'));
+
+-- ─── 11. RLS on the new tables (the 0180 pattern): server writes only; readers see their hospital ────
+DO $$
+DECLARE t text;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['pharmacy_attestation_uses','pharmacy_duty_roster','pharmacy_witness_requests',
+    'pharmacy_cd_prescribers'] LOOP
+    IF t <> 'pharmacy_attestation_uses' THEN
+      EXECUTE format('DROP TRIGGER IF EXISTS audit_%1$s ON public.%1$I', t);
+      EXECUTE format('CREATE TRIGGER audit_%1$s AFTER INSERT OR UPDATE OR DELETE ON public.%1$I
+        FOR EACH ROW EXECUTE FUNCTION public.audit_log_changes()', t);
+    END IF;
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
+    EXECUTE format('ALTER TABLE public.%I FORCE ROW LEVEL SECURITY', t);
+    EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated', t);
+  END LOOP;
+  -- attestation_uses has no hospital column; it is read through its attestation only.
+  FOREACH t IN ARRAY ARRAY['pharmacy_duty_roster','pharmacy_witness_requests','pharmacy_cd_prescribers'] LOOP
+    EXECUTE format('GRANT SELECT ON public.%I TO medsync_clinical_reader', t);
+    EXECUTE format('DROP POLICY IF EXISTS %1$s_select ON public.%1$I', t);
+    EXECUTE format('CREATE POLICY %1$s_select ON public.%1$I FOR SELECT TO medsync_clinical_reader
+      USING (hospital_id = (SELECT private.current_hospital_id()) AND (SELECT private.pharmacy_can(''pharmacy.view'')))', t);
+  END LOOP;
+END $$;

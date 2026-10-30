@@ -1,4 +1,4 @@
-import { bigint, boolean, date, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, integer, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 /**
  * Pharmacy rework (migration 0265 onwards — GATED, owner-applied). The SQL is the source of truth: the witness
@@ -68,3 +68,57 @@ export const pharmacyCdPrescribers = pgTable("pharmacy_cd_prescribers", {
   createdBy: uuid("created_by").notNull(),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
 });
+
+// ─── 0266: daily work ────────────────────────────────────────────────────
+export type RxCheckAnswer = "checked" | "prescriber_confirmed" | "query";
+
+/** The pharmacist's answer to a check flag on a line (append-only; latest per line and code stands). */
+export const pharmacyRxChecks = pgTable("pharmacy_rx_checks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  lineId: uuid("line_id").notNull(),
+  code: text("code").notNull(),
+  level: text("level").$type<"stop" | "check">().notNull(),
+  answer: text("answer").$type<RxCheckAnswer>().notNull(),
+  reason: text("reason"),
+  prescriberUserId: uuid("prescriber_user_id"),
+  createdBy: uuid("created_by").notNull(),
+  createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+});
+
+export type CountSheetStatus = "counting" | "approval" | "done" | "cancelled";
+
+/** A count saved as you type; differences post only on the in-charge's approval. */
+export const pharmacyCountSheets = pgTable("pharmacy_count_sheets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  locationId: uuid("location_id").notNull(),
+  scope: text("scope").$type<"shelf" | "medicine" | "month_end">().notNull(),
+  label: text("label").notNull(),
+  status: text("status").$type<CountSheetStatus>().notNull().default("counting"),
+  createdBy: uuid("created_by").notNull(),
+  createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+  sentAt: timestamp("sent_at", tz),
+  approvedBy: uuid("approved_by"),
+  approvedAt: timestamp("approved_at", tz),
+  witnessAttestationId: uuid("witness_attestation_id"),
+  countId: uuid("count_id"),
+});
+
+export const pharmacyCountSheetLines = pgTable(
+  "pharmacy_count_sheet_lines",
+  {
+    sheetId: uuid("sheet_id").notNull(),
+    batchId: uuid("batch_id").notNull(),
+    shelf: text("shelf"),
+    packSize: integer("pack_size").notNull().default(1),
+    countedPacks: integer("counted_packs"),
+    countedUnits: integer("counted_units"),
+    found: boolean("found").notNull().default(false),
+    reason: text("reason"),
+    note: text("note"),
+    updatedBy: uuid("updated_by").notNull(),
+    updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.sheetId, t.batchId] })],
+);

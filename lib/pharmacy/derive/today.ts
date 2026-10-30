@@ -1,0 +1,47 @@
+import type { TodayItem, TodayKind, TodayRole } from "./today-types";
+
+/**
+ * Today's work list ranked for the role (rework PRD §6.1; prototype today.js ORDER and FOR, logic for logic).
+ * Items for the role come first in its order; the rest are "for other roles on shift". Pure.
+ */
+export const ORDER: Record<TodayRole, readonly TodayKind[]> = {
+  pharmacist: ["emerg", "rxq", "cold", "handover", "case", "cd", "mar", "rx", "op", "owed", "recall", "countdue", "countrun", "req", "transit", "exp", "out", "delivery", "approve", "paper", "sheet", "vax"],
+  storekeeper: ["emerg", "cold", "handover", "case", "delivery", "cd", "mar", "op", "req", "due", "transit", "countdue", "countrun", "out", "exp", "recall", "owed", "rx", "approve", "paper", "sheet", "vax"],
+  incharge: ["emerg", "cold", "handover", "case", "cd", "mar", "approve", "op", "paper", "recall", "rx", "req", "delivery", "out", "exp", "transit", "owed", "countrun", "countdue", "due", "sheet", "vax"],
+};
+
+const ALL: readonly TodayRole[] = ["pharmacist", "storekeeper", "incharge"];
+export const FOR: Record<TodayKind, readonly TodayRole[]> = {
+  rx: ["pharmacist", "incharge"],
+  owed: ["pharmacist"],
+  req: ["storekeeper"],
+  due: ["storekeeper"],
+  delivery: ["storekeeper"],
+  transit: ["storekeeper"],
+  countdue: ["pharmacist", "storekeeper"],
+  countrun: ["pharmacist", "storekeeper"],
+  approve: ["incharge"],
+  exp: ["storekeeper", "incharge"],
+  out: ["storekeeper", "incharge"],
+  paper: ["incharge"],
+  recall: ALL,
+  emerg: ALL,
+  cold: ALL,
+  mar: ["pharmacist", "incharge"],
+  cd: ["pharmacist", "incharge"],
+  handover: ALL,
+  case: ALL,
+  rxq: ["pharmacist", "incharge"],
+  op: ["pharmacist", "incharge"],
+  sheet: ["incharge"],
+  vax: ["storekeeper", "incharge"],
+};
+
+export function todayItems(role: TodayRole, items: readonly TodayItem[]) {
+  const order = ORDER[role];
+  const sorted = [...items].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
+  return {
+    mine: sorted.filter((x) => FOR[x.kind].includes(role)),
+    others: sorted.filter((x) => !FOR[x.kind].includes(role)),
+  };
+}

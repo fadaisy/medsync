@@ -131,14 +131,12 @@ describe("OQ-5 VEN trimming", () => {
       ["e1", 90, false],
     ]);
   });
-  it("vital cuts need a typed reason; returns proposals only", () => {
+  it("rework test 9: vital lines are never cut, even when the budget is not met", () => {
     const r = trimToBudget(lines, 300, "N");
-    const vital = "cuts" in r ? r.cuts.find((c) => c.trimmedAs === "V") : undefined;
-    expect(vital).toMatchObject({ productId: "v1", needsReason: true, toUnits: 30 });
-    expect(confirmCutRefusal(vital as NonNullable<typeof vital>, "")).toBe("reason_needed");
-    expect(
-      confirmCutRefusal(vital as NonNullable<typeof vital>, "Donated supply expected"),
-    ).toBeNull();
+    if (!("cuts" in r)) throw new Error("unexpected");
+    expect(r.cuts.some((c) => c.trimmedAs === "V")).toBe(false);
+    expect(r.met).toBe(false);
+    expect(r.cuts.every((c) => confirmCutRefusal(c, null) === null)).toBe(true);
   });
   it("unclassed lines are never silently necessary: unsigned choice, or an unknown price, computes nothing", () => {
     expect(trimToBudget(lines, 1000, null)).toEqual({

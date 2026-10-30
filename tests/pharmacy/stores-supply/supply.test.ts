@@ -120,16 +120,11 @@ describe("S40: VEN trimming proposes cuts in order and cuts nothing without conf
     { productId: "e", ven: "E" as const, units: 100, unitPrice: 1, packSize: null },
     { productId: "n", ven: "N" as const, units: 100, unitPrice: 1, packSize: null },
   ];
-  it("necessary first, then essential, vital last; a vital cut needs a typed reason", () => {
+  it("necessary first, then essential; vital is never cut (rework scenario 10)", () => {
     const t = trimToBudget(lines, 50, "N");
     if ("missing" in t) throw new Error("unexpected");
-    expect(t.cuts.map((c) => c.productId)).toEqual(["n", "e", "v"]);
-    const vital = t.cuts.find((c) => c.productId === "v")!;
-    expect(vital.needsReason).toBe(true);
-    expect(confirmCutRefusal(vital, null)).toBe("reason_needed");
-    expect(
-      confirmCutRefusal(vital, "Budget cut agreed with the medical superintendent"),
-    ).toBeNull();
+    expect(t.cuts.map((c) => c.productId)).toEqual(["n", "e"]);
+    expect(t.totalAfter).toBe(100);
     expect(confirmCutRefusal(t.cuts[0]!, null)).toBeNull();
   });
   it("with a price unknown nothing is trimmed", () => {

@@ -127,3 +127,9 @@ export const REDIRECTS: readonly { source: string; destination: string }[] = [
   { source: "/pharmacy/clinical/reconciliation/:id", destination: "/pharmacy/patients/inpatients" },
   { source: "/pharmacy/clinical/stewardship", destination: "/pharmacy/patients/outpatients?tab=courses" },
 ];
+
+/** The page's tab from `?tab=`, or its first tab. */
+export function tabOf(key: string, tab: string | string[] | undefined): string {
+  const tabs = pageByKey(key)?.tabs ?? [];
+  return typeof tab === "string" && tabs.includes(tab) ? tab : (tabs[0] ?? "");
+}
