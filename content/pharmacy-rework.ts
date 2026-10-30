@@ -25,6 +25,7 @@ export const RW = {
     online: "Online",
     offline: "Offline · {n} to send",
     offlineNone: "Offline",
+    queued: "Saved on this device. It sends when the network is back.",
     account: "Account",
     setup: "Set-up",
     switchAccount: "Switch account",

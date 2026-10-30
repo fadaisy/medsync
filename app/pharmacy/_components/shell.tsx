@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
+  BanIcon,
   BookOpenIcon,
   BoxesIcon,
   ClipboardListIcon,
@@ -26,7 +27,6 @@ import {
   WifiIcon,
   WifiOffIcon,
   XIcon,
-  BanIcon,
 } from "lucide-react";
 
 import { EmergencyInline } from "@/components/lab/emergency-inline";
@@ -36,6 +36,8 @@ import { RW } from "@/content/pharmacy-rework";
 import { fill, PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { pageOf, PAGES, sectionOf, SETUP_HREF } from "@/lib/pharmacy/ia";
 import { cn } from "@/lib/utils";
+import { flush, useOutbox } from "../_lib/outbox";
+import { RUNNERS } from "../_lib/outbox-runners";
 import { useOnline } from "../_lib/use-online";
 import { chooseActingPoint } from "../actions";
 import { pharmacyFindAction } from "../find-actions";
@@ -90,7 +92,13 @@ export interface PharmacyShellPayload {
  * as tabs, one page title, Start, Find, the station chip, the network pill and Emergency. `data-ds="tide"` switches
  * the Tide tokens on for the document while mounted, so dialogs take them too.
  */
-export function PharmacyShell({ payload, children }: { payload: PharmacyShellPayload; children: ReactNode }) {
+export function PharmacyShell({
+  payload,
+  children,
+}: {
+  payload: PharmacyShellPayload;
+  children: ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [findOpen, setFindOpen] = useState(false);
@@ -98,20 +106,30 @@ export function PharmacyShell({ payload, children }: { payload: PharmacyShellPay
   const [moreOpen, setMoreOpen] = useState(false);
   const page = pageOf(pathname);
   const here = sectionOf(pathname);
-  const visible = useMemo(() => PAGES.filter((p) => payload.pages.includes(p.key)), [payload.pages]);
+  const visible = useMemo(
+    () => PAGES.filter((p) => payload.pages.includes(p.key)),
+    [payload.pages],
+  );
   const sections = useMemo(
-    () => (["today", "dispense", "patients", "stock", "controls", "records"] as const).filter((s) =>
-      visible.some((p) => p.section === s),
-    ),
+    () =>
+      (["today", "dispense", "patients", "stock", "controls", "records"] as const).filter((s) =>
+        visible.some((p) => p.section === s),
+      ),
     [visible],
   );
   const sectionPages = here && here !== "setup" ? visible.filter((p) => p.section === here) : [];
-  const titleKey = here === "setup" ? "setup" : pathname.startsWith("/pharmacy/stock/recall") ? "recall" : page?.key;
+  const titleKey =
+    here === "setup"
+      ? "setup"
+      : pathname.startsWith("/pharmacy/stock/recall")
+        ? "recall"
+        : page?.key;
   const title = titleKey ? RW.pages[titleKey as keyof typeof RW.pages] : RW.sections.today;
   const lead = titleKey ? RW.leads[titleKey as keyof typeof RW.leads] : null;
   const sectionCount = (s: SectionId) =>
     visible.filter((p) => p.section === s).reduce((n, p) => n + (payload.counts[p.key] ?? 0), 0);
-  const firstHref = (s: SectionId) => visible.find((p) => p.section === s)?.href ?? "/pharmacy/today";
+  const firstHref = (s: SectionId) =>
+    visible.find((p) => p.section === s)?.href ?? "/pharmacy/today";
 
   // Ctrl K, Cmd K or / opens Find; `g` then a letter jumps to a section when focus is not in a field.
   useEffect(() => {
@@ -119,7 +137,9 @@ export function PharmacyShell({ payload, children }: { payload: PharmacyShellPay
     let gTimer: ReturnType<typeof setTimeout> | null = null;
     const typing = (t: EventTarget | null) =>
       t instanceof HTMLElement &&
-      (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName) || t.closest("[role=dialog]"));
+      (t.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName) ||
+        t.closest("[role=dialog]"));
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -166,12 +186,18 @@ export function PharmacyShell({ payload, children }: { payload: PharmacyShellPay
       />
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         {payload.overrides.length ? (
-          <p role="status" className="bg-status-caution-bg text-body-s rounded-tide-row px-4 py-2 text-amber-900 print:hidden">
+          <p
+            role="status"
+            className="bg-status-caution-bg text-body-s rounded-tide-row px-4 py-2 text-amber-900 print:hidden"
+          >
             {fill(S.overridesBand, { names: payload.overrides.join(", ") })}
           </p>
         ) : null}
         {payload.demo ? (
-          <p role="status" className="bg-tide-sunken text-body-s text-ink-700 rounded-tide-row px-4 py-2 print:hidden">
+          <p
+            role="status"
+            className="bg-tide-sunken text-body-s text-ink-700 rounded-tide-row px-4 py-2 print:hidden"
+          >
             {S.demoBand}
           </p>
         ) : null}
@@ -205,7 +231,10 @@ export function PharmacyShell({ payload, children }: { payload: PharmacyShellPay
         </header>
         <div className="flex flex-col gap-2">
           {sectionPages.length > 1 ? (
-            <nav aria-label={here ? RW.sections[here] : undefined} className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 print:hidden">
+            <nav
+              aria-label={here ? RW.sections[here] : undefined}
+              className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 print:hidden"
+            >
               {sectionPages.map((p) => {
                 const on = page?.key === p.key;
                 const n = payload.counts[p.key];
@@ -217,7 +246,9 @@ export function PharmacyShell({ payload, children }: { payload: PharmacyShellPay
                     aria-current={on ? "page" : undefined}
                     className={cn(
                       "focus-visible:shadow-focus inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 text-[13.5px] outline-none sm:min-h-9",
-                      on ? "bg-tide-navy-900 text-tide-on-band font-semibold" : "bg-card text-ink-700 shadow-tide-card hover:text-foreground",
+                      on
+                        ? "bg-tide-navy-900 text-tide-on-band font-semibold"
+                        : "bg-card text-ink-700 shadow-tide-card hover:text-foreground",
                     )}
                   >
                     {RW.pages[p.key as keyof typeof RW.pages]}
@@ -232,7 +263,9 @@ export function PharmacyShell({ payload, children }: { payload: PharmacyShellPay
               <span aria-hidden className="bg-area-medicines size-[7px] rounded-full" />
               {fill(S.overline, { hospital: payload.hospitalName })}
             </span>
-            <h1 className="text-foreground text-[24px] leading-[28px] tracking-[-0.02em]">{title}</h1>
+            <h1 className="text-foreground text-[24px] leading-[28px] tracking-[-0.02em]">
+              {title}
+            </h1>
             {lead ? <p className="text-body-s text-ink-600">{lead}</p> : null}
           </div>
         </div>
@@ -254,7 +287,12 @@ export function PharmacyShell({ payload, children }: { payload: PharmacyShellPay
         visible={visible.map((p) => p.key)}
         counts={payload.counts}
       />
-      <FindPalette key={findOpen ? "open" : "shut"} open={findOpen} onOpenChange={setFindOpen} pages={payload.pages} />
+      <FindPalette
+        key={findOpen ? "open" : "shut"}
+        open={findOpen}
+        onOpenChange={setFindOpen}
+        pages={payload.pages}
+      />
     </div>
   );
 }
@@ -304,7 +342,9 @@ function SectionLink({ s, on, n, href }: { s: SectionId; on: boolean; n: number;
       aria-label={n ? `${RW.sections[s]}, ${n}` : undefined}
       className={cn(
         "focus-visible:shadow-focus relative flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-[18px] px-1 pt-2 pb-3 text-center text-[12px] leading-[1.15] outline-none",
-        on ? "text-foreground font-semibold" : "text-tide-ink-3 hover:bg-background hover:text-foreground font-medium",
+        on
+          ? "text-foreground font-semibold"
+          : "text-tide-ink-3 hover:bg-background hover:text-foreground font-medium",
       )}
     >
       <Icon aria-hidden className="size-[21px]" strokeWidth={1.75} />
@@ -318,7 +358,10 @@ function SectionLink({ s, on, n, href }: { s: SectionId; on: boolean; n: number;
         </span>
       ) : null}
       {on ? (
-        <span aria-hidden className="bg-tide-lagoon absolute bottom-1 left-1/2 size-1.5 -translate-x-1/2 rounded-full" />
+        <span
+          aria-hidden
+          className="bg-tide-lagoon absolute bottom-1 left-1/2 size-1.5 -translate-x-1/2 rounded-full"
+        />
       ) : null}
     </Link>
   );
@@ -392,7 +435,10 @@ function PillLink({ s, on, n, href }: { s: SectionId; on: boolean; n: number; hr
       <Icon aria-hidden className="size-5" strokeWidth={1.75} />
       {RW.sections[s]}
       {n ? (
-        <span aria-hidden className="bg-tide-navy-900 text-tide-on-band absolute top-0.5 right-[18%] min-w-5 rounded-full px-1 text-[10.5px] leading-5 font-semibold tabular-nums">
+        <span
+          aria-hidden
+          className="bg-tide-navy-900 text-tide-on-band absolute top-0.5 right-[18%] min-w-5 rounded-full px-1 text-[10.5px] leading-5 font-semibold tabular-nums"
+        >
           {n}
         </span>
       ) : null}
@@ -448,7 +494,12 @@ function MoreDialog({
 }
 
 const START: { key: keyof typeof RW.start; icon: LucideIcon; href: string; page: string }[] = [
-  { key: "handOver", icon: PillIcon, href: "/pharmacy/dispense?tab=waiting&next=1", page: "dispense" },
+  {
+    key: "handOver",
+    icon: PillIcon,
+    href: "/pharmacy/dispense?tab=waiting&next=1",
+    page: "dispense",
+  },
   { key: "receive", icon: TruckIcon, href: "/pharmacy/stock/store?tab=receive", page: "store" },
   { key: "issue", icon: SendIcon, href: "/pharmacy/stock/store?tab=issue", page: "store" },
   { key: "count", icon: ClipboardListIcon, href: "/pharmacy/stock/store?tab=count", page: "store" },
@@ -485,7 +536,7 @@ function StartDialog({
                 href={t.href}
                 prefetch={false}
                 onClick={() => onOpenChange(false)}
-                className="bg-card shadow-tide-card rounded-tide-tile focus-visible:shadow-focus flex min-h-24 flex-col gap-1 p-3 outline-none hover:bg-muted"
+                className="bg-card shadow-tide-card rounded-tide-tile focus-visible:shadow-focus hover:bg-muted flex min-h-24 flex-col gap-1 p-3 outline-none"
               >
                 <Icon aria-hidden className="text-ink-700 size-5" strokeWidth={1.75} />
                 <span className="text-[14px] font-semibold">{label}</span>
@@ -503,6 +554,10 @@ function StartDialog({
 /** Online, or offline (grey, never amber, Tide screen rule 8). The outbox count joins it with the offline queue. */
 function NetworkPill() {
   const online = useOnline();
+  const waiting = useOutbox().length;
+  useEffect(() => {
+    if (online && waiting) void flush(RUNNERS);
+  }, [online, waiting]);
   const Icon = online ? WifiIcon : WifiOffIcon;
   return (
     <span
@@ -513,7 +568,9 @@ function NetworkPill() {
       )}
     >
       <Icon aria-hidden className="size-4" strokeWidth={1.75} />
-      <span className="max-sm:sr-only">{online ? S.online : S.offlineNone}</span>
+      <span className="max-sm:sr-only">
+        {online ? S.online : waiting ? fill(S.offline, { n: waiting }) : S.offlineNone}
+      </span>
     </span>
   );
 }
@@ -576,14 +633,24 @@ function AccountMenu({ payload }: { payload: PharmacyShellPayload }) {
       <PopoverContent side="right" align="end" className="w-60">
         <p className="text-body-s text-foreground font-medium">{payload.userName}</p>
         <div className="mt-3 flex flex-col gap-1">
-          <Link href={SETUP_HREF} prefetch={false} className="text-body-s text-primary rounded-md px-2 py-1.5 hover:underline">
+          <Link
+            href={SETUP_HREF}
+            prefetch={false}
+            className="text-body-s text-primary rounded-md px-2 py-1.5 hover:underline"
+          >
             {S.setup}
           </Link>
-          <Link href="/accounts" className="text-body-s text-primary rounded-md px-2 py-1.5 hover:underline">
+          <Link
+            href="/accounts"
+            className="text-body-s text-primary rounded-md px-2 py-1.5 hover:underline"
+          >
             {S.switchAccount}
           </Link>
           <form action="/sign-out" method="post">
-            <button type="submit" className="text-body-s text-primary w-full rounded-md px-2 py-1.5 text-left hover:underline">
+            <button
+              type="submit"
+              className="text-body-s text-primary w-full rounded-md px-2 py-1.5 text-left hover:underline"
+            >
               {S.signOut}
             </button>
           </form>
@@ -593,9 +660,22 @@ function AccountMenu({ payload }: { payload: PharmacyShellPayload }) {
   );
 }
 
-type Row = { key: string; group: keyof typeof F.groups; label: ReactNode; sub?: ReactNode; href: string };
-const GROUP_ORDER = ["batch", "supplied", "patient", "prescription", "slip", "delivery", "page"] as const satisfies
-  readonly (keyof typeof F.groups)[];
+type Row = {
+  key: string;
+  group: keyof typeof F.groups;
+  label: ReactNode;
+  sub?: ReactNode;
+  href: string;
+};
+const GROUP_ORDER = [
+  "batch",
+  "supplied",
+  "patient",
+  "prescription",
+  "slip",
+  "delivery",
+  "page",
+] as const satisfies readonly (keyof typeof F.groups)[];
 
 /** Find: a centred dialog, results as a listbox with arrow keys. Numbers are posted, never put in a URL. */
 function FindPalette({
@@ -646,7 +726,8 @@ function FindPalette({
     const t = q.trim().toLowerCase();
     for (const p of PAGES.filter((x) => pages.includes(x.key))) {
       const label = `${RW.sections[p.section]} › ${RW.pages[p.key as keyof typeof RW.pages]}`;
-      if (t && label.toLowerCase().includes(t)) out.push({ key: `g${p.href}`, group: "page", label, href: p.href });
+      if (t && label.toLowerCase().includes(t))
+        out.push({ key: `g${p.href}`, group: "page", label, href: p.href });
     }
     if (t && `${RW.pages.setup}`.toLowerCase().includes(t))
       out.push({ key: "gsetup", group: "page", label: RW.pages.setup, href: SETUP_HREF });
@@ -658,12 +739,17 @@ function FindPalette({
     onOpenChange(false);
     router.push(r.href);
   };
-  const groups = GROUP_ORDER.map((g) => ({ g, items: rows.filter((r) => r.group === g) })).filter((x) => x.items.length);
+  const groups = GROUP_ORDER.map((g) => ({ g, items: rows.filter((r) => r.group === g) })).filter(
+    (x) => x.items.length,
+  );
   const text = q.trim();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="top-[12vh] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-2xl">
+      <DialogContent
+        showCloseButton={false}
+        className="top-[12vh] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-2xl"
+      >
         <DialogTitle className="sr-only">{F.label}</DialogTitle>
         <div className="border-border flex items-center gap-3 border-b px-4">
           <SearchIcon aria-hidden className="text-tide-ink-3 size-5" />
@@ -700,15 +786,29 @@ function FindPalette({
             <XIcon aria-hidden className="size-4" />
           </button>
         </div>
-        <div id="pharmacy-find-list" role="listbox" aria-label={F.label} aria-busy={pending} className="max-h-[60vh] overflow-y-auto p-2">
+        <div
+          id="pharmacy-find-list"
+          role="listbox"
+          aria-label={F.label}
+          aria-busy={pending}
+          className="max-h-[60vh] overflow-y-auto p-2"
+        >
           {groups.length === 0 ? (
             <p className="text-body-s text-muted-foreground px-3 py-6">
-              {failed ? F.failed : text.length < 2 ? F.short : pending ? F.searching : fill(F.nothing, { q: text })}
+              {failed
+                ? F.failed
+                : text.length < 2
+                  ? F.short
+                  : pending
+                    ? F.searching
+                    : fill(F.nothing, { q: text })}
             </p>
           ) : (
             groups.map(({ g, items }) => (
               <div key={g} role="group" aria-label={F.groups[g]} className="mb-1">
-                <p className="text-overline text-tide-ink-3 px-3 pt-2 pb-1 uppercase">{F.groups[g]}</p>
+                <p className="text-overline text-tide-ink-3 px-3 pt-2 pb-1 uppercase">
+                  {F.groups[g]}
+                </p>
                 {items.map((r) => {
                   const i = rows.indexOf(r);
                   return (
@@ -719,10 +819,15 @@ function FindPalette({
                       aria-selected={i === active}
                       onMouseEnter={() => setActive(i)}
                       onClick={() => go(r)}
-                      className={cn("rounded-tide-row flex min-h-11 cursor-pointer flex-col justify-center px-3 py-2", i === active && "bg-tide-lagoon-tint")}
+                      className={cn(
+                        "rounded-tide-row flex min-h-11 cursor-pointer flex-col justify-center px-3 py-2",
+                        i === active && "bg-tide-lagoon-tint",
+                      )}
                     >
                       <span className="text-body-s text-foreground">{r.label}</span>
-                      {r.sub ? <span className="text-caption text-muted-foreground">{r.sub}</span> : null}
+                      {r.sub ? (
+                        <span className="text-caption text-muted-foreground">{r.sub}</span>
+                      ) : null}
                     </div>
                   );
                 })}

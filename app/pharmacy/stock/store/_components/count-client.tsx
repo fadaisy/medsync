@@ -6,10 +6,12 @@ import { useRef, useState, useTransition } from "react";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { LabButton } from "@/components/tide/work/button";
 import { DialogTitle } from "@/components/ui/dialog";
+import { RW } from "@/content/pharmacy-rework";
 import { COUNT } from "@/content/pharmacy-rework-daily";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { FEWER, MORE } from "@/lib/pharmacy/derive/count";
 import { cn } from "@/lib/utils";
+import { enqueue } from "../../../_lib/outbox";
 import {
   approveCount,
   saveCountLine,
@@ -169,14 +171,21 @@ export function CountLine({
   const save = (p: number | null, u: number | null) => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
-      const r = await saveCountLine({
+      const payload = {
         sheetId,
         batchId: line.batchId,
         packSize: line.packSize,
         countedPacks: p,
         countedUnits: u,
         reason: line.reason,
-      });
+      };
+      const offline = () =>
+        enqueue("saveCountLine", `${sheetId}:${line.batchId}`, payload).then(() =>
+          setState(RW.shell.queued),
+        );
+      if (!navigator.onLine) return offline();
+      const r = await saveCountLine(payload).catch(() => null);
+      if (!r) return offline();
       setState(r.ok ? "saved" : (r.error ?? ""));
     }, 400);
   };
