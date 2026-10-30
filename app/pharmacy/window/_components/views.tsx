@@ -2,8 +2,8 @@ import type { PharmacyV2 } from "../../_lib/v2";
 import type { ReviewRow } from "@/lib/pharmacy/review/read";
 import type { requirePharmacyActor } from "@/lib/pharmacy/actor";
 
-import { EmptyState, Pill } from "@/app/lab/_components/v2/kit";
-import { SecondaryLink } from "@/app/lab/_components/v2/space";
+import { EmptyState, Pill } from "@/components/tide/work/kit";
+import { SecondaryLink } from "@/components/tide/work/space";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_WINDOW } from "@/content/pharmacy-workspace-v2-window";
 import { CLOSE_REASONS, NOT_SUPPLIED_REASONS, REVIEW } from "@/content/pharmacy-review";

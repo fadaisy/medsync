@@ -17,9 +17,9 @@ import { formatDuration } from "@/lib/lab/turnaround";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { ReasonBars, Sparkline, WeeklyLine } from "../_components/charts";
 import { loadReport } from "../_lib/load";
-import { EmptyState, KeyFigure, KeyFigureGrid, Panel } from "../../_components/v2/kit";
+import { EmptyState, KeyFigure, KeyFigureGrid, Panel } from "@/components/tide/work/kit";
 import { PeriodPicker, PickChip } from "../../_components/v2/period-picker";
-import { SpaceHeader } from "../../_components/v2/space";
+import { SpaceHeader } from "@/components/tide/work/space";
 import { dateWords, timeWords } from "../../_lib/days";
 
 const R = LAB3_REPORTS;

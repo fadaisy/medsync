@@ -1,4 +1,4 @@
-import { Bone, CardBone, PlaceLoading } from "@/app/lab/_components/v2/loading";
+import { Bone, CardBone, PlaceLoading } from "@/components/tide/work/loading";
 import { PHWS2 } from "@/content/pharmacy-workspace-v2";
 
 /** Needs you: filter chips over grouped panels. */

@@ -244,6 +244,8 @@ describe("source rules", () => {
       "app/pharmacy/store/packs/actions.ts",
       "app/pharmacy/store/wards/actions.ts",
       "app/pharmacy/supply-actions.ts",
+      // Rework P1: the witness on their own screen.
+      "app/pharmacy/witness-actions.ts",
     ]);
     for (const f of actions)
       expect(read(f), f).not.toMatch(

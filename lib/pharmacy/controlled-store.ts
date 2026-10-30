@@ -665,7 +665,7 @@ export async function confirmBackEnteredControlledSupply(
     id: await entry(ctx, {
       kind: "back_entry_confirmed",
       medicineId: e.medicineId,
-      pointId: e.pointId,
+      pointId: e.pointId ?? undefined,
       witness,
       confirmsEntryId: e.id,
     }),

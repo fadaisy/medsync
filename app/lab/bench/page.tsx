@@ -7,7 +7,7 @@ import { identitiesFor } from "@/lib/emr/read/results";
 import { repeatTasks } from "@/lib/lab/qc-store";
 import { ScanReceive } from "../_components/bench-bar";
 import { RepeatTasks } from "../_components/repeat-tasks";
-import { EmptyState, Panel } from "../_components/v2/kit";
+import { EmptyState, Panel } from "@/components/tide/work/kit";
 import { one } from "../_lib/place-tabs";
 import { labV2 } from "../_lib/places";
 import { ncLiveFor } from "../quality/_lib/scope";

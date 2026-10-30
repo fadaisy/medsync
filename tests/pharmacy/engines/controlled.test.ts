@@ -124,9 +124,9 @@ describe("CD-2 the witness (PA2-6, D-PH1-27, D-PH1-42)", () => {
     ).toBe(false);
   });
 
-  it("CD-2 the attestation stands for 30 minutes, not after", () => {
-    expect(stands(attestation({ attestedAt: min(-30) }))).toBe(true);
-    expect(stands(attestation({ attestedAt: new Date(min(-30).getTime() - 1) }))).toBe(false);
+  it("CD-2 the attestation stands for 10 minutes, not after (rework S3)", () => {
+    expect(stands(attestation({ attestedAt: min(-10) }))).toBe(true);
+    expect(stands(attestation({ attestedAt: new Date(min(-10).getTime() - 1) }))).toBe(false);
   });
 
   it("CD-2 S63 a technician cannot supply a controlled line, and can witness if the signed list says so", () => {

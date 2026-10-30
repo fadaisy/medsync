@@ -99,7 +99,7 @@ describe.skipIf(!laneOn)("Pharmacy Phase 3 data layer (0210)", () => {
       ]),
     ).toMatch(/two signers/);
     const x = await entry();
-    await sign(x, f.pharmacist, "CSO signs alone (ADR 0281)");
+    await sign(x, f.pharmacist, "CSO signs alone");
     expect(
       await err(`UPDATE public.pharmacy_content_entries SET status = 'in_force' WHERE id = $1`, [
         x,
@@ -123,7 +123,7 @@ describe.skipIf(!laneOn)("Pharmacy Phase 3 data layer (0210)", () => {
       ),
     ).not.toBe("ran");
     const w = await entry();
-    await sign(w, f.pharmacist, "CSO signs alone (ADR 0281)");
+    await sign(w, f.pharmacist, "CSO signs alone");
     await pg.query(`UPDATE public.pharmacy_content_entries SET status = 'in_force' WHERE id = $1`, [
       w,
     ]);

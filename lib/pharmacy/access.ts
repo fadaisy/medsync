@@ -62,16 +62,17 @@ const NOT_FROM_CADRE_V2: readonly PharmacyPermission[] = ["pharmacy.manage"];
 export const PHARMACY_MAP_V2: PermissionMap = MAP_V2;
 
 /**
- * The map the dispensing paths read. Version 2 is signed for building but provisional until legal
- * question 1 has an interim answer on record (D-PH1-03), so production keeps version 1 — the same
- * production gate as Phase 0's wording (CS-5). Phase 0's own paths keep `pharmacyAccess` and v1.
+ * The map the dispensing paths read. Version 2 is provisional until legal question 1 has an answer on record
+ * (D-PH1-03). Rework S13: in production the hospital's recorded answer switches it on (`legalQ1RecordedFor`), so a
+ * pilot needs no deploy; until then production keeps version 1.
  */
 export function dispensingMap(
   env: string | undefined = process.env.VERCEL_ENV,
   hospitalId: string | null = null,
   devHospitals: string | undefined = process.env.PHARMACY_DEV_HOSPITALS,
+  legalQ1Recorded = false,
 ): PermissionMap {
-  if (env !== "production") return PHARMACY_MAP_V2;
+  if (env !== "production" || legalQ1Recorded) return PHARMACY_MAP_V2;
   return pharmacyDevHospital(hospitalId, devHospitals) ? PHARMACY_MAP_V2 : PERMISSION_MAP;
 }
 

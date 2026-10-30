@@ -13,7 +13,7 @@ import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { saveRangeDraftAction, signRangeAsLeadAction } from "@/lib/lab/measures-actions";
 import { resolveRange } from "@/lib/lab/ranges";
 import { toDays } from "../_lib/ages";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =

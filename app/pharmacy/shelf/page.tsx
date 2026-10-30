@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { KeyFigure, KeyFigureGrid, NotSet, Panel, Pill } from "@/app/lab/_components/v2/kit";
-import { PillTabs, SpaceHeader } from "@/app/lab/_components/v2/space";
+import { KeyFigure, KeyFigureGrid, NotSet, Panel, Pill } from "@/components/tide/work/kit";
+import { PillTabs, SpaceHeader } from "@/components/tide/work/space";
 import { fill, PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_SHELF as S } from "@/content/pharmacy-workspace-v2-shelf";
 import { expiryText } from "@/content/pharmacy-stock";

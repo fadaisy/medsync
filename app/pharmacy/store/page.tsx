@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { NotSet, Panel } from "@/app/lab/_components/v2/kit";
-import { PillTabs, SpaceHeader } from "@/app/lab/_components/v2/space";
+import { NotSet, Panel } from "@/components/tide/work/kit";
+import { PillTabs, SpaceHeader } from "@/components/tide/work/space";
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { fill, PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_STORE as S } from "@/content/pharmacy-workspace-v2-store";

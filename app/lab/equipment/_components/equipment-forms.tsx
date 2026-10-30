@@ -22,7 +22,7 @@ import { quarantineLotAction } from "@/lib/lab/stock-actions";
 import { cn } from "@/lib/utils";
 import { EQUIPMENT as C } from "../_lib/copy";
 import { inputClass, newKey, num, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { DateField, DateTimeField } from "../../_components/v2/fields";
 import { dateWords, timeWords } from "../../_lib/days";
 import { ActButton } from "../../quality/_components/act-button";

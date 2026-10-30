@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { PillTabs } from "@/app/lab/_components/v2/space";
+import { PillTabs } from "@/components/tide/work/space";
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_SETUP as S } from "@/content/pharmacy-workspace-v2-setup";

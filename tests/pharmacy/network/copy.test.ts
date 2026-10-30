@@ -9,11 +9,11 @@ import {
 } from "@/content/pharmacy-network";
 
 describe("Phase 4 wording records (CS-5)", () => {
-  it("Steps 2 to 5 are signed by the CSO alone (D-PH4-29, 26 Oct 2026); the partner side stays draft", () => {
+  it("the rework copy sweep returned Steps 2 to 5 to draft for re-signing; the partner side stays draft", () => {
     expect(PHARMACY_NETWORK_COPY).toEqual({
-      status: "signed",
-      signedBy: "Fadhul (CSO)",
-      signedOn: "2026-10-26",
+      status: "draft",
+      signedBy: null,
+      signedOn: null,
     });
     expect(PHARMACY_PARTNER_COPY.status).toBe("draft");
   });

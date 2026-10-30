@@ -136,7 +136,7 @@ export const STORE = {
     retire: "No longer used",
     count: "Count",
     opening: "Opening count",
-    pointNote: "Dispensing points are made on the hub, as Phase 1 does.",
+    pointNote: "Dispensing points are made on the hospital hub.",
     manageOnly: "Only the pharmacy in charge changes places and suppliers.",
   },
 

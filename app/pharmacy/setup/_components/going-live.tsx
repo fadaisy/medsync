@@ -1,6 +1,6 @@
 import type { PharmacyPoint } from "@/lib/pharmacy/write";
 
-import { Pill } from "@/app/lab/_components/v2/kit";
+import { Pill } from "@/components/tide/work/kit";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_SETUP } from "@/content/pharmacy-workspace-v2-setup";
 import { pointState } from "@/lib/pharmacy/workspace-v2/setup";

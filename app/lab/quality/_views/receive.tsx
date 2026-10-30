@@ -9,7 +9,7 @@ import { labStockLiveFor } from "@/lib/lab/feature";
 import { analyteName } from "@/lib/lab/qc-store";
 import { loadStock } from "@/lib/lab/stock-read";
 import { FocusLot } from "../_components/focus-lot";
-import { EmptyState } from "../../_components/v2/kit";
+import { EmptyState } from "@/components/tide/work/kit";
 import { dateWords, timeWords } from "../../_lib/days";
 import { AcceptCard, DeliveryForm } from "../../stock/_components/receive-forms";
 import { RECEIVE as C } from "../../stock/_lib/copy";

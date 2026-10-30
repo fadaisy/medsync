@@ -14,9 +14,9 @@ import { planMissing, testOptions } from "@/lib/lab/qc-plan-form";
 import { RULE_IDS } from "@/lib/lab/qc-rules";
 import { cn } from "@/lib/utils";
 import { QUALITY } from "../_lib/copy";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { NumberStepper, PickField } from "../../_components/v2/fields";
-import { EmptyState, Panel, Pill } from "../../_components/v2/kit";
+import { EmptyState, Panel, Pill } from "@/components/tide/work/kit";
 
 const P = LABWS2_QUALITY.newPlan;
 const FIELD =

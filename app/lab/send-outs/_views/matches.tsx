@@ -15,7 +15,7 @@ import { kampalaToday } from "@/lib/lab/referral-words";
 import { cn } from "@/lib/utils";
 import { ResolveDialog } from "../_components/match-forms";
 import { hrefWith } from "../_lib/links";
-import { EmptyState, KeyFigure, KeyFigureGrid, Panel } from "../../_components/v2/kit";
+import { EmptyState, KeyFigure, KeyFigureGrid, Panel } from "@/components/tide/work/kit";
 import { dateWords } from "../../_lib/days";
 
 const REASON: Record<string, string> = {

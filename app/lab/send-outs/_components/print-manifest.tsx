@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { printManifestAction } from "@/lib/lab/referral-actions";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 
 /** MF-4: every print is recorded before the browser prints; a reprint says "Copy". */
 export function PrintManifest({ manifestId }: { manifestId: string }) {

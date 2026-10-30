@@ -14,7 +14,7 @@ import { acceptLotAction, receiveDeliveryAction, rejectLotAction } from "@/lib/l
 import { cn } from "@/lib/utils";
 import { RECEIVE as C, STOCK } from "../_lib/copy";
 import { inputClass, newKey, num, selectClass } from "../../_components/pop";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { DateField, DateTimeField } from "../../_components/v2/fields";
 import { ActButton } from "../../quality/_components/act-button";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";

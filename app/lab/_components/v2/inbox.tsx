@@ -13,7 +13,7 @@ import { RestrictedMark } from "@/components/emr/chips";
 import { CriticalPill, CriticalTile } from "@/components/emr/status-word";
 import { fill, LABWS2 } from "@/content/lab-workspace-v2";
 import { waited } from "@/lib/lab/needs-you";
-import { Ident } from "./kit";
+import { Ident } from "@/components/tide/work/kit";
 
 const N = LABWS2.needsYou;
 const ICON = {

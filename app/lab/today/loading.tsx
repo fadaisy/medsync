@@ -1,5 +1,5 @@
 import { LABWS2 } from "@/content/lab-workspace-v2";
-import { Bone, CardBone, PlaceLoading, TabsBone } from "../_components/v2/loading";
+import { Bone, CardBone, PlaceLoading, TabsBone } from "@/components/tide/work/loading";
 
 /** Today's shape: period tabs and section chips, the navy hero beside the stage cards, then two cards. */
 export default function Loading() {

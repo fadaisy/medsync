@@ -1,4 +1,4 @@
-import { TabbedLoading } from "@/app/lab/_components/v2/loading";
+import { TabbedLoading } from "@/components/tide/work/loading";
 import { PHWS2 } from "@/content/pharmacy-workspace-v2";
 
 export default function Loading() {

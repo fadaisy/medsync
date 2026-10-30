@@ -1,6 +1,6 @@
 "use client";
 
-import { LabButton } from "@/app/lab/_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { PHWS2 } from "@/content/pharmacy-workspace-v2";
 
 export default function PlaceError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {

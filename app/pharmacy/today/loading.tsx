@@ -1,4 +1,4 @@
-import { Bone, CardBone, PlaceLoading, TabsBone } from "@/app/lab/_components/v2/loading";
+import { Bone, CardBone, PlaceLoading, TabsBone } from "@/components/tide/work/loading";
 import { PHWS2 } from "@/content/pharmacy-workspace-v2";
 
 /** Today's shape: scope tabs, the limits line, the navy hero, the figures, flow beside Needs you, points. */

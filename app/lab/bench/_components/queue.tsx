@@ -8,7 +8,7 @@ import { useRef } from "react";
 import { fill, LABWS2 } from "@/content/lab-workspace-v2";
 import { formatDuration } from "@/lib/lab/turnaround";
 import { cn } from "@/lib/utils";
-import { Ident, LatePill, Pill } from "../../_components/v2/kit";
+import { Ident, LatePill, Pill } from "@/components/tide/work/kit";
 import { ReceiveRow } from "./receive-row";
 
 const B = LABWS2.bench;

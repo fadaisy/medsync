@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { NotSet, Pill } from "@/app/lab/_components/v2/kit";
-import { SecondaryLink } from "@/app/lab/_components/v2/space";
+import { NotSet, Pill } from "@/components/tide/work/kit";
+import { SecondaryLink } from "@/components/tide/work/space";
 import { fill, PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_CLINICAL as C } from "@/content/pharmacy-workspace-v2-clinical";
 import { db } from "@/db";

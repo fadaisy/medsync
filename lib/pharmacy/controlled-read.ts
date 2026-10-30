@@ -36,6 +36,7 @@ import {
   witnessAllowed,
 } from "@/lib/pharmacy/controlled";
 import { classWords, controlledIngredient } from "@/lib/pharmacy/controlled-substances";
+import { legalQ1RecordedFor } from "@/lib/pharmacy/legal";
 import { cadreOfUsers } from "@/lib/pharmacy/read";
 import { expiresOn, isExpired, localDate } from "@/lib/pharmacy/stock/ledger";
 import { drugById, DRUGS } from "@/lib/prescribing/formulary";
@@ -195,13 +196,14 @@ export async function witnessCandidates(
       ),
     )
     .orderBy(asc(users.fullName));
+  const map = dispensingMap(undefined, hospitalId, undefined, process.env.VERCEL_ENV === "production" && (await legalQ1RecordedFor(hospitalId)));
   const seen = new Set<string>();
   return rows.flatMap((r) => {
     if (seen.has(r.userId)) return [];
     seen.add(r.userId);
     const ok = witnessAllowed({
       witnessPermissions: [
-        ...pharmacyDispensingAccess(r.code, dispensingMap(undefined, hospitalId)).permissions,
+        ...pharmacyDispensingAccess(r.code, map).permissions,
       ],
       signedWitnessList: list,
       witnessUserId: r.userId,
@@ -668,7 +670,8 @@ export async function getRegisterEntry(
     entryId: e.id,
     kind: e.kind,
     hospital: e.hospital,
-    pointId: e.pointId,
+    // Point registers only here; ward and cart registers (location_id) are read by the Controls pages.
+    pointId: e.pointId ?? "",
     point: e.point,
     recordedAt: e.recordedAt.toISOString(),
     patientUserId: h?.patient ?? null,

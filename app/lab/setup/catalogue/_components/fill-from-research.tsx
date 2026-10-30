@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { fillCatalogueFromResearchAction } from "@/lib/lab/measures-actions";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 
 /**
  * Fill every component that has no unit yet from the MedSync catalogue research: the standard UCUM unit, its

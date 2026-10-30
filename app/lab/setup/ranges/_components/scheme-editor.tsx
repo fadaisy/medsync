@@ -25,7 +25,7 @@ import {
   SEX_WORDS,
   signErrorWords,
 } from "../_lib/schemes-copy";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { SchemeSign } from "./scheme-sign";
 

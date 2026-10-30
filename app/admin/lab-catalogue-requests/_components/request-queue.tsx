@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { LabButton } from "@/app/lab/_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { useMenuAction } from "@/components/lab/test-menu/use-menu-action";
 import { LAB_TEST_MENU as C } from "@/content/lab-test-menu";
 import { decideRequestAction } from "@/lib/lab/test-menu-actions";

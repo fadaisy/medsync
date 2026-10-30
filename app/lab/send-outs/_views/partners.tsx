@@ -19,7 +19,7 @@ import {
   TestsDialog,
 } from "../_components/partner-forms";
 import { hrefWith } from "../_lib/links";
-import { EmptyState } from "../../_components/v2/kit";
+import { EmptyState } from "@/components/tide/work/kit";
 
 const KIND_WORDS: Record<string, string> = {
   national_reference: "National reference lab",

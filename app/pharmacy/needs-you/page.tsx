@@ -14,8 +14,8 @@ import {
   TruckIcon,
 } from "lucide-react";
 
-import { EmptyState } from "@/app/lab/_components/v2/kit";
-import { FilterChips, SecondaryLink, SpaceHeader } from "@/app/lab/_components/v2/space";
+import { EmptyState } from "@/components/tide/work/kit";
+import { FilterChips, SecondaryLink, SpaceHeader } from "@/components/tide/work/space";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_NEEDS_YOU as N } from "@/content/pharmacy-workspace-v2-needs-you";
 import { filterNeedsYou, groupNeedsYou } from "@/lib/pharmacy/workspace-v2/needs-you";

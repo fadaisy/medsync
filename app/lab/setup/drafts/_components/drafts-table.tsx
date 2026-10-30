@@ -21,7 +21,7 @@ import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { recordDraftCheckAction, rejectBandAction } from "@/lib/lab/catalogue-v2-actions";
 import { signRangeAsLeadAction } from "@/lib/lab/measures-actions";
 import { DRAFTS } from "../_lib/copy";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { bandFromDays } from "../../ranges/_lib/ages";
 import { SignButton } from "./sign-button";

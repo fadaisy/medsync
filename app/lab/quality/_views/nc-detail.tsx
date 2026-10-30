@@ -20,7 +20,7 @@ import { QList } from "../_components/q-list";
 import { QcChip } from "../_components/qc-chip";
 import { QUALITY } from "../_lib/copy";
 import { ncLiveFor, requireQualityScope } from "../_lib/scope";
-import { Ident, TwoIds } from "../../_components/v2/kit";
+import { Ident, TwoIds } from "@/components/tide/work/kit";
 import { ViewHeader } from "../../_components/v2/view-header";
 import { dateWords, dayWords, timeWords } from "../../_lib/days";
 

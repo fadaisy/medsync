@@ -79,7 +79,7 @@ describe("signed packs (Appendix D, Law 6)", () => {
   });
 
   it("D-PH2-22: the CSO alone signs with the exception text; otherwise the two named roles", () => {
-    expect(CSO_ALONE).toBe("CSO signs alone (ADR 0281)");
+    expect(CSO_ALONE).toBe("CSO signs alone");
     expect(signerRoles("recall_template", true)).toEqual(["CSO", null]);
     expect(signerRoles("recall_template", false)).toEqual(["CSO", "Pharmacist reviewer"]);
   });

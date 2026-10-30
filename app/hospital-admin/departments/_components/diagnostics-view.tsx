@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { PlusIcon } from "lucide-react";
 
-import { PillTabs } from "@/app/lab/_components/v2/space";
+import { PillTabs } from "@/components/tide/work/space";
 import { HospitalProfiles } from "@/components/lab/test-menu/profiles";
 import { TestMenu } from "@/components/lab/test-menu/test-menu";
 import { Button } from "@/components/ui/button";

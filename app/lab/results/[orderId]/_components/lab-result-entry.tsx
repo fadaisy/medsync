@@ -9,7 +9,7 @@ import { useResultEntry } from "@/components/emr/results/result-entry";
 import { ResultEntryView } from "@/components/emr/results/result-entry-view";
 import { CRITICALS_COPY, CRITICALS_UI } from "@/content/lab-criticals";
 import { releaseWithCriticalMarkAction } from "@/lib/lab/criticals/actions";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { MarkPanel } from "./mark-panel";
 
 export interface PanelPreview {

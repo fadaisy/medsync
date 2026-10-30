@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { HourlyFlowChart } from "@/app/lab/_components/v2/charts";
+import { HourlyFlowChart } from "@/components/tide/work/charts";
 
 /**
  * Today's two pharmacy charts (GATE A §5). The pace chart is the lab's `HourlyFlowChart` (bars and a line with

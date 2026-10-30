@@ -18,7 +18,7 @@ import {
   setContactsAction,
   signResponseAsLeadAction,
 } from "@/lib/lab/criticals/setup-actions";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 
 /**
  * Critical-results set-up forms (§5.8). Every value is typed by the hospital: no field ships with a

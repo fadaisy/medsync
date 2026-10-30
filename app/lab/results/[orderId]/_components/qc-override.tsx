@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { inputClass, Pop } from "../../../_components/pop";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { QUALITY } from "../../../quality/_lib/copy";
 
 const H = QUALITY.hold;

@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { repeatDoneAction } from "@/lib/lab/qc-actions";
-import { LabButton } from "./v2/button";
+import { LabButton } from "@/components/tide/work/button";
 
 /** LB-3: the repeat is done (the result stands, or was amended on its page); the task leaves the worklist. */
 export function RepeatDone({ itemId, label }: { itemId: string; label: string }) {

@@ -17,9 +17,9 @@ import {
 } from "@/lib/lab/register-store";
 import { dayOf } from "@/lib/lab/stock";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
-import { Pill } from "../../_components/v2/kit";
+import { Pill } from "@/components/tide/work/kit";
 import { DayPicker, PickChip } from "../../_components/v2/period-picker";
-import { SpaceHeader } from "../../_components/v2/space";
+import { SpaceHeader } from "@/components/tide/work/space";
 import { dateWords, dayWords, timeWords } from "../../_lib/days";
 import { PrintRegister, RegisterColumns } from "../../register/_components/register-forms";
 

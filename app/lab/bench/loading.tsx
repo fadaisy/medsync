@@ -1,5 +1,5 @@
 import { LABWS2 } from "@/content/lab-workspace-v2";
-import { Bone, CardBone, HeaderBone, PlaceLoading } from "../_components/v2/loading";
+import { Bone, CardBone, HeaderBone, PlaceLoading } from "@/components/tide/work/loading";
 
 /** The bench frame's shape: stage tabs, then the queue beside the work area. */
 export default function Loading() {

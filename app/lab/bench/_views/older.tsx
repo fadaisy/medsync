@@ -11,7 +11,7 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { legacyWritesOpen } from "@/lib/lab/cutover-store";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
 import { PatientNameMrn } from "../../_components/record-list";
-import { EmptyState } from "../../_components/v2/kit";
+import { EmptyState } from "@/components/tide/work/kit";
 
 /**
  * Older results (Lab Phase 1 CO-4): after the switch to one result path, the old list, read-only.

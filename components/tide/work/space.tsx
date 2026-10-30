@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
-import { LinkPending } from "./link-pending";
+import { LinkPending } from "@/components/tide/work/link-pending";
 
 /**
  * The space header (prompt 5.1): the place's views as pill tabs with counts, then filter chips, then the view's

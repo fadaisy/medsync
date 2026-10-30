@@ -74,11 +74,11 @@ export const NOT_SUPPLIED_KEY_PREFIX = "dtns:";
 const notSuppliedKey = (hospitalId: string, sheet: number, row: number) =>
   `${NOT_SUPPLIED_KEY_PREFIX}${hospitalId}:${sheet}:${row}`;
 
-/** Draft staff copy (not in Appendix B). */
+/** Staff copy for back-entry, not in Appendix B. Rework H2: it was marked signed by mistake; draft until signed. */
 export const ENTRY_COPY = {
-  status: "signed",
-  signedBy: "Fadhul (CSO)",
-  signedOn: "2026-10-13",
+  status: "draft",
+  signedBy: null,
+  signedOn: null,
   notPrinted: (n: number) => `${pharmacySheetLabel(n)} was not printed at this point.`,
   rowEntered: (row: number, n: number) =>
     `Row ${row} of ${pharmacySheetLabel(n)} is already entered.`,
@@ -456,6 +456,8 @@ export async function enterDowntimeRow(ctx: PharmacyCtx, input: RowInputT): Prom
     sourceKind: "supply",
     sourceId: supplyId,
     downtime: true,
+    // Rework S3: a controlled back-entry leaves on the paper witness's name, and the in-charge sees it.
+    paperWitnessName: cd?.ok ? cd.entry.witnessNameAsWritten : null,
   });
   if (medsync)
     await ctx.tx.insert(pharmacyLineEvents).values({

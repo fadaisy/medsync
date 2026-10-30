@@ -3,7 +3,7 @@
 import type { PickOption } from "../../../_components/v2/fields";
 
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { PickField } from "../../../_components/v2/fields";
 
 const W = LABWS2_SETUP.sweep;

@@ -15,7 +15,7 @@ import { loadConfigs } from "@/lib/lab/catalogue-v2";
 import { patientResultsLiveFor } from "@/lib/lab/feature";
 import { keyWords } from "@/lib/lab/setup-hub";
 import { SetupHeader } from "../_components/setup-header";
-import { EmptyState } from "../../_components/v2/kit";
+import { EmptyState } from "@/components/tide/work/kit";
 import { SignRule } from "../delta/_components/delta-forms";
 import {
   FloorAdditionsDialog,

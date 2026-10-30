@@ -19,7 +19,7 @@ import {
   signConfigAsLeadAction,
 } from "@/lib/lab/catalogue-v2-actions";
 import { DRAFTS } from "../_lib/copy";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { SignButton } from "./sign-button";
 

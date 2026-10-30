@@ -3,10 +3,38 @@ import { CATALOGUE_COPY, NATIONAL_LIST_COPY } from "@/content/pharmacy-catalogue
 import { PHARMACY_CLINICAL_COPY } from "@/content/pharmacy-clinical";
 import { PHARMACY_NETWORK_COPY } from "@/content/pharmacy-network";
 import { PHARMACY_RECONCILIATION_COPY } from "@/content/pharmacy-reconciliation";
+import { PHARMACY_REWORK_COPY } from "@/content/pharmacy-rework";
 import { PHARMACY_STORES_COPY } from "@/content/pharmacy-stores";
 import { PHWS2_COPY_STATUS } from "@/content/pharmacy-workspace-v2";
 import { pharmacyDevHospital } from "@/lib/pharmacy/access";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
+
+/**
+ * Rework (L5): four pilot tiers replace the 21 flags. PHARMACY_CORE (dispensing, stock, store, counts, controls,
+ * records), PHARMACY_WARDS (ward stock, carts, inpatients), PHARMACY_EPI (immunisation) and PHARMACY_INSIGHTS
+ * (stewardship, reactions, reports). Each is "1" or hospital ids. The old flag is read only while its tier is unset,
+ * so a deploy before the env change keeps today's behaviour.
+ */
+export type PharmacyTier = "CORE" | "WARDS" | "EPI" | "INSIGHTS";
+export function tier(t: PharmacyTier, legacy?: string): string | undefined {
+  return process.env[`PHARMACY_${t}`] ?? (legacy ? process.env[`PHARMACY_${legacy}`] : undefined);
+}
+
+/** The legacy flag each tier falls back to while its tier is unset. */
+const TIER_LEGACY: Record<PharmacyTier, string | undefined> = {
+  CORE: "WORKSPACE",
+  WARDS: "WARD_STOCK",
+  EPI: undefined,
+  INSIGHTS: "STEWARDSHIP",
+};
+
+/** Which tiers are on for a hospital; the rework's own copy gates production (signed-content rule). */
+export const pharmacyTiersFor = (hospitalId: string) => {
+  const on = (t: PharmacyTier) =>
+    workspaceLiveFor(tier(t, TIER_LEGACY[t]), hospitalId, [PHARMACY_REWORK_COPY], `pharmacy_${t.toLowerCase()}`);
+  const core = on("CORE");
+  return { core, wards: core && on("WARDS"), epi: core && on("EPI"), insights: core && on("INSIGHTS") };
+};
 
 /**
  * PHARMACY_WORKSPACE (Pharmacy Phase 0, Law 14): "1" or a comma-separated list of hospital ids.
@@ -15,7 +43,7 @@ import { workspaceLiveFor } from "@/lib/workspace-access/flag";
  */
 export function pharmacyWorkspaceLiveFor(hospitalId: string): boolean {
   return workspaceLiveFor(
-    process.env.PHARMACY_WORKSPACE,
+    tier("CORE", "WORKSPACE"),
     hospitalId,
     PHARMACY_SIGNED_COPY,
     "pharmacy_workspace",
@@ -34,13 +62,13 @@ const live = (value: string | undefined, hospitalId: string, tag: string) =>
   pharmacyWorkspaceLiveFor(hospitalId);
 
 export const pharmacyDispensingLiveFor = (hospitalId: string) =>
-  live(process.env.PHARMACY_DISPENSING, hospitalId, "pharmacy_dispensing");
+  live(tier("CORE", "DISPENSING"), hospitalId, "pharmacy_dispensing");
 export const pharmacyStockAnswerLiveFor = (hospitalId: string) =>
-  live(process.env.PHARMACY_STOCK_ANSWER, hospitalId, "pharmacy_stock_answer");
+  live(tier("CORE", "STOCK_ANSWER"), hospitalId, "pharmacy_stock_answer");
 export const pharmacyPatientListLiveFor = (hospitalId: string) =>
-  live(process.env.PHARMACY_PATIENT_LIST, hospitalId, "pharmacy_patient_list");
+  live(tier("CORE", "PATIENT_LIST"), hospitalId, "pharmacy_patient_list");
 export const pharmacyDowntimeLiveFor = (hospitalId: string) =>
-  live(process.env.PHARMACY_DOWNTIME, hospitalId, "pharmacy_downtime");
+  live(tier("CORE", "DOWNTIME"), hospitalId, "pharmacy_downtime");
 
 /**
  * The national list from Stock (ADR 0282): where dispensing is live, and in production only once both
@@ -48,7 +76,7 @@ export const pharmacyDowntimeLiveFor = (hospitalId: string) =>
  */
 export const pharmacyNationalListLiveFor = (hospitalId: string) =>
   workspaceLiveFor(
-    process.env.PHARMACY_DISPENSING,
+    tier("CORE", "DISPENSING"),
     hospitalId,
     [...PHARMACY_PHASE1_COPY, NATIONAL_LIST_COPY],
     "pharmacy_national_list",
@@ -60,7 +88,7 @@ export const pharmacyNationalListLiveFor = (hospitalId: string) =>
  */
 export const pharmacyCatalogueLiveFor = (hospitalId: string) =>
   workspaceLiveFor(
-    process.env.PHARMACY_CATALOGUE,
+    tier("CORE", "CATALOGUE"),
     hospitalId,
     [CATALOGUE_COPY],
     "pharmacy_catalogue",
@@ -76,17 +104,17 @@ const stores = (value: string | undefined, hospitalId: string, tag: string) =>
   pharmacyWorkspaceLiveFor(hospitalId);
 
 export const pharmacyStoreLiveFor = (h: string) =>
-  stores(process.env.PHARMACY_STORE, h, "pharmacy_store");
+  stores(tier("CORE", "STORE"), h, "pharmacy_store");
 export const pharmacyWardStockLiveFor = (h: string) =>
-  stores(process.env.PHARMACY_WARD_STOCK, h, "pharmacy_ward_stock");
+  stores(tier("WARDS", "WARD_STOCK"), h, "pharmacy_ward_stock");
 export const pharmacyCartsLiveFor = (h: string) =>
-  stores(process.env.PHARMACY_CARTS, h, "pharmacy_carts");
+  stores(tier("WARDS", "CARTS"), h, "pharmacy_carts");
 export const pharmacyRecallLiveFor = (h: string) =>
-  stores(process.env.PHARMACY_RECALL, h, "pharmacy_recall");
+  stores(tier("CORE", "RECALL"), h, "pharmacy_recall");
 export const pharmacyMonthEndLiveFor = (h: string) =>
-  stores(process.env.PHARMACY_MONTH_END, h, "pharmacy_month_end");
+  stores(tier("CORE", "MONTH_END"), h, "pharmacy_month_end");
 export const pharmacyOrderingLiveFor = (h: string) =>
-  stores(process.env.PHARMACY_ORDERING, h, "pharmacy_ordering");
+  stores(tier("CORE", "ORDERING"), h, "pharmacy_ordering");
 
 export interface StoresFlags {
   store: boolean;
@@ -115,18 +143,18 @@ const clinical = (value: string | undefined, hospitalId: string, tag: string) =>
   pharmacyWorkspaceLiveFor(hospitalId);
 
 export const pharmacyInteractionsLiveFor = (h: string) =>
-  clinical(process.env.PHARMACY_INTERACTIONS, h, "pharmacy_interactions");
+  clinical(tier("CORE", "INTERACTIONS"), h, "pharmacy_interactions");
 export const pharmacyInterventionReviewLiveFor = (h: string) =>
-  clinical(process.env.PHARMACY_INTERVENTION_REVIEW, h, "pharmacy_intervention_review");
+  clinical(tier("CORE", "INTERVENTION_REVIEW"), h, "pharmacy_intervention_review");
 export const pharmacyStewardshipLiveFor = (h: string) =>
-  clinical(process.env.PHARMACY_STEWARDSHIP, h, "pharmacy_stewardship");
+  clinical(tier("INSIGHTS", "STEWARDSHIP"), h, "pharmacy_stewardship");
 export const pharmacyReactionsLiveFor = (h: string) =>
-  clinical(process.env.PHARMACY_REACTIONS, h, "pharmacy_reactions");
+  clinical(tier("INSIGHTS", "REACTIONS"), h, "pharmacy_reactions");
 /** Step 9: also off in production while its own wording (the patient's sheet among it) is draft. */
 export const pharmacyReconciliationLiveFor = (h: string) =>
-  clinical(process.env.PHARMACY_RECONCILIATION, h, "pharmacy_reconciliation") &&
+  clinical(tier("WARDS", "RECONCILIATION"), h, "pharmacy_reconciliation") &&
   workspaceLiveFor(
-    process.env.PHARMACY_RECONCILIATION,
+    tier("WARDS", "RECONCILIATION"),
     h,
     [PHARMACY_RECONCILIATION_COPY],
     "pharmacy_reconciliation",
@@ -150,10 +178,10 @@ const network = (value: string | undefined, hospitalId: string, tag: string) =>
   pharmacyWorkspaceLiveFor(hospitalId);
 
 export const pharmacyRepeatsLiveFor = (h: string) =>
-  network(process.env.PHARMACY_REPEATS, h, "pharmacy_repeats");
+  network(tier("CORE", "REPEATS"), h, "pharmacy_repeats");
 /** Refills need repeats (a refill is supplied only against an authorisation, Law 2) and Phase 1's dispensing. */
 export const pharmacyRefillsLiveFor = (h: string) =>
-  network(process.env.PHARMACY_REFILLS, h, "pharmacy_refills") &&
+  network(tier("CORE", "REFILLS"), h, "pharmacy_refills") &&
   pharmacyRepeatsLiveFor(h) &&
   pharmacyDispensingLiveFor(h);
 
@@ -164,7 +192,7 @@ export const pharmacyRefillsLiveFor = (h: string) =>
  */
 export const pharmacyWorkspaceV2LiveFor = (h: string) =>
   workspaceLiveFor(
-    process.env.PHARMACY_WORKSPACE_V2,
+    tier("CORE", "WORKSPACE_V2"),
     h,
     // ADR 0468: a PHARMACY_DEV_HOSPITALS test hospital sees v2 in production while its wording is still draft.
     pharmacyDevHospital(h) ? [] : [PHWS2_COPY_STATUS],

@@ -17,8 +17,8 @@ import {
   TruckIcon,
 } from "lucide-react";
 
-import { EmptyState, KeyFigure, KeyFigureGrid, Panel, Pill } from "@/app/lab/_components/v2/kit";
-import { PillTabs, PrimaryLink, SecondaryLink } from "@/app/lab/_components/v2/space";
+import { EmptyState, KeyFigure, KeyFigureGrid, Panel, Pill } from "@/components/tide/work/kit";
+import { PillTabs, PrimaryLink, SecondaryLink } from "@/components/tide/work/space";
 import { fill, PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_NEEDS_YOU as N } from "@/content/pharmacy-workspace-v2-needs-you";
 import { PHWS2_TODAY as T } from "@/content/pharmacy-workspace-v2-today";

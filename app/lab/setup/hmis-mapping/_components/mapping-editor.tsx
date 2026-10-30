@@ -11,7 +11,7 @@ import { LABWS2 } from "@/content/lab-workspace-v2";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { saveHmisMappingAction, signHmisMappingAction } from "@/lib/lab/hmis-actions";
 import { Pop, selectClass } from "../../../_components/pop";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { SignButton } from "../../drafts/_components/sign-button";
 

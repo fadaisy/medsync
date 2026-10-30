@@ -20,7 +20,7 @@ import {
   RevokeDialog,
 } from "../_components/connection-forms";
 import { hrefWith, soLinks } from "../_lib/links";
-import { KeyFigure, KeyFigureGrid, Panel } from "../../_components/v2/kit";
+import { KeyFigure, KeyFigureGrid, Panel } from "@/components/tide/work/kit";
 import { dateWords, timeWords } from "../../_lib/days";
 
 const STATE: Record<string, string> = {

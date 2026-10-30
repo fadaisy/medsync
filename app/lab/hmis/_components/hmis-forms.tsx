@@ -12,7 +12,7 @@ import {
   saveManualCellsAction,
 } from "@/lib/lab/hmis-actions";
 import { Pop } from "../../_components/pop";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 const H = LAB3_HMIS;

@@ -1,11 +1,11 @@
-import type { PillTab } from "@/app/lab/_components/v2/space";
+import type { PillTab } from "@/components/tide/work/space";
 import type { ReviewLane, ReviewStage } from "@/lib/pharmacy/queue";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { EmptyState } from "@/app/lab/_components/v2/kit";
-import { FilterChips, PillTabs, PrimaryLink, SpaceHeader } from "@/app/lab/_components/v2/space";
+import { EmptyState } from "@/components/tide/work/kit";
+import { FilterChips, PillTabs, PrimaryLink, SpaceHeader } from "@/components/tide/work/space";
 import { fill, PHWS2 } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_WINDOW } from "@/content/pharmacy-workspace-v2-window";
 import { identitiesFor } from "@/lib/emr/read/results";

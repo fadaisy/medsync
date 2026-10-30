@@ -2,7 +2,7 @@ import type { PharmacyV2 } from "../../_lib/v2";
 import type { EmrDb } from "@/lib/emr/db";
 import { notFound } from "next/navigation";
 
-import { Pill } from "@/app/lab/_components/v2/kit";
+import { Pill } from "@/components/tide/work/kit";
 import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
 import { PACKS, SUPPLY_COMMON } from "@/content/pharmacy-stores-supply";
 import { fill } from "@/content/pharmacy-workspace-v2";

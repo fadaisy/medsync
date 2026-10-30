@@ -5,14 +5,16 @@ import type { SignedCopy } from "@/content/signed-copy";
  * those pages. Signed by the CSO on 25 Oct 2026 with the rest of the Phase 2 wording; Appendix B strings stay in
  * `content/pharmacy-stores.ts` (STORES_B). Any change returns it to `draft` until it is signed again.
  */
+// Rework copy sweep (30 Oct 2026): build codes taken out of the words, so this waits for one re-sign with the
+// rework wording (PHARMACY_REWORK_COPY). Previously signed by Fadhul (CSO).
 export const PHARMACY_STORES_SUPPLY_COPY: SignedCopy = {
-  status: "signed",
-  signedBy: "Fadhul (CSO)",
-  signedOn: "2026-10-25",
+  status: "draft",
+  signedBy: null,
+  signedOn: null,
 };
 
 /** The D-PH2-22 exception, word for word (gate-a-proposal, signed 21 Oct 2026). */
-export const CSO_ALONE = "CSO signs alone (ADR 0281)";
+export const CSO_ALONE = "CSO signs alone";
 
 export const SUPPLY_COMMON = {
   cancel: "Cancel",
@@ -75,17 +77,17 @@ export const PACKS = {
   firstSigner: "You sign as",
   secondSigner: "Second signer",
   secondSignerRole: "They sign as",
-  alone: "The CSO signs alone (D-PH2-22)",
+  alone: "The CSO signs alone",
   attest: "Confirm the signer",
   attested: (who: string) => `${who} confirmed.`,
   content: "Content (as written)",
   jsonHint:
     "This pack is kept as written. Type it in the shape its reader expects; it is checked when you save.",
   reference: (text: string) => `Reference only, not a value: ${text}`,
-  phase1: "Phase 1 packs",
-  phase2: "Phase 2 packs",
+  phase1: "Dispensing rules",
+  phase2: "Store rules",
   unsupported:
-    "Phase 1 packs whose shape no reader states (lane rule, high-risk list, controlled classes, availability mapping, and the lists no screen reads yet) are not signed here.",
+    "Dispensing rules whose shape no reader states (lane rule, high-risk list, controlled classes, availability mapping, and the lists no screen reads yet) are not signed here.",
   saved: "Draft saved.",
   signedNow: "Signed. The previous version is retired.",
   refused: {
@@ -149,37 +151,37 @@ export const PACK_TEXT = {
     whileUnsigned: "Days out of stock are not reported.",
   },
   message_name: {
-    name: "Message name (Phase 1)",
+    name: "Message name",
     signers: ["Pharmacy in charge", "CSO"],
     whileUnsigned: "No message to a patient can be sent.",
   },
   witness_list: {
-    name: "Witness list (Phase 1)",
+    name: "Witness list",
     signers: ["Pharmacy in charge", "CSO"],
     whileUnsigned: "In production nobody may witness.",
   },
   keep_reasons: {
-    name: "Keep reasons (Phase 1)",
+    name: "Keep reasons",
     signers: ["Pharmacy in charge", "CSO"],
     whileUnsigned: "In production the list is empty.",
   },
   query_codes: {
-    name: "Query codes (Phase 1)",
+    name: "Query codes",
     signers: ["Pharmacy in charge", "CSO"],
     whileUnsigned: "In production the list is empty.",
   },
   outcome_reasons: {
-    name: "Not-supplied reasons (Phase 1)",
+    name: "Not-supplied reasons",
     signers: ["Pharmacy in charge", "CSO"],
     whileUnsigned: "In production the list is empty.",
   },
   identity_routes: {
-    name: "Identity routes (Phase 1)",
+    name: "Identity routes",
     signers: ["Pharmacy in charge", "CSO"],
     whileUnsigned: "In production identification another way is refused.",
   },
   counselling_points: {
-    name: "Counselling points (Phase 1)",
+    name: "Counselling points",
     signers: ["Pharmacy in charge", "CSO"],
     whileUnsigned: "In production no counselling point can be ticked.",
   },

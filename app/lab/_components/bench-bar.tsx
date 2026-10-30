@@ -17,7 +17,7 @@ import {
   undoReceiveAction,
 } from "@/lib/lab/bench-actions";
 import { UNDO_WINDOW_MS } from "@/lib/lab/one-menu";
-import { LabButton } from "./v2/button";
+import { LabButton } from "@/components/tide/work/button";
 
 const B = LAB.bench;
 const TAP = "min-h-11 sm:min-h-0";

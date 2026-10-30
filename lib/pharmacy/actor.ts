@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { db } from "@/db";
 import { dispensingMap, pharmacyDispensingAccess, withStoreAccess } from "@/lib/pharmacy/access";
 import { pharmacyStoreLiveFor } from "@/lib/pharmacy/feature";
+import { legalQ1RecordedFor } from "@/lib/pharmacy/legal";
 import { actingPoint, pharmacyPointsFor } from "@/lib/pharmacy/points";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 
@@ -26,7 +27,10 @@ export async function requirePharmacyActor(): Promise<PharmacyActor & { points: 
     cadreName: scope.cadreName,
     pointId: point?.id ?? null,
     access: withStoreAccess(
-      pharmacyDispensingAccess(scope.cadreCode, dispensingMap(undefined, scope.hospitalId)),
+      pharmacyDispensingAccess(
+        scope.cadreCode,
+        dispensingMap(undefined, scope.hospitalId, undefined, process.env.VERCEL_ENV === "production" && (await legalQ1RecordedFor(scope.hospitalId))),
+      ),
       scope.cadreCode,
       pharmacyStoreLiveFor(scope.hospitalId),
     ),

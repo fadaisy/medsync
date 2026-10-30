@@ -11,7 +11,7 @@ import {
   signPartnerConfigAction,
 } from "@/lib/lab/referral-actions";
 import { inputClass, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { DateField, PickField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 import { SignButton } from "../../setup/drafts/_components/sign-button";

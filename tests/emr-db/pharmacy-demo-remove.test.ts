@@ -1,5 +1,6 @@
 /**
- * Removing the pharmacy demo (owner request 28 Oct 2026; migration 0260) on the PGlite lane. A demo hospital with real
+ * Removing the pharmacy demo (owner request 28 Oct 2026; migration 0260) on the PGlite lane. Since the rework (0265,
+ * S14) removal is a dry run only: demos run in a separate project, and the live database never disables a trigger. A demo hospital with real
  * rows beside the demo: a real pharmacy head, a real patient's visit, and a real pharmacist affiliated to
  * one of the demo's points. The removal deletes every demo row and nothing else; the point the real pharmacist uses is
  * kept. Runs with EMR_PGLITE=1.
@@ -192,95 +193,15 @@ describe.skipIf(!laneOn)("Pharmacy demo: remove (0260–0263)", () => {
     realPharmacist = real.userId;
   });
 
-  it("removes every demo row and touches nothing else; a second removal changes nothing", async () => {
-    const done = await remove(false);
-    expect(done.rows).toBeGreaterThan(5000);
-    expect(done["places kept"]).toBe(1);
-    const after = await snapshot();
-    // Kept on purpose: the audit trail (and the sign-in records of demo accounts it names), the loads (marked
-    // removed), settings the demo set without a mark, and the real pharmacist with the department of the demo point
-    // they work at (as a plain department: its dispensing point and place go; a new load sets them up again).
-    const kept = new Set([
-      "public.audit_log",
-      "public.lab_demo_hospitals",
-      "public.pharmacy_demo_loads",
-      "public.patient_code_seq",
-      "public.pharmacy_hospital_settings",
-      "public.clinical_cosign_policies",
-      "auth.users",
-      "public.users",
-      "public.staff_affiliations",
-      "public.user_roles",
-      "public.hospital_departments",
-      "public.pharmacy_content_entries",
-      "public.pharmacy_counts",
-      // The real count is at the demo point, so the point stays a dispensing point.
-      "public.pharmacy_dispensing_points",
-      // Append-only: the real pharmacist's view of a demo patient stays, and so does that patient's account.
-      "public.clinical_phi_access_log",
-    ]);
-    const changed = Object.keys(before).filter(
-      (t) => !kept.has(t) && JSON.stringify(before[t]) !== JSON.stringify(after[t]),
+  it("rework S14: removal is off; nothing is deleted and no trigger is disabled", async () => {
+    const now = await snapshot();
+    await expect(remove(false)).rejects.toThrow(/removal is off/);
+    expect(await snapshot()).toEqual(now);
+    expect(Object.keys(now).length).toBeGreaterThanOrEqual(Object.keys(before).length);
+    expect([realCount, realPharmacist].every(Boolean)).toBe(true);
+    const triggersOff = await one<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pg_trigger WHERE NOT tgisinternal AND tgenabled = 'D'`,
     );
-    expect(changed).toEqual([]);
-    // The kept tables only grew by the real pharmacist and the point they use; nothing real went.
-    for (const t of kept)
-      if (t !== "public.pharmacy_content_entries")
-        expect(
-          before[t]!.filter((r) => !after[t]!.includes(r)),
-          t,
-        ).toEqual([]);
-    expect(
-      after["public.hospital_departments"]!.length - before["public.hospital_departments"]!.length,
-    ).toBe(1);
-    // The real pharmacist's work on demo records went; their count itself stays, without the demo batch's line.
-    expect(
-      await one<{ counts: number; lines: number; events: number }>(
-        `SELECT (SELECT count(*)::int FROM pharmacy_counts WHERE id = $1) AS counts,
-                (SELECT count(*)::int FROM pharmacy_count_lines WHERE count_id = $1) AS lines,
-                (SELECT count(*)::int FROM pharmacy_line_events WHERE actor_user_id = $2) +
-                (SELECT count(*)::int FROM pharmacy_payment_statuses WHERE actor_user_id = $2) AS events`,
-        [realCount, realPharmacist],
-      ),
-    ).toEqual({ counts: 1, lines: 0, events: 0 });
-    // The real edition the demo replaced stays (withdrawn), with its real signature.
-    expect(after["public.pharmacy_content_entries"]!.length).toBe(
-      before["public.pharmacy_content_entries"]!.length,
-    );
-    expect(
-      await one<{ status: string; n: number }>(
-        `SELECT e.status, (SELECT count(*)::int FROM pharmacy_content_signatures s WHERE s.entry_id = e.id) AS n
-           FROM pharmacy_content_entries e WHERE e.id = $1`,
-        [realEntry],
-      ),
-    ).toEqual({ status: "withdrawn", n: 1 });
-    expect(
-      (
-        await one<{ n: number }>(
-          `SELECT count(*)::int AS n FROM users WHERE email LIKE 'pharmacy-demo-%'`,
-        )
-      ).n,
-    ).toBe(0);
-    const left = await one<{ n: number; named: number }>(
-      `SELECT count(*)::int AS n, count(*) FILTER (WHERE EXISTS (SELECT 1 FROM audit_log a WHERE a.actor_id = u.id)
-              OR EXISTS (SELECT 1 FROM clinical_phi_access_log l WHERE l.patient_user_id = u.id))::int AS named
-         FROM auth.users u WHERE u.email LIKE 'pharmacy-demo-%'`,
-    );
-    expect(left.n).toBe(left.named);
-    expect(
-      (
-        await one<{ n: number }>(
-          `SELECT count(*)::int AS n FROM pharmacy_demo_loads WHERE removed_at IS NULL`,
-        )
-      ).n,
-    ).toBe(0);
-
-    const again = await remove(false);
-    expect(again).toMatchObject({ patients: 0, staff: 0, records: 0 });
-    // A removed load no longer counts: the demo can load again.
-    const { startDemo } = await import("@/lib/pharmacy/demo");
-    await expect(
-      startDemo(lane.db, { userId: admin, hospitalId: h }, { makeUser: async () => admin }),
-    ).resolves.toBeTruthy();
+    expect(triggersOff.n).toBe(0);
   });
 });

@@ -34,7 +34,7 @@ import {
   Panel,
   Pill,
   TwoIds,
-} from "../../_components/v2/kit";
+} from "@/components/tide/work/kit";
 import { MiniLJ, MonthsOfStockBar } from "../../_components/v2/quality-charts";
 import { dateWords, timeWords } from "../../_lib/days";
 import { dueWords, monthWords } from "../../hmis/_lib/month";

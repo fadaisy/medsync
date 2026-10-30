@@ -21,7 +21,7 @@ import { identitiesFor } from "@/lib/emr/read/results";
 import { scansFor } from "@/lib/lab/referral-read";
 import { referralForEntry } from "@/lib/lab/referral-results-store";
 import { ResultForm } from "../_components/result-form";
-import { Ident } from "../../_components/v2/kit";
+import { Ident } from "@/components/tide/work/kit";
 import { dateWords } from "../../_lib/days";
 
 /**

@@ -197,7 +197,7 @@ describe("CC: content", () => {
         signerUserId: "a",
         alreadySigned: [],
         otherEligibleSigners: 0,
-        exception: "CSO signs alone (ADR 0281)",
+        exception: "CSO signs alone",
       }),
     ).toBeNull();
     expect(statusAfterSigning(1, false)).toBe("reviewer_signed");

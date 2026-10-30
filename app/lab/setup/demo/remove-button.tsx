@@ -11,7 +11,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { LAB_DEMO_REMOVE as C } from "@/content/lab-demo";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../criticals/_components/setup-forms";
 import { removeDemoAction } from "./actions";
 

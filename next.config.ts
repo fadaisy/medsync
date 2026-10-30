@@ -3,6 +3,7 @@ import bundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
 
 import { LAB_REDIRECTS } from "./lib/lab/redirects";
+import { REDIRECTS as PHARMACY_REDIRECTS } from "./lib/pharmacy/ia";
 
 const nextConfig: NextConfig = {
   // The build's own type check took 11.7 of 15 minutes; the pre-commit hook already runs `npm run typecheck` on every
@@ -41,6 +42,8 @@ const nextConfig: NextConfig = {
         permanent: true,
       })),
       ...LAB_REDIRECTS,
+      // Pharmacy rework (PRD §3): every old pharmacy route answers 307 to its new home while the pilot settles.
+      ...PHARMACY_REDIRECTS.map((r) => ({ ...r, permanent: false })),
     ];
   },
 

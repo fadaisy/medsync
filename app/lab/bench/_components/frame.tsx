@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { BENCH_STAGES } from "../_lib/bench";
-import { FilterChips, PillTabs, SecondaryLink, SpaceHeader } from "../../_components/v2/space";
+import { FilterChips, PillTabs, SecondaryLink, SpaceHeader } from "@/components/tide/work/space";
 import { Queue } from "./queue";
 
 const B = LABWS2.bench;
