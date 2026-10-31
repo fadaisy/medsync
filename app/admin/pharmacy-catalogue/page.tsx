@@ -2,10 +2,12 @@ import type { EmrDb } from "@/lib/emr/db";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
 import { db } from "@/db";
 import { getAuthState } from "@/lib/auth";
 import { loadCatalogueConsole } from "@/lib/pharmacy/national-catalogue";
-import { loadCatalogueQueue } from "@/lib/pharmacy/shared-catalogue/queue";
+import { correctionChanges } from "@/lib/pharmacy/shared-catalogue/correction";
+import { loadCatalogueQueue, vocabularies } from "@/lib/pharmacy/shared-catalogue/queue";
 import { CatalogueConsole } from "./_components/catalogue-console";
 import { CatalogueQueue } from "./_components/catalogue-queue";
 
@@ -26,6 +28,8 @@ export default async function PharmacyCataloguePage() {
   const queue = process.env.PHARMACY_CATALOGUE
     ? await loadCatalogueQueue(db as unknown as EmrDb, state.user.id)
     : null;
+  const vocab = queue?.corrections.length ? await vocabularies(db as unknown as EmrDb) : null;
+  const K = STOCK_UP_POLISH;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
@@ -98,6 +102,17 @@ export default async function PharmacyCataloguePage() {
             })),
             conflicts: queue.conflicts,
             sources: queue.sources,
+            corrections: queue.corrections.map((c) => ({
+              proposalId: c.proposalId,
+              medicine: c.medicine,
+              lines: correctionChanges(c.payload, vocab!, K.correction.none).map((x) =>
+                K.queue.line(K.correction.field[x.field], x.from, x.to),
+              ),
+              by: K.queue.by(c.proposer, c.hospital),
+              confirmations: c.confirmations,
+              mine: c.mine,
+              reviewed: c.reviewed,
+            })),
           }}
         />
       )}

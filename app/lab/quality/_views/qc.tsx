@@ -19,8 +19,8 @@ import { QUALITY } from "../_lib/copy";
 import { requireQualityScope } from "../_lib/scope";
 import { qcWord } from "../_lib/status";
 import { PickField } from "../../_components/v2/fields";
-import { EmptyState, Panel } from "../../_components/v2/kit";
-import { SecondaryLink } from "../../_components/v2/space";
+import { EmptyState, Panel } from "@/components/tide/work/kit";
+import { SecondaryLink } from "@/components/tide/work/space";
 import { dateWords, timeWords } from "../../_lib/days";
 import { Frame } from "./frame";
 

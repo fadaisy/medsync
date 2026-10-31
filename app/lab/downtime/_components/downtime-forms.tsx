@@ -9,7 +9,7 @@ import {
   recordPeriodAction,
   reserveFormsAction,
 } from "@/lib/lab/downtime-actions";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { DateField, DateTimeField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 

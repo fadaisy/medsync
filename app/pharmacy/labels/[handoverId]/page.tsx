@@ -87,9 +87,9 @@ export default async function LabelsPage({
         }
       `}</style>
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <h1 className="text-heading-m font-medium">
+        <h2 className="text-heading-m font-medium">
           {L.title} · {L.count(labels.length)}
-        </h1>
+        </h2>
         <Link
           href="/pharmacy/supplied"
           prefetch={false}

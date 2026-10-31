@@ -10,6 +10,7 @@ import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
 import {
   REJECT_REASONS,
   SHORT_DATED_DECISIONS,
@@ -17,6 +18,7 @@ import {
   STORES_B,
 } from "@/content/pharmacy-stores-store";
 import { packsToUnits } from "@/lib/pharmacy/shared-catalogue/receive";
+import { arrivalText } from "@/lib/pharmacy/stores/receiving";
 import { productByText } from "@/lib/pharmacy/stores/scan-fill";
 import * as places from "../../actions";
 import {
@@ -50,6 +52,7 @@ export function StartDeliveryDialog({
 }) {
   const router = useRouter();
   const S = STORE.deliveries;
+  const G = STOCK_UP_POLISH.start;
   const ids = {
     supplier: useId(),
     note: useId(),
@@ -60,14 +63,19 @@ export function StartDeliveryDialog({
     deliverer: useId(),
     vehicle: useId(),
   };
+  // Arrived defaults to now (Kampala time, as `parseArrival` reads it), set each time the dialog opens; still editable.
+  const [arrived, setArrived] = useState("");
+  const legend = "text-heading-s text-foreground mb-3";
   return (
     <StoreDialog
       label={S.start}
       title={S.startTitle}
+      description={S.lead}
       submit={S.start}
       variant="primary"
       width="wide"
       disabled={!suppliers.length || !receiving.length}
+      onOpen={() => setArrived(arrivalText(new Date()))}
       onSave={async (clientKey, d) => {
         const r = await actions.startDelivery({
           clientKey,
@@ -85,65 +93,90 @@ export function StartDeliveryDialog({
       }}
     >
       {!suppliers.length ? <p className="text-body-s">{S.noSuppliers}</p> : null}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Field label={S.supplier} id={ids.supplier}>
-          <select id={ids.supplier} name="supplierId" className={SELECT} required defaultValue="">
-            <option value="" disabled>
-              {S.supplier}
-            </option>
-            {suppliers.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
+      <div className="grid gap-x-6 gap-y-6 md:grid-cols-3">
+        <fieldset className="flex min-w-0 flex-col gap-4">
+          <legend className={legend}>{G.route}</legend>
+          <Field label={S.supplier} id={ids.supplier}>
+            <select id={ids.supplier} name="supplierId" className={SELECT} required defaultValue="">
+              <option value="" disabled>
+                {S.supplier}
               </option>
-            ))}
-          </select>
-        </Field>
-        <Field label={S.note} id={ids.note}>
-          <Input id={ids.note} name="noteNumber" required maxLength={80} className={TARGET} />
-        </Field>
-        <Field label={S.order} id={ids.order}>
-          <select id={ids.order} name="orderId" className={SELECT} defaultValue="">
-            <option value="">{S.noOrder}</option>
-            {orders.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label={S.arrived} id={ids.arrived}>
-          <Input
-            id={ids.arrived}
-            name="arrivedAt"
-            required
-            placeholder="2026-10-21 09:30"
-            className={TARGET}
-          />
-        </Field>
-        <Field label={S.receivingAt} id={ids.at}>
-          <select
-            id={ids.at}
-            name="locationId"
-            className={SELECT}
-            required
-            defaultValue={receiving[0]?.id ?? ""}
-          >
-            {receiving.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label={S.witness} id={ids.witness}>
-          <Input id={ids.witness} name="witnessName" maxLength={120} className={TARGET} />
-        </Field>
-        <Field label={S.deliverer} id={ids.deliverer}>
-          <Input id={ids.deliverer} name="delivererName" maxLength={120} className={TARGET} />
-        </Field>
-        <Field label={S.vehicle} id={ids.vehicle}>
-          <Input id={ids.vehicle} name="vehicleRegistration" maxLength={20} className={TARGET} />
-        </Field>
+              {suppliers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label={S.receivingAt} id={ids.at}>
+            <select
+              id={ids.at}
+              name="locationId"
+              className={SELECT}
+              required
+              defaultValue={receiving[0]?.id ?? ""}
+            >
+              {receiving.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </fieldset>
+        <fieldset className="flex min-w-0 flex-col gap-4">
+          <legend className={legend}>{G.note}</legend>
+          <Field label={S.note} id={ids.note}>
+            <Input
+              id={ids.note}
+              name="noteNumber"
+              required
+              maxLength={80}
+              autoComplete="off"
+              className={`${TARGET} font-mono`}
+            />
+          </Field>
+          <Field label={S.arrived} id={ids.arrived}>
+            <Input
+              id={ids.arrived}
+              name="arrivedAt"
+              required
+              autoComplete="off"
+              placeholder="2026-10-21 09:30"
+              value={arrived}
+              onChange={(e) => setArrived(e.target.value)}
+              className={`${TARGET} tabular-nums`}
+            />
+          </Field>
+          <Field label={S.order} id={ids.order}>
+            <select id={ids.order} name="orderId" className={SELECT} defaultValue="">
+              <option value="">{S.noOrder}</option>
+              {orders.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </fieldset>
+        <fieldset className="flex min-w-0 flex-col gap-4">
+          <legend className={legend}>{G.people}</legend>
+          <Field label={S.deliverer} id={ids.deliverer}>
+            <Input id={ids.deliverer} name="delivererName" maxLength={120} className={TARGET} />
+          </Field>
+          <Field label={S.vehicle} id={ids.vehicle}>
+            <Input
+              id={ids.vehicle}
+              name="vehicleRegistration"
+              maxLength={20}
+              autoComplete="off"
+              className={`${TARGET} font-mono`}
+            />
+          </Field>
+          <Field label={S.witness} id={ids.witness}>
+            <Input id={ids.witness} name="witnessName" maxLength={120} className={TARGET} />
+          </Field>
+        </fieldset>
       </div>
     </StoreDialog>
   );
@@ -575,25 +608,24 @@ export function FinishDelivery({
   witnesses: readonly WitnessOption[];
 }) {
   const router = useRouter();
-  const [witnessed, setWitnessed] = useState<Record<number, { attestationId: string; at: string }>>(
-    {},
-  );
+  // Rework PRD §6.4: one witness for the whole delivery, covering every controlled line.
+  const [witnessed, setWitnessed] = useState<{ attestationId: string; at: string } | null>(null);
   const [saved, setSaved] = useState(false);
   return (
     <div className="flex flex-col gap-4">
-      {controlledLines.map((c) => (
-        <div key={c.lineNo} className="border-border flex flex-col gap-2 rounded-md border p-3">
+      {controlledLines.length ? (
+        <div className="border-border flex flex-col gap-2 rounded-md border p-3">
           <p className="text-body-s font-medium">
-            {c.label} · {D.controlled}
+            {controlledLines.map((c) => c.label).join(", ")} · {D.controlled}
           </p>
           <StoreWitness
             witnesses={witnesses}
             action="controlled_receipt"
-            witnessed={witnessed[c.lineNo] ?? null}
-            onWitnessed={(w) => setWitnessed((m) => ({ ...m, [c.lineNo]: w }))}
+            witnessed={witnessed}
+            onWitnessed={setWitnessed}
           />
         </div>
-      ))}
+      ) : null}
       <div className="flex flex-wrap items-center gap-3">
         <Button
           type="button"
@@ -601,21 +633,20 @@ export function FinishDelivery({
           className={TARGET}
           onClick={() => {
             setSaved(true);
-            router.push("/pharmacy/store/deliveries");
+            router.push("/pharmacy/stock/store?tab=receive");
           }}
         >
           {D.saveLater}
         </Button>
         <ActButton
           label={D.addToStock(stockLines)}
-          disabled={stockLines === 0 || controlledLines.some((c) => !witnessed[c.lineNo])}
+          disabled={stockLines === 0 || (controlledLines.length > 0 && !witnessed)}
           run={() =>
             actions.receiveDelivery({
               deliveryId,
-              witnesses: Object.entries(witnessed).map(([lineNo, w]) => ({
-                lineNo: Number(lineNo),
-                attestationId: w.attestationId,
-              })),
+              witnesses: witnessed
+                ? controlledLines.map((c) => ({ lineNo: c.lineNo, attestationId: witnessed.attestationId }))
+                : [],
             })
           }
         />

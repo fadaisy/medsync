@@ -8,6 +8,9 @@
  *   npm run pharmacy:catalogue-names            # dry run
  *   npm run pharmacy:catalogue-names -- --apply --actor <your auth user id>
  */
+// First: the env, before the imports below reach lib/env (it validates at import).
+import "./_env";
+
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import { eq } from "drizzle-orm";
 

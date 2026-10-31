@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   date,
@@ -72,6 +73,8 @@ export const pharmacyProducts = pgTable("pharmacy_products", {
   cataloguePackId: uuid("catalogue_pack_id"),
   catalogueMedicineId: uuid("catalogue_medicine_id"),
   localProposalId: uuid("local_proposal_id"),
+  /** Rework 0265: the controlled class from the signed list, so the ledger guard can tell a controlled batch. */
+  controlledClass: text("controlled_class"),
   active: boolean("active").notNull().default(true),
   addedAtWindow: boolean("added_at_window").notNull().default(false),
   createdBy: uuid("created_by").notNull(),
@@ -213,6 +216,15 @@ export const pharmacyStockMovements = pgTable("pharmacy_stock_movements", {
   deliveryRef: text("delivery_ref"),
   witnessAttestationId: uuid("witness_attestation_id"),
   downtime: boolean("downtime").notNull().default(false),
+  /** Rework 0265: the movement this one mirrors (one reversal per movement). */
+  reversesId: uuid("reverses_id"),
+  /** 0269: the right line replacing a reversed one (Records › correct an entry). */
+  correctionOfId: uuid("correction_of_id"),
+  /** Rework 0265: a downtime back-entry's witness, as written on the paper sheet. */
+  paperWitnessName: text("paper_witness_name"),
+  idempotencyKey: text("idempotency_key"),
+  /** Generated: entered more than 30 minutes after it happened. Never written. */
+  late: boolean("late").generatedAlwaysAs(sql`recorded_at - effective_at > interval '30 minutes'`),
 });
 
 export const pharmacyCounts = pgTable("pharmacy_counts", {
@@ -531,7 +543,9 @@ export const pharmacyPatientNotices = pgTable("pharmacy_patient_notices", {
 export const pharmacyControlledEntries = pgTable("pharmacy_controlled_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
   hospitalId: uuid("hospital_id").notNull(),
-  dispensingPointId: uuid("dispensing_point_id").notNull(),
+  /** NULL for a ward, cart or clinic register (rework 0265: `location_id`). */
+  dispensingPointId: uuid("dispensing_point_id"),
+  locationId: uuid("location_id"),
   medicineId: text("medicine_id").notNull(),
   kind: text("kind").notNull(),
   handoverId: uuid("handover_id"),

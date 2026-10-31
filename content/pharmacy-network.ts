@@ -11,10 +11,12 @@ import { PACK_TEXT } from "@/content/pharmacy-stores-supply";
  * covers the partner wording (`NETWORK_PARTNER`) and the seven message templates (`NETWORK_MESSAGES`): draft until
  * Step 6 (the DPO or legal adviser) and the two-user template approval. Partner and message flags gate on it.
  */
+// Rework copy sweep (30 Oct 2026): build codes taken out of the words, so this waits for one re-sign with the
+// rework wording (PHARMACY_REWORK_COPY). Previously signed by Fadhul (CSO).
 export const PHARMACY_NETWORK_COPY: SignedCopy = {
-  status: "signed",
-  signedBy: "Fadhul (CSO)",
-  signedOn: "2026-10-26",
+  status: "draft",
+  signedBy: null,
+  signedOn: null,
 };
 
 export const PHARMACY_PARTNER_COPY: SignedCopy = {
@@ -198,28 +200,28 @@ export const NETWORK_UI = {
  */
 export const NETWORK_PACK_TEXT = {
   repeat_rules: {
-    name: "Repeat rules (Phase 4)",
+    name: "Repeat rules",
     signers: ["Pharmacist reviewer", "CSO"],
     whileUnsigned: "No Repeats step is shown.",
   },
   refill_timing: {
-    name: "Refill timing (Phase 4)",
+    name: "Refill timing",
     signers: ["Pharmacy in charge", "CSO"],
     whileUnsigned:
       "Patients can ask at any time; nothing is labelled early or late except by the interval.",
   },
   hold_rules: {
-    name: "Hold rules (Phase 4)",
+    name: "Hold rules",
     signers: ["Pharmacy in charge", "CSO"],
     whileUnsigned: "Refills cannot be set aside.",
   },
   renewal_decline_reasons: {
-    name: "Renewal decline reasons (Phase 4)",
+    name: "Renewal decline reasons",
     signers: ["CSO", "Pharmacist reviewer"],
     whileUnsigned: "Renewals can be answered only by Renew or Book a visit.",
   },
   routing_rules: {
-    name: "Routing rules (Phase 4)",
+    name: "Routing rules",
     signers: ["Pharmacist reviewer", "CSO"],
     whileUnsigned: "Nothing can be routed.",
   },

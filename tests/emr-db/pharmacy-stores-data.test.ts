@@ -461,7 +461,7 @@ describe.skipIf(!laneOn)("Pharmacy Phase 2 data layer (0180–0181)", () => {
            first_signer, signed_at, exception_text)
          VALUES ($1, $2, $3, 1, '{"levels":{}}', $4, $5, CASE WHEN $4 = 'signed' THEN $5::uuid END,
                  CASE WHEN $4 = 'signed' THEN now() END,
-                 CASE WHEN $4 = 'signed' THEN 'CSO signs alone (ADR 0281)' END) RETURNING id`,
+                 CASE WHEN $4 = 'signed' THEN 'CSO signs alone' END) RETURNING id`,
         [hA, loc, kind, status, pharmacist],
       );
       f[`pack${place}`] = pack;

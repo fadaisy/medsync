@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { releaseResults } from "@/lib/emr/actions/results";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { QUALITY } from "../../../quality/_lib/copy";
 import { Said, useAct } from "../../../setup/criticals/_components/setup-forms";
 

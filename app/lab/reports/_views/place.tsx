@@ -10,7 +10,7 @@ import { hmisReminder } from "@/lib/lab/hmis105";
 import { dayShort } from "@/lib/lab/period";
 import { addDays, dayOf } from "@/lib/lab/stock";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
-import { PillTabs } from "../../_components/v2/space";
+import { PillTabs } from "@/components/tide/work/space";
 import { one, pillTabs } from "../../_lib/place-tabs";
 import { labV2 } from "../../_lib/places";
 import { DownloadsView } from "./downloads";

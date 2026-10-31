@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 
+import { productionOverrides } from "@/lib/boot-guard";
 import { redactPII } from "@/lib/logger";
 
 /**
@@ -8,6 +9,10 @@ import { redactPII } from "@/lib/logger";
  * dev environments without the env var get a no-op.
  */
 export async function register() {
+  const overrides = productionOverrides();
+  if (overrides.length) {
+    throw new Error(`Refusing to start in production with development switches set: ${overrides.join(", ")}`);
+  }
   const dsn = process.env.SENTRY_DSN;
   if (!dsn) return;
 

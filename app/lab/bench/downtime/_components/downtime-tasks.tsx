@@ -11,9 +11,9 @@ import {
   reserveFormsAction,
 } from "@/lib/lab/downtime-actions";
 import { localValue } from "@/lib/lab/field-kit";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { DateField, DateTimeField, NumberStepper, PickField } from "../../../_components/v2/fields";
-import { Pill } from "../../../_components/v2/kit";
+import { Pill } from "@/components/tide/work/kit";
 import { Said, useAct } from "../../../setup/criticals/_components/setup-forms";
 
 const D = LABWS2_DOWNTIME;

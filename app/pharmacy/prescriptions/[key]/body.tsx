@@ -33,6 +33,8 @@ import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { getPrescription, logPrescriptionViewed, patientFacts } from "@/lib/pharmacy/read";
 import { getReview, prescribersHere } from "@/lib/pharmacy/review/read";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
+import { ChecksPanel } from "@/app/pharmacy/dispense/_components/checks-panel";
+import { answersFor } from "@/lib/pharmacy/rx-checks-store";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { PharmacyNotice } from "../../_components/pharmacy-notice";
 import { BringInButton } from "../../_components/review-dialogs";
@@ -452,6 +454,14 @@ async function ReviewPage({
           />
         </div>
       ) : null}
+      <ChecksPanel
+        lines={data.lines.map((l) => ({ id: l.id, name: l.input.drugName, checks: l.checks }))}
+        answers={Object.fromEntries(
+          (await answersFor(db as unknown as EmrDb, scope.hospitalId, data.lines.map((l) => l.id)))
+            .sort((a, b) => a.at.getTime() - b.at.getTime())
+            .map((a) => [`${a.lineId}:${a.code}`, { answer: a.answer, reason: a.reason }]),
+        )}
+      />
       <ReviewScreen
         data={data}
         canReview={can(actor.access, "pharmacy.review")}

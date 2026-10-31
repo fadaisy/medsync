@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { OlderView } from "../_views/older";
-import { Panel } from "../../_components/v2/kit";
+import { Panel } from "@/components/tide/work/kit";
 import { ViewHeader } from "../../_components/v2/view-header";
 import { labV2 } from "../../_lib/places";
 

@@ -24,7 +24,7 @@ import {
 import { setLabSettingsAction } from "@/lib/lab/one-menu-actions";
 import { PAYLOADS } from "@/lib/lab/signed-config";
 import { SETTINGS as C } from "../_lib/copy";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =

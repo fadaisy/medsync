@@ -12,7 +12,7 @@ import { withQuery } from "@/lib/lab/redirects";
 import { cn } from "@/lib/utils";
 import { EmrLabWorklist } from "./_components/emr-worklist";
 import { ResultRowActions } from "./_components/result-row-actions";
-import { EmptyState } from "./_components/v2/kit";
+import { EmptyState } from "@/components/tide/work/kit";
 import { labV2 } from "./_lib/places";
 
 export const dynamic = "force-dynamic";

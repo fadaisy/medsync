@@ -8,7 +8,7 @@ import { SearchIcon } from "lucide-react";
 
 import { fill } from "@/content/lab-workspace-v2";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
-import { EmptyState, Pill } from "../../_components/v2/kit";
+import { EmptyState, Pill } from "@/components/tide/work/kit";
 
 const S = LABWS2_SETUP;
 

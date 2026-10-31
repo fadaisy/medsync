@@ -1,0 +1,21 @@
+{
+  "edition": "MedSync supplier list v1 (29 Oct 2026)",
+  "suppliers": [
+    {
+      "name": "National Medical Stores",
+      "shortName": "NMS",
+      "kind": "public_agency",
+      "website": "https://nms.go.ug",
+      "source": "https://nms.go.ug/about-us/",
+      "checkedOn": "2026-10-29"
+    },
+    {
+      "name": "Joint Medical Store",
+      "shortName": "JMS",
+      "kind": "pnfp",
+      "website": "https://www.jms.co.ug",
+      "source": "https://www.jms.co.ug",
+      "checkedOn": "2026-10-29"
+    }
+  ]
+}

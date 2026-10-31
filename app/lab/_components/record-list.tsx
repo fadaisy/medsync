@@ -1,7 +1,7 @@
 import type { PatientIdentity } from "@/components/emr/orders/model";
 import type { ReactNode } from "react";
 
-import { EmptyState } from "./v2/kit";
+import { EmptyState } from "@/components/tide/work/kit";
 
 /**
  * A read-only lab list (Released today, Rejected; Lab Phase 0 §5.5): the worklist's table look

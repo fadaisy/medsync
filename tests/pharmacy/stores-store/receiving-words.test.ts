@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { resultWords, STORE } from "@/content/pharmacy-stores-store";
 import { deliveryFromOffered } from "@/lib/pharmacy/stock/store";
+import { arrivalText } from "@/lib/pharmacy/stores/receiving";
 import { parseArrival, refusalWords } from "@/lib/pharmacy/stores/receiving-store";
 
 const line: DeliveryLine = {
@@ -69,6 +70,12 @@ describe("arrived at", () => {
     expect(parseArrival("2026-10-21 09:30")?.toISOString()).toBe("2026-10-21T06:30:00.000Z");
     expect(parseArrival("2026-10-21T09:30")?.toISOString()).toBe("2026-10-21T06:30:00.000Z");
     expect(parseArrival("21/10/2026")).toBeNull();
+  });
+
+  it("defaults to now, to the minute, and reads back as itself", () => {
+    const at = new Date("2026-10-29T21:45:30Z");
+    expect(arrivalText(at)).toBe("2026-10-30 00:45");
+    expect(parseArrival(arrivalText(at))?.toISOString()).toBe("2026-10-29T21:45:00.000Z");
   });
 });
 

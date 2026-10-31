@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Local medicines from the catalogue, controlled by a signed substance list — 29 Oct 2026
+
+- A catalogue medicine that is not on the prescribing list can be received as a local medicine. Its controlled
+  class comes from the list of controlled substances (2024 Act Schedules 2 and 3, plus five by MedSync policy), by
+  its ingredients; it is never typed ([ADR 0470](docs/adr/0470-local-medicines-controlled-by-substance-list.md)).
+- GATED migration 0264 replaces `pp_no_local_medicine` with `pp_local_medicine_linked`. While the list is unsigned,
+  production refuses these medicines as before.
+
+### Changed — Signed packs start from MedSync's sourced drafts — 29 Oct 2026
+
+- "Write a draft" on Signed packs opens already filled when the hospital has no draft and no version in force: a
+  national figure with its document and page where one is printed, MedSync's proposal and why where none is, and the
+  hospital's own fields left empty with one-click choices. A pack still acts only when signed
+  ([ADR 0469](docs/adr/0469-signed-packs-start-from-sourced-drafts.md)).
+- The starting drafts (`data/pharmacy/packs/templates.v1.json`) are draft until the CSO signs them; each dialog
+  opened from them says so.
+
 ### Changed — Pharmacy Workspace v2 at test hospitals in production — 27 Oct 2026
 
 - A hospital listed in `PHARMACY_DEV_HOSPITALS` sees Workspace v2 in production when `PHARMACY_WORKSPACE_V2` is on, while the v2 wording is still draft. Every other hospital waits for the signature ([ADR 0468](docs/adr/0468-pharmacy-workspace-v2-dev-hospitals.md)).

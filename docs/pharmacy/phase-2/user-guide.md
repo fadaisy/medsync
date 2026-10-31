@@ -11,7 +11,7 @@ How each role uses the **Store** group in the pharmacy rail. Each page shows onl
   - add suppliers (National Medical Stores, Joint Medical Store, others) and other facilities.
 - **Signed packs** (`/pharmacy/store/packs`):
   - The hospital's own figures and lists: order parameters, the tracer list, the cart look-ahead, month-end rules, ward rules, reason lists, HMIS column maps, the recall message and the day-out-of-stock rule.
-  - Nothing is pre-filled. The national figure is shown beside a field as a reference only.
+  - "Write a draft" opens with MedSync's starting draft when there is no draft and no version in force (ADR 0469): each field says whether it is a national figure (with its document and page), MedSync's proposal (with why), or yours to decide.
   - Signing needs two people, each with their password and code, or the exception *"CSO signs alone (ADR 0281)"*.
   - While a pack is unsigned, what needs it does not run, and the screen says which pack is missing.
 - **Going live** (Hospital admin → Departments → Pharmacy): each store, ward and cart lists its conditions:

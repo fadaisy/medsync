@@ -18,7 +18,7 @@ import { analyteName } from "@/lib/lab/qc-store";
 import { AVAILABILITY_REASONS } from "@/supabase/functions/_shared/services-hub";
 import { MappingEditor } from "../_components/mapping-editor";
 import { SetupHeader } from "../../_components/setup-header";
-import { Ident } from "../../../_components/v2/kit";
+import { Ident } from "@/components/tide/work/kit";
 import { dateWords } from "../../../_lib/days";
 
 type LabScope = Awaited<ReturnType<typeof requireLabTechScope>>;

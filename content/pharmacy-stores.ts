@@ -6,10 +6,12 @@ import type { SignedCopy } from "@/content/signed-copy";
  * (957 strings across content/pharmacy-stores*.ts; sign-off page https://claude.ai/artifact/PrfHTzwXwv63DYamXFnR4e).
  * Any change returns it to `draft`, and the six Phase 2 flags off in production (CS-5), until it is signed again.
  */
+// Rework copy sweep (30 Oct 2026): build codes taken out of the words, so this waits for one re-sign with the
+// rework wording (PHARMACY_REWORK_COPY). Previously signed by Fadhul (CSO).
 export const PHARMACY_STORES_COPY: SignedCopy = {
-  status: "signed",
-  signedBy: "Fadhul (CSO)",
-  signedOn: "2026-10-25",
+  status: "draft",
+  signedBy: null,
+  signedOn: null,
 };
 
 /** Appendix B, word for word. */

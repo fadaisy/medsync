@@ -23,6 +23,7 @@ import {
 import { prescriptions } from "@/db/schema/prescribing";
 import { cadres } from "@/db/schema/reference-data";
 import { users } from "@/db/schema/users";
+import { rowsOf } from "@/lib/exchange/store";
 import {
   dispensingMap,
   PHARMACY_PERMISSIONS,
@@ -34,6 +35,8 @@ import {
   runningBalance,
   witnessAllowed,
 } from "@/lib/pharmacy/controlled";
+import { classWords, controlledIngredient } from "@/lib/pharmacy/controlled-substances";
+import { legalQ1RecordedFor } from "@/lib/pharmacy/legal";
 import { cadreOfUsers } from "@/lib/pharmacy/read";
 import { expiresOn, isExpired, localDate } from "@/lib/pharmacy/stock/ledger";
 import { drugById, DRUGS } from "@/lib/prescribing/formulary";
@@ -67,14 +70,64 @@ async function signedContent(database: EmrDb, hospitalId: string, kind: string) 
   return row?.content ?? null;
 }
 
-/** CT-7, CD-1: the medicines this hospital signed controlled, with their class. */
+type IngredientRow = { id: string; key: string; names: string[] | null };
+
+/** Each id's controlled class from its catalogue ingredients (ADR 0470); ids with no listed substance are left out. */
+function classesFrom(rows: readonly IngredientRow[]): Map<string, string> {
+  const by = new Map<string, { key: string; names: string[] }[]>();
+  for (const r of rows)
+    by.set(r.id, [...(by.get(r.id) ?? []), { key: r.key, names: r.names ?? [] }]);
+  return new Map(
+    [...by].flatMap(([id, ingredients]) => {
+      const hit = controlledIngredient(ingredients);
+      return hit ? [[id, classWords(hit.class)] as const] : [];
+    }),
+  );
+}
+
+/**
+ * ADR 0470: one catalogue medicine's controlled class from the signed substance list, by its ingredients. `null`:
+ * not controlled. `"unknown"`: the catalogue lists no ingredient, so nothing can be said.
+ */
+export async function catalogueMedicineClass(
+  database: unknown,
+  catalogueMedicineId: string,
+): Promise<string | null | "unknown"> {
+  const rows = rowsOf<IngredientRow>(
+    await (database as EmrDb).execute(sql`
+      SELECT i.medicine_id AS id, s.key,
+             ARRAY(SELECT n.name FROM public.cat_substance_names n WHERE n.substance_id = s.id) AS names
+        FROM public.cat_medicine_ingredients i JOIN public.cat_substances s ON s.id = i.substance_id
+       WHERE i.medicine_id = ${catalogueMedicineId}`),
+  );
+  if (!rows.length) return "unknown";
+  return classesFrom(rows).get(catalogueMedicineId) ?? null;
+}
+
+/**
+ * CT-7, CD-1: the medicines this hospital signed controlled, with their class; and (ADR 0470) each local medicine
+ * product's class from the signed substance list, by its catalogue medicine's ingredients, under its catalogue key.
+ * A prescribing-list medicine is decided by the signed set alone, exactly as before.
+ */
 export async function controlledMedicineIds(
   database: unknown,
   hospitalId: string,
 ): Promise<ReadonlyMap<string, string>> {
-  return controlledClasses(
+  const signed = controlledClasses(
     await signedContent(database as EmrDb, hospitalId, "controlled_classes"),
   );
+  const local = classesFrom(
+    rowsOf<IngredientRow>(
+      await (database as EmrDb).execute(sql`
+        SELECT p.medicine_id AS id, s.key,
+               ARRAY(SELECT n.name FROM public.cat_substance_names n WHERE n.substance_id = s.id) AS names
+          FROM public.pharmacy_products p
+          JOIN public.cat_medicine_ingredients i ON i.medicine_id = p.catalogue_medicine_id
+          JOIN public.cat_substances s ON s.id = i.substance_id
+         WHERE p.hospital_id = ${hospitalId} AND p.item_kind = 'local_medicine'`),
+    ),
+  );
+  return new Map([...local, ...signed]);
 }
 
 /** CD-1: flagged at prescribing (the catalogue's draft flag) or signed controlled here. */
@@ -143,13 +196,14 @@ export async function witnessCandidates(
       ),
     )
     .orderBy(asc(users.fullName));
+  const map = dispensingMap(undefined, hospitalId, undefined, process.env.VERCEL_ENV === "production" && (await legalQ1RecordedFor(hospitalId)));
   const seen = new Set<string>();
   return rows.flatMap((r) => {
     if (seen.has(r.userId)) return [];
     seen.add(r.userId);
     const ok = witnessAllowed({
       witnessPermissions: [
-        ...pharmacyDispensingAccess(r.code, dispensingMap(undefined, hospitalId)).permissions,
+        ...pharmacyDispensingAccess(r.code, map).permissions,
       ],
       signedWitnessList: list,
       witnessUserId: r.userId,
@@ -244,7 +298,10 @@ export async function getControlledRegister(
     ...signed.keys(),
   ]);
   const medicines = [...controlledIds]
-    .map((id) => ({ id, name: medicineName(id) }))
+    .map((id) => ({
+      id,
+      name: drugById(id)?.generic ?? products.find((p) => p.medicineId === id)?.name ?? id,
+    }))
     .sort((a, b) => a.name.localeCompare(b.name));
   const chosen = medicineId && controlledIds.has(medicineId) ? medicineId : null;
   const today = localDate(now);
@@ -613,7 +670,8 @@ export async function getRegisterEntry(
     entryId: e.id,
     kind: e.kind,
     hospital: e.hospital,
-    pointId: e.pointId,
+    // Point registers only here; ward and cart registers (location_id) are read by the Controls pages.
+    pointId: e.pointId ?? "",
     point: e.point,
     recordedAt: e.recordedAt.toISOString(),
     patientUserId: h?.patient ?? null,

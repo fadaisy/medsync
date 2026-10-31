@@ -10,7 +10,7 @@ import { QList } from "../_components/q-list";
 import { QcChip } from "../_components/qc-chip";
 import { QUALITY } from "../_lib/copy";
 import { ncLiveFor, requireQualityScope } from "../_lib/scope";
-import { Ident } from "../../_components/v2/kit";
+import { Ident } from "@/components/tide/work/kit";
 import { dateWords } from "../../_lib/days";
 import { Frame } from "./frame";
 

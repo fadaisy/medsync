@@ -431,11 +431,11 @@ describe.skipIf(!laneOn)("controlled drugs (Step 7, S57–S66)", () => {
     for (const s of spies) s.mockRestore();
   });
 
-  it("CD-2: a passed attestation older than 30 minutes no longer stands, here and at the database", async () => {
+  it("CD-2 (rework S3): a passed attestation older than 10 minutes no longer stands, here and at the database", async () => {
     const old = (
       await one(
         `INSERT INTO public.pharmacy_attestations (hospital_id, actor_user_id, attester_user_id, purpose, action, outcome, attested_at)
-         VALUES ($1, $2, $3, 'witness', 'controlled_count', 'passed', now() - interval '31 minutes') RETURNING id`,
+         VALUES ($1, $2, $3, 'witness', 'controlled_count', 'passed', now() - interval '11 minutes') RETURNING id`,
         [f.h, f.pharmacist, f.tech],
       )
     ).id;
@@ -449,7 +449,7 @@ describe.skipIf(!laneOn)("controlled drugs (Step 7, S57–S66)", () => {
            witness_attestation_id, actor_user_id) VALUES ($1, $2, $3, 'count', $4, $5)`,
         [f.h, f.pointA, MORPHINE, old, f.pharmacist],
       ),
-    ).rejects.toThrow(/does not stand/);
+    ).rejects.toThrow(/more than 10 minutes old/);
   });
 
   /* ─── The scenarios ───────────────────────────────────────────────────── */
@@ -615,8 +615,8 @@ describe.skipIf(!laneOn)("controlled drugs (Step 7, S57–S66)", () => {
         [entry.movement_id],
       ),
     ).toEqual({ witness_attestation_id: w });
-    // A second count is a second event.
-    const second = await count(pharmacist(), w, MORPHINE, [
+    // A second count is a second event, with its own witness approval (rework S3: one approval, one act).
+    const second = await count(pharmacist(), await witnessId(), MORPHINE, [
       [b1.id, 7],
       [b2.id, 5],
     ]);
@@ -846,7 +846,8 @@ describe.skipIf(!laneOn)("controlled drugs (Step 7, S57–S66)", () => {
     expect(
       await count(pharmacist(), randomUUID(), MORPHINE, countable, { scope: "controlled_shift" }),
     ).toMatchObject({ ok: false, error: READY_COPY.witness });
-    const shift = await count(pharmacist(), w, MORPHINE, countable, { scope: "controlled_shift" });
+    const ws = await witnessId();
+    const shift = await count(pharmacist(), ws, MORPHINE, countable, { scope: "controlled_shift" });
     if (!shift.ok) throw new Error(shift.error);
     expect(shift.data!.differences).toBe(0);
 
@@ -855,18 +856,19 @@ describe.skipIf(!laneOn)("controlled drugs (Step 7, S57–S66)", () => {
     expect(
       await run(pharmacist(), stock.TransferInput, stock.STOCK_NEED, stock.transferStock, transfer),
     ).toMatchObject({ ok: false });
+    const wt = await witnessId();
     const sent = await run(
       pharmacist(),
       cd.TransferControlledInput,
       stock.STOCK_NEED,
       cd.transferControlled,
-      { ...transfer, witnessAttestationId: w },
+      { ...transfer, witnessAttestationId: wt },
     );
     if (!sent.ok) throw new Error(sent.error);
     expect(
       await n(
         `SELECT count(*)::int AS n FROM public.pharmacy_controlled_entries WHERE kind = 'transfer' AND witness_attestation_id = $1`,
-        [w],
+        [wt],
       ),
     ).toBe(2);
     // A technician holds no pharmacy.controlled: the witnessed path refuses them (CD-5).

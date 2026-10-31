@@ -13,7 +13,7 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { deltaRulesWithReview } from "@/lib/lab/delta-read";
 import { labDeltaChecksLiveFor } from "@/lib/lab/feature";
 import { SetupHeader } from "../_components/setup-header";
-import { EmptyState } from "../../_components/v2/kit";
+import { EmptyState } from "@/components/tide/work/kit";
 import {
   DeltaRuleDialog,
   PanelRuleDialog,

@@ -206,6 +206,19 @@ export function databaseRefusal(e: unknown): string | null {
   if (m) return `Batch ${m[1]} expired on ${m[2]}. Remove it from the shelf.`;
   if (msg.includes("(Law 3)"))
     return "The supply and its stock movement did not match. Nothing was recorded.";
+  // Rework 0265: the witness and back-entry rules, in words.
+  const words: [string, string][] = [
+    ["leaves only with a witness", "A controlled medicine needs a witness. Ask someone on duty to approve it."],
+    ["approval was already used", "That witness approval was already used. Ask the witness to approve this one."],
+    ["more than 10 minutes old", "The witness approval is more than 10 minutes old. Ask again."],
+    ["not on duty here now", "That witness is not on duty here now. Choose someone on the roster."],
+    ["does not stand for this person", "That witness approval was for someone else. Ask again."],
+    ["mirrors one movement exactly", "A correction must mirror the original line exactly. Nothing was recorded."],
+  ];
+  const w = words.find(([k]) => msg.includes(k));
+  if (w) return w[1];
+  const count = msg.match(/pharmacy_stock: batch (\S+) needs a count/);
+  if (count) return `Batch ${count[1]} was entered from paper after a network cut. Count it before giving more.`;
   const cause = e && typeof e === "object" && "cause" in e ? (e as { cause: unknown }).cause : null;
   return cause ? databaseRefusal(cause) : null;
 }

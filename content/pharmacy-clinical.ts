@@ -5,10 +5,12 @@ import type { SignedCopy } from "@/content/signed-copy";
  * the dialog's interaction line and the notice. Signed by the CSO on 25 Oct 2026 as written (Steps 0–8). Any change
  * returns it to `draft` until it is signed again; in production the Phase 3 flags stay off while it is draft (CS-5).
  */
+// Rework copy sweep (30 Oct 2026): build codes taken out of the words, so this waits for one re-sign with the
+// rework wording (PHARMACY_REWORK_COPY). Previously signed by Fadhul (CSO).
 export const PHARMACY_CLINICAL_COPY: SignedCopy = {
-  status: "signed",
-  signedBy: "Fadhul (CSO)",
-  signedOn: "2026-10-25",
+  status: "draft",
+  signedBy: null,
+  signedOn: null,
 };
 
 /** Appendix B, word for word (first merge). */
@@ -114,7 +116,7 @@ export const CLINICAL_UI = {
   },
   exception: "Exception, if you sign alone",
   exceptionHint:
-    "For example: CSO signs alone (ADR 0281). No second signer is named at this hospital yet.",
+    "For example: CSO signs alone. No second signer is named at this hospital yet.",
   withdraw: "Withdraw",
   withdrawTitle: (k: string) => `Withdraw ${k}`,
   withdrawReason: "Why",

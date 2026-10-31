@@ -13,7 +13,6 @@ import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { getLookBack, getSupplied } from "@/lib/pharmacy/supply/read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { Supplied } from "./_components/supplied";
-import { toV2 } from "../_lib/to-v2";
 
 
 /**
@@ -21,16 +20,6 @@ import { toV2 } from "../_lib/to-v2";
  * hospital-local day, newest first; `?day=YYYY-MM-DD` reads an earlier day (for Correct the record,
  * SU-14; Reverse is offered only on the day recorded, SU-11). Behind `pharmacyDispensing`.
  */
-/** Pharmacy Workspace v2 (D-PW-09): with the flag on, this list lives at Window › Supplied today (307). */
-export default async function SuppliedPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ day?: string; tab?: string }>;
-}) {
-  await toV2("/pharmacy/window?view=supplied", await searchParams);
-  return <SuppliedBody searchParams={searchParams} />;
-}
-
 /** The old page's body, unchanged; Window renders it too. */
 export async function SuppliedBody({
   searchParams,

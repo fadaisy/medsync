@@ -1,6 +1,6 @@
 "use client";
 
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../criticals/_components/setup-forms";
 import { loadDemoDayAction } from "./actions";
 

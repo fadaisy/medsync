@@ -32,8 +32,6 @@ const FILES = [
   ...readdirSync("content")
     .filter((f) => f.startsWith("pharmacy-workspace-v2"))
     .map((f) => join("content", f)),
-  "app/pharmacy/store/page.tsx",
-  "app/pharmacy/clinical/page.tsx",
 ].filter((f) => {
   try {
     return statSync(f).isFile();
@@ -63,6 +61,8 @@ describe("Workspace v2 laws over the new interface", () => {
   });
 
   it.each(FILES)("%s: no bracketed board placeholders", (f) => {
-    expect(readFileSync(f, "utf8")).not.toMatch(/"[^"]*\[(target|dose|strength|frequency|duration)\][^"]*"/i);
+    expect(readFileSync(f, "utf8")).not.toMatch(
+      /"[^"]*\[(target|dose|strength|frequency|duration)\][^"]*"/i,
+    );
   });
 });

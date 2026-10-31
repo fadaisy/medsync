@@ -7,6 +7,7 @@ import { z } from "zod";
 import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
 import { CSO_ALONE, PACKS } from "@/content/pharmacy-stores-supply";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
+import { hospitals } from "@/db/schema/hospitals";
 import { pharmacyAttestations, pharmacySignedSets } from "@/db/schema/pharmacy-dispensing";
 import { users } from "@/db/schema/users";
 import { attestSecondPerson } from "@/lib/auth/attest";
@@ -21,7 +22,9 @@ import { fail, storeNeed } from "./write";
  * different people, or by the CSO alone with the exception text (D-PH2-22), each with a fresh second factor
  * (a `signer` attestation, lib/auth/attest.ts). Signing retires the version in force (0122 `pss_one_signed`).
  *
- * Every kind has a Zod schema; nothing has a default (Law 6). Phase 1's kinds are supported only where a reader
+ * Every kind has a Zod schema; nothing has a default (Law 6): a pack is what was signed. Write a draft opens with
+ * MedSync's sourced starting draft (ADR 0469, `pack-templates.ts`), which acts only once signed like any other draft.
+ * Phase 1's kinds are supported only where a reader
  * states the shape: `message_name` ({name}), `witness_list` ({permissions}) and the coded lists ({items}).
  */
 
@@ -351,6 +354,22 @@ export async function peopleAt(database: EmrTx | EmrDb, hospitalId: string) {
   return rows
     .map((r) => ({ userId: r.userId, label: r.name ?? "Name not recorded" }))
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/**
+ * One-click answers for the hospital's own fields in Write a draft (ADR 0469), by field: the message name may be the
+ * hospital's recorded name when it fits the pack (2 to 40 letters).
+ */
+export async function packChoices(
+  database: EmrTx | EmrDb,
+  hospitalId: string,
+): Promise<Record<string, string[]>> {
+  const [h] = await database
+    .select({ name: hospitals.name })
+    .from(hospitals)
+    .where(eq(hospitals.id, hospitalId));
+  const name = h?.name.trim() ?? "";
+  return name.length >= 2 && name.length <= 40 ? { name: [name] } : {};
 }
 
 const FRESH_MS = 15 * 60_000;

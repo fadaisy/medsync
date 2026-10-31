@@ -30,6 +30,7 @@ export async function startDemo(
   now = new Date(),
 ): Promise<DemoState> {
   const h = admin.hospitalId;
+  demoFrozenInProduction();
   if (!(await isDemoHospital(db, h)))
     throw new EmrWriteError("forbidden", "This hospital is not a demo hospital. Demo data goes only into a demo hospital.");
   // One load per hospital: a second one meets the first one's stock and registers. A load that stopped at setup wrote
@@ -129,7 +130,14 @@ export async function pharmacyDemoFootprint(db: EmrDb, hospitalId: string, actor
  * nothing real uses. A real record pointing at demo data stops it all. Returns what went, by kind.
  */
 export async function removePharmacyDemo(db: EmrDb, hospitalId: string, actorId: string) {
+  demoFrozenInProduction();
   return runRemove(db, hospitalId, actorId, false);
+}
+
+/** Rework S14 (C3): the demo code is frozen; demos run in a separate project, never in the production database. */
+function demoFrozenInProduction(env = process.env.VERCEL_ENV) {
+  if (env === "production")
+    throw new EmrWriteError("forbidden", "Demos run in the separate demo project, not in the live database.");
 }
 
 /** The app's 30s statement cap (db/index.ts) is too short for the whole demo; this transaction gets five minutes. */

@@ -24,7 +24,7 @@ import { evaluateRules, RULE_IDS, runDecision, zScore } from "@/lib/lab/qc-rules
 import { cn } from "@/lib/utils";
 import { QUALITY } from "../_lib/copy";
 import { inputClass, newKey, num, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 import { ActButton } from "./act-button";
 

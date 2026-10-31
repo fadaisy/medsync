@@ -10,7 +10,7 @@ import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { RELEASE_GROUPS } from "@/lib/lab/patient-release";
 import { savePatientReleaseDraftAction } from "@/lib/lab/patient-release-actions";
 import { inputClass, Pop, selectClass } from "../../../_components/pop";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { PickField } from "../../../_components/v2/fields";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 import { MultiPick } from "./multi-pick";

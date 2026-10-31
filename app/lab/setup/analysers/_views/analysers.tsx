@@ -8,7 +8,7 @@ import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { db } from "@/db";
 import { devices } from "@/db/schema";
 import { loadConnections } from "@/lib/lab/exchange-read";
-import { Ident } from "../../../_components/v2/kit";
+import { Ident } from "@/components/tide/work/kit";
 import { dateWords, timeWords } from "../../../_lib/days";
 
 const A = LABWS2_SETUP.analysers;

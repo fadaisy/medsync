@@ -76,7 +76,7 @@ export default async function RegisterSlipPage({
         </Link>
       </div>
       <article className="register-slip flex flex-col gap-2 border border-black bg-white p-5 text-[13px] leading-snug text-black">
-        <h1 className="text-[15px] font-medium">{slip.heading}</h1>
+        <h2 className="text-[15px] font-medium">{slip.heading}</h2>
         <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1">
           {slip.rows.map((r) => (
             <div key={r.label} className="contents">

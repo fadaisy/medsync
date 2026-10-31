@@ -42,7 +42,6 @@ const OURS = [
   "lib/pharmacy/stores/cart-store.ts",
   "lib/pharmacy/stores/ward-read.ts",
   "app/pharmacy/store/wards/actions.ts",
-  "app/pharmacy/store/carts/actions.ts",
   "app/pharmacy/store/wards/_lib/act.ts",
   "app/nurse/ward-stock/actions.ts",
   "lib/nurse/ward-stock.ts",

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { saveLimitsDraftAction, signLimitsAsLeadAction } from "@/lib/lab/measures-actions";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { toDays } from "../../ranges/_lib/ages";
 

@@ -16,8 +16,21 @@ const on = {
   dispensing: true,
   downtime: true,
   refills: true,
-  stores: { store: true, wardStock: true, carts: true, recall: true, monthEnd: true, ordering: true },
-  clinical: { interactions: true, interventionReview: true, stewardship: true, reactions: true, reconciliation: true },
+  stores: {
+    store: true,
+    wardStock: true,
+    carts: true,
+    recall: true,
+    monthEnd: true,
+    ordering: true,
+  },
+  clinical: {
+    interactions: true,
+    interventionReview: true,
+    stewardship: true,
+    reactions: true,
+    reconciliation: true,
+  },
 };
 
 describe("Workspace v2 places (D-PW-03)", () => {
@@ -53,7 +66,9 @@ describe("Workspace v2 places (D-PW-03)", () => {
       ...on,
       stores: { ...on.stores, store: false },
     }).map((i) => i.id);
-    const keys = placesFor({ navIds, dispensing: true, nationalList: false }).tabs.map((t) => t.key);
+    const keys = placesFor({ navIds, dispensing: true, nationalList: false }).tabs.map(
+      (t) => t.key,
+    );
     expect(keys).not.toContain("deliveries");
     expect(keys).toContain("wards");
   });
@@ -64,7 +79,11 @@ describe("Workspace v2 places (D-PW-03)", () => {
     const shown = placesFor({ navIds, dispensing: true, nationalList: false, packs: true });
     expect(shown.tabs.filter((t) => t.place === "setup").map((t) => t.key)[0]).toBe("packs");
     const all = pharmacyNavFor(ALL, on).map((i) => i.id);
-    expect(placesFor({ navIds: all, dispensing: true, nationalList: false, packs: false }).tabs.map((t) => t.key)).not.toContain("packs");
+    expect(
+      placesFor({ navIds: all, dispensing: true, nationalList: false, packs: false }).tabs.map(
+        (t) => t.key,
+      ),
+    ).not.toContain("packs");
   });
 
   it("lands the in-charge on Today and everyone else on Window", () => {

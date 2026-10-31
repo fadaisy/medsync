@@ -2,7 +2,7 @@
 
 import type { ComponentProps } from "react";
 
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 
 /**
  * The lab button for the quality, stock and equipment forms, which render both inside the Lab Workspace v2 shell

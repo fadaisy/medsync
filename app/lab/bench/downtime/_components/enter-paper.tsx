@@ -19,9 +19,9 @@ import {
 import { localValue } from "@/lib/lab/field-kit";
 import { cn } from "@/lib/utils";
 import { entryStep, formTimesProblem, PAPER_TIMES_START, saveBlock } from "../_lib/steps";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { DateTimeField, PickField } from "../../../_components/v2/fields";
-import { EmptyState, Ident, Panel, Pill, TwoIds } from "../../../_components/v2/kit";
+import { EmptyState, Ident, Panel, Pill, TwoIds } from "@/components/tide/work/kit";
 
 const E = LABWS2_DOWNTIME.enter;
 type CheckKind = "repeated" | "checked_not_repeated" | "could_not_check";

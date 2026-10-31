@@ -1,6 +1,6 @@
+import type { PointIn, QueueIn, TodayRows } from "@/lib/pharmacy/workspace-v2/today";
 import { describe, expect, it } from "vitest";
 
-import type { PointIn, QueueIn, TodayRows } from "@/lib/pharmacy/workspace-v2/today";
 import { dayKeys, todayFigures } from "@/lib/pharmacy/workspace-v2/today";
 
 /** Hand-counted fixture. Now is Tue 27 Oct 2026 15:30 in Kampala (UTC+3). */
@@ -10,11 +10,23 @@ const now = new Date("2026-10-27T12:30:00Z");
 const points: PointIn[] = [
   { id: "A", name: "Window A", serves: "window", liveAt: "2026-01-01", switchedOffAt: null },
   { id: "B", name: "Ward B", serves: "wards", liveAt: "2026-01-01", switchedOffAt: null },
-  { id: "C", name: "Window C", serves: "window", liveAt: "2026-01-01", switchedOffAt: "2026-09-01" },
+  {
+    id: "C",
+    name: "Window C",
+    serves: "window",
+    liveAt: "2026-01-01",
+    switchedOffAt: "2026-09-01",
+  },
   { id: "D", name: "All D", serves: "all", liveAt: null, switchedOffAt: null },
 ];
 
-const row = (key: string, origin: QueueIn["origin"], stage: QueueIn["stage"], writtenAt: string, x: Partial<QueueIn> = {}): QueueIn => ({
+const row = (
+  key: string,
+  origin: QueueIn["origin"],
+  stage: QueueIn["stage"],
+  writtenAt: string,
+  x: Partial<QueueIn> = {},
+): QueueIn => ({
   key,
   origin,
   stage,
@@ -31,7 +43,9 @@ const rows: TodayRows = {
     row("r1", "window", "to_review", "2026-10-27T06:00:00Z"),
     row("r2", "window", "to_review", "2026-10-26T10:00:00Z", { earlier: true }),
     row("r3", "ward", "ready", "2026-10-27T09:00:00Z"),
-    row("r4", "window", "queried", "2026-10-27T05:00:00Z", { queriedSince: "2026-10-27T11:30:00Z" }),
+    row("r4", "window", "queried", "2026-10-27T05:00:00Z", {
+      queriedSince: "2026-10-27T11:30:00Z",
+    }),
     row("r5", "ward", "awaiting_cosign", "2026-10-27T12:05:00Z"),
   ],
   arrivals: [
@@ -60,7 +74,12 @@ const rows: TodayRows = {
   stockouts: [
     { pointId: "A", medicineId: "m1", startedAt: "2026-10-25T10:00:00Z", endedAt: null },
     { pointId: "A", medicineId: "m3", startedAt: "2026-10-25T10:00:00Z", endedAt: null },
-    { pointId: "B", medicineId: "m2", startedAt: "2026-10-19T10:00:00Z", endedAt: "2026-10-22T10:00:00Z" },
+    {
+      pointId: "B",
+      medicineId: "m2",
+      startedAt: "2026-10-19T10:00:00Z",
+      endedAt: "2026-10-22T10:00:00Z",
+    },
   ],
   vital: new Set(["m1", "m2"]),
   lookBacks: [
@@ -80,7 +99,14 @@ const at = (scope: string) => todayFigures(rows, { points, scope, now, timeZone:
 describe("Today read model (GATE A §6)", () => {
   it("keys eight local days, last week's weekday first", () => {
     expect(dayKeys(now, TZ)).toEqual([
-      "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26", "2026-10-27",
+      "2026-10-20",
+      "2026-10-21",
+      "2026-10-22",
+      "2026-10-23",
+      "2026-10-24",
+      "2026-10-25",
+      "2026-10-26",
+      "2026-10-27",
     ]);
   });
 
@@ -123,14 +149,21 @@ describe("Today read model (GATE A §6)", () => {
     expect(f.vitalOut).toEqual({ value: 1, week: [0, 0, 0, 0, 1, 1, 1], change: 1 });
     expect(f.lookBack).toEqual({ value: 2, week: [0, 0, 1, 0, 0, 0, 1], change: null });
     expect(f.controlled).toEqual({ value: 1, week: [0, 1, 0, 0, 0, 0, 1], change: null });
-    expect(at("all").figures.vitalOut).toEqual({ value: 1, week: [1, 0, 0, 0, 1, 1, 1], change: 0 });
+    expect(at("all").figures.vitalOut).toEqual({
+      value: 1,
+      week: [1, 0, 0, 0, 1, 1, 1],
+      change: 0,
+    });
     expect(at("all").figures.notOnShelf.value).toBe(3);
   });
 
   it("has no earlier data for refills, and vital out is not set without the national list", () => {
     expect(at("A").figures.refills).toEqual({ value: 1, week: null, change: null });
     expect(at("all").figures.refills.value).toBe(3);
-    const noList = todayFigures({ ...rows, vital: null }, { points, scope: "all", now, timeZone: TZ });
+    const noList = todayFigures(
+      { ...rows, vital: null },
+      { points, scope: "all", now, timeZone: TZ },
+    );
     expect(noList.figures.vitalOut).toEqual({ value: null, week: null, change: null });
     expect(noList.points.every((p) => p.vitalOut === null)).toBe(true);
   });

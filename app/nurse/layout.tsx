@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { WitnessInbox } from "@/app/pharmacy/_components/witness";
 import { TideScope } from "@/components/medsync/tide-scope";
 import { ArrestAlarm } from "@/components/resus/arrest-alarm";
 import { emrV1LiveFor } from "@/lib/emr/feature";
@@ -27,6 +28,7 @@ export default async function NurseLayout({ children }: { children: ReactNode })
       }}
     >
       <TideScope group="nurse">{children}</TideScope>
+      <WitnessInbox />
       {resusDeskV2() ? (
         <ArrestAlarm hospitalId={scope.hospitalId} resusBase="/nurse/resus" />
       ) : null}

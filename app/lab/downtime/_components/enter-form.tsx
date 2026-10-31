@@ -13,7 +13,7 @@ import {
   findPatientAction,
   testComponentsAction,
 } from "@/lib/lab/downtime-actions";
-import { LabButton } from "../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { DateTimeField } from "../../_components/v2/fields";
 import { PAPER_TIMES_START } from "../../bench/downtime/_lib/steps";
 

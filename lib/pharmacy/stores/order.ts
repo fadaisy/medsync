@@ -193,10 +193,11 @@ export interface Cut {
   needsReason: boolean;
 }
 
-const TRIM_ORDER: readonly Ven[] = ["N", "E", "V"];
+// Rework PRD §6.4: Fit to budget trims Necessary, then Essential, and never Vital.
+const TRIM_ORDER: readonly Ven[] = ["N", "E"];
 
 /**
- * OQ-5, D-PH2-13: trim to the budget in VEN order, necessary then essential then vital; within a class,
+ * Trim to the budget in VEN order, necessary then essential, never vital; within a class,
  * the costliest line first. A line is reduced by whole packs (or units with no whole pack) only as far
  * as the budget needs. Returns proposals only: each cut is confirmed one by one, vital cuts with a
  * reason. Unclassed lines are trimmed as the in-charge signed (never silently "necessary"); unsigned, or

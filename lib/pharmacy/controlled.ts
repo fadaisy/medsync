@@ -115,11 +115,11 @@ export interface Attestation {
   attestedAt: Date;
 }
 
-export const ATTESTATION_MAX_AGE_MS = 30 * 60_000;
+export const ATTESTATION_MAX_AGE_MS = 10 * 60_000;
 
 /**
  * 0127 `pharmacy_controlled_witness_guard`, mirrored (D-PH1-42, ADR 0279): a passed witness attestation,
- * by someone other than the actor, for this actor at this hospital, no older than 30 minutes.
+ * by someone other than the actor, for this actor at this hospital, no older than 10 minutes (rework S3).
  */
 export function attestationStands(input: {
   attestation: Attestation | null;

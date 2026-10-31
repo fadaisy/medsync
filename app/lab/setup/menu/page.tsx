@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { PillTabs } from "@/app/lab/_components/v2/space";
+import { PillTabs } from "@/components/tide/work/space";
 import { HospitalProfiles } from "@/components/lab/test-menu/profiles";
 import { TestMenu } from "@/components/lab/test-menu/test-menu";
 import { LAB } from "@/content/lab";

@@ -16,7 +16,7 @@ import { PlanDialog, RunForm, SetTarget, SignDraft } from "../_components/qc-for
 import { QUALITY } from "../_lib/copy";
 import { requireQualityScope } from "../_lib/scope";
 import { qcWord } from "../_lib/status";
-import { EmptyState, Panel } from "../../_components/v2/kit";
+import { EmptyState, Panel } from "@/components/tide/work/kit";
 import { ViewHeader } from "../../_components/v2/view-header";
 import { dateWords, timeWords } from "../../_lib/days";
 import { runHref } from "./qc";

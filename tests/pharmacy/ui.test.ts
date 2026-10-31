@@ -224,26 +224,33 @@ describe("source rules", () => {
       // Pharmacy Phase 3: Clinical content (Step 4).
       "app/pharmacy/clinical/actions.ts",
       "app/pharmacy/controlled-actions.ts",
+      // Rework P3: Controls.
+      "app/pharmacy/controls/actions.ts",
       "app/pharmacy/downtime/actions.ts",
       "app/pharmacy/downtime/entry-actions.ts",
       // Workspace v2: Find, reads only (GATE A §1).
       "app/pharmacy/find-actions.ts",
       "app/pharmacy/open-lines/actions.ts",
+      // Rework P4 and P5: Patients, Records.
+      "app/pharmacy/patients/actions.ts",
+      "app/pharmacy/records/actions.ts",
       // Pharmacy Phase 4: refills (Step 5).
       "app/pharmacy/refill-actions.ts",
       "app/pharmacy/review-actions.ts",
+      "app/pharmacy/setup/actions.ts",
       "app/pharmacy/stock/actions.ts",
+      "app/pharmacy/stock/store/count-actions.ts",
       // Pharmacy Phase 2: the Store group (Steps 4 to 9).
       "app/pharmacy/store/actions.ts",
-      "app/pharmacy/store/carts/actions.ts",
       "app/pharmacy/store/deliveries/actions.ts",
       "app/pharmacy/store/expiry/actions.ts",
       "app/pharmacy/store/issues/actions.ts",
-      "app/pharmacy/store/month-end/actions.ts",
       "app/pharmacy/store/orders/actions.ts",
       "app/pharmacy/store/packs/actions.ts",
       "app/pharmacy/store/wards/actions.ts",
       "app/pharmacy/supply-actions.ts",
+      // Rework P1: the witness on their own screen.
+      "app/pharmacy/witness-actions.ts",
     ]);
     for (const f of actions)
       expect(read(f), f).not.toMatch(

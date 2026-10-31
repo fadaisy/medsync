@@ -1,5 +1,5 @@
 import { LABWS2 } from "@/content/lab-workspace-v2";
-import { Bone, CardBone, PlaceLoading } from "../_components/v2/loading";
+import { Bone, CardBone, PlaceLoading } from "@/components/tide/work/loading";
 
 /** Needs you: filter chips over grouped panels, with the side column on wide screens. */
 export default function Loading() {

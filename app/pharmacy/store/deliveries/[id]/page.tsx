@@ -1,14 +1,23 @@
+import type { LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { TriangleAlertIcon } from "lucide-react";
+import {
+  LockIcon,
+  PencilIcon,
+  ScanLineIcon,
+  SearchIcon,
+  TagIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { PageHeader } from "@/components/medsync/page-header";
-import { SectionNumber } from "@/components/medsync/section-number";
 import { PHARMACY } from "@/content/pharmacy";
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { expiryText } from "@/content/pharmacy-stock";
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
 import {
   REJECT_REASONS,
   resultWords,
@@ -21,6 +30,7 @@ import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { witnessCandidates } from "@/lib/pharmacy/controlled-read";
 import { pharmacyStoreLiveFor } from "@/lib/pharmacy/feature";
 import { getDelivery } from "@/lib/pharmacy/stores/store-read";
+import { cn } from "@/lib/utils";
 import {
   AbandonDialog,
   DeliveryPrints,
@@ -45,9 +55,10 @@ const at = new Intl.DateTimeFormat("en-GB", {
 });
 
 /**
- * One delivery, counted against its note (Pharmacy Phase 2, 5.2, board 2.1; RG-1 to RG-6). 1 · the delivery,
- * 2 · its lines with their results in words (amber with an icon for everything but Matches), 3 · add to stock
- * (one transaction; a controlled line with its witness). Closed, it prints the discrepancy report (HMIS 087,
+ * One delivery, counted against its note (Pharmacy Phase 2, 5.2; RG-1 to RG-6), laid out as the catalogue canvas's
+ * board 1 "Count a delivery": on the left the scan band and each line, newest first, with its results in words
+ * (amber with an icon for everything but Matches); on the right the delivery, its one action (add to stock, one
+ * transaction; a controlled line with its witness), what the order still owes, and what happens next. Closed, it prints the discrepancy report (HMIS 087,
  * columns not confirmed) and the goods received note, with print CSS only, each print logged.
  */
 export default async function DeliveryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -99,9 +110,15 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
     </dl>
   );
 
+  const N = STOCK_UP_POLISH.next;
+  const card = "bg-card shadow-tide-card rounded-tide-card overflow-hidden";
+  const cardHead = "flex flex-wrap items-center gap-2.5 px-4 pt-3.5 pb-2";
+  const newest = nextLineNo - 1;
+  const typed = v.lines.filter((l) => l.identitySource === null || l.identitySource === "typed");
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <div className="flex flex-col gap-6 print:hidden">
+      <div className="flex flex-col gap-5 print:hidden">
         <PageHeader
           place={PHARMACY.place}
           placeInTopBar
@@ -123,226 +140,277 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
           }
         />
 
-        <section aria-labelledby="d1" className="flex flex-col gap-3">
-          <h2 id="d1" className="text-heading-s inline-flex items-center gap-2">
-            <SectionNumber n={1} />
-            {D.header}
-          </h2>
-          {header}
-          {d.state === "received" && d.finishedAt ? (
-            <p className="text-body-s">{D.received(at.format(d.finishedAt))}</p>
-          ) : null}
-          {d.state === "abandoned" ? (
-            <p className="text-body-s">{D.abandoned(d.abandonReason ?? "")}</p>
-          ) : null}
-        </section>
-
-        <section aria-labelledby="d2" className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="d2" className="text-heading-s inline-flex items-center gap-2">
-              <SectionNumber n={2} />
-              {D.lines}
-            </h2>
-            {open ? (
-              <LineDialog
-                deliveryId={d.id}
-                lineNo={nextLineNo}
-                products={v.products}
-                orderLines={v.orderLines}
-                facts={v.catalogue.facts}
-              />
-            ) : null}
-          </div>
-          {open && v.catalogue.live ? (
-            <DeliveryScan
-              deliveryId={d.id}
-              typed={
-                v.lines.length
-                  ? CATALOGUE.receive.typed(
-                      v.lines.filter(
-                        (l) => l.identitySource === null || l.identitySource === "typed",
-                      ).length,
-                      v.lines.length,
-                    )
-                  : null
-              }
-            />
-          ) : null}
-          <p className="text-body-s text-muted-foreground">{STORES_B.onlyCounted}</p>
-          {v.lookaheadDays === null ? (
-            <p role="status">
-              <StatusWord tone="caution" glyph={TriangleAlertIcon}>
-                {D.noLookahead}
-              </StatusWord>
-            </p>
-          ) : null}
-          {v.lines.length === 0 ? (
-            <p className="text-body-s text-muted-foreground">{D.noLines}</p>
-          ) : (
-            <div tabIndex={0} className="border-border overflow-x-auto rounded-lg border">
-              <table className="text-body-s w-full">
-                <thead className="bg-ink-50 text-left">
-                  <tr>
-                    <th scope="col" className="px-3 py-2">
-                      #
-                    </th>
-                    <th scope="col" className="px-3 py-2">
-                      {D.product}
-                    </th>
-                    <th scope="col" className="px-3 py-2 text-right">
-                      {D.noteQty}
-                    </th>
-                    <th scope="col" className="px-3 py-2 text-right">
-                      {D.accepted}
-                    </th>
-                    <th scope="col" className="px-3 py-2 text-right">
-                      {R.columns.rejected}
-                    </th>
-                    <th scope="col" className="px-3 py-2">
-                      {D.batch}
-                    </th>
-                    <th scope="col" className="px-3 py-2">
-                      {R.columns.expiry}
-                    </th>
-                    <th scope="col" className="px-3 py-2">
-                      {D.result}
-                    </th>
-                    <th scope="col" className="px-3 py-2">
-                      <span className="sr-only">{D.editLine}</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-border divide-y">
-                  {v.lines.map((l) => (
-                    <tr key={l.id} className="align-top">
-                      <td className="px-3 py-2 tabular-nums">{l.lineNo}</td>
-                      <td className="px-3 py-2">
-                        <span className="flex flex-col">
-                          <span className="font-medium">{l.productName}</span>
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+          {/* Board 1, left: the scan band, then each line counted, newest first. */}
+          <section aria-labelledby="d-lines" className={card}>
+            <div className={cardHead}>
+              <h2 id="d-lines" className="text-heading-m text-foreground">
+                {D.lines}
+              </h2>
+              <span className="text-body-s text-muted-foreground tabular-nums">
+                {v.lines.length}
+              </span>
+            </div>
+            <div className="flex flex-col gap-3 px-4 pb-4">
+              {open && v.catalogue.live ? <DeliveryScan deliveryId={d.id} /> : null}
+              {v.lookaheadDays === null ? (
+                <p role="status">
+                  <StatusWord tone="caution" glyph={TriangleAlertIcon}>
+                    {D.noLookahead}
+                  </StatusWord>
+                </p>
+              ) : null}
+              {v.lines.length === 0 ? (
+                <p className="text-body-s text-muted-foreground">{D.noLines}</p>
+              ) : null}
+            </div>
+            {v.lines.length ? (
+              <ol className="flex flex-col">
+                {[...v.lines]
+                  .sort((a, b) => b.lineNo - a.lineNo)
+                  .map((l) => {
+                    const source = l.identitySource ?? "typed";
+                    const SourceIcon = SOURCE_ICON[source];
+                    return (
+                      <li
+                        key={l.id}
+                        className={cn(
+                          "border-border flex flex-col gap-2.5 border-t px-4 py-3.5",
+                          open && l.lineNo === newest && "bg-tide-lagoon-tint",
+                        )}
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-heading-s text-foreground inline-flex items-center gap-2">
+                            <span className="bg-tide-navy-900 text-tide-on-band text-caption grid size-6 shrink-0 place-items-center rounded-full font-mono">
+                              <span className="sr-only">{STORE.issues.line} </span>
+                              {l.lineNo}
+                            </span>
+                            {l.productName}
+                          </h3>
                           {l.noteProductName ? (
-                            <span className="text-muted-foreground">{l.noteProductName}</span>
-                          ) : null}
-                          {l.controlled ? (
-                            <span className="text-caption">{D.controlled}</span>
-                          ) : null}
-                          {l.packs !== null && l.packContents !== null ? (
-                            <span className="text-caption text-muted-foreground tabular-nums">
-                              {l.packs} × {l.packContents}
+                            <span className="text-body-s text-muted-foreground">
+                              {R.noteSaid(l.productName, l.noteProductName)}
                             </span>
                           ) : null}
+                          <span className="flex-1" />
+                          {v.catalogue.live ? (
+                            <span className="bg-background text-caption text-ink-700 inline-flex h-6 items-center gap-1 rounded-full px-2 shadow-[inset_0_0_0_1px_var(--color-border)]">
+                              <SourceIcon aria-hidden className="size-3" />
+                              {CATALOGUE.source[source]}
+                            </span>
+                          ) : null}
+                          {open ? (
+                            <span className="flex flex-wrap gap-2">
+                              <LineDialog
+                                deliveryId={d.id}
+                                lineNo={l.lineNo}
+                                line={l}
+                                products={v.products}
+                                orderLines={v.orderLines}
+                                facts={v.catalogue.facts}
+                              />
+                              <RemoveLine deliveryId={d.id} line={l} />
+                            </span>
+                          ) : null}
+                        </div>
+                        <dl
+                          className={cn(
+                            "rounded-tide-row grid grid-cols-2 gap-x-4 gap-y-2.5 px-3 py-2.5 sm:grid-cols-3 xl:grid-cols-6",
+                            open && l.lineNo === newest ? "bg-card" : "bg-background",
+                          )}
+                        >
+                          {l.packs !== null && l.packContents !== null ? (
+                            <Kv label={CATALOGUE.receive.packs}>
+                              {l.packs} × {l.packContents}
+                            </Kv>
+                          ) : null}
+                          <Kv label={D.batch} mono>
+                            {l.batchNumber ?? "—"}
+                          </Kv>
+                          <Kv label={R.columns.expiry}>{exp(l)}</Kv>
+                          <Kv label={D.noteQty}>{l.noteQuantity ?? "—"}</Kv>
+                          <Kv label={D.accepted}>{STORE.amounts(l.accepted, l.issueUnit)}</Kv>
+                          <Kv label={R.columns.rejected}>
+                            {l.rejectedKept + l.rejectedReturned}
+                            {l.rejectReason ? (
+                              <span className="text-caption text-muted-foreground block font-normal">
+                                {REJECT_REASONS[l.rejectReason as keyof typeof REJECT_REASONS]}
+                              </span>
+                            ) : null}
+                          </Kv>
+                          {l.unitCost ? <Kv label={R.columns.cost}>{l.unitCost}</Kv> : null}
+                        </dl>
+                        <div className="text-body-s text-ink-700 flex flex-wrap items-center gap-x-3.5 gap-y-1.5">
+                          {l.packs !== null && l.packContents !== null ? (
+                            <span>
+                              {CATALOGUE.packsToUnits(
+                                l.accepted.toLocaleString("en-GB"),
+                                l.issueUnit,
+                                l.packs.toLocaleString("en-GB"),
+                                l.packContents.toLocaleString("en-GB"),
+                              )}
+                            </span>
+                          ) : null}
+                          {l.controlled ? <span>{D.controlled}</span> : null}
                           {l.registrationReason ? (
-                            <span className="text-caption">
+                            <span>
                               {CATALOGUE.receive.registration.reasons[
                                 l.registrationReason as keyof typeof CATALOGUE.receive.registration.reasons
                               ] ?? l.registrationReason}
                             </span>
                           ) : null}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums">{l.noteQuantity ?? "—"}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{l.accepted}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">
-                        {l.rejectedKept + l.rejectedReturned}
-                        {l.rejectReason ? (
-                          <span className="text-muted-foreground block">
-                            {REJECT_REASONS[l.rejectReason as keyof typeof REJECT_REASONS]}
+                          <span className="flex-1" />
+                          <span className="flex flex-col items-start gap-2 sm:items-end">
+                            <span className="sr-only">{D.result}</span>
+                            <ResultWords results={l.results} />
+                            {l.needsDecision && open ? (
+                              <ShortDatedChoice
+                                deliveryId={d.id}
+                                lineNo={l.lineNo}
+                                current={l.shortDatedDecision}
+                              />
+                            ) : l.shortDatedDecision ? (
+                              <StatusWord>{SHORT_DATED_DECISIONS[l.shortDatedDecision]}</StatusWord>
+                            ) : null}
                           </span>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-2 font-mono">{l.batchNumber ?? "—"}</td>
-                      <td className="px-3 py-2">{exp(l)}</td>
-                      <td className="px-3 py-2">
-                        <span className="flex flex-col gap-2">
-                          <ResultWords results={l.results} />
-                          {l.needsDecision && open ? (
-                            <ShortDatedChoice
-                              deliveryId={d.id}
-                              lineNo={l.lineNo}
-                              current={l.shortDatedDecision}
-                            />
-                          ) : l.shortDatedDecision ? (
-                            <StatusWord>{SHORT_DATED_DECISIONS[l.shortDatedDecision]}</StatusWord>
-                          ) : null}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2">
-                        {open ? (
-                          <span className="flex flex-wrap justify-end gap-2">
-                            <LineDialog
-                              deliveryId={d.id}
-                              lineNo={l.lineNo}
-                              line={l}
-                              products={v.products}
-                              orderLines={v.orderLines}
-                              facts={v.catalogue.facts}
-                            />
-                            <RemoveLine deliveryId={d.id} line={l} />
-                          </span>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
-        {d.orderId ? (
-          <section aria-labelledby="owed" className="flex flex-col gap-2">
-            <h2 id="owed" className="text-heading-s">
-              {D.owed}
-            </h2>
-            {v.owed.length === 0 ? (
-              <p className="text-body-s text-muted-foreground">{D.nothingOwed}</p>
-            ) : (
-              <ul className="text-body-s flex flex-col gap-1">
-                {v.owed.map((o) => (
-                  <li key={o.orderLineId}>
-                    <StatusWord tone="caution">{D.owedLine(o.productName, o.owed)}</StatusWord>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        ) : null}
-
-        {open ? (
-          <section aria-labelledby="d3" className="flex flex-col gap-3">
-            <h2 id="d3" className="text-heading-s inline-flex items-center gap-2">
-              <SectionNumber n={3} />
-              {D.finish}
-            </h2>
-            {v.lines.some((l) => l.rejectedKept > 0) ? (
-              <p className="text-body-s">
-                {v.quarantine ? D.quarantineAt(v.quarantine.name) : D.noQuarantine}
-              </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+              </ol>
             ) : null}
-            {v.lines.some((l) => l.controlled) ? (
-              <p className="text-body-s">{STORES_B.paperStillApplies}</p>
+            {open ? (
+              <div className="border-border flex flex-wrap items-center gap-2.5 border-t px-4 py-3">
+                <LineDialog
+                  deliveryId={d.id}
+                  lineNo={nextLineNo}
+                  products={v.products}
+                  orderLines={v.orderLines}
+                  facts={v.catalogue.facts}
+                />
+              </div>
             ) : null}
-            <FinishDelivery
-              deliveryId={d.id}
-              stockLines={stockLines.length}
-              controlledLines={stockLines
-                .filter((l) => l.controlled)
-                .map((l) => ({
-                  lineNo: l.lineNo,
-                  label: `${STORE.issues.line} ${l.lineNo} · ${l.productName}`,
-                }))}
-              witnesses={witnesses}
-            />
-            <AbandonDialog deliveryId={d.id} />
           </section>
-        ) : null}
 
-        {d.state === "received" && canStore ? <DeliveryPrints deliveryId={d.id} /> : null}
+          {/* Board 1, right: the delivery and its one action, what is owed, what happens next. */}
+          <div className="flex flex-col gap-5">
+            <section aria-labelledby="d-delivery" className={card}>
+              <div className={cardHead}>
+                <h2 id="d-delivery" className="text-heading-m text-foreground">
+                  {D.header}
+                </h2>
+              </div>
+              <div className="flex flex-col gap-3 px-4 pb-4">
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                  <Kv label={R.supplier}>{v.supplier?.name}</Kv>
+                  <Kv label={R.note} mono>
+                    {d.noteNumber}
+                  </Kv>
+                  <Kv label={R.arrived}>{at.format(d.arrivedAt)}</Kv>
+                  <Kv label={STORE.deliveries.receivingAt}>{v.location?.name}</Kv>
+                  <Kv label={R.deliverer}>{d.delivererName ?? "—"}</Kv>
+                  <Kv label={R.vehicle} mono>
+                    {d.vehicleRegistration ?? "—"}
+                  </Kv>
+                </dl>
+                {v.catalogue.live && v.lines.length ? (
+                  <p className="text-body-s text-ink-700">
+                    {CATALOGUE.receive.typed(typed.length, v.lines.length)}
+                  </p>
+                ) : null}
+                {d.state === "received" && d.finishedAt ? (
+                  <p className="text-body-s">{D.received(at.format(d.finishedAt))}</p>
+                ) : null}
+                {d.state === "abandoned" ? (
+                  <p className="text-body-s">{D.abandoned(d.abandonReason ?? "")}</p>
+                ) : null}
+              </div>
+              {open ? (
+                <div className="border-border flex flex-col gap-3 border-t px-4 py-3.5">
+                  <h3 className="text-heading-s text-foreground">{D.finish}</h3>
+                  {v.lines.some((l) => l.rejectedKept > 0) ? (
+                    <p className="text-body-s">
+                      {v.quarantine ? D.quarantineAt(v.quarantine.name) : D.noQuarantine}
+                    </p>
+                  ) : null}
+                  {v.lines.some((l) => l.controlled) ? (
+                    <p className="text-body-s">{STORES_B.paperStillApplies}</p>
+                  ) : null}
+                  <FinishDelivery
+                    deliveryId={d.id}
+                    stockLines={stockLines.length}
+                    controlledLines={stockLines
+                      .filter((l) => l.controlled)
+                      .map((l) => ({
+                        lineNo: l.lineNo,
+                        label: `${STORE.issues.line} ${l.lineNo} · ${l.productName}`,
+                      }))}
+                    witnesses={witnesses}
+                  />
+                  <span>
+                    <AbandonDialog deliveryId={d.id} />
+                  </span>
+                </div>
+              ) : null}
+              {d.state === "received" && canStore ? (
+                <div className="border-border border-t px-4 py-3.5">
+                  <DeliveryPrints deliveryId={d.id} />
+                </div>
+              ) : null}
+            </section>
+
+            {d.orderId ? (
+              <section aria-labelledby="d-owed" className={card}>
+                <div className={cardHead}>
+                  <h2 id="d-owed" className="text-heading-m text-foreground">
+                    {D.owed}
+                  </h2>
+                </div>
+                <div className="px-4 pb-4">
+                  {v.owed.length === 0 ? (
+                    <p className="text-body-s text-muted-foreground">{D.nothingOwed}</p>
+                  ) : (
+                    <ul className="text-body-s flex flex-col gap-1">
+                      {v.owed.map((o) => (
+                        <li key={o.orderLineId}>
+                          <StatusWord tone="caution">
+                            {D.owedLine(o.productName, o.owed)}
+                          </StatusWord>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </section>
+            ) : null}
+
+            {open ? (
+              <section aria-labelledby="d-next" className={card}>
+                <div className={cardHead}>
+                  <h2 id="d-next" className="text-heading-m text-foreground">
+                    {N.title}
+                  </h2>
+                </div>
+                <ul className="divide-border flex flex-col divide-y px-2 pb-2">
+                  <Told icon={LockIcon} title={N.nothingMoves}>
+                    {STORES_B.onlyCounted}
+                  </Told>
+                  {v.catalogue.live ? (
+                    <Told icon={TagIcon} title={N.newPacks}>
+                      {CATALOGUE.noGuessing}
+                    </Told>
+                  ) : null}
+                </ul>
+              </section>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       {d.state === "received" ? (
         <>
           <section data-print-section="report" className="hidden flex-col gap-3 print:flex">
-            <h1 className="text-heading-m">{R.title}</h1>
+            <h2 className="text-heading-m">{R.title}</h2>
             <p className="text-body-s">{STORES_B.columnsUnconfirmed("HMIS 087 form")}</p>
             <p className="text-body-s">
               {R.hospital}: {v.hospitalName}
@@ -399,7 +467,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
             <p className="text-caption">{R.neverSent}</p>
           </section>
           <section data-print-section="grn" className="hidden flex-col gap-3 print:flex">
-            <h1 className="text-heading-m">{R.grnTitle}</h1>
+            <h2 className="text-heading-m">{R.grnTitle}</h2>
             <p className="text-body-s">
               {R.hospital}: {v.hospitalName}
             </p>
@@ -451,5 +519,45 @@ function Signatures() {
         </div>
       ))}
     </div>
+  );
+}
+
+const SOURCE_ICON = { scan: ScanLineIcon, catalogue: SearchIcon, typed: PencilIcon } as const;
+
+/** A label over its value (board 1's key-value pair). */
+function Kv({ label, mono, children }: { label: string; mono?: boolean; children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <dt className="text-caption text-muted-foreground">{label}</dt>
+      <dd
+        className={cn("text-body-s text-foreground font-semibold break-words", mono && "font-mono")}
+      >
+        {children}
+      </dd>
+    </div>
+  );
+}
+
+/** One "what happens next" item: an icon, the point, and the signed sentence behind it. */
+function Told({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-2.5 gap-y-0.5 px-2 py-2.5">
+      <span
+        aria-hidden
+        className="bg-background text-foreground row-span-2 grid size-8 place-items-center rounded-[10px]"
+      >
+        <Icon className="size-4" />
+      </span>
+      <span className="text-body-s text-foreground font-semibold">{title}</span>
+      <span className="text-caption text-ink-700">{children}</span>
+    </li>
   );
 }

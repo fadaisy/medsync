@@ -14,7 +14,7 @@ import { users } from "@/db/schema/users";
 import { getAuthState } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { can, PHARMACY_MAP_CADRES, pharmacyAccess } from "@/lib/pharmacy/access";
-import { pharmacyWorkspaceLiveFor } from "@/lib/pharmacy/feature";
+import { pharmacyWorkspaceLiveFor, tier } from "@/lib/pharmacy/feature";
 
 /**
  * Pharmacy workspace scope (Pharmacy Phase 0, PA-3, PA-6). Who is the signed-in pharmacy
@@ -49,7 +49,7 @@ export async function requirePharmacyScope(): Promise<PharmacyScope> {
 
   const me = await findPharmacyAffiliation(state.user.id);
   if (!me) {
-    if (!process.env.PHARMACY_WORKSPACE?.trim()) notFound();
+    if (!tier("CORE", "WORKSPACE")?.trim()) notFound();
     logger.warn("pharmacy.scope.no_pharmacy_affiliation", { user_id: state.user.id });
     redirect("/not-authorised?for=pharmacy");
   }

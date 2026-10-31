@@ -450,8 +450,11 @@ describe("Law 2: no clinical write from the pharmacy's code", () => {
         // saved collector is the patient's own contact; neither is a clinical record.
         !/^refill-store\.ts: insert (prescriptionRenewalRequests|patientCollectors)$/.test(w) &&
         // The shared catalogue (ADR 0456): reference facts and their proposals, no patient's record.
-        // `update key` is the hash in seedKey, not a table; catPackCodes is the team settling a conflict.
-        !/^shared-catalogue\/store\.ts: (insert cat[A-Z]\w*|update (catProposals|catPackCodes|key))$/.test(w),
+        // `update key` is the hash in seedKey, not a table; catPackCodes is the team settling a conflict;
+        // catMedicines and catMedicineRoutes are an applied correction's form and routes (owner item 10).
+        !/^shared-catalogue\/store\.ts: (insert cat[A-Z]\w*|update (catProposals|catPackCodes|catMedicines|key)|delete catMedicineRoutes)$/.test(
+          w,
+        ),
     );
     expect(foreign).toEqual([]);
     expect(writes.some((w) => / (prescriptions|prescriptionCancellations)$/.test(w))).toBe(false);

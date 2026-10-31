@@ -907,7 +907,7 @@ describe.skipIf(!laneOn)("Ward stock and emergency carts (Steps 5 and 6)", () =>
         [f.C2],
       );
       expect(signedBy).toEqual({
-        exception_text: "CSO signs alone (ADR 0281)",
+        exception_text: "CSO signs alone",
         second_signer: null,
       });
     });

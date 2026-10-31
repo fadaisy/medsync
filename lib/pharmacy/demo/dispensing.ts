@@ -7,12 +7,15 @@ import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 
 import { DRAFT_KEEP_REASONS, DRAFT_NOT_SUPPLIED_REASONS, DRAFT_QUERY_TYPES } from "@/content/pharmacy-prescriber";
+import { RX_CHECKS } from "@/content/pharmacy-rework-daily";
 import { COUNSELLING_POINTS, IDENTITY_ROUTES } from "@/content/pharmacy-supply";
 import { encrypt } from "@/lib/encryption";
 import { withPatientWrite } from "@/lib/emr/write/context";
 import { answerQuery } from "@/lib/emr/write/pharmacy-answers";
+import { rxFlags } from "@/lib/pharmacy/derive/checks";
 import { PRINT_LOG_NEED, PrintLogInput, printDispensingLog } from "@/lib/pharmacy/print/log-read";
 import * as review from "@/lib/pharmacy/review/store";
+import { AnswerCheckInput, answerCheck } from "@/lib/pharmacy/rx-checks-store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import * as supply from "@/lib/pharmacy/supply/store";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
@@ -235,6 +238,19 @@ export async function dispensingSection(s: DemoState): Promise<void> {
         typed: `${d}/${m}/${y}`,
       }, when);
     }
+    // The pharmacist answers the checks panel first (rework test 8): a stop with the prescriber, a check as checked.
+    const checked = await q<{ id: string; checkAnswers: never; confirmedFlags: string[] }>(
+      s,
+      sql`SELECT id, coalesce(check_answers, '[]') AS "checkAnswers", coalesce(confirmed_flags, '{}') AS "confirmedFlags"
+        FROM prescriptions WHERE id IN (${sql.join(rx.ids.map((i) => sql`${i}::uuid`), sql`, `)})`,
+    );
+    for (const f of rxFlags(checked))
+      await write(s, actor, AnswerCheckInput, supply.DISPENSE_LIVE, answerCheck, {
+        lineId: f.lineId,
+        code: f.code,
+        answer: f.level === "stop" ? "prescriber_confirmed" : "checked",
+        reason: f.level === "stop" ? null : RX_CHECKS.reasons[0],
+      }, when);
     const payment = rx.point === "private" ? "insured" : rx.point === "emergency" ? "emergency" : "paid";
     const r = await write(s, actor, supply.HandoverInput, supply.DISPENSE_LIVE, supply.recordHandover, {
       clientKey,

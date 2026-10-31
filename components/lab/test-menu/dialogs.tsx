@@ -12,7 +12,7 @@ import type { Surface, TestMenuData } from "@/lib/lab/test-menu-read";
 import { useMemo, useState } from "react";
 import { InfoIcon } from "lucide-react";
 
-import { LabButton } from "@/app/lab/_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import {
   SheetBody,

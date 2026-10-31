@@ -13,6 +13,8 @@ import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { notifyNotSupplied } from "@/lib/pharmacy/notify";
 import { patientListLive } from "@/lib/pharmacy/patient-list";
 import * as store from "@/lib/pharmacy/review/store";
+import * as rxChecks from "@/lib/pharmacy/rx-checks-store";
+import { DISPENSE_LIVE } from "@/lib/pharmacy/supply/store";
 import { smsSender } from "@/lib/pharmacy/sms-sender";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
 
@@ -149,4 +151,9 @@ export async function printSlip(raw: unknown) {
 /** 5.7: the look-back tab's "Looked at" (`pharmacy.review`). */
 export async function recordLookBack(raw: unknown) {
   return bare(await act(store.LookBackInput, raw, store.LOOK_BACK_NEED, store.recordLookBack));
+}
+
+/* Rework: the checks panel's answer to one flag (test 8) */
+export async function answerCheck(raw: unknown) {
+  return bare(await act(rxChecks.AnswerCheckInput, raw, DISPENSE_LIVE, rxChecks.answerCheck));
 }

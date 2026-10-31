@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { QList } from "../_components/q-list";
 import { conceptOptions } from "../_lib/concepts";
 import { MonthsOfStockBar } from "../../_components/v2/quality-charts";
-import { FilterChips, SecondaryLink } from "../../_components/v2/space";
+import { FilterChips, SecondaryLink } from "@/components/tide/work/space";
 import { dateWords, dayWords } from "../../_lib/days";
 import {
   CountDialog,

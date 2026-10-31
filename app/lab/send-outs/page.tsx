@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { LABWS2_SEND_OUTS as S } from "@/content/lab-workspace-v2-send-outs";
 import { countMatchesWaiting } from "@/lib/lab/match-read";
-import { PillTabs, PrimaryLink, SpaceHeader } from "../_components/v2/space";
+import { PillTabs, PrimaryLink, SpaceHeader } from "@/components/tide/work/space";
 import { one, pillTabs } from "../_lib/place-tabs";
 import { labV2 } from "../_lib/places";
 import { ReferralsBoard } from "./_views/board";

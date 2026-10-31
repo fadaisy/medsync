@@ -48,8 +48,8 @@ import {
   Panel,
   Pill,
   TwoIds,
-} from "../../_components/v2/kit";
-import { FilterChips, PrimaryLink, SecondaryLink } from "../../_components/v2/space";
+} from "@/components/tide/work/kit";
+import { FilterChips, PrimaryLink, SecondaryLink } from "@/components/tide/work/space";
 import { dateWords } from "../../_lib/days";
 
 const TERMINAL = new Set(["completed", "failed", "lost", "cancelled", "rejected"]);

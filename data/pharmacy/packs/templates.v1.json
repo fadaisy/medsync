@@ -1,0 +1,568 @@
+{
+  "edition": "MedSync starting drafts for signed packs, v1 (29 Oct 2026)",
+  "copy": { "status": "draft", "signedBy": null, "signedOn": null },
+  "sources": {
+    "EMHS Manual 2018": "Uganda Essential Medicines and Health Supplies Management Manual, Ministry of Health, November 2018 (printed page numbers)",
+    "SOP 2019": "Standard Operating Procedures Manual for Supply Chain Management at Health Facility Level, Ministry of Health, November 2019",
+    "HMIS Manual 2010": "The Health Management Information System, Volume 1: Health Unit Procedure Manual, Ministry of Health, August 2010"
+  },
+  "packs": {
+    "order_parameters": {
+      "cycleMonths": {
+        "value": 2,
+        "basis": "national",
+        "source": "EMHS Manual 2018, ch. 3.1, p. 12"
+      },
+      "maxMonths": {
+        "value": 4,
+        "basis": "national",
+        "source": "EMHS Manual 2018, ch. 3.3, p. 22; SOP 2019, p. 18"
+      },
+      "minMonths": {
+        "value": 2,
+        "basis": "national",
+        "source": "EMHS Manual 2018, ch. 3.3, p. 22; SOP 2019, p. 18"
+      },
+      "emergencyOrderPointMonths": {
+        "value": "not_kept",
+        "basis": "medsync",
+        "reason": "No national emergency order point. The manuals call for an emergency order when stock falls below the 2-month minimum (EMHS Manual 2018, p. 20; HMIS Manual 2010, p. 144), which the minimum already covers."
+      },
+      "reviewWindowMonths": {
+        "value": 2,
+        "basis": "national",
+        "source": "EMHS Manual 2018, ch. 3.3, p. 21 and Table 5, p. 23 (consumption over the 2-month cycle, adjusted for days out of stock)"
+      },
+      "minHistoryDays": {
+        "value": 60,
+        "basis": "medsync",
+        "reason": "No national figure. One full 2-month cycle, the period the national consumption formula uses."
+      },
+      "unclassedTrimAs": {
+        "value": "E",
+        "basis": "medsync",
+        "reason": "The manual trims N first, then E, and V last (EMHS Manual 2018, pp. 14-15) but does not say where an item with no class goes. MedSync proposes the middle: not cut first, not kept to the end."
+      },
+      "budgetSource": {
+        "value": null,
+        "basis": "hospital",
+        "reason": "Only your hospital knows where its medicines budget comes from.",
+        "choices": ["NMS credit line", "Hospital's own funds"]
+      }
+    },
+    "tracer_list": {
+      "source": {
+        "value": "HMIS 105 section 6, the 41 tracer items (EMHS Manual 2018, Table 15, p. 150)",
+        "basis": "national",
+        "source": "EMHS Manual 2018, Table 15, p. 150"
+      },
+      "medicineIds": {
+        "value": [
+          "artemether_lumefantrine",
+          "amoxicillin",
+          "oral_rehydration_salts",
+          "morphine",
+          "lopinavir_ritonavir",
+          "tld",
+          "efavirenz",
+          "co_trimoxazole",
+          "rhze_fdc",
+          "whole_blood",
+          "ceftriaxone",
+          "bendroflumethiazide",
+          "artesunate",
+          "nifedipine",
+          "metformin",
+          "glibenclamide",
+          "insulin_soluble",
+          "aspirin"
+        ],
+        "basis": "national",
+        "source": "EMHS Manual 2018, Table 15, p. 150 (items S1 to S41, mapped to MedSync medicines where one exists)",
+        "mapped": {
+          "S1": "artemether_lumefantrine",
+          "S3": "amoxicillin",
+          "S5": "oral_rehydration_salts",
+          "S14": "morphine",
+          "S18": "lopinavir_ritonavir",
+          "S20": "tld",
+          "S21": "efavirenz",
+          "S23": "lopinavir_ritonavir",
+          "S24": "co_trimoxazole",
+          "S25": "rhze_fdc",
+          "S26": "whole_blood",
+          "S29": "amoxicillin",
+          "S30": "ceftriaxone",
+          "S34": "bendroflumethiazide",
+          "S35": "artesunate",
+          "S36": "nifedipine",
+          "S38": "metformin",
+          "S39": "glibenclamide",
+          "S40": "insulin_soluble",
+          "S41": "aspirin"
+        },
+        "unmapped": [
+          "S2 Depot medroxy progesterone acetate (DMPA)",
+          "S4 Sulfadoxine/ Pyrimethamine tablet",
+          "S6 Measles Vaccine",
+          "S7 Determine HIV 1 & 2 screening test",
+          "S8 Stat -pack HIV Confirmatory rapid tests, tests",
+          "S9 SD Bioline test-Tie Breaker",
+          "S10 CD4 reagent",
+          "S11 Malaria Rapid Diagnostic tests",
+          "S12 GeneXepert Cartridges",
+          "S13 Therapeutic milk F75 (75Kcal/100ml)",
+          "S15 Ready to use Therapeutic feeds (RUTF)",
+          "S16 Tenofovir/Lamivudine/Efavirenz (TDF/3TC/EFV) 300mg/300mg/ 600mg",
+          "S17 AZT/3TC/NVP 300mg/150mg/200mg",
+          "S19 Tenofovir/Lamivudine (TDF/3TC) 300mg/300mg",
+          "S22 Abacavir/Lamivudine (ABC/3TC) 120mg/60mg (Paediatric)",
+          "S27 RHZ Blister 75mg/50mg/150mg",
+          "S28 Misoprostol 200mcg Tablet",
+          "S31 Oxytocin Injection",
+          "S32 Chlorhexidine 20%",
+          "S33 Mama Kit",
+          "S37 Captopril 25mg tablet"
+        ],
+        "notes": [
+          "S3 and S29 (amoxicillin capsule and dispersible tablet) share one MedSync medicine, as do S18 and S23 (lopinavir/ritonavir tablet and pellets).",
+          "S5 is counted as the ORS sachet; the zinc tablet in the co-pack is not counted separately.",
+          "The ARV items were replaced in DHIS2 by a 50-item list in August 2024 that is not published (AHSPR 2023/24, section 2.4.1)."
+        ]
+      }
+    },
+    "cart_lookahead": {
+      "days": {
+        "value": 90,
+        "basis": "medsync",
+        "reason": "No national figure for emergency carts. The manual calls stock with under 3 months left short-dated (EMHS Manual 2018, p. 64)."
+      }
+    },
+    "month_end_rules": {
+      "countWindow.daysBefore": {
+        "value": 2,
+        "basis": "medsync",
+        "reason": "No national window. The count is entered on the month's last day (SOP 2019, p. 22); MedSync allows two days either side."
+      },
+      "countWindow.daysAfter": {
+        "value": 2,
+        "basis": "medsync",
+        "reason": "No national window. The count is entered on the month's last day (SOP 2019, p. 22); MedSync allows two days either side."
+      },
+      "outOfStockShare": {
+        "value": 0.5,
+        "basis": "medsync",
+        "reason": "No national threshold. When more than half the window was out of stock, the consumption figure rests on few days."
+      },
+      "largeDifferenceUnits": {
+        "value": 10,
+        "basis": "medsync",
+        "reason": "No national figure. A small count so differences are looked at; tune it after the first month-ends."
+      },
+      "reportLocationKinds": {
+        "value": ["store", "dispensing_point"],
+        "basis": "national",
+        "source": "EMHS Manual 2018, Table 5, p. 23 (closing balance = store + dispensing area count)"
+      }
+    },
+    "ward_rules": {
+      "confirmationWindowHours": {
+        "value": 24,
+        "basis": "medsync",
+        "reason": "No national time limit; the ward counter-signs at collection (EMHS Manual 2018, pp. 51-52). MedSync allows one day to confirm in the system."
+      },
+      "allocationRule": {
+        "value": "first_expiry",
+        "basis": "national",
+        "source": "EMHS Manual 2018, ch. 7.5, pp. 61-62 (first expiry, first out)"
+      }
+    },
+    "stores_reason_lists": {
+      "lists.receiving_decisions": {
+        "value": [
+          { "code": "accepted_as_counted", "words": "Accepted as counted" },
+          { "code": "accepted_supplier_told", "words": "Accepted, the supplier was told of the difference" },
+          { "code": "part_accepted", "words": "Part accepted, the rest sent back" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording; no national list."
+      },
+      "lists.refused_lines": {
+        "value": [
+          { "code": "damaged", "words": "Damaged or broken" },
+          { "code": "wrong_product", "words": "Not ordered or wrong product" },
+          { "code": "poor_quality", "words": "Poor quality" },
+          { "code": "short_dated", "words": "Too close to expiry" },
+          { "code": "expired", "words": "Expired" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's wording of the discrepancy reasons the manual names (EMHS Manual 2018, p. 29)."
+      },
+      "lists.returns": {
+        "value": [
+          { "code": "no_longer_needed", "words": "No longer needed" },
+          { "code": "near_expiry", "words": "Close to expiry" },
+          { "code": "damaged", "words": "Damaged" },
+          { "code": "wrong_item", "words": "Wrong item issued" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording; no national list."
+      },
+      "lists.receipt_differences": {
+        "value": [
+          { "code": "short", "words": "Fewer than the voucher" },
+          { "code": "over", "words": "More than the voucher" },
+          { "code": "damaged", "words": "Damaged on the way" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording; no national list."
+      },
+      "lists.quarantine": {
+        "value": [
+          { "code": "expired", "words": "Expired" },
+          { "code": "damaged", "words": "Damaged" },
+          { "code": "recalled", "words": "Recalled" },
+          { "code": "rejected", "words": "Rejected at receipt" },
+          { "code": "returned_not_fit", "words": "Returned, not fit" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording, using the quarantine reasons the expiry page already names."
+      },
+      "lists.write_off": {
+        "value": [
+          { "code": "expired", "words": "Expired" },
+          { "code": "spoiled", "words": "Spoiled or damaged beyond use" },
+          { "code": "recalled", "words": "Recalled" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's wording; the expired and spoiled register is HMIS 088 (EMHS Manual 2018, p. 65)."
+      },
+      "lists.count_differences": {
+        "value": [
+          { "code": "unrecorded_issue", "words": "An issue was not recorded" },
+          { "code": "unrecorded_receipt", "words": "A receipt was not recorded" },
+          { "code": "counting_error", "words": "Counting error, found on recount" },
+          { "code": "unknown", "words": "Cause not known" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording; no national list."
+      },
+      "lists.month_end_differences": {
+        "value": [
+          { "code": "unrecorded_issue", "words": "An issue was not recorded" },
+          { "code": "unrecorded_receipt", "words": "A receipt was not recorded" },
+          { "code": "counting_error", "words": "Counting error, found on recount" },
+          { "code": "unknown", "words": "Cause not known" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording; no national list."
+      },
+      "lists.order_changes": {
+        "value": [
+          { "code": "budget", "words": "Trimmed to the budget" },
+          { "code": "use_changed", "words": "Use has changed" },
+          { "code": "stock_elsewhere", "words": "Stock available elsewhere in the hospital" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording; no national list."
+      },
+      "lists.order_line_closes": {
+        "value": [
+          { "code": "supplier_out", "words": "Supplier out of stock" },
+          { "code": "cancelled", "words": "Cancelled" },
+          { "code": "substituted", "words": "Replaced by another product" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording, using the codes an order line already closes with."
+      },
+      "lists.cart_explanations": {
+        "value": [
+          { "code": "used_in_emergency", "words": "Used in an emergency" },
+          { "code": "expired_replaced", "words": "Expired and replaced" },
+          { "code": "damaged", "words": "Damaged" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording; no national list."
+      },
+      "lists.recall_contact_outcomes": {
+        "value": [
+          { "code": "reached", "words": "Reached" },
+          { "code": "message_left", "words": "Message left" },
+          { "code": "not_reached", "words": "Could not be reached" },
+          { "code": "wrong_number", "words": "Wrong number" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording; no national list."
+      }
+    },
+    "hmis_column_maps": {
+      "forms.hmis_085": {
+        "value": { "columns": ["Item Code", "Item Description", "Pack Unit", "Pack Unit Price", "Quantity Ordered", "Total Cost (UGX)"] },
+        "basis": "national",
+        "source": "EMHS Manual 2018, Fig. 4, p. 18"
+      },
+      "forms.hmis_084b": {
+        "value": {
+          "columns": [
+            "Drug Formulation and Strength",
+            "Basic Unit/pack size",
+            "A OPENING BALANCE at start of 2 Month Cycle",
+            "B QUANTITY RECEIVED during 2 Month Cycle",
+            "C CONSUMPTION during 2 Month Cycle",
+            "D LOSSES / ADJUSTMENTS (+/-)",
+            "E DAYS OUT OF STOCK during 2 month Cycle",
+            "F Adjusted AMC, AMCA = (C x 30)/(60 - E)",
+            "G CLOSING BALANCE (store + dispensing area count)",
+            "H MONTHS OF STOCK ON-HAND (G/F)",
+            "I QUANTITY REQUIRED = (4 x F) - G",
+            "J Notes"
+          ]
+        },
+        "basis": "national",
+        "source": "EMHS Manual 2018, Table 5, p. 23 (E and G shortened to fit; the printed numbering across 084, 084A and 084B is inconsistent in the manual)"
+      },
+      "forms.hmis_087": {
+        "value": { "columns": ["Item Description", "Quantity on Delivery note", "Quantity Received", "Reasons for not receiving right quantity"] },
+        "basis": "national",
+        "source": "EMHS Manual 2018, Fig. 7, p. 30"
+      },
+      "forms.hmis_088": {
+        "value": {
+          "columns": [
+            "Date",
+            "Expired/Spoiled item with description",
+            "Exp Date/Batch No.",
+            "Quantity X Unit",
+            "Unit Price (UGX)",
+            "Total value of expired items",
+            "Witnessed/taken by",
+            "Remarks"
+          ]
+        },
+        "basis": "national",
+        "source": "EMHS Manual 2018, Table 8, p. 66 (sample layout; the 2010 blank form has fewer columns)"
+      },
+      "forms.hmis_105_s6": {
+        "value": { "columns": ["SN.", "NAME OF DRUG ITEM", "UNIT", "Quantity Consumed (units)", "Days out of stock", "Stock on hand"] },
+        "basis": "national",
+        "source": "EMHS Manual 2018, Table 15, p. 150"
+      },
+      "forms.voucher": {
+        "value": {
+          "columns": [
+            "Item code",
+            "Item description",
+            "Previous receipt",
+            "Physical count",
+            "Quantity ordered",
+            "Quantity issued",
+            "Batch number"
+          ]
+        },
+        "basis": "national",
+        "source": "EMHS Manual 2018, ch. 6.3, pp. 51-52 (HMIS 017; the fields the steps name, in their order)"
+      }
+    },
+    "recall_template": {
+      "body": {
+        "value": "{messageName} pharmacy needs to speak to you about a medicine you collected. Please call {phone} or come to the pharmacy.",
+        "basis": "medsync",
+        "reason": "MedSync's signed Phase 2 recall wording (CSO, 25 Oct 2026), with the two places filled at sending."
+      }
+    },
+    "stockout_day_rule": {
+      "rule": {
+        "value": "end_of_day",
+        "basis": "medsync",
+        "reason": "Nationally a day out of stock means none left (EMHS Manual 2018, p. 150), with no rule for part of a day. Stock cards show the balance after the day's entries."
+      }
+    },
+    "message_name": {
+      "name": {
+        "value": null,
+        "basis": "hospital",
+        "reason": "The name patients see on messages is your hospital's."
+      }
+    },
+    "witness_list": {
+      "permissions": {
+        "value": ["pharmacy.dispense"],
+        "basis": "medsync",
+        "reason": "MedSync's Phase 1 draft (D-PH1-27): anyone who may dispense may witness, never for their own action."
+      }
+    },
+    "keep_reasons": {
+      "items": {
+        "value": [
+          { "code": "intended", "words": "Intended as written" },
+          { "code": "senior_advice", "words": "A senior or specialist advised it" },
+          { "code": "discussed", "words": "Already discussed with the patient" },
+          { "code": "other", "words": "Other (with text)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's Phase 1 draft list, the one the screens show until a list is signed."
+      }
+    },
+    "query_codes": {
+      "items": {
+        "value": [
+          { "code": "allergy", "words": "Allergy" },
+          { "code": "dose", "words": "Dose unclear or unusual" },
+          { "code": "duplicate", "words": "Duplicate" },
+          { "code": "renal", "words": "Renal function" },
+          { "code": "not_available", "words": "Not available, alternative needed" },
+          { "code": "other", "words": "Other" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's Phase 1 draft list, the one the screens show until a list is signed."
+      }
+    },
+    "outcome_reasons": {
+      "items": {
+        "value": [
+          { "code": "out_point", "words": "Out of stock at this dispensing point" },
+          { "code": "out_hospital", "words": "Out of stock in the hospital" },
+          { "code": "expired_only", "words": "Expired or damaged stock only" },
+          { "code": "not_stocked", "words": "Not stocked at this hospital" },
+          { "code": "concern_stands", "words": "Query answered; the concern stands" },
+          { "code": "no_answer", "words": "No answer from the prescriber; cannot supply as written" },
+          { "code": "incomplete", "words": "Prescription incomplete or unclear" },
+          { "code": "other", "words": "Other" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's Phase 1 draft list, the one the screens show until a list is signed."
+      }
+    },
+    "identity_routes": {
+      "items": {
+        "value": [
+          { "code": "card_shown", "words": "The card or prescription with the patient's number was shown" },
+          { "code": "known", "words": "Known to staff" },
+          { "code": "other", "words": "Other (with a note)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's Phase 1 draft list, the one the screens show until a list is signed."
+      }
+    },
+    "counselling_points": {
+      "items": {
+        "value": [
+          { "code": "purpose", "words": "What each medicine is for" },
+          { "code": "how_when", "words": "How and when to take it" },
+          { "code": "missed_dose", "words": "What to do about a missed dose" },
+          { "code": "side_effects", "words": "Side effects to come back for" },
+          { "code": "outside", "words": "The medicine to buy outside and where the paper is" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's Phase 1 draft list, the one the screens show until a list is signed."
+      }
+    },
+    "repeat_rules": {
+      "repeatList": {
+        "value": [],
+        "basis": "hospital",
+        "reason": "Which medicines may be repeated is your pharmacist reviewer's and CSO's clinical choice; MedSync does not propose one."
+      },
+      "neverRepeat": {
+        "value": [],
+        "basis": "medsync",
+        "reason": "Empty: your pharmacist reviewer adds any medicine that is never repeated."
+      },
+      "maxSupplies": {
+        "value": 6,
+        "basis": "medsync",
+        "reason": "No national figure. Up to six further supplies, then the patient is seen again."
+      },
+      "maxPeriodDays": {
+        "value": 180,
+        "basis": "medsync",
+        "reason": "No national figure. Six months from the prescription, then the patient is seen again."
+      },
+      "minIntervalDays": {
+        "value": 28,
+        "basis": "medsync",
+        "reason": "No national figure. Four weeks between supplies."
+      },
+      "toleranceDays": {
+        "value": 3,
+        "basis": "medsync",
+        "reason": "No national figure. A supply may be collected up to three days early."
+      }
+    },
+    "refill_timing": {
+      "requestWindowDays": {
+        "value": 7,
+        "basis": "medsync",
+        "reason": "No national figure. A patient may ask up to a week before the refill is due."
+      },
+      "lateWindowDays": {
+        "value": 14,
+        "basis": "medsync",
+        "reason": "No national figure. A request more than two weeks after the due day is labelled late."
+      }
+    },
+    "hold_rules": {
+      "holdDays": {
+        "value": 7,
+        "basis": "medsync",
+        "reason": "No national figure. A refill set aside waits one week."
+      },
+      "extensions": {
+        "value": 1,
+        "basis": "medsync",
+        "reason": "No national figure. One extension."
+      },
+      "holdLongerMaxDays": {
+        "value": 14,
+        "basis": "medsync",
+        "reason": "No national figure. Never held more than two weeks from preparation."
+      },
+      "missThreshold": {
+        "value": 2,
+        "basis": "medsync",
+        "reason": "No national figure. Two missed collections."
+      }
+    },
+    "renewal_decline_reasons": {
+      "items": {
+        "value": [
+          { "code": "review_visit_needed", "words": "The patient needs a review visit first" },
+          { "code": "medicine_changed", "words": "The medicine was changed at the last visit" },
+          { "code": "not_continued", "words": "The medicine is not to be continued" },
+          { "code": "other", "words": "Other (say why)" }
+        ],
+        "basis": "medsync",
+        "reason": "MedSync's draft wording; no national list."
+      }
+    },
+    "routing_rules": {
+      "routingList": {
+        "value": [],
+        "basis": "medsync",
+        "reason": "Empty: nothing is routed to a partner until your hospital lists medicines."
+      },
+      "neverRouted": {
+        "value": [],
+        "basis": "medsync",
+        "reason": "Empty: your pharmacist reviewer adds any medicine that is never routed."
+      },
+      "responseWindowHours": {
+        "value": 24,
+        "basis": "medsync",
+        "reason": "No national figure. A partner answers within one day."
+      }
+    }
+  }
+}

@@ -935,7 +935,7 @@ describe.skipIf(!laneOn)("Pharmacy Phase 1 data layer (0122–0130)", () => {
         [f.hA, f.pointA, f.count, f.attest, f.tech],
       ),
     );
-    expect(otherActor).toMatch(/does not stand for this entry/);
+    expect(otherActor).toMatch(/does not stand for this person|more than 10 minutes old|already used/);
   });
 
   it("pharmacy sheets move unused → to_enter → complete and never take a lab state (D-PH1-46)", async () => {

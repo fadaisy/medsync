@@ -16,10 +16,10 @@ import {
   HourlyFlowChart,
   Sparkline,
   StageBar,
-} from "../_components/v2/charts";
+} from "@/components/tide/work/charts";
 import { InboxRow } from "../_components/v2/inbox";
-import { EmptyState, KeyFigure, KeyFigureGrid, Panel, Pill } from "../_components/v2/kit";
-import { FilterChips, PillTabs, PrimaryLink } from "../_components/v2/space";
+import { EmptyState, KeyFigure, KeyFigureGrid, Panel, Pill } from "@/components/tide/work/kit";
+import { FilterChips, PillTabs, PrimaryLink } from "@/components/tide/work/space";
 import { needsYouFor } from "../_lib/needs-you";
 import { one } from "../_lib/place-tabs";
 import { labV2 } from "../_lib/places";

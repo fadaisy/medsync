@@ -3,7 +3,7 @@ import type { QueueGroupKey } from "../_lib/groups";
 import type { ReviewRow } from "@/lib/pharmacy/review/read";
 import Link from "next/link";
 
-import { EmptyState, Pill, TwoIds } from "@/app/lab/_components/v2/kit";
+import { EmptyState, Pill, TwoIds } from "@/components/tide/work/kit";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_WINDOW } from "@/content/pharmacy-workspace-v2-window";
 import { REVIEW } from "@/content/pharmacy-review";

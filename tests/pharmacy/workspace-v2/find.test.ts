@@ -21,10 +21,12 @@ const sup = (p: string, at: string, reversed = false, key: string | null = "k") 
 describe("Find rows", () => {
   it("prescription key: the placement, else the time key", () => {
     const createdAt = new Date("2026-10-27T10:00:00.000Z");
-    expect(prescriptionKey({ placementId: "p1", encounterId: null, prescriberUserId: "u", createdAt })).toBe("p1");
-    expect(prescriptionKey({ placementId: null, encounterId: null, prescriberUserId: "u", createdAt })).toBe(
-      "t:none:u:2026-10-27T10:00:00.000Z",
-    );
+    expect(
+      prescriptionKey({ placementId: "p1", encounterId: null, prescriberUserId: "u", createdAt }),
+    ).toBe("p1");
+    expect(
+      prescriptionKey({ placementId: null, encounterId: null, prescriberUserId: "u", createdAt }),
+    ).toBe("t:none:u:2026-10-27T10:00:00.000Z");
   });
 
   it("batch rows link to the stock medicine page and name an earlier number", () => {
@@ -62,15 +64,27 @@ describe("Find rows", () => {
     expect(rows[0]!.href).toBe("/pharmacy/prescriptions/k");
     expect(rows[1]!.href).toBe("/pharmacy/stock/morphine_oral");
     const many = Array.from({ length: 15 }, (_, i) => sup(`p${i}`, `2026-10-27T0${i % 10}:00:00Z`));
-    const manyIds = new Map(many.map((s) => [s.patientUserId, { name: s.patientUserId, mrn: "M" }]));
+    const manyIds = new Map(
+      many.map((s) => [s.patientUserId, { name: s.patientUserId, mrn: "M" }]),
+    );
     expect(suppliedPatientIds(many)).toHaveLength(SUPPLIED_MAX);
     expect(suppliedRows(many, manyIds)).toHaveLength(SUPPLIED_MAX);
   });
 
   it("delivery rows link to the delivery", () => {
     const [r] = deliveryRows([
-      { id: "d1", noteNumber: "INV-1", supplier: "A", placeName: "Main store", arrivedAt: new Date() },
+      {
+        id: "d1",
+        noteNumber: "INV-1",
+        supplier: "A",
+        placeName: "Main store",
+        arrivedAt: new Date(),
+      },
     ]);
-    expect(r).toMatchObject({ group: "delivery", label: "INV-1", href: "/pharmacy/store/deliveries/d1" });
+    expect(r).toMatchObject({
+      group: "delivery",
+      label: "INV-1",
+      href: "/pharmacy/store/deliveries/d1",
+    });
   });
 });

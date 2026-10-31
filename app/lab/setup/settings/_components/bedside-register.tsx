@@ -20,7 +20,7 @@ import {
   setOperatorAction,
 } from "@/lib/lab/bedside-actions";
 import { SETTINGS } from "../_lib/copy";
-import { LabButton } from "../../../_components/v2/button";
+import { LabButton } from "@/components/tide/work/button";
 import { DateField } from "../../../_components/v2/fields";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 

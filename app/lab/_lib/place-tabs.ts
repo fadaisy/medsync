@@ -1,4 +1,4 @@
-import type { PillTab } from "../_components/v2/space";
+import type { PillTab } from "@/components/tide/work/space";
 import type { LabPlaceId, LabTabDef } from "@/lib/lab/places";
 
 import { LABWS2 } from "@/content/lab-workspace-v2";

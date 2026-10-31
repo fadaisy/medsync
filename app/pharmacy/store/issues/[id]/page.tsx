@@ -161,7 +161,7 @@ export default async function RequisitionPage({ params }: { params: Promise<{ id
       </div>
 
       <section data-print-section="voucher" className="hidden flex-col gap-3 print:flex">
-        <h1 className="text-heading-m">{V.title}</h1>
+        <h2 className="text-heading-m">{V.title}</h2>
         <p className="text-body-s">
           {STORES_B.columnsUnconfirmed("Requisition and Issue Voucher")}
         </p>

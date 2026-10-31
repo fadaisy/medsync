@@ -12,7 +12,10 @@ import { describe, expect, it } from "vitest";
 const read = (p: string) => {
   const f = resolve(process.cwd(), p);
   const body = f.replace(/page\.tsx$/, "body.tsx");
-  return readFileSync(f, "utf8") + (f.endsWith("page.tsx") && existsSync(body) ? readFileSync(body, "utf8") : "");
+  return (
+    readFileSync(f, "utf8") +
+    (f.endsWith("page.tsx") && existsSync(body) ? readFileSync(body, "utf8") : "")
+  );
 };
 const exportsOf = (src: string) =>
   [...src.matchAll(/^export async function (\w+)/gm)].map((m) => m[1]!);
@@ -37,18 +40,6 @@ describe("ward and cart actions name their permission or right", () => {
       raiseWardRequisition: "pharmacy.store",
     });
   });
-  it("pharmacy side: carts", () => {
-    const src = read("app/pharmacy/store/carts/actions.ts");
-    expect(Object.fromEntries(exportsOf(src).map((n) => [n, permissionOf(src, n)]))).toEqual({
-      createCartLocation: "pharmacy.manage",
-      setCartList: "pharmacy.manage",
-      attestCartSigner: "pharmacy.manage",
-      signCartList: "pharmacy.manage",
-      attestCartConfirmer: "pharmacy.stock",
-      recordCartCheck: "pharmacy.stock",
-      reportCartSealBroken: "pharmacy.stock",
-    });
-  });
   it("the ward's side: hub rights only, never a pharmacy permission", () => {
     const src = read("app/nurse/ward-stock/actions.ts");
     expect(Object.fromEntries(exportsOf(src).map((n) => [n, permissionOf(src, n)]))).toEqual({
@@ -67,16 +58,10 @@ describe("ward and cart actions name their permission or right", () => {
   });
   it("pages gate on their flag; pop-ups are centred dialogs; no native date input; no red", () => {
     for (const p of [
-      "app/pharmacy/store/wards/page.tsx",
       "app/pharmacy/store/wards/[locationId]/page.tsx",
       "app/nurse/ward-stock/page.tsx",
     ])
       expect(read(p)).toMatch(/pharmacyWardStockLiveFor\(\w+\.hospitalId\)\) notFound\(\)/);
-    for (const p of [
-      "app/pharmacy/store/carts/page.tsx",
-      "app/pharmacy/store/carts/[locationId]/page.tsx",
-    ])
-      expect(read(p)).toMatch(/pharmacyCartsLiveFor\(actor\.hospitalId\)\) notFound\(\)/);
     for (const p of [
       "app/pharmacy/store/wards/_components/ward-dialogs.tsx",
       "app/pharmacy/store/wards/_components/ward-stock-view.tsx",

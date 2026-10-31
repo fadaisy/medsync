@@ -2,15 +2,21 @@ import type { PharmacyV2 } from "../../_lib/v2";
 import type { EmrDb } from "@/lib/emr/db";
 import { notFound } from "next/navigation";
 
-import { Pill } from "@/app/lab/_components/v2/kit";
-import { fill } from "@/content/pharmacy-workspace-v2";
-import { PHWS2_SETUP } from "@/content/pharmacy-workspace-v2-setup";
+import { Pill } from "@/components/tide/work/kit";
 import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
 import { PACKS, SUPPLY_COMMON } from "@/content/pharmacy-stores-supply";
+import { fill } from "@/content/pharmacy-workspace-v2";
+import { PHWS2_SETUP } from "@/content/pharmacy-workspace-v2-setup";
 import { db } from "@/db";
 import { asClinicalReader } from "@/lib/emr/db";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
-import { isPhase2Kind, packRows, peopleAt, signerRoles } from "@/lib/pharmacy/stores/packs";
+import {
+  isPhase2Kind,
+  packChoices,
+  packRows,
+  peopleAt,
+  signerRoles,
+} from "@/lib/pharmacy/stores/packs";
 import { supplyFlagOn } from "@/lib/pharmacy/stores/supply-action";
 import { packState, packSummary } from "@/lib/pharmacy/workspace-v2/setup";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
@@ -32,10 +38,11 @@ const day = new Intl.DateTimeFormat("en-GB", {
 export async function PacksView({ v2 }: { v2: PharmacyV2 }) {
   const actor = v2.scope;
   if (!supplyFlagOn("packs", actor.hospitalId)) notFound();
-  const [rows, manages, people] = await Promise.all([
+  const [rows, manages, people, choices] = await Promise.all([
     asClinicalReader(actor, (tx) => packRows(tx, actor.hospitalId)),
     managesPharmacy(actor.userId, actor.hospitalId),
     peopleAt(db as unknown as EmrDb, actor.hospitalId),
+    packChoices(db as unknown as EmrDb, actor.hospitalId),
   ]);
   const me = people.find((p) => p.userId === actor.userId) ?? {
     userId: actor.userId,
@@ -61,7 +68,9 @@ export async function PacksView({ v2 }: { v2: PharmacyV2 }) {
           aria-label={g.title}
           className="bg-card shadow-tide-card rounded-tide-card overflow-hidden"
         >
-          <h3 className="text-heading-s text-foreground border-border border-b px-4 py-3">{g.title}</h3>
+          <h3 className="text-heading-s text-foreground border-border border-b px-4 py-3">
+            {g.title}
+          </h3>
           <div tabIndex={0} className="overflow-x-auto">
             <table className="text-body-s w-full">
               <thead className="text-muted-foreground text-left">
@@ -103,7 +112,10 @@ export async function PacksView({ v2 }: { v2: PharmacyV2 }) {
                           {r.signed ? (
                             <span className="text-caption text-muted-foreground">
                               {r.signed.signedAt
-                                ? fill(P.versionOn, { v: r.signed.version, date: day.format(r.signed.signedAt) })
+                                ? fill(P.versionOn, {
+                                    v: r.signed.version,
+                                    date: day.format(r.signed.signedAt),
+                                  })
                                 : fill(P.version, { v: r.signed.version })}
                             </span>
                           ) : r.draft ? (
@@ -117,7 +129,9 @@ export async function PacksView({ v2 }: { v2: PharmacyV2 }) {
                             </span>
                           ) : null}
                           {r.signed?.exception ? (
-                            <span className="text-caption text-muted-foreground">{r.signed.exception}</span>
+                            <span className="text-caption text-muted-foreground">
+                              {r.signed.exception}
+                            </span>
                           ) : null}
                         </div>
                       </td>
@@ -125,9 +139,19 @@ export async function PacksView({ v2 }: { v2: PharmacyV2 }) {
                       <td className="px-4 py-3">
                         {manages ? (
                           <span className="flex flex-wrap justify-end gap-2">
-                            <PackDraftDialog kind={r.kind} draft={r.draft?.content ?? null} />
+                            <PackDraftDialog
+                              kind={r.kind}
+                              draft={r.draft?.content ?? null}
+                              signed={r.signed?.content ?? null}
+                              choices={choices}
+                            />
                             {r.draft ? (
-                              <SignPackDialog kind={r.kind} packId={r.draft.id} me={me} people={people} />
+                              <SignPackDialog
+                                kind={r.kind}
+                                packId={r.draft.id}
+                                me={me}
+                                people={people}
+                              />
                             ) : null}
                           </span>
                         ) : null}

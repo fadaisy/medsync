@@ -1,0 +1,176 @@
+{
+  "edition": "MedSync controlled substances v1 (29 Oct 2026)",
+  "copy": {
+    "status": "draft",
+    "signedBy": null,
+    "signedOn": null
+  },
+  "rule": "A catalogue medicine is controlled when any of its ingredients is a listed substance (or one of its salts, named under matches), with that substance's class; otherwise not controlled. The Act covers anything that contains a listed substance (s. 2) and the salts of listed substances (Schedules 2 and 3).",
+  "substances": [
+    {
+      "substance": "morphine",
+      "class": "narcotic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 2, p. 38 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "morphine",
+        "morphine sulfate",
+        "morphine sulphate",
+        "morphine hydrochloride"
+      ]
+    },
+    {
+      "substance": "pethidine",
+      "class": "narcotic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 2, p. 38 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "pethidine",
+        "pethidine hydrochloride",
+        "meperidine",
+        "meperidine hydrochloride"
+      ]
+    },
+    {
+      "substance": "fentanyl",
+      "class": "narcotic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 2, p. 37 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "fentanyl",
+        "fentanyl citrate"
+      ]
+    },
+    {
+      "substance": "methadone",
+      "class": "narcotic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 2, p. 38 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "methadone",
+        "methadone hydrochloride"
+      ]
+    },
+    {
+      "substance": "codeine",
+      "class": "narcotic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 2, p. 39 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "codeine",
+        "codeine phosphate"
+      ]
+    },
+    {
+      "substance": "diazepam",
+      "class": "psychotropic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 3, p. 42 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "diazepam"
+      ]
+    },
+    {
+      "substance": "midazolam",
+      "class": "psychotropic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 3, p. 43 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "midazolam",
+        "midazolam hydrochloride",
+        "midazolam maleate"
+      ]
+    },
+    {
+      "substance": "clonazepam",
+      "class": "psychotropic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 3, p. 41 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "clonazepam"
+      ]
+    },
+    {
+      "substance": "alprazolam",
+      "class": "psychotropic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 3, p. 45 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "alprazolam"
+      ]
+    },
+    {
+      "substance": "phenobarbital",
+      "class": "psychotropic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 3, p. 43 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "phenobarbital",
+        "phenobarbital sodium",
+        "phenobarbitone",
+        "phenobarbitone sodium"
+      ]
+    },
+    {
+      "substance": "methylphenidate",
+      "class": "psychotropic",
+      "basis": "law",
+      "source": "Narcotic Drugs and Psychotropic Substances (Control) Act, 2024 (Cap. 37), Schedule 3, p. 45 of the Laws.Africa/ULII copy as at 23 Feb 2024",
+      "matches": [
+        "methylphenidate",
+        "methylphenidate hydrochloride"
+      ]
+    },
+    {
+      "substance": "lorazepam",
+      "class": "policy",
+      "basis": "policy",
+      "source": "MedSync policy, owner decision 29 Oct 2026 (not in the 2024 Act's schedules)",
+      "matches": [
+        "lorazepam"
+      ]
+    },
+    {
+      "substance": "buprenorphine",
+      "class": "policy",
+      "basis": "policy",
+      "source": "MedSync policy, owner decision 29 Oct 2026 (not in the 2024 Act's schedules)",
+      "matches": [
+        "buprenorphine",
+        "buprenorphine hydrochloride"
+      ]
+    },
+    {
+      "substance": "ketamine",
+      "class": "policy",
+      "basis": "policy",
+      "source": "MedSync policy, owner decision 29 Oct 2026 (not in the 2024 Act's schedules)",
+      "matches": [
+        "ketamine",
+        "ketamine hydrochloride"
+      ]
+    },
+    {
+      "substance": "tramadol",
+      "class": "policy",
+      "basis": "policy",
+      "source": "MedSync policy, owner decision 29 Oct 2026 (not in the 2024 Act's schedules)",
+      "matches": [
+        "tramadol",
+        "tramadol hydrochloride"
+      ]
+    },
+    {
+      "substance": "thiopental",
+      "class": "policy",
+      "basis": "policy",
+      "source": "MedSync policy, owner decision 29 Oct 2026 (not in the 2024 Act's schedules)",
+      "matches": [
+        "thiopental",
+        "thiopental sodium",
+        "thiopentone",
+        "thiopentone sodium"
+      ]
+    }
+  ]
+}
