@@ -1,4 +1,5 @@
 import type { FlowStep } from "../../_components/v2/pieces";
+
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_STORE } from "@/content/pharmacy-workspace-v2-store";
 
@@ -27,8 +28,7 @@ export function storeTab(
   has: (key: StoreTab) => boolean,
 ): StoreTab | null {
   const asked = typeof sp.tab === "string" ? sp.tab : undefined;
-  const wanted: StoreTab | undefined =
-    STORE_TABS.find((t) => t === asked);
+  const wanted: StoreTab | undefined = STORE_TABS.find((t) => t === asked);
   if (wanted && has(wanted)) return wanted;
   return STORE_TABS.find(has) ?? null;
 }
@@ -65,7 +65,9 @@ export function storeFlow(i: FlowInput): FlowStep[] {
       label: F.suppliers,
       n: recent,
       href: href("deliveries", !!i.deliveries),
-      sub: i.deliveries ? [F.deliveriesWeek, ...(counting ? [fill(F.counting, { n: counting })] : [])] : [],
+      sub: i.deliveries
+        ? [F.deliveriesWeek, ...(counting ? [fill(F.counting, { n: counting })] : [])]
+        : [],
     },
     {
       label: F.stores,

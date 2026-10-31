@@ -103,7 +103,7 @@ export const WARDS = {
   sign: {
     open: "Sign",
     title: "Sign this list",
-    lede: "Each signer types their own password and authenticator code.",
+    lede: "Signing puts this list in force for the ward. Your name goes on it.",
     first: "You, as pharmacy in charge",
     second: "The second signer",
     exception: "CSO signs alone",

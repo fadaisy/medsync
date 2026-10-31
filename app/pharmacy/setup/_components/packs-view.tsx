@@ -4,19 +4,13 @@ import { notFound } from "next/navigation";
 
 import { Pill } from "@/components/tide/work/kit";
 import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
-import { PACKS, SUPPLY_COMMON } from "@/content/pharmacy-stores-supply";
+import { PACKS } from "@/content/pharmacy-stores-supply";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_SETUP } from "@/content/pharmacy-workspace-v2-setup";
 import { db } from "@/db";
 import { asClinicalReader } from "@/lib/emr/db";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
-import {
-  isPhase2Kind,
-  packChoices,
-  packRows,
-  peopleAt,
-  signerRoles,
-} from "@/lib/pharmacy/stores/packs";
+import { isPhase2Kind, packChoices, packRows, signerRoles } from "@/lib/pharmacy/stores/packs";
 import { supplyFlagOn } from "@/lib/pharmacy/stores/supply-action";
 import { packState, packSummary } from "@/lib/pharmacy/workspace-v2/setup";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
@@ -38,16 +32,11 @@ const day = new Intl.DateTimeFormat("en-GB", {
 export async function PacksView({ v2 }: { v2: PharmacyV2 }) {
   const actor = v2.scope;
   if (!supplyFlagOn("packs", actor.hospitalId)) notFound();
-  const [rows, manages, people, choices] = await Promise.all([
+  const [rows, manages, choices] = await Promise.all([
     asClinicalReader(actor, (tx) => packRows(tx, actor.hospitalId)),
     managesPharmacy(actor.userId, actor.hospitalId),
-    peopleAt(db as unknown as EmrDb, actor.hospitalId),
     packChoices(db as unknown as EmrDb, actor.hospitalId),
   ]);
-  const me = people.find((p) => p.userId === actor.userId) ?? {
-    userId: actor.userId,
-    label: SUPPLY_COMMON.you,
-  };
   const sum = packSummary(rows);
   const groups = [
     { title: PACKS.phase2, rows: rows.filter((r) => isPhase2Kind(r.kind)) },
@@ -93,13 +82,13 @@ export async function PacksView({ v2 }: { v2: PharmacyV2 }) {
                 {g.rows.map((r) => {
                   const t = PACK_TEXT[r.kind];
                   const st = packState(r);
-                  const [first, second] = signerRoles(r.kind, false);
+                  const first = signerRoles(r.kind);
                   return (
                     <tr key={r.kind} className="align-top">
                       <th scope="row" className="px-4 py-3 text-left font-normal">
                         <div className="text-foreground font-medium">{t.name}</div>
                         <div className="text-caption text-muted-foreground">
-                          {fill(P.signers, { first, second: second ?? "" })}
+                          {fill(P.signers, { first })}
                         </div>
                       </th>
                       <td className="px-4 py-3">
@@ -145,14 +134,7 @@ export async function PacksView({ v2 }: { v2: PharmacyV2 }) {
                               signed={r.signed?.content ?? null}
                               choices={choices}
                             />
-                            {r.draft ? (
-                              <SignPackDialog
-                                kind={r.kind}
-                                packId={r.draft.id}
-                                me={me}
-                                people={people}
-                              />
-                            ) : null}
+                            {r.draft ? <SignPackDialog kind={r.kind} packId={r.draft.id} /> : null}
                           </span>
                         ) : null}
                       </td>

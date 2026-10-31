@@ -6,6 +6,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { COUNT_DIFFERENCE_REASONS } from "@/content/pharmacy-stock";
+import { IN_CHARGE_SIGNS } from "@/content/pharmacy-stores-supply";
 import { RECEIPT_DIFFERENCE_REASONS, RETURN_REASONS, WARDS } from "@/content/pharmacy-stores-wards";
 import {
   pharmacyBatches,
@@ -291,19 +292,11 @@ export async function attested(
   return a.attester;
 }
 
-export const SIGN_EXCEPTION = WARDS.sign.exception;
-export const SignPackInput = z.object({
-  packId: uuid,
-  firstAttestationId: uuid,
-  secondAttestationId: uuid.nullable(),
-  exception: z.boolean(),
-});
+export const SignPackInput = z.object({ packId: uuid });
 
 /**
- * Appendix D, D-PH2-22: a ward levels pack is signed by the pharmacy in charge (first) and the ward's
- * nurse in charge; a cart list by the pharmacy in charge and the unit's clinical lead; each with a fresh
- * second factor, or the first alone with the exception "CSO signs alone (ADR 0281)". The signed version
- * it replaces is retired; a signed pack never changes.
+ * Owner ruling (31 Oct 2026): the pharmacy in charge (`pharmacy.manage`, already signed in) signs a ward levels
+ * pack or a cart list alone, in one tap. The signed version it replaces is retired; a signed pack never changes.
  */
 export async function signLocationPack(who: Who, input: z.infer<typeof SignPackInput>) {
   const [pack] = await who.tx
@@ -318,16 +311,6 @@ export async function signLocationPack(who: Who, input: z.infer<typeof SignPackI
     .for("update");
   if (!pack || pack.status !== "draft")
     throw fail("not_found", "That draft is not waiting to be signed.");
-  const location = await loadLocation(who.tx, who.hospitalId, pack.locationId);
-  const first = await attested(who, input.firstAttestationId, true, "pharmacy_pack_first");
-  let second: string | null = null;
-  if (!input.exception) {
-    if (!input.secondAttestationId)
-      throw fail("invalid", "The second signer confirms, or sign with the exception.");
-    second = await attested(who, input.secondAttestationId, false, "pharmacy_pack_second");
-    if (!(await rightFor(who.tx, "pack_second", location, second)))
-      throw fail("forbidden", "The second signer is no longer in charge here.");
-  }
   await who.tx
     .update(pharmacyLocationPacks)
     .set({ status: "retired", retiredAt: who.now })
@@ -342,15 +325,9 @@ export async function signLocationPack(who: Who, input: z.infer<typeof SignPackI
     .update(pharmacyLocationPacks)
     .set({
       status: "signed",
-      firstSigner: first,
+      firstSigner: who.userId,
       firstSignerRole: "pharmacy_in_charge",
-      secondSigner: second,
-      secondSignerRole: second
-        ? pack.kind === "ward_levels"
-          ? "ward_nurse_in_charge"
-          : "unit_clinical_lead"
-        : null,
-      exceptionText: input.exception ? SIGN_EXCEPTION : null,
+      exceptionText: IN_CHARGE_SIGNS,
       signedAt: who.now,
     })
     .where(eq(pharmacyLocationPacks.id, pack.id));

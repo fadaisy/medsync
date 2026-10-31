@@ -645,7 +645,10 @@ export function FinishDelivery({
             actions.receiveDelivery({
               deliveryId,
               witnesses: witnessed
-                ? controlledLines.map((c) => ({ lineNo: c.lineNo, attestationId: witnessed.attestationId }))
+                ? controlledLines.map((c) => ({
+                    lineNo: c.lineNo,
+                    attestationId: witnessed.attestationId,
+                  }))
                 : [],
             })
           }

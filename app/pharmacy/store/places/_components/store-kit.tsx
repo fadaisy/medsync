@@ -1,5 +1,6 @@
 "use client";
 
+import type { PharmacyDialogProps } from "../../../_components/pharmacy-dialog";
 import type { ReviewResult as ActionResult } from "@/lib/pharmacy/review/store";
 import type { LineResult } from "@/lib/pharmacy/stores/receiving";
 import type { ScanOutcome, ScanProduct } from "@/lib/pharmacy/stores/scan-fill";
@@ -8,15 +9,15 @@ import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
 import { CheckIcon, PrinterIcon, ScanLineIcon } from "lucide-react";
 
+import { scanProductAction } from "@/app/pharmacy/catalogue-actions";
 import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { resultWords, STORE } from "@/content/pharmacy-stores-store";
-import { scanProductAction } from "@/app/pharmacy/catalogue-actions";
 import { readScan } from "@/lib/pharmacy/stores/scan-fill";
+import { PharmacyDialog, Refusal } from "../../../_components/pharmacy-dialog";
 import { attestStoreWitness } from "../../actions";
-import { PharmacyDialog, Refusal, type PharmacyDialogProps } from "../../../_components/pharmacy-dialog";
 
 export { expiryForField } from "@/lib/pharmacy/stores/scan-fill";
 export type { ScanOutcome, ScanProduct } from "@/lib/pharmacy/stores/scan-fill";
@@ -79,7 +80,9 @@ export function ResultWords({ results }: { results: readonly LineResult[] }) {
 
 /** The store's dialog: the pharmacy's one dialog (D-PW-10) with the store's words. */
 export function StoreDialog(props: PharmacyDialogProps) {
-  return <PharmacyDialog {...props} cancelLabel={STORE.places.cancel} doneLabel={STORE.count.done} />;
+  return (
+    <PharmacyDialog {...props} cancelLabel={STORE.places.cancel} doneLabel={STORE.count.done} />
+  );
 }
 
 /** A keyboard-wedge field: a scanner types the code and presses Enter. Typing works the same. */
@@ -102,7 +105,11 @@ export function ScanField({
     if (o.kind === "gs1" && !o.productId && o.scan.gtin) {
       const r = await scanProductAction({ raw: value });
       if (r.ok && r.productId && products.some((p) => p.id === r.productId)) {
-        const found = { ...o, productId: r.productId, note: o.note.replace(STORE.scan.unknownGtin, "").trim() };
+        const found = {
+          ...o,
+          productId: r.productId,
+          note: o.note.replace(STORE.scan.unknownGtin, "").trim(),
+        };
         setNote(found.note);
         onRead(found);
       }

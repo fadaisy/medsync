@@ -15,6 +15,9 @@ export const PHARMACY_STORES_SUPPLY_COPY: SignedCopy = {
 
 /** The D-PH2-22 exception, word for word (gate-a-proposal, signed 21 Oct 2026). */
 export const CSO_ALONE = "CSO signs alone";
+/** Owner ruling (31 Oct 2026): what a pack signed by the pharmacy in charge alone records as its exception. */
+export const IN_CHARGE_ROLE = "Pharmacy in charge";
+export const IN_CHARGE_SIGNS = "The pharmacy in charge signs alone (owner ruling, 31 Oct 2026)";
 
 export const SUPPLY_COMMON = {
   cancel: "Cancel",
@@ -73,7 +76,7 @@ export const PACKS = {
   sign: "Sign",
   signTitle: (name: string) => `Sign: ${name}`,
   signIntro:
-    "Signing puts this version in force and retires the version before it. Each signer confirms with their own password and code.",
+    "Signing puts this version in force and retires the version before it. Your name goes on it.",
   firstSigner: "You sign as",
   secondSigner: "Second signer",
   secondSignerRole: "They sign as",

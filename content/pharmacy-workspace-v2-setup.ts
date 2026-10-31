@@ -19,9 +19,9 @@ export const PHWS2_SETUP = {
     versionOn: "Version {v}, {date}",
     draftToo: "A new draft, version {v}, is waiting",
     nothingBlocked: "Nothing blocked.",
-    signers: "Signed by {first} and {second}",
+    signers: "Signed by {first}",
     whoTitle: "Who signs",
-    who: "The first signer is someone who manages the pharmacy here, confirming with their own password and code. A second, different person confirms with theirs, or the CSO signs alone under the recorded exception. Each row names the two signers its pack needs. Every signature is dated and kept with the version it signed.",
+    who: "The pharmacy in charge writes and signs each set of rules. One tap puts it in force; their name and the date stay with the version.",
   },
   goingLive: {
     title: "Going live",
