@@ -7,7 +7,11 @@ import { PHARMACY_REWORK_COPY } from "@/content/pharmacy-rework";
 import { PHARMACY_STORES_COPY } from "@/content/pharmacy-stores";
 import { PHWS2_COPY_STATUS } from "@/content/pharmacy-workspace-v2";
 import { pharmacyDevHospital } from "@/lib/pharmacy/access";
-import { workspaceLiveFor } from "@/lib/workspace-access/flag";
+import { workspaceLiveFor as liveFor } from "@/lib/workspace-access/flag";
+
+/** ADR 0468: a PHARMACY_DEV_HOSPITALS test hospital sees every pharmacy area in production while its wording is draft. */
+const workspaceLiveFor = (...[value, hospitalId, notices, tag]: Parameters<typeof liveFor>) =>
+  liveFor(value, hospitalId, pharmacyDevHospital(hospitalId) ? [] : notices, tag);
 
 /**
  * Rework (L5): four pilot tiers replace the 21 flags. PHARMACY_CORE (dispensing, stock, store, counts, controls,
@@ -34,8 +38,7 @@ export const pharmacyTiersFor = (hospitalId: string) => {
     workspaceLiveFor(
       tier(t, TIER_LEGACY[t]),
       hospitalId,
-      // ADR 0468: a PHARMACY_DEV_HOSPITALS test hospital sees the rework in production while its wording is draft.
-      pharmacyDevHospital(hospitalId) ? [] : [PHARMACY_REWORK_COPY],
+      [PHARMACY_REWORK_COPY],
       `pharmacy_${t.toLowerCase()}`,
     );
   const core = on("CORE");
@@ -198,10 +201,5 @@ export const pharmacyRefillsLiveFor = (h: string) =>
  * (content/pharmacy-workspace-v2) is draft, as the lab's LAB_WORKSPACE_V2 did.
  */
 export const pharmacyWorkspaceV2LiveFor = (h: string) =>
-  workspaceLiveFor(
-    tier("CORE", "WORKSPACE_V2"),
-    h,
-    // ADR 0468: a PHARMACY_DEV_HOSPITALS test hospital sees v2 in production while its wording is still draft.
-    pharmacyDevHospital(h) ? [] : [PHWS2_COPY_STATUS],
-    "pharmacy_workspace_v2",
-  ) && pharmacyWorkspaceLiveFor(h);
+  workspaceLiveFor(tier("CORE", "WORKSPACE_V2"), h, [PHWS2_COPY_STATUS], "pharmacy_workspace_v2") &&
+  pharmacyWorkspaceLiveFor(h);
