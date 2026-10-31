@@ -179,6 +179,7 @@ export function PharmacyShell({
   return (
     <div
       data-ds="tide"
+      data-ds-light=""
       className="bg-background text-foreground flex min-h-svh flex-col gap-3 px-4 pt-3 pb-24 font-sans text-[14px] leading-[1.45] min-[761px]:flex-row min-[761px]:gap-4 min-[761px]:p-4 print:block print:p-0"
     >
       <Rail
