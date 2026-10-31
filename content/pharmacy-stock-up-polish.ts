@@ -94,6 +94,7 @@ export const STOCK_UP_POLISH = {
     pick: (name: string, short: string) => `${name} (${short})`,
     added: "Added",
     orType: "Or type another supplier or facility below.",
+    regions: { uganda: "Uganda", africa: "Elsewhere in Africa", international: "International" },
   },
   /** Catalogue medicines' controlled status from the signed substance list (owner item 13, ADR 0470). */
   controlled: {
