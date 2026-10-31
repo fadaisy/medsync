@@ -10,8 +10,8 @@ import {
   pharmacyShiftHandoverMisses,
   pharmacyShiftHandovers,
 } from "@/db/schema/pharmacy-rework-controls";
-import { balanceAt, isInCharge } from "@/lib/pharmacy/cd/store";
 import { q } from "@/lib/pharmacy/cd/sql";
+import { balanceAt, isInCharge } from "@/lib/pharmacy/cd/store";
 import { fail, loadLocation, placeCols } from "@/lib/pharmacy/stores/write";
 
 /**
@@ -26,7 +26,13 @@ export const HandoverInput = z.object({
   toUserId: z.uuid(),
   slotAt: z.coerce.date().nullable(),
   counts: z
-    .array(z.object({ medicineId: z.string().min(1).max(120), counted: z.number().int().min(0), highRisk: z.boolean() }))
+    .array(
+      z.object({
+        medicineId: z.string().min(1).max(120),
+        counted: z.number().int().min(0),
+        highRisk: z.boolean(),
+      }),
+    )
     .max(60),
   keys: z.literal(true),
   sealNo: z.string().trim().min(2).max(40).nullable(),
@@ -53,7 +59,8 @@ export async function handOverStation(
     sql`SELECT private.pharmacy_on_duty(${who.hospitalId}::uuid, ${input.toUserId}::uuid, ${place.id}::uuid,
           ${(input.slotAt ?? who.now).toISOString()}::timestamptz) AS ok`,
   );
-  if (!duty?.ok) throw fail("forbidden", "That person is not on duty then. Choose someone on the roster.");
+  if (!duty?.ok)
+    throw fail("forbidden", "That person is not on duty then. Choose someone on the roster.");
   await who.tx.insert(pharmacyShiftHandovers).values({
     id: input.clientKey,
     hospitalId: who.hospitalId,
@@ -80,9 +87,17 @@ export async function handOverStation(
       ),
     );
   if (input.items.length)
-    await who.tx.insert(pharmacyShiftHandoverItems).values(
-      input.items.map((text, n) => ({ handoverId: input.clientKey, hospitalId: who.hospitalId, n, text, seenAt: who.now })),
-    );
+    await who.tx
+      .insert(pharmacyShiftHandoverItems)
+      .values(
+        input.items.map((text, n) => ({
+          handoverId: input.clientKey,
+          hospitalId: who.hospitalId,
+          n,
+          text,
+          seenAt: who.now,
+        })),
+      );
   return { id: input.clientKey };
 }
 
@@ -138,7 +153,12 @@ export const DiffInput = z.object({
   why: z.string().trim().min(2).max(200),
   incidentRef: z.string().trim().min(3).max(60).nullable(),
   given: z
-    .object({ patient: z.string().trim().min(3).max(160), givenByUserId: z.uuid().nullable(), at: z.coerce.date(), approx: z.string().max(80).nullable() })
+    .object({
+      patient: z.string().trim().min(3).max(160),
+      givenByUserId: z.uuid().nullable(),
+      at: z.coerce.date(),
+      approx: z.string().max(80).nullable(),
+    })
     .nullable(),
 });
 
@@ -148,7 +168,13 @@ export const DiffInput = z.object({
  * Controlled differences are resolved in Controlled drugs.
  */
 export async function resolveHandoverDiff(who: Who, input: z.infer<typeof DiffInput>) {
-  const [l] = await q<{ place: string; expected: number; counted: number; controlled: boolean; at: string }>(
+  const [l] = await q<{
+    place: string;
+    expected: number;
+    counted: number;
+    controlled: boolean;
+    at: string;
+  }>(
     who.tx,
     sql`SELECT h.location_id AS place, l.expected, l.counted, h.accepted_at AS at,
                private.pharmacy_medicine_controlled(h.hospital_id, l.medicine_id) AS controlled
@@ -180,7 +206,8 @@ export async function resolveHandoverDiff(who: Who, input: z.infer<typeof DiffIn
         quantity: qty,
         effectiveAt: at,
         actorUserId: who.userId,
-        reasonCode: kind === "adjusted" ? (qty < 0 ? "handover_loss" : "handover_excess") : "handover_late",
+        reasonCode:
+          kind === "adjusted" ? (qty < 0 ? "handover_loss" : "handover_excess") : "handover_late",
         reasonNote: note,
         sourceKind: "adjustment",
         sourceId: input.handoverId,
@@ -191,8 +218,14 @@ export async function resolveHandoverDiff(who: Who, input: z.infer<typeof DiffIn
   };
   if (input.how === "late_entry") {
     if (!input.given || diff >= 0) throw fail("invalid", "A late entry explains a shortfall only.");
-    if (input.given.at > new Date(l.at)) throw fail("invalid", "Choose a time before the handover.");
-    await write(diff, "ward_used", input.given.at, `${input.given.patient}${input.given.approx ? ` · ${input.given.approx}` : ""}`);
+    if (input.given.at > new Date(l.at))
+      throw fail("invalid", "Choose a time before the handover.");
+    await write(
+      diff,
+      "ward_used",
+      input.given.at,
+      `${input.given.patient}${input.given.approx ? ` · ${input.given.approx}` : ""}`,
+    );
   }
   if (input.how === "loss" || input.how === "excess") {
     if (!(await isInCharge(who.tx, who.userId, who.hospitalId)))

@@ -16,14 +16,36 @@ export async function loadHandovers(d: Reader, hospitalId: string) {
   const [places, rows, misses] = await Promise.all([
     q<HoPlace>(
       d,
-      sql`SELECT id, name, kind FROM public.pharmacy_locations
+      sql`SELECT id, name, kind,
+                 (SELECT extract(epoch FROM min(h.created_at)) * 1000 FROM public.pharmacy_shift_handovers h
+                   WHERE h.location_id = pharmacy_locations.id) AS "startedAt"
+            FROM public.pharmacy_locations
            WHERE hospital_id = ${hospitalId}::uuid AND archived_at IS NULL AND kind IN ('store','dispensing_point','ward')
            ORDER BY kind <> 'ward', name`,
     ),
     q<{
-      id: string; place_id: string; slot_at: string | null; at: string; accepted_at: string | null; from: string;
-      to: string; to_user_id: string; keys_handed: boolean; seal_no: string | null; seal_new: boolean; items: number;
-      lines: { medicineId: string; medicineName: string; controlled: boolean; expected: number; counted: number; how: string | null }[] | string;
+      id: string;
+      place_id: string;
+      slot_at: string | null;
+      at: string;
+      accepted_at: string | null;
+      from: string;
+      to: string;
+      to_user_id: string;
+      keys_handed: boolean;
+      seal_no: string | null;
+      seal_new: boolean;
+      items: number;
+      lines:
+        | {
+            medicineId: string;
+            medicineName: string;
+            controlled: boolean;
+            expected: number;
+            counted: number;
+            how: string | null;
+          }[]
+        | string;
     }>(
       d,
       sql`SELECT h.id, h.location_id AS place_id, h.slot_at, h.created_at AS at, h.accepted_at, ${name("uf")} AS "from",
@@ -67,7 +89,14 @@ export async function loadHandovers(d: Reader, hospitalId: string) {
     sealNew: r.seal_new,
     items: Number(r.items),
     lines: (typeof r.lines === "string" ? JSON.parse(r.lines) : r.lines).map(
-      (l: { medicineId: string; medicineName: string; controlled: boolean; expected: number; counted: number; how: string | null }) => ({
+      (l: {
+        medicineId: string;
+        medicineName: string;
+        controlled: boolean;
+        expected: number;
+        counted: number;
+        how: string | null;
+      }) => ({
         medicineId: l.medicineId,
         medicineName: l.medicineName,
         controlled: l.controlled,
@@ -77,8 +106,19 @@ export async function loadHandovers(d: Reader, hospitalId: string) {
       }),
     ),
   }));
-  const ms: Miss[] = misses.map((m) => ({ placeId: m.place_id, slotAt: d8(m.slot_at), why: m.why }));
-  return { places, handovers, misses: ms };
+  const ms: Miss[] = misses.map((m) => ({
+    placeId: m.place_id,
+    slotAt: d8(m.slot_at),
+    why: m.why,
+  }));
+  return {
+    places: places.map((p) => ({
+      ...p,
+      startedAt: p.startedAt == null ? null : Number(p.startedAt),
+    })),
+    handovers,
+    misses: ms,
+  };
 }
 export type HandoverData = Awaited<ReturnType<typeof loadHandovers>>;
 

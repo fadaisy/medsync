@@ -125,6 +125,21 @@ describe("handover slots", () => {
     expect(hoMine(flags, false, "opd").some((f) => f.placeId === "ward")).toBe(false);
     expect(hoMine(flags, true, "opd").some((f) => f.placeId === "ward")).toBe(true);
     expect(slotNow([], "opd", Date.UTC(2026, 9, 30, 14, 30))).toBe(Date.UTC(2026, 9, 30, 14));
+    // A place that has never handed over has nothing missed yet; one that started counts only from its start.
+    const fresh = hoFlags({
+      places: places.map((p) => ({ ...p, startedAt: null })),
+      handovers: [],
+      misses: [],
+      now: at(0).getTime(),
+    });
+    expect(fresh.filter((f) => f.k === "miss")).toEqual([]);
+    const late = hoFlags({
+      places: [{ ...places[0]!, startedAt: at(0).getTime() - 3_600_000 }],
+      handovers: [],
+      misses: [],
+      now: at(0).getTime(),
+    });
+    expect(late.filter((f) => f.k === "miss")).toEqual([]);
   });
 });
 

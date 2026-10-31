@@ -78,6 +78,8 @@ worktree `~/Desktop/medsync-rework`, cut from the stock-up polish branch (fe6f44
   shows how many wait. A hand-over needs the server's identifier check, so offline it goes on the paper downtime sheet
   (Records › Sheets) and is entered late, marked late. Controlled entries offline use the paper witness.
 
+- **Missed handovers** count only from a place's first recorded handover: on the first day nothing is "missed",
+  each place shows its next handover as due.
 - **Count cases:** the PRD names counts as a case source but not when; an explained, non-controlled difference
   closes with the approval.
 - **Clinical defaults, all draft for the CSO:** controls (`CONTROLS_RULES`: strengths, minimum dose gaps,

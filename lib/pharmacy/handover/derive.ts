@@ -67,6 +67,8 @@ export interface HoPlace {
   id: string;
   name: string;
   kind: string;
+  /** The place's first handover ever (ms); null: it has never handed over, so no slot counts as missed yet. */
+  startedAt?: number | null;
 }
 
 const atSlot = (hs: readonly Handover[], placeId: string, slot: number) =>
@@ -81,10 +83,16 @@ export function slotNow(hs: readonly Handover[], placeId: string, now: number): 
 }
 
 /** The next slot at a place that has no handover and no explanation yet. */
-export function nextFor(hs: readonly Handover[], ms: readonly Miss[], placeId: string, now: number): number | null {
+export function nextFor(
+  hs: readonly Handover[],
+  ms: readonly Miss[],
+  placeId: string,
+  now: number,
+): number | null {
   return (
-    slotsBetween(now - R.graceHours * HOUR, now + DAY).find((s) => !atSlot(hs, placeId, s) && !missed(ms, placeId, s)) ??
-    null
+    slotsBetween(now - R.graceHours * HOUR, now + DAY).find(
+      (s) => !atSlot(hs, placeId, s) && !missed(ms, placeId, s),
+    ) ?? null
   );
 }
 
@@ -106,14 +114,29 @@ export function hoFlags(input: {
   const { now } = input;
   const f: HoFlag[] = [];
   for (const p of input.places)
-    for (const s of slotsBetween(now - R.lookbackHours * HOUR, now - R.graceHours * HOUR))
-      if (!atSlot(input.handovers, p.id, s) && !missed(input.misses, p.id, s))
+    for (const s of slotsBetween(
+      Math.max(now - R.lookbackHours * HOUR, p.startedAt ?? -Infinity),
+      now - R.graceHours * HOUR,
+    ))
+      if (
+        p.startedAt !== null &&
+        !atSlot(input.handovers, p.id, s) &&
+        !missed(input.misses, p.id, s)
+      )
         f.push({ k: "miss", id: `m${p.id}${s}`, placeId: p.id, slot: s });
   for (const h of input.handovers)
-    for (const l of openLines(h)) f.push({ k: "diff", id: `d${h.id}${l.medicineId}`, placeId: h.placeId, handover: h, line: l });
+    for (const l of openLines(h))
+      f.push({
+        k: "diff",
+        id: `d${h.id}${l.medicineId}`,
+        placeId: h.placeId,
+        handover: h,
+        line: l,
+      });
   for (const p of input.places) {
     const s = nextFor(input.handovers, input.misses, p.id, now);
-    if (s !== null && s - now <= HOUR && s - now > -R.graceHours * HOUR) f.push({ k: "due", id: `n${p.id}${s}`, placeId: p.id, slot: s });
+    if (s !== null && s - now <= HOUR && s - now > -R.graceHours * HOUR)
+      f.push({ k: "due", id: `n${p.id}${s}`, placeId: p.id, slot: s });
   }
   return f;
 }
