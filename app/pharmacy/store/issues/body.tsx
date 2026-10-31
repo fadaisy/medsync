@@ -260,7 +260,7 @@ export async function IssuesBody() {
           data-print-section={`loan-${l.id}`}
           className="hidden flex-col gap-2 print:flex"
         >
-          <h1 className="text-heading-m">{L.title}</h1>
+          <h2 className="text-heading-m">{L.title}</h2>
           <p className="text-body-s">{STORES_B.columnsUnconfirmed("loan record layout")}</p>
           <dl className="text-body-s grid grid-cols-2 gap-1">
             <dt>{L.columns.facility}</dt>

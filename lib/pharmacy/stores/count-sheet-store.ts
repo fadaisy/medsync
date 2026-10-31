@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { pharmacyBatches } from "@/db/schema/pharmacy-dispensing";
 import { pharmacyCountSheetLines, pharmacyCountSheets } from "@/db/schema/pharmacy-rework";
-import { countBlockers, countedOf } from "@/lib/pharmacy/derive/count";
+import { countBlockers, countDiffs, countedOf } from "@/lib/pharmacy/derive/count";
 import { recordMonthEndCount } from "./month-end-store";
 import { balancesAt, fail, loadLocation, requireLive, storeNeed } from "./write";
 
@@ -58,7 +58,9 @@ export async function startCount(ctx: PharmacyCtx, input: z.infer<typeof StartCo
   });
   await ctx.tx
     .insert(pharmacyCountSheetLines)
-    .values(held.map((b) => ({ sheetId: input.clientKey, batchId: b.id, updatedBy: ctx.actor.userId })));
+    .values(
+      held.map((b) => ({ sheetId: input.clientKey, batchId: b.id, updatedBy: ctx.actor.userId })),
+    );
   return { id: input.clientKey };
 }
 
@@ -78,7 +80,9 @@ async function sheetOf(ctx: PharmacyCtx, id: string) {
   const [s] = await ctx.tx
     .select()
     .from(pharmacyCountSheets)
-    .where(and(eq(pharmacyCountSheets.id, id), eq(pharmacyCountSheets.hospitalId, ctx.actor.hospitalId)))
+    .where(
+      and(eq(pharmacyCountSheets.id, id), eq(pharmacyCountSheets.hospitalId, ctx.actor.hospitalId)),
+    )
     .for("update");
   if (!s) throw fail("not_found", "That count is not at your hospital.");
   return s;
@@ -86,12 +90,15 @@ async function sheetOf(ctx: PharmacyCtx, id: string) {
 
 export async function saveCountLine(ctx: PharmacyCtx, input: z.infer<typeof SaveCountLineInput>) {
   const s = await sheetOf(ctx, input.sheetId);
-  if (s.status !== "counting") throw fail("conflict", "This count was sent for approval; it is not changed now.");
+  if (s.status !== "counting")
+    throw fail("conflict", "This count was sent for approval; it is not changed now.");
   if (input.found) {
     const [b] = await ctx.tx
       .select({ id: pharmacyBatches.id })
       .from(pharmacyBatches)
-      .where(and(eq(pharmacyBatches.id, input.batchId), eq(pharmacyBatches.locationId, s.locationId)));
+      .where(
+        and(eq(pharmacyBatches.id, input.batchId), eq(pharmacyBatches.locationId, s.locationId)),
+      );
     if (!b) throw fail("invalid", "That batch is not at this place.");
   }
   const values = {
@@ -132,9 +139,29 @@ export async function sendCountForApproval(ctx: PharmacyCtx, input: z.infer<type
   return { id: s.id };
 }
 
+/**
+ * A difference on a controlled medicine opens a High case, and one explained only as "other" a Low case, one per
+ * medicine at this place (rework PRD §6.6; the case links back to the count). Other explained differences close
+ * with the approval.
+ */
+async function openCountCases(
+  ctx: PharmacyCtx,
+  s: { id: string; hospitalId: string; locationId: string },
+  diffs: ReturnType<typeof countDiffs>,
+) {
+  for (const d of diffs)
+    await ctx.tx.execute(sql`
+      SELECT private.pharmacy_open_case(${s.hospitalId}, 'count', ${s.id}, p.medicine_id, ${s.locationId},
+        ${d.diff}, CASE WHEN p.controlled_class IS NOT NULL THEN 'high' ELSE 'low' END, ${ctx.actor.userId},
+        ${ctx.now.toISOString()}::timestamptz)
+        FROM public.pharmacy_batches b JOIN public.pharmacy_products p ON p.id = b.product_id
+       WHERE b.id = ${d.batchId} AND (p.controlled_class IS NOT NULL OR ${d.reason ?? ""} = 'other')`);
+}
+
 export async function sendCountBack(ctx: PharmacyCtx, input: z.infer<typeof SheetInput>) {
   const s = await sheetOf(ctx, input.sheetId);
-  if (s.status !== "approval") throw fail("conflict", "Only a count waiting for approval goes back.");
+  if (s.status !== "approval")
+    throw fail("conflict", "Only a count waiting for approval goes back.");
   await ctx.tx
     .update(pharmacyCountSheets)
     .set({ status: "counting", sentAt: null })
@@ -152,6 +179,7 @@ export async function approveCount(ctx: PharmacyCtx, input: z.infer<typeof Appro
   if (s.createdBy === ctx.actor.userId)
     throw fail("forbidden", "Someone other than the counter approves the count.");
   const lines = await linesOf(ctx, s.id);
+  const diffs = countDiffs(lines, await balancesAt(ctx.tx, s.locationId));
   const countId = crypto.randomUUID();
   await recordMonthEndCount(ctx, {
     clientKey: countId,
@@ -169,5 +197,6 @@ export async function approveCount(ctx: PharmacyCtx, input: z.infer<typeof Appro
       countId,
     })
     .where(eq(pharmacyCountSheets.id, s.id));
+  await openCountCases(ctx, s, diffs);
   return { id: s.id };
 }

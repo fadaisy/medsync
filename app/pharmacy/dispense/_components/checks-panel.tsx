@@ -21,17 +21,30 @@ type Answer = { answer: "checked" | "prescriber_confirmed" | "query"; reason: st
  * The checks panel (rework PRD §6.2): each check the prescriber was warned about, answered by the pharmacist before
  * the line is handed over. A stop takes only "Prescriber confirmed"; "Talk to the prescriber" holds the line.
  */
-export function ChecksPanel({ lines, answers }: { lines: PanelLine[]; answers: Record<string, Answer> }) {
+export function ChecksPanel({
+  lines,
+  answers,
+}: {
+  lines: PanelLine[];
+  answers: Record<string, Answer>;
+}) {
   const flagged = lines.filter((l) => l.checks.length);
-  const open = flagged.flatMap((l) => l.checks.filter((c) => !gives(c.level, answers[`${l.id}:${c.code}`])));
+  const open = flagged.flatMap((l) =>
+    l.checks.filter((c) => !gives(c.level, answers[`${l.id}:${c.code}`])),
+  );
   return (
-    <section aria-labelledby="rx-checks" className="bg-card shadow-tide-card flex flex-col gap-3 rounded-[18px] p-4">
+    <section
+      aria-labelledby="rx-checks"
+      className="bg-card shadow-tide-card flex flex-col gap-3 rounded-[18px] p-4"
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="rx-checks" className="text-heading-s">
           {T.title}
         </h2>
         {open.length ? (
-          <span className="text-body-s text-ink-700">{T.blocked.replace("{n}", String(open.length))}</span>
+          <span className="text-body-s text-ink-700">
+            {T.blocked.replace("{n}", String(open.length))}
+          </span>
         ) : null}
       </div>
       {flagged.length ? (
@@ -40,7 +53,12 @@ export function ChecksPanel({ lines, answers }: { lines: PanelLine[]; answers: R
           <ul className="flex flex-col gap-2">
             {flagged.flatMap((l) =>
               l.checks.map((c) => (
-                <Flag key={`${l.id}:${c.code}`} line={l} check={c} answer={answers[`${l.id}:${c.code}`]} />
+                <Flag
+                  key={`${l.id}:${c.code}`}
+                  line={l}
+                  check={c}
+                  answer={answers[`${l.id}:${c.code}`]}
+                />
               )),
             )}
           </ul>
@@ -55,7 +73,15 @@ export function ChecksPanel({ lines, answers }: { lines: PanelLine[]; answers: R
 const gives = (level: "stop" | "check", a: Answer | undefined) =>
   !!a && a.answer !== "query" && (level !== "stop" || a.answer === "prescriber_confirmed");
 
-function Flag({ line, check, answer }: { line: PanelLine; check: PanelLine["checks"][number]; answer?: Answer }) {
+function Flag({
+  line,
+  check,
+  answer,
+}: {
+  line: PanelLine;
+  check: PanelLine["checks"][number];
+  answer?: Answer;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +101,7 @@ function Flag({ line, check, answer }: { line: PanelLine; check: PanelLine["chec
         <span
           className={cn(
             "rounded-[6px] px-1.5 text-[12px] leading-5 font-semibold",
-            stop ? "bg-status-critical-bg text-red-800" : "bg-card text-ink-800",
+            stop ? "bg-status-caution-bg text-status-caution-fg-aa" : "bg-card text-ink-800",
           )}
         >
           {T.level[check.level]}
@@ -85,7 +111,9 @@ function Flag({ line, check, answer }: { line: PanelLine; check: PanelLine["chec
         </span>
       </div>
       {check.answer ? (
-        <p className="text-body-s text-ink-600">{T.prescriberSaid.replace("{answer}", check.answer)}</p>
+        <p className="text-body-s text-ink-600">
+          {T.prescriberSaid.replace("{answer}", check.answer)}
+        </p>
       ) : null}
       {answer ? (
         <p className="text-body-s text-ink-700">
@@ -98,7 +126,12 @@ function Flag({ line, check, answer }: { line: PanelLine; check: PanelLine["chec
       {choosing ? (
         <div role="group" aria-label={T.answers.checked} className="flex flex-wrap gap-2">
           {T.reasons.map((r) => (
-            <LabButton key={r} variant="secondary" busy={pending} onClick={() => send({ answer: "checked", reason: r })}>
+            <LabButton
+              key={r}
+              variant="secondary"
+              busy={pending}
+              onClick={() => send({ answer: "checked", reason: r })}
+            >
               {r}
             </LabButton>
           ))}
@@ -117,7 +150,11 @@ function Flag({ line, check, answer }: { line: PanelLine; check: PanelLine["chec
           >
             {T.answers.prescriber_confirmed}
           </LabButton>
-          <LabButton variant="quiet" busy={pending} onClick={() => send({ answer: "query", reason: null })}>
+          <LabButton
+            variant="quiet"
+            busy={pending}
+            onClick={() => send({ answer: "query", reason: null })}
+          >
             {T.answers.query}
           </LabButton>
         </div>

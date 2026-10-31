@@ -410,7 +410,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
       {d.state === "received" ? (
         <>
           <section data-print-section="report" className="hidden flex-col gap-3 print:flex">
-            <h1 className="text-heading-m">{R.title}</h1>
+            <h2 className="text-heading-m">{R.title}</h2>
             <p className="text-body-s">{STORES_B.columnsUnconfirmed("HMIS 087 form")}</p>
             <p className="text-body-s">
               {R.hospital}: {v.hospitalName}
@@ -467,7 +467,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ id: s
             <p className="text-caption">{R.neverSent}</p>
           </section>
           <section data-print-section="grn" className="hidden flex-col gap-3 print:flex">
-            <h1 className="text-heading-m">{R.grnTitle}</h1>
+            <h2 className="text-heading-m">{R.grnTitle}</h2>
             <p className="text-body-s">
               {R.hospital}: {v.hospitalName}
             </p>

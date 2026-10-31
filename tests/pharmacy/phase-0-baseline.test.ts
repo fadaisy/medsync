@@ -29,8 +29,8 @@ describe("Pharmacy Phase 0 baseline — defects reproduced at Step 0", () => {
   });
 
   // Fixed in Step 4: the workspace's queue page.
-  it("P4: /pharmacy exists", () => {
-    expect(existsSync(resolve(process.cwd(), "app/pharmacy/page.tsx"))).toBe(true);
+  it("P4: /pharmacy exists (the rework sends it to Today)", () => {
+    expect(existsSync(resolve(process.cwd(), "app/pharmacy/today/page.tsx"))).toBe(true);
   });
 
   // Fixed in Step 2: migration 0098's trigger grants in the approval's transaction (behaviour:

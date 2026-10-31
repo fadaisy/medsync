@@ -27,7 +27,12 @@ export const RX_CHECKS = {
     prescriber_confirmed: "Prescriber confirmed",
     query: "Held for the prescriber",
   },
-  reasons: ["Dose checked against the reference", "Benefit outweighs the risk", "Counselled the patient", "Already discussed on the ward round"],
+  reasons: [
+    "Dose checked against the reference",
+    "Benefit outweighs the risk",
+    "Counselled the patient",
+    "Already discussed on the ward round",
+  ],
   stopOnly: "A stop is given only when the prescriber confirms.",
   queryNext: "The line is held. Send the query from the line's own menu so the prescriber sees it.",
   blocked: "{n} checks on lines you are giving are not answered yet.",
@@ -48,7 +53,12 @@ export const COUNT = {
   label: "{place}, {date}",
   open: "Counts in progress",
   none: "No count is running. Start one for a shelf of medicines or the whole place; it saves as you type.",
-  status: { counting: "Counting", approval: "Waiting for approval", done: "Approved", cancelled: "Cancelled" },
+  status: {
+    counting: "Counting",
+    approval: "Waiting for approval",
+    done: "Approved",
+    cancelled: "Cancelled",
+  },
   continue: "Continue",
   review: "Review",
   progress: "{done} of {total} lines counted",
@@ -79,9 +89,7 @@ export const COUNT = {
   back: "All counts",
 } as const;
 
-export const STORE = {
-  coldSoon: "The cold chain opens here when its part of the pharmacy is switched on.",
-} as const;
+export const STORE = {} as const;
 
 export const TODAY = {
   yourWork: "Your work",

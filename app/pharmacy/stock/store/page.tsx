@@ -1,15 +1,16 @@
-import { EmptyState } from "@/components/tide/work/kit";
-import { STORE } from "@/content/pharmacy-rework-daily";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
 import { tabOf } from "@/lib/pharmacy/ia";
 import { PageTabs } from "../../_components/page-tabs";
 import DeliveryPage from "../../store/deliveries/[id]/page";
 import { DeliveriesBody } from "../../store/deliveries/body";
+import RequisitionPage from "../../store/issues/[id]/page";
 import { IssuesBody } from "../../store/issues/body";
 import { OrdersBody } from "../../store/orders/body";
+import WardStockPage from "../../store/wards/[locationId]/page";
 import { WardsBody } from "../../store/wards/body";
 import { CountTab } from "./_components/count-tab";
+import { ColdChainTab } from "./cold/tab";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,15 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
       ) : (
         <DeliveriesBody />
       );
+  else if (tab === "issue" && UUID.test(one(sp.issue) ?? ""))
+    body = <RequisitionPage params={Promise.resolve({ id: one(sp.issue)! })} />;
+  else if (tab === "issue" && UUID.test(one(sp.ward) ?? ""))
+    body = (
+      <WardStockPage
+        params={Promise.resolve({ locationId: one(sp.ward)! })}
+        searchParams={Promise.resolve({ count: one(sp.count) ?? undefined })}
+      />
+    );
   else if (tab === "issue")
     body = (
       <div className="flex flex-col gap-4">
@@ -52,7 +62,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
       />
     );
   else if (tab === "order") body = <OrdersBody />;
-  else body = <EmptyState title={STORE.coldSoon} />;
+  else body = <ColdChainTab fridge={one(sp.fridge) ?? undefined} />;
   return (
     <div className="flex flex-col gap-4">
       <PageTabs page="store" current={tab} />

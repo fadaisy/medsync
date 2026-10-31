@@ -66,7 +66,7 @@ export default async function SlipPage({ params }: { params: Promise<{ id: strin
           <p>
             {slip.hospital} · {slip.point}
           </p>
-          <h1 className="text-[16px] font-medium">{slip.title}</h1>
+          <h2 className="text-[16px] font-medium">{slip.title}</h2>
           <p>
             {slip.prescriptionNumber ? `${S.prescription} ${slip.prescriptionNumber} · ` : ""}
             {slip.date}

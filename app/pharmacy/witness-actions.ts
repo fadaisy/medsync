@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { getAuthState } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { requireNurseScope } from "@/lib/nurse/scope";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import * as w from "@/lib/pharmacy/witness";
 
@@ -23,15 +24,31 @@ async function guarded<T>(fn: () => Promise<Result<T>>): Promise<Result<T>> {
   } catch (e) {
     unstable_rethrow(e);
     if (e instanceof w.WitnessError) return { ok: false, error: e.message };
-    logger.error("pharmacy.witness.action_failed", { error: e instanceof Error ? e.name : "unknown" });
+    logger.error("pharmacy.witness.action_failed", {
+      error: e instanceof Error ? e.name : "unknown",
+    });
     return { ok: false, error: "That did not go through. Try again." };
+  }
+}
+
+/** Who is asking: pharmacy staff, or a ward nurse giving a controlled dose (rework scenario 5). */
+async function requester(): Promise<{
+  userId: string;
+  hospitalId: string;
+  pointId: string | null;
+}> {
+  try {
+    return await requirePharmacyActor();
+  } catch {
+    const n = await requireNurseScope();
+    return { userId: n.userId, hospitalId: n.hospitalId, pointId: null };
   }
 }
 
 export async function witnessesOnDutyAction(raw: unknown) {
   return guarded(async () => {
     const { locationId } = z.object({ locationId: z.uuid().nullable() }).parse(raw);
-    const actor = await requirePharmacyActor();
+    const actor = await requester();
     const r = await w.witnessesOnDuty(database, {
       hospitalId: actor.hospitalId,
       actorUserId: actor.userId,
@@ -51,7 +68,7 @@ export async function requestWitnessAction(raw: unknown) {
         summary: z.string().min(2).max(300),
       })
       .parse(raw);
-    const actor = await requirePharmacyActor();
+    const actor = await requester();
     const r = await w.requestWitness(database, {
       ...i,
       hospitalId: actor.hospitalId,
@@ -65,7 +82,7 @@ export async function requestWitnessAction(raw: unknown) {
 export async function witnessRequestStateAction(raw: unknown) {
   return guarded(async () => {
     const { requestId } = z.object({ requestId: z.uuid() }).parse(raw);
-    const actor = await requirePharmacyActor();
+    const actor = await requester();
     const s = await w.witnessRequestState(database, requestId, actor.userId);
     if (!s) return { ok: false, error: "This request is not yours." };
     return { ok: true, ...s };
@@ -75,7 +92,8 @@ export async function witnessRequestStateAction(raw: unknown) {
 /** The witness's side: any signed-in member of staff with the second factor, pharmacy or ward. */
 async function witnessUser() {
   const auth = await getAuthState();
-  if (!auth.user || auth.aal !== "aal2") throw new w.WitnessError("forbidden", "Sign in with your second factor first.");
+  if (!auth.user || auth.aal !== "aal2")
+    throw new w.WitnessError("forbidden", "Sign in with your second factor first.");
   return auth.user.id;
 }
 

@@ -680,12 +680,7 @@ describe.skipIf(!laneOn)("Pharmacy downtime and going live (Step 8)", () => {
     for (const k of ["PHARMACY_WORKSPACE", "PHARMACY_DISPENSING", "PHARMACY_DOWNTIME"])
       process.env[k] = "";
     const notFound = { digest: expect.stringContaining("404") };
-    const downtime = (await import("@/app/pharmacy/downtime/page")).default;
-    await expect(downtime({ searchParams: Promise.resolve({}) })).rejects.toMatchObject(notFound);
-    const sheets = (await import("@/app/pharmacy/downtime/sheets/[from]/[to]/page")).default;
-    await expect(sheets({ params: Promise.resolve({ from: "1", to: "2" }) })).rejects.toMatchObject(
-      notFound,
-    );
+    // The downtime pages now live in Records › Sheets, behind the pharmacy layout's own gate.
     const settings = (await import("@/app/hospital-admin/departments/pharmacy/page")).default;
     await expect(settings()).rejects.toMatchObject(notFound);
     const goLive = (await import("@/app/hospital-admin/departments/pharmacy/[pointId]/page"))

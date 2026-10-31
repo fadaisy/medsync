@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { TARGET } from "@/app/pharmacy/store/wards/_components/ward-dialogs";
 import { WardStockView } from "@/app/pharmacy/store/wards/_components/ward-stock-view";
 import { PageHeader } from "@/components/medsync/page-header";
+import { CTL } from "@/content/pharmacy-rework-controls";
 import { WARDS } from "@/content/pharmacy-stores-wards";
 import { db } from "@/db";
 import { requireNurseScope } from "@/lib/nurse/scope";
@@ -55,6 +56,12 @@ export default async function NurseWardStockPage({
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-6">
       <PageHeader place={scope.departmentName} title={`${WARDS.title} · ${ward.name}`} />
+      <Link
+        href={`/nurse/cd-dose?location=${ward.id}`}
+        className={`text-body-s inline-flex ${TARGET} w-fit items-center font-medium underline underline-offset-2`}
+      >
+        {CTL.nurse.link}
+      </Link>
       {wards.length > 1 ? (
         <nav aria-label={WARDS.title} className="flex flex-wrap gap-2">
           {wards.map((w) => (

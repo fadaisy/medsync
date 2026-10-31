@@ -42,7 +42,8 @@ describe("the store's screens", () => {
 
   it("every page is behind pharmacyStore and calls notFound", () => {
     const pages = mine.filter((p) => p.endsWith("page.tsx"));
-    expect(pages).toHaveLength(5);
+    // The rework keeps the delivery and issue detail pages; the lists live in Stock › Store.
+    expect(pages).toHaveLength(2);
     for (const p of pages) {
       const s = read(p);
       expect(s, rel(p)).toMatch(/if \(!pharmacyStoreLiveFor\(actor\.hospitalId\)\) notFound\(\);/);

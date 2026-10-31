@@ -9,7 +9,11 @@ const at = (m: number) => new Date(Date.UTC(2026, 9, 30, 9, m));
 
 describe("rework test 8: the checks panel blocks hand-over", () => {
   const flags = rxFlags([
-    { id: "amox", checkAnswers: [{ code: "allergy", answer: "benefit", outcome: "stop" }], confirmedFlags: [] },
+    {
+      id: "amox",
+      checkAnswers: [{ code: "allergy", answer: "benefit", outcome: "stop" }],
+      confirmedFlags: [],
+    },
     { id: "pcm", checkAnswers: [{ code: "child", outcome: "check" }], confirmedFlags: [] },
     { id: "ors", checkAnswers: [], confirmedFlags: [] },
   ]);
@@ -30,9 +34,15 @@ describe("rework test 8: the checks panel blocks hand-over", () => {
 
   it("a stop takes only the prescriber's confirmation; a query holds the line", () => {
     const base = { lineId: "amox", code: "allergy" };
-    expect(rxChecksOpen(flags, [{ ...base, answer: "checked", at: at(1) }], ["amox"])).toHaveLength(1);
-    expect(rxChecksOpen(flags, [{ ...base, answer: "query", at: at(1) }], ["amox"])).toHaveLength(1);
-    expect(rxChecksOpen(flags, [{ ...base, answer: "prescriber_confirmed", at: at(1) }], ["amox"])).toEqual([]);
+    expect(rxChecksOpen(flags, [{ ...base, answer: "checked", at: at(1) }], ["amox"])).toHaveLength(
+      1,
+    );
+    expect(rxChecksOpen(flags, [{ ...base, answer: "query", at: at(1) }], ["amox"])).toHaveLength(
+      1,
+    );
+    expect(
+      rxChecksOpen(flags, [{ ...base, answer: "prescriber_confirmed", at: at(1) }], ["amox"]),
+    ).toEqual([]);
   });
 
   it("the latest answer stands", () => {
@@ -54,11 +64,18 @@ describe("the count sheet", () => {
       { batchId: "a", packSize: 10, countedPacks: 2, countedUnits: 5, reason: null },
       { batchId: "b", packSize: 1, countedPacks: null, countedUnits: null, reason: null },
     ];
-    expect(countDiffs(lines, recorded)).toEqual([{ batchId: "a", counted: 25, recorded: 30, diff: -5, reason: null }]);
+    expect(countDiffs(lines, recorded)).toEqual([
+      { batchId: "a", counted: 25, recorded: 30, diff: -5, reason: null },
+    ]);
     expect(countBlockers(lines, recorded)).toEqual({ uncounted: 1, unexplained: 1 });
-    const explained = [{ ...lines[0]!, reason: "found_other_shelf" }, { ...lines[1]!, countedUnits: 10 }];
+    const explained = [
+      { ...lines[0]!, reason: "found_other_shelf" },
+      { ...lines[1]!, countedUnits: 10 },
+    ];
     expect(countBlockers(explained, recorded)).toEqual({ uncounted: 0, unexplained: 1 });
-    expect(countBlockers([{ ...explained[0]!, reason: "damaged" }, explained[1]!], recorded)).toEqual({
+    expect(
+      countBlockers([{ ...explained[0]!, reason: "damaged" }, explained[1]!], recorded),
+    ).toEqual({
       uncounted: 0,
       unexplained: 0,
     });
@@ -75,9 +92,17 @@ describe("Today", () => {
     href: "/pharmacy/today",
   });
   it("ranks the role's items in its order and puts the rest under other roles", () => {
-    const r = todayItems("storekeeper", [item("rx"), item("delivery"), item("emerg"), item("approve")]);
+    const r = todayItems("storekeeper", [
+      item("rx"),
+      item("delivery"),
+      item("emerg"),
+      item("approve"),
+    ]);
     expect(r.mine.map((i) => i.kind)).toEqual(["emerg", "delivery"]);
     expect(r.others.map((i) => i.kind)).toEqual(["rx", "approve"]);
-    expect(todayItems("incharge", [item("rx"), item("approve")]).mine.map((i) => i.kind)).toEqual(["approve", "rx"]);
+    expect(todayItems("incharge", [item("rx"), item("approve")]).mine.map((i) => i.kind)).toEqual([
+      "approve",
+      "rx",
+    ]);
   });
 });

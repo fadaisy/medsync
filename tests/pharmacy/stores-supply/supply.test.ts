@@ -152,7 +152,6 @@ describe("S41, S43: prints and nothing sent", () => {
       "lib/pharmacy/stores/order-read.ts",
       "lib/pharmacy/stores/order-store.ts",
       "app/pharmacy/store/orders/actions.ts",
-      "app/pharmacy/store/orders/page.tsx",
       "app/pharmacy/store/orders/body.tsx",
       "app/pharmacy/store/orders/_components/order-forms.tsx",
     ];

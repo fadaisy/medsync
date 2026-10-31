@@ -178,7 +178,7 @@ export default async function ReconciliationPage({ params }: { params: Promise<{
       {/* MR-7: the patient's sheet, black on white; prints from the confirmed list only. */}
       {f.state === "confirmed" ? (
         <section className="hidden flex-col gap-3 text-black print:flex">
-          <h1 className="text-heading-l">{U.sheetTitle}</h1>
+          <h2 className="text-heading-l">{U.sheetTitle}</h2>
           <p>{who?.name ?? ""}</p>
           <p>{U.sheetIntro}</p>
           <ul className="flex flex-col gap-2">

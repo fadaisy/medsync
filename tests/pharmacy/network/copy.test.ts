@@ -22,7 +22,13 @@ describe("Phase 4 wording records (CS-5)", () => {
     const signed = JSON.stringify({ ...NETWORK_B, ...NETWORK_UI }, (_, v) =>
       typeof v === "function" ? v("X", "Y", "Z", "N", "C") : v,
     );
-    for (const word of ["consent", "Routed to", "licence", "Partner suspended", "Documents checked"])
+    for (const word of [
+      "consent",
+      "Routed to",
+      "licence",
+      "Partner suspended",
+      "Documents checked",
+    ])
       expect(signed, word).not.toContain(word);
     expect(Object.keys(NETWORK_PARTNER)).toContain("consent");
   });

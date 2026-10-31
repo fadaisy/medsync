@@ -8,7 +8,16 @@ import { describe, expect, it } from "vitest";
 
 import { PAGES, REDIRECTS, SETUP_HREF } from "@/lib/pharmacy/ia";
 
-const KEPT = ["/pharmacy/stock/recall/:x", "/pharmacy/labels/:x", "/pharmacy/prescriptions/:x", "/pharmacy/prescriptions/:x/handover", "/pharmacy/slip/:x"];
+const KEPT = [
+  "/pharmacy/stock/recall/:x",
+  "/pharmacy/labels/:x",
+  "/pharmacy/prescriptions/:x",
+  "/pharmacy/prescriptions/:x/handover",
+  "/pharmacy/slip/:x",
+  "/pharmacy/controlled/register/:x",
+  "/pharmacy/clinical/reactions/:x",
+  "/pharmacy/clinical/reconciliation/:x",
+];
 
 function routes(dir: string): string[] {
   return readdirSync(dir).flatMap((n) => {
@@ -20,9 +29,9 @@ function routes(dir: string): string[] {
 
 // next.config's path-to-regexp, enough of it: `:name(regex)` keeps the regex, `:name` is one segment.
 const matches = (source: string, path: string) =>
-  new RegExp(`^${source.replace(/:\w+(\([^)]*\)+)?/g, (_, re: string | undefined) => re ?? "[^/]+")}$`).test(
-    path.replace(/:x/g, "fixture-id"),
-  );
+  new RegExp(
+    `^${source.replace(/:\w+(\([^)]*\)+)?/g, (_, re: string | undefined) => re ?? "[^/]+")}$`,
+  ).test(path.replace(/:x/g, "fixture-id"));
 
 describe("rework: old pharmacy URLs", () => {
   const homes = new Set([...PAGES.map((p) => p.href), SETUP_HREF]);
@@ -37,8 +46,15 @@ describe("rework: old pharmacy URLs", () => {
   it("no redirect points at another redirect, and new homes are never redirected", () => {
     for (const r of REDIRECTS) {
       const to = r.destination.split("?")[0]!;
-      expect(REDIRECTS.some((x) => x.source === to), r.source).toBe(false);
+      expect(
+        REDIRECTS.some((x) => x.source === to),
+        r.source,
+      ).toBe(false);
     }
-    for (const h of homes) expect(REDIRECTS.some((x) => matches(x.source, h)), h).toBe(false);
+    for (const h of homes)
+      expect(
+        REDIRECTS.some((x) => matches(x.source, h)),
+        h,
+      ).toBe(false);
   });
 });

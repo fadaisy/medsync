@@ -17,7 +17,8 @@ export type PillTone = "neutral" | "caution" | "passed" | "lagoon";
 const PILL: Record<PillTone, string> = {
   neutral: "bg-tide-sunken text-ink-600",
   // Amber with its word and glyph: late, held, delta waiting, overdue, quarantined, down (Law 8).
-  caution: "bg-status-caution-bg text-amber-800 shadow-[inset_0_0_0_1px_var(--tide-caution-edge)]",
+  caution:
+    "bg-status-caution-bg text-status-caution-fg-aa shadow-[inset_0_0_0_1px_var(--tide-caution-edge)]",
   // "Passed" is neutral with a check (Law 8: nothing green).
   passed: "bg-card text-ink-700 shadow-[inset_0_0_0_1px_var(--color-ink-300)]",
   lagoon: "bg-tide-lagoon-tint text-teal-900",

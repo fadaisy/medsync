@@ -10,7 +10,6 @@ import { getOpenLines } from "@/lib/pharmacy/review/read";
 import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { OpenLines } from "./_components/open-lines";
-import { toV2 } from "../_lib/to-v2";
 
 
 /**
@@ -20,14 +19,6 @@ import { toV2 } from "../_lib/to-v2";
  * (Step 6) opens the hand-over for that line when it is on the shelf here; "Tell the patient it is
  * here" (MS-4) shows on an owed line on the shelf here, only where a message can be sent (S94).
  */
-type SP = Record<string, string | string[] | undefined>;
-
-/** Pharmacy Workspace v2 (D-PW-09): with the flag on, this list lives at Window › Open lines (307). */
-export default async function OpenLinesPage({ searchParams }: { searchParams: Promise<SP> }) {
-  await toV2("/pharmacy/window?view=open", await searchParams);
-  return <OpenLinesBody />;
-}
-
 /** The old page's body, unchanged; Window renders it too. */
 export async function OpenLinesBody() {
   const scope = await requirePharmacyScope();

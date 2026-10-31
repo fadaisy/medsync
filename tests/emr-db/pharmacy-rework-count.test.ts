@@ -38,10 +38,12 @@ describe.skipIf(!laneOn)("Pharmacy rework: the count sheet (safety test 4, scena
     who: string,
     need: PharmacyNeed = count.COUNT_NEED,
   ) =>
-    runPharmacyWrite(schema, raw, actor(who), need, fn, { database: lane.db }).catch((e: Error) => ({
-      ok: false as const,
-      error: `${e.message} ${String((e as { cause?: unknown }).cause ?? "")}`,
-    }));
+    runPharmacyWrite(schema, raw, actor(who), need, fn, { database: lane.db }).catch(
+      (e: Error) => ({
+        ok: false as const,
+        error: `${e.message} ${String((e as { cause?: unknown }).cause ?? "")}`,
+      }),
+    );
   const balance = async (b: string) =>
     (
       await pg.query<{ n: number }>(
@@ -71,14 +73,20 @@ describe.skipIf(!laneOn)("Pharmacy rework: the count sheet (safety test 4, scena
        RETURNING id`,
       [f.h, f.storeDept],
     );
-    f.head = (await staff(pg, { hospitalId: f.h, departmentId: f.pharm, cadre: "PHARMACIST" })).userId;
+    f.head = (
+      await staff(pg, { hospitalId: f.h, departmentId: f.pharm, cadre: "PHARMACIST" })
+    ).userId;
     await pg.query(
       `INSERT INTO public.department_heads (hospital_id, department_id, user_id, starts_at)
        VALUES ($1, $2, $3, now() - interval '1 day')`,
       [f.h, f.pharm, f.head],
     );
-    f.counter = (await staff(pg, { hospitalId: f.h, departmentId: f.pharm, cadre: "PHARMACIST" })).userId;
-    f.other = (await staff(pg, { hospitalId: f.h, departmentId: f.pharm, cadre: "PHARMACIST" })).userId;
+    f.counter = (
+      await staff(pg, { hospitalId: f.h, departmentId: f.pharm, cadre: "PHARMACIST" })
+    ).userId;
+    f.other = (
+      await staff(pg, { hospitalId: f.h, departmentId: f.pharm, cadre: "PHARMACIST" })
+    ).userId;
     await pg.query(
       `INSERT INTO public.pharmacy_location_golive (hospital_id, location_id, action, conditions, requested_by, approved_by)
        VALUES ($1, $2, 'on', '[]', $3, $4)`,
@@ -129,8 +137,16 @@ describe.skipIf(!laneOn)("Pharmacy rework: the count sheet (safety test 4, scena
     expect(started).toMatchObject({ ok: true });
 
     // Two packs of ten and five loose: 25, five fewer than the ledger's 30.
-    const line = { sheetId: sheet, batchId: f.batch, packSize: 10, countedPacks: 2, countedUnits: 5 };
-    expect(await write(count.SaveCountLineInput, count.saveCountLine, line, f.counter!)).toMatchObject({ ok: true });
+    const line = {
+      sheetId: sheet,
+      batchId: f.batch,
+      packSize: 10,
+      countedPacks: 2,
+      countedUnits: 5,
+    };
+    expect(
+      await write(count.SaveCountLineInput, count.saveCountLine, line, f.counter!),
+    ).toMatchObject({ ok: true });
 
     // Resumed after a reload: the line is where it was left.
     const saved = await pg.query(
@@ -140,24 +156,49 @@ describe.skipIf(!laneOn)("Pharmacy rework: the count sheet (safety test 4, scena
     expect(saved.rows).toEqual([{ counted_packs: 2, counted_units: 5 }]);
 
     // A difference needs a fitting reason ("found on another shelf" explains more, not fewer).
-    const send = () => write(count.SheetInput, count.sendCountForApproval, { sheetId: sheet }, f.counter!);
+    const send = () =>
+      write(count.SheetInput, count.sendCountForApproval, { sheetId: sheet }, f.counter!);
     expect(await send()).toMatchObject({ ok: false });
-    await write(count.SaveCountLineInput, count.saveCountLine, { ...line, reason: "found_other_shelf" }, f.counter!);
+    await write(
+      count.SaveCountLineInput,
+      count.saveCountLine,
+      { ...line, reason: "found_other_shelf" },
+      f.counter!,
+    );
     expect(await send()).toMatchObject({ ok: false });
-    await write(count.SaveCountLineInput, count.saveCountLine, { ...line, reason: "damaged" }, f.counter!);
+    await write(
+      count.SaveCountLineInput,
+      count.saveCountLine,
+      { ...line, reason: "damaged" },
+      f.counter!,
+    );
     expect(await send()).toMatchObject({ ok: true });
 
     // Sent: the line is frozen, and the ledger has not moved.
     expect(
-      await write(count.SaveCountLineInput, count.saveCountLine, { ...line, countedUnits: 0 }, f.counter!),
+      await write(
+        count.SaveCountLineInput,
+        count.saveCountLine,
+        { ...line, countedUnits: 0 },
+        f.counter!,
+      ),
     ).toMatchObject({ ok: false });
     await expect(
-      pg.query(`UPDATE public.pharmacy_count_sheet_lines SET counted_units = 0 WHERE sheet_id = $1`, [sheet]),
+      pg.query(
+        `UPDATE public.pharmacy_count_sheet_lines SET counted_units = 0 WHERE sheet_id = $1`,
+        [sheet],
+      ),
     ).rejects.toThrow(/not changed now/);
     expect(await balance(f.batch!)).toBe(30);
 
     const approve = (who: string) =>
-      write(count.ApproveCountInput, count.approveCount, { sheetId: sheet }, who, count.APPROVE_NEED);
+      write(
+        count.ApproveCountInput,
+        count.approveCount,
+        { sheetId: sheet },
+        who,
+        count.APPROVE_NEED,
+      );
     // Approval needs pharmacy.manage (the hub head) …
     expect(await approve(f.other!)).toMatchObject({ ok: false });
     // … and once a roster exists, the in-charge on it.
@@ -186,14 +227,67 @@ describe.skipIf(!laneOn)("Pharmacy rework: the count sheet (safety test 4, scena
 
   it("4: the counter never approves their own count", async () => {
     const sheet = randomUUID();
-    await write(count.StartCountInput, count.startCount, { clientKey: sheet, locationId: f.S, label: "Self" }, f.head!);
-    const line = { sheetId: sheet, batchId: f.batch, packSize: 1, countedPacks: null, countedUnits: 25 };
+    await write(
+      count.StartCountInput,
+      count.startCount,
+      { clientKey: sheet, locationId: f.S, label: "Self" },
+      f.head!,
+    );
+    const line = {
+      sheetId: sheet,
+      batchId: f.batch,
+      packSize: 1,
+      countedPacks: null,
+      countedUnits: 25,
+    };
     await write(count.SaveCountLineInput, count.saveCountLine, line, f.head!);
-    expect(await write(count.SheetInput, count.sendCountForApproval, { sheetId: sheet }, f.head!)).toMatchObject({
+    expect(
+      await write(count.SheetInput, count.sendCountForApproval, { sheetId: sheet }, f.head!),
+    ).toMatchObject({
       ok: true,
     });
-    const r = await write(count.ApproveCountInput, count.approveCount, { sheetId: sheet }, f.head!, count.APPROVE_NEED);
+    const r = await write(
+      count.ApproveCountInput,
+      count.approveCount,
+      { sheetId: sheet },
+      f.head!,
+      count.APPROVE_NEED,
+    );
     expect(r).toMatchObject({ ok: false });
     expect(await balance(f.batch!)).toBe(25);
+  });
+
+  it('an approved difference explained only as "other" opens a Low case linked to the count', async () => {
+    const sheet = randomUUID();
+    await write(
+      count.StartCountInput,
+      count.startCount,
+      { clientKey: sheet, locationId: f.S, label: "Other" },
+      f.counter!,
+    );
+    const line = {
+      sheetId: sheet,
+      batchId: f.batch,
+      packSize: 1,
+      countedPacks: null,
+      countedUnits: 24,
+      reason: "other",
+    };
+    await write(count.SaveCountLineInput, count.saveCountLine, line, f.counter!);
+    await write(count.SheetInput, count.sendCountForApproval, { sheetId: sheet }, f.counter!);
+    expect(
+      await write(
+        count.ApproveCountInput,
+        count.approveCount,
+        { sheetId: sheet },
+        f.head!,
+        count.APPROVE_NEED,
+      ),
+    ).toMatchObject({ ok: true });
+    const cases = await pg.query(
+      `SELECT severity, qty, medicine_id FROM public.pharmacy_cases WHERE source_type = 'count' AND source_id = $1`,
+      [sheet],
+    );
+    expect(cases.rows).toEqual([{ severity: "low", qty: -1, medicine_id: "amoxicillin" }]);
   });
 });

@@ -218,6 +218,8 @@ export const pharmacyStockMovements = pgTable("pharmacy_stock_movements", {
   downtime: boolean("downtime").notNull().default(false),
   /** Rework 0265: the movement this one mirrors (one reversal per movement). */
   reversesId: uuid("reverses_id"),
+  /** 0269: the right line replacing a reversed one (Records › correct an entry). */
+  correctionOfId: uuid("correction_of_id"),
   /** Rework 0265: a downtime back-entry's witness, as written on the paper sheet. */
   paperWitnessName: text("paper_witness_name"),
   idempotencyKey: text("idempotency_key"),

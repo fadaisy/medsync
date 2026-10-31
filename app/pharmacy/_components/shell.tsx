@@ -124,7 +124,11 @@ export function PharmacyShell({
       : pathname.startsWith("/pharmacy/stock/recall")
         ? "recall"
         : page?.key;
-  const title = titleKey ? RW.pages[titleKey as keyof typeof RW.pages] : RW.sections.today;
+  const title = titleKey
+    ? RW.pages[titleKey as keyof typeof RW.pages]
+    : here
+      ? RW.sections[here]
+      : RW.sections.today;
   const lead = titleKey ? RW.leads[titleKey as keyof typeof RW.leads] : null;
   const sectionCount = (s: SectionId) =>
     visible.filter((p) => p.section === s).reduce((n, p) => n + (payload.counts[p.key] ?? 0), 0);

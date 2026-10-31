@@ -136,10 +136,7 @@ describe("signed packs' starting drafts (ADR 0469)", () => {
     expect(t.from).toBe("template");
     expect(t.content).toMatchObject({ cycleMonths: 2, maxMonths: 4, minMonths: 2 });
     // Both pages hand the dialog the draft and the version in force.
-    for (const page of [
-      "app/pharmacy/store/packs/body.tsx",
-      "app/pharmacy/setup/_components/packs-view.tsx",
-    ]) {
+    for (const page of ["app/pharmacy/setup/_components/packs-view.tsx"]) {
       const src = readFileSync(resolve(page), "utf8");
       expect(src).toContain("draft={r.draft?.content ?? null}");
       expect(src).toContain("signed={r.signed?.content ?? null}");

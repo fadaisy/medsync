@@ -298,7 +298,6 @@ describe("Law 14 and the design rules, on every Step 5 route and component", () 
     "app/pharmacy/_components/review-queue.tsx",
     "app/pharmacy/_components/review-screen.tsx",
     "app/pharmacy/_components/review-dialogs.tsx",
-    "app/pharmacy/open-lines/page.tsx",
     "app/pharmacy/open-lines/body.tsx",
     "app/pharmacy/open-lines/_components/open-lines.tsx",
     "app/pharmacy/slip/[id]/page.tsx",

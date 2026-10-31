@@ -16,7 +16,14 @@ export interface PharmacyPage {
   tabs?: readonly string[];
 }
 
-export const SECTIONS: readonly SectionId[] = ["today", "dispense", "patients", "stock", "controls", "records"];
+export const SECTIONS: readonly SectionId[] = [
+  "today",
+  "dispense",
+  "patients",
+  "stock",
+  "controls",
+  "records",
+];
 
 export const PAGES: readonly PharmacyPage[] = [
   { key: "today", section: "today", href: "/pharmacy/today", tier: "core" },
@@ -27,8 +34,20 @@ export const PAGES: readonly PharmacyPage[] = [
     tier: "core",
     tabs: ["waiting", "ready", "owed", "done"],
   },
-  { key: "inpatients", section: "patients", href: "/pharmacy/patients/inpatients", tier: "wards", tabs: ["mar", "round"] },
-  { key: "outpatients", section: "patients", href: "/pharmacy/patients/outpatients", tier: "core", tabs: ["refills", "courses"] },
+  {
+    key: "inpatients",
+    section: "patients",
+    href: "/pharmacy/patients/inpatients",
+    tier: "wards",
+    tabs: ["mar", "round"],
+  },
+  {
+    key: "outpatients",
+    section: "patients",
+    href: "/pharmacy/patients/outpatients",
+    tier: "core",
+    tabs: ["refills", "courses"],
+  },
   {
     key: "immunisation",
     section: "patients",
@@ -36,7 +55,13 @@ export const PAGES: readonly PharmacyPage[] = [
     tier: "epi",
     tabs: ["stock", "cold", "clinic", "clients", "defaulters"],
   },
-  { key: "reminders", section: "patients", href: "/pharmacy/patients/reminders", tier: "core", tabs: ["today", "rules"] },
+  {
+    key: "reminders",
+    section: "patients",
+    href: "/pharmacy/patients/reminders",
+    tier: "core",
+    tabs: ["today", "rules"],
+  },
   { key: "medicines", section: "stock", href: "/pharmacy/stock/medicines", tier: "core" },
   {
     key: "store",
@@ -45,7 +70,13 @@ export const PAGES: readonly PharmacyPage[] = [
     tier: "core",
     tabs: ["receive", "issue", "count", "order", "cold"],
   },
-  { key: "cd", section: "controls", href: "/pharmacy/controls/cd", tier: "core", tabs: ["register", "flags", "checks", "paper"] },
+  {
+    key: "cd",
+    section: "controls",
+    href: "/pharmacy/controls/cd",
+    tier: "core",
+    tabs: ["register", "flags", "checks", "paper"],
+  },
   { key: "handover", section: "controls", href: "/pharmacy/controls/handover", tier: "core" },
   { key: "cases", section: "controls", href: "/pharmacy/controls/cases", tier: "core" },
   {
@@ -75,6 +106,10 @@ export function pageOf(pathname: string): PharmacyPage | null {
 export function sectionOf(pathname: string): SectionId | "setup" | null {
   if (pathname.startsWith(SETUP_HREF)) return "setup";
   if (pathname.startsWith("/pharmacy/stock/recall")) return "stock";
+  // The kept detail and print routes (REDIRECTS' note) sit under the section they are opened from.
+  if (/^\/pharmacy\/(prescriptions|labels|slip)\//.test(pathname)) return "dispense";
+  if (pathname.startsWith("/pharmacy/controlled/register/")) return "controls";
+  if (pathname.startsWith("/pharmacy/clinical/")) return "patients";
   return pageOf(pathname)?.section ?? null;
 }
 
@@ -95,24 +130,38 @@ export const REDIRECTS: readonly { source: string; destination: string }[] = [
   { source: "/pharmacy/stock", destination: "/pharmacy/stock/medicines" },
   { source: "/pharmacy/stock/national-list", destination: "/pharmacy/setup?tab=medicines" },
   // The old medicine page, by id; the new stock pages are excluded.
-  { source: "/pharmacy/stock/:id((?!medicines|store|recall|national-list).+)", destination: "/pharmacy/stock/medicines?med=:id" },
+  {
+    source: "/pharmacy/stock/:id((?!medicines|store|recall|national-list).+)",
+    destination: "/pharmacy/stock/medicines?med=:id",
+  },
   { source: "/pharmacy/controlled", destination: "/pharmacy/controls/cd" },
-  { source: "/pharmacy/controlled/register/:entryId", destination: "/pharmacy/controls/cd" },
   { source: "/pharmacy/emergency-doses", destination: "/pharmacy/controls/cd" },
   { source: "/pharmacy/downtime", destination: "/pharmacy/records?tab=sheets" },
   { source: "/pharmacy/downtime/enter/:sheet", destination: "/pharmacy/records?tab=sheets" },
   { source: "/pharmacy/downtime/sheets/:from/:to", destination: "/pharmacy/records?tab=sheets" },
   { source: "/pharmacy/store", destination: "/pharmacy/stock/store" },
   { source: "/pharmacy/store/deliveries", destination: "/pharmacy/stock/store?tab=receive" },
-  { source: "/pharmacy/store/deliveries/:id", destination: "/pharmacy/stock/store?tab=receive&delivery=:id" },
+  {
+    source: "/pharmacy/store/deliveries/:id",
+    destination: "/pharmacy/stock/store?tab=receive&delivery=:id",
+  },
   { source: "/pharmacy/store/issues", destination: "/pharmacy/stock/store?tab=issue" },
-  { source: "/pharmacy/store/issues/:id", destination: "/pharmacy/stock/store?tab=issue" },
+  {
+    source: "/pharmacy/store/issues/:id",
+    destination: "/pharmacy/stock/store?tab=issue&issue=:id",
+  },
   { source: "/pharmacy/store/wards", destination: "/pharmacy/stock/store?tab=issue" },
-  { source: "/pharmacy/store/wards/:locationId", destination: "/pharmacy/stock/store?tab=issue&ward=:locationId" },
+  {
+    source: "/pharmacy/store/wards/:locationId",
+    destination: "/pharmacy/stock/store?tab=issue&ward=:locationId",
+  },
   { source: "/pharmacy/store/carts", destination: "/pharmacy/stock/medicines" },
   { source: "/pharmacy/store/carts/:locationId", destination: "/pharmacy/stock/medicines" },
   { source: "/pharmacy/store/expiry", destination: "/pharmacy/records?tab=losses" },
-  { source: "/pharmacy/store/expiry/recalls", destination: "/pharmacy/stock/medicines?filter=recalled" },
+  {
+    source: "/pharmacy/store/expiry/recalls",
+    destination: "/pharmacy/stock/medicines?filter=recalled",
+  },
   { source: "/pharmacy/store/expiry/recalls/:id", destination: "/pharmacy/stock/recall/:id" },
   { source: "/pharmacy/store/month-end", destination: "/pharmacy/stock/store?tab=count" },
   { source: "/pharmacy/store/orders", destination: "/pharmacy/stock/store?tab=order" },
@@ -122,10 +171,11 @@ export const REDIRECTS: readonly { source: string; destination: string }[] = [
   { source: "/pharmacy/clinical/content", destination: "/pharmacy/setup?tab=rules" },
   { source: "/pharmacy/clinical/interventions", destination: "/pharmacy/records?tab=reports" },
   { source: "/pharmacy/clinical/reactions", destination: "/pharmacy/records?tab=audit" },
-  { source: "/pharmacy/clinical/reactions/:id", destination: "/pharmacy/records?tab=audit" },
   { source: "/pharmacy/clinical/reconciliation", destination: "/pharmacy/patients/inpatients" },
-  { source: "/pharmacy/clinical/reconciliation/:id", destination: "/pharmacy/patients/inpatients" },
-  { source: "/pharmacy/clinical/stewardship", destination: "/pharmacy/patients/outpatients?tab=courses" },
+  {
+    source: "/pharmacy/clinical/stewardship",
+    destination: "/pharmacy/patients/outpatients?tab=courses",
+  },
 ];
 
 /** The page's tab from `?tab=`, or its first tab. */

@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-import { cn } from "@/lib/utils";
 import { LinkPending } from "@/components/tide/work/link-pending";
+import { cn } from "@/lib/utils";
 
 /**
  * The space header (prompt 5.1): the place's views as pill tabs with counts, then filter chips, then the view's
@@ -55,7 +55,7 @@ export function PillTabs({
                 className={cn(
                   "min-w-5 rounded-full px-1.5 text-center text-[11.5px] leading-5 font-semibold tabular-nums",
                   t.attention && t.count > 0
-                    ? "bg-status-caution-bg text-amber-800"
+                    ? "bg-status-caution-bg text-status-caution-fg-aa"
                     : on
                       ? "bg-tide-sunken text-ink-700"
                       : "bg-card/70 text-ink-700",

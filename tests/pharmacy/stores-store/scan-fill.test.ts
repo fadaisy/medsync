@@ -5,8 +5,8 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { STORE } from "@/content/pharmacy-stores-store";
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
+import { STORE } from "@/content/pharmacy-stores-store";
 import { expiryForField, productByText, readScan } from "@/lib/pharmacy/stores/scan-fill";
 
 const GS = "\u001d";

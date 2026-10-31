@@ -27,7 +27,13 @@ describe("Window queue groups", () => {
 
   it("puts the review-first lane on top, then each stage, oldest first", () => {
     const g = queueGroups(rows, { lane: "all", stage: "all", serves: null, signed: true });
-    expect(g.groups.map((x) => x.key)).toEqual(["first", "to_review", "queried", "awaiting_cosign", "ready"]);
+    expect(g.groups.map((x) => x.key)).toEqual([
+      "first",
+      "to_review",
+      "queried",
+      "awaiting_cosign",
+      "ready",
+    ]);
     expect(g.groups[0]!.rows.map((r) => r.key)).toEqual(["pf"]);
     expect(g.groups[1]!.rows.map((r) => r.key)).toEqual(["old", "a", "b"]);
     expect(g.total).toBe(7);
