@@ -477,28 +477,10 @@ describe.skipIf(!laneOn)("Ward stock and emergency carts (Steps 5 and 6)", () =>
       "pharmacy.manage",
     );
     expect(draft.ok).toBe(true);
-    // The second signer must hold the ward's in-charge right.
-    const wrong = await pharm(
-      ws.SignPackInput,
-      ws.signLocationPack,
-      {
-        packId: draft.ok ? draft.id : "",
-        firstAttestationId: await attest(f.head!, f.head!, "pharmacy_pack_first"),
-        secondAttestationId: await attest(f.head!, f.nurseOther!, "pharmacy_pack_second"),
-        exception: false,
-      },
-      "pharmacy.manage",
-    );
-    expect(wrong.ok).toBe(false);
     const signed = await pharm(
       ws.SignPackInput,
       ws.signLocationPack,
-      {
-        packId: draft.ok ? draft.id : "",
-        firstAttestationId: await attest(f.head!, f.head!, "pharmacy_pack_first"),
-        secondAttestationId: await attest(f.head!, f.nurseInCharge!, "pharmacy_pack_second"),
-        exception: false,
-      },
+      { packId: draft.ok ? draft.id : "" },
       "pharmacy.manage",
     );
     expect(signed.ok).toBe(true);
@@ -741,12 +723,7 @@ describe.skipIf(!laneOn)("Ward stock and emergency carts (Steps 5 and 6)", () =>
       const signed = await pharm(
         ws.SignPackInput,
         ws.signLocationPack,
-        {
-          packId: draft.ok ? draft.id : "",
-          firstAttestationId: await attest(f.head!, f.head!, "pharmacy_pack_first"),
-          secondAttestationId: await attest(f.head!, f.cartHead!, "pharmacy_pack_second"),
-          exception: false,
-        },
+        { packId: draft.ok ? draft.id : "" },
         "pharmacy.manage",
       );
       expect(signed.ok).toBe(true);
@@ -866,12 +843,7 @@ describe.skipIf(!laneOn)("Ward stock and emergency carts (Steps 5 and 6)", () =>
       await pharm(
         ws.SignPackInput,
         ws.signLocationPack,
-        {
-          packId: draft.ok ? draft.id : "",
-          firstAttestationId: await attest(f.head!, f.head!, "pharmacy_pack_first"),
-          secondAttestationId: null,
-          exception: true,
-        },
+        { packId: draft.ok ? draft.id : "" },
         "pharmacy.manage",
       );
       const count = await check({
@@ -907,7 +879,7 @@ describe.skipIf(!laneOn)("Ward stock and emergency carts (Steps 5 and 6)", () =>
         [f.C2],
       );
       expect(signedBy).toEqual({
-        exception_text: "CSO signs alone",
+        exception_text: "The pharmacy in charge signs alone (owner ruling, 31 Oct 2026)",
         second_signer: null,
       });
     });

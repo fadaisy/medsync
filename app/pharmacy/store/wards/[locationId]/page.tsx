@@ -8,15 +8,9 @@ import { WARDS } from "@/content/pharmacy-stores-wards";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { pharmacyWardStockLiveFor } from "@/lib/pharmacy/feature";
-import {
-  confirmersAt,
-  getWardStockPage,
-  hospitalProducts,
-  manages,
-} from "@/lib/pharmacy/stores/ward-read";
+import { getWardStockPage, hospitalProducts, manages } from "@/lib/pharmacy/stores/ward-read";
 import { WardStockView } from "../_components/ward-stock-view";
 import {
-  attestWardSigner,
   raiseWardRequisition,
   recordWardCount,
   setWardLevels,
@@ -48,12 +42,7 @@ export default async function WardStockPage({
   const page = await getWardStockPage(d, actor.hospitalId, locationId, new Date());
   if (!page) notFound();
   const manage = await manages(d, actor.userId, actor.hospitalId);
-  const [products, signers] = manage
-    ? await Promise.all([
-        hospitalProducts(d, actor.hospitalId),
-        confirmersAt(d, actor.hospitalId, locationId, "ward_act"),
-      ])
-    : [[], []];
+  const products = manage ? await hospitalProducts(d, actor.hospitalId) : [];
   const p = actor.access.permissions;
   const base = `/pharmacy/store/wards/${locationId}`;
   return (
@@ -69,13 +58,11 @@ export default async function WardStockPage({
         mode={(await searchParams).count ? "count" : "page"}
         me={actor.userId}
         products={products}
-        signers={signers}
         actions={{
           count: p.has("pharmacy.stock") ? recordWardCount : undefined,
           requisition: p.has("pharmacy.store") ? raiseWardRequisition : undefined,
           supply: manage ? setWardSupplyModel : undefined,
           levels: manage ? setWardLevels : undefined,
-          attestSigner: manage ? attestWardSigner : undefined,
           sign: manage ? signWardLevels : undefined,
         }}
       />

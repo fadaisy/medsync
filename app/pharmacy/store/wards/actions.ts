@@ -2,7 +2,7 @@
 
 import { createLocation, CreateLocationInput } from "@/lib/pharmacy/stores/location-store";
 import * as wards from "@/lib/pharmacy/stores/ward-store";
-import { act, attestAnswer } from "./_lib/act";
+import { act } from "./_lib/act";
 
 /** Ward stock, pharmacy side (5.4; Section 8). Each action names its permission. */
 
@@ -19,14 +19,6 @@ export async function setWardSupplyModel(raw: unknown) {
 /** `setWardLevels`: a draft (`pharmacy.manage`), signed with the ward's nurse in charge. */
 export async function setWardLevels(raw: unknown) {
   return act("wards", wards.WardLevelsInput, raw, "pharmacy.manage", wards.setWardLevels);
-}
-/** A signer's second factor for ward levels (`pharmacy.manage`). */
-export async function attestWardSigner(raw: unknown) {
-  return attestAnswer(
-    await act("wards", wards.AttestInput, raw, "pharmacy.manage", (who, input) =>
-      wards.attestAtPlace(who, input, ["pack_first", "pack_second"]),
-    ),
-  );
 }
 /** `signPack` for ward levels (`pharmacy.manage` with the ward's nurse in charge, or the exception). */
 export async function signWardLevels(raw: unknown) {

@@ -1,21 +1,195 @@
 {
-  "edition": "MedSync supplier list v1 (29 Oct 2026)",
+  "edition": "MedSync supplier list v2 (31 Oct 2026): each entry checked on its own official site",
   "suppliers": [
     {
       "name": "National Medical Stores",
       "shortName": "NMS",
       "kind": "public_agency",
+      "country": "Uganda",
+      "region": "uganda",
       "website": "https://nms.go.ug",
       "source": "https://nms.go.ug/about-us/",
-      "checkedOn": "2026-10-29"
+      "checkedOn": "2026-10-31"
     },
     {
       "name": "Joint Medical Store",
       "shortName": "JMS",
       "kind": "pnfp",
-      "website": "https://www.jms.co.ug",
-      "source": "https://www.jms.co.ug",
-      "checkedOn": "2026-10-29"
+      "country": "Uganda",
+      "region": "uganda",
+      "website": "https://jms.co.ug",
+      "source": "https://jms.co.ug/about-us/",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Surgipharm Uganda Limited",
+      "shortName": "Surgipharm Uganda",
+      "kind": "private_wholesaler",
+      "country": "Uganda",
+      "region": "uganda",
+      "website": "https://www.surgipharm.co.ug",
+      "source": "https://www.surgipharm.co.ug/about",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Abacus Pharma Limited",
+      "shortName": "Abacus Pharma",
+      "kind": "private_wholesaler",
+      "country": "Uganda",
+      "region": "uganda",
+      "website": "https://abacuspharma.com",
+      "source": "https://abacuspharma.com/about-us/",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Quality Chemical Industries Limited",
+      "shortName": "Qcil",
+      "kind": "manufacturer",
+      "country": "Uganda",
+      "region": "uganda",
+      "website": "https://www.qcil.com",
+      "source": "https://www.qcil.com/#WhoWeAre",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Kampala Pharmaceutical Industries Ltd",
+      "shortName": "KPI",
+      "kind": "manufacturer",
+      "country": "Uganda",
+      "region": "uganda",
+      "website": "https://www.kpi.co.ug",
+      "source": "https://www.kpi.co.ug/about-us/",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Mission for Essential Drugs and Supplies",
+      "shortName": "MEDS",
+      "kind": "pnfp",
+      "country": "Kenya",
+      "region": "africa",
+      "website": "https://meds.co.ke",
+      "source": "https://meds.co.ke/",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Surgipharm Limited",
+      "shortName": "Surgipharm Kenya",
+      "kind": "private_wholesaler",
+      "country": "Kenya",
+      "region": "africa",
+      "website": "https://surgipharm.com",
+      "source": "https://surgipharm.com/our-customers/",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Medical Stores Department",
+      "shortName": "MSD Tanzania",
+      "kind": "public_agency",
+      "country": "Tanzania",
+      "region": "africa",
+      "website": "https://www.msd.go.tz",
+      "source": "https://www.msd.go.tz/en/about-msd/who-we-are/",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "action medeor International Healthcare",
+      "shortName": "action medeor Tanzania",
+      "kind": "pnfp",
+      "country": "Tanzania",
+      "region": "africa",
+      "website": "https://medeor.de/en",
+      "source": "https://medeor.de/en/who-we-are/action-medeor-family/action-medeor-tanzania.html",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Rwanda Medical Supply Ltd",
+      "shortName": "RMS",
+      "kind": "public_agency",
+      "country": "Rwanda",
+      "region": "africa",
+      "website": "https://rms.rw",
+      "source": "https://rms.rw/aboutPage",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "UNICEF Supply Division",
+      "shortName": "UNICEF Supply",
+      "kind": "international_procurement",
+      "country": "International",
+      "region": "international",
+      "website": "https://www.unicef.org/supply",
+      "source": "https://www.unicef.org/supply/medicines",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "UNFPA Procurement Services",
+      "shortName": "UNFPA",
+      "kind": "international_procurement",
+      "country": "International",
+      "region": "international",
+      "website": "https://www.unfpa.org",
+      "source": "https://www.unfpa.org/procurement-services",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Stop TB Partnership Global Drug Facility",
+      "shortName": "GDF",
+      "kind": "international_procurement",
+      "country": "International",
+      "region": "international",
+      "website": "https://www.stoptb.org",
+      "source": "https://www.stoptb.org/gdfs-results",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Global Fund Pooled Procurement Mechanism (wambo.org)",
+      "shortName": "Global Fund PPM",
+      "kind": "international_procurement",
+      "country": "International",
+      "region": "international",
+      "website": "https://www.theglobalfund.org",
+      "source": "https://www.theglobalfund.org/en/sourcing-management/procurement-tools/",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "IDA Foundation",
+      "shortName": "IDA",
+      "kind": "international_procurement",
+      "country": "Netherlands",
+      "region": "international",
+      "website": "https://idafoundation.org",
+      "source": "https://idafoundation.org/wholesale/",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Imres BV",
+      "shortName": "Imres",
+      "kind": "international_procurement",
+      "country": "Netherlands",
+      "region": "international",
+      "website": "https://www.imres.nl",
+      "source": "https://www.imres.nl/en/about-us",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "Missionpharma A/S",
+      "shortName": "Missionpharma",
+      "kind": "international_procurement",
+      "country": "Denmark",
+      "region": "international",
+      "website": "https://missionpharma.com",
+      "source": "https://missionpharma.com/about/",
+      "checkedOn": "2026-10-31"
+    },
+    {
+      "name": "action medeor e.V.",
+      "shortName": "action medeor",
+      "kind": "international_procurement",
+      "country": "Germany",
+      "region": "international",
+      "website": "https://medeor.de/en",
+      "source": "https://medeor.de/en/what-we-do/supply-medical-goods/medicines.html",
+      "checkedOn": "2026-10-31"
     }
   ]
 }

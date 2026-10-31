@@ -15,7 +15,7 @@ import type { PharmacyActor, PharmacyCtx, PharmacyNeed } from "@/lib/pharmacy/wr
 import type { z } from "zod";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { CSO_ALONE, EXPIRY } from "@/content/pharmacy-stores-supply";
+import { EXPIRY, IN_CHARGE_SIGNS } from "@/content/pharmacy-stores-supply";
 import { asClinicalWriter } from "@/lib/emr/db";
 import { PHARMACY_MAP_V2, pharmacyDispensingAccess } from "@/lib/pharmacy/access";
 import * as stock from "@/lib/pharmacy/stock/store";
@@ -117,11 +117,7 @@ describe.skipIf(!laneOn)(
        VALUES ($1, $2, $3, $4, 'fixture', 'passed') RETURNING id`,
         [f.h, actorId, attesterId, purpose],
       );
-    const sign = async (
-      kind: packs.PackKind,
-      content: unknown,
-      second: "exception" | "person" = "exception",
-    ) => {
+    const sign = async (kind: packs.PackKind, content: unknown) => {
       const draft = ok(
         await write(
           packs.SavePackInput,
@@ -131,18 +127,10 @@ describe.skipIf(!laneOn)(
           packs.PACK_NEED,
         ),
       );
-      const first = await attest(f.head!, f.head!, "signer");
       const r = await write(
         packs.SignPackInput,
         packs.signPack,
-        {
-          packId: draft.id,
-          firstAttestationId: first,
-          second:
-            second === "exception"
-              ? { exception: CSO_ALONE }
-              : { attestationId: await attest(f.head!, f.pharmacist!, "signer") },
-        },
+        { packId: draft.id },
         head(),
         packs.PACK_NEED,
       );
@@ -362,38 +350,11 @@ describe.skipIf(!laneOn)(
           packs.PACK_NEED,
         ),
       );
-      const first = await attest(f.head!, f.head!, "signer");
-      // The same person twice is refused.
-      const same = await write(
-        packs.SignPackInput,
-        packs.signPack,
-        {
-          packId: draft.id,
-          firstAttestationId: first,
-          second: { attestationId: await attest(f.head!, f.head!, "signer") },
-        },
-        head(),
-        packs.PACK_NEED,
-      );
-      expect(same).toMatchObject({ ok: false, error: expect.stringMatching(/someone else/) });
-      // Any other exception text is not the D-PH2-22 text.
-      const wrong = await write(
-        packs.SignPackInput,
-        packs.signPack,
-        {
-          packId: draft.id,
-          firstAttestationId: first,
-          second: { exception: "Signed by me alone" },
-        },
-        head(),
-        packs.PACK_NEED,
-      );
-      expect(wrong.ok).toBe(false);
       // A pharmacist without pharmacy.manage cannot sign.
       const notManage = await write(
         packs.SignPackInput,
         packs.signPack,
-        { packId: draft.id, firstAttestationId: first, second: { exception: CSO_ALONE } },
+        { packId: draft.id },
         pharmacist(),
         packs.PACK_NEED,
       );
@@ -401,7 +362,7 @@ describe.skipIf(!laneOn)(
       const alone = await write(
         packs.SignPackInput,
         packs.signPack,
-        { packId: draft.id, firstAttestationId: first, second: { exception: CSO_ALONE } },
+        { packId: draft.id },
         head(),
         packs.PACK_NEED,
       );
@@ -410,9 +371,9 @@ describe.skipIf(!laneOn)(
         `SELECT status, exception_text, version FROM public.pharmacy_signed_sets WHERE id = $1`,
         [draft.id],
       );
-      expect(v1).toEqual({ status: "signed", exception_text: CSO_ALONE, version: 1 });
-      // Version 2, signed by two different people, retires version 1.
-      const two = await sign("stockout_day_rule", { rule: "any_part" }, "person");
+      expect(v1).toEqual({ status: "signed", exception_text: IN_CHARGE_SIGNS, version: 1 });
+      // Version 2 retires version 1.
+      const two = await sign("stockout_day_rule", { rule: "any_part" });
       expect(two.r.ok).toBe(true);
       const rows = await pg.query<{
         version: number;
@@ -425,7 +386,7 @@ describe.skipIf(!laneOn)(
       );
       expect(rows.rows).toEqual([
         { version: 1, status: "retired", second_signer: null },
-        { version: 2, status: "signed", second_signer: f.pharmacist },
+        { version: 2, status: "signed", second_signer: null },
       ]);
       expect((await packs.signedPack(lane.db, f.h!, "stockout_day_rule"))?.content).toEqual({
         rule: "any_part",

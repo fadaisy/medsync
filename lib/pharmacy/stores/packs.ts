@@ -1,14 +1,13 @@
 import type { Verifier } from "@/lib/auth/attest";
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import type { PharmacyCtx } from "@/lib/pharmacy/write";
-import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
-import { CSO_ALONE, PACKS } from "@/content/pharmacy-stores-supply";
+import { IN_CHARGE_ROLE, IN_CHARGE_SIGNS, PACKS } from "@/content/pharmacy-stores-supply";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitals } from "@/db/schema/hospitals";
-import { pharmacyAttestations, pharmacySignedSets } from "@/db/schema/pharmacy-dispensing";
+import { pharmacySignedSets } from "@/db/schema/pharmacy-dispensing";
 import { users } from "@/db/schema/users";
 import { attestSecondPerson } from "@/lib/auth/attest";
 import { PHARMACY_PERMISSIONS } from "@/lib/pharmacy/access";
@@ -372,46 +371,15 @@ export async function packChoices(
   return name.length >= 2 && name.length <= 40 ? { name: [name] } : {};
 }
 
-const FRESH_MS = 15 * 60_000;
+export const SignPackInput = z.object({ clientKey: z.uuid(), packId: z.uuid() });
 
-/** A passed `signer` attestation for this actor, fresh, naming who signed. */
-async function signerOf(ctx: PharmacyCtx, attestationId: string): Promise<string> {
-  const [a] = await ctx.tx
-    .select({ who: pharmacyAttestations.attesterUserId })
-    .from(pharmacyAttestations)
-    .where(
-      and(
-        eq(pharmacyAttestations.id, attestationId),
-        eq(pharmacyAttestations.hospitalId, ctx.actor.hospitalId),
-        eq(pharmacyAttestations.actorUserId, ctx.actor.userId),
-        eq(pharmacyAttestations.purpose, "signer"),
-        eq(pharmacyAttestations.outcome, "passed"),
-        gte(pharmacyAttestations.attestedAt, new Date(ctx.now.getTime() - FRESH_MS)),
-      ),
-    );
-  if (!a?.who) throw fail("forbidden", PACKS.refused.attestation);
-  return a.who;
-}
-
-export const SignPackInput = z.object({
-  clientKey: z.uuid(),
-  packId: z.uuid(),
-  firstAttestationId: z.uuid(),
-  second: z.union([
-    z.object({ attestationId: z.uuid() }),
-    z.object({ exception: z.literal(CSO_ALONE) }),
-  ]),
-});
-
-/** The signer roles a kind names (Appendix D), or the CSO alone (D-PH2-22). */
-export const signerRoles = (kind: PackKind, alone: boolean): [string, string | null] => {
-  const [a, b] = PACK_TEXT[kind].signers as readonly [string, string];
-  return alone ? ["CSO", null] : [a, b];
-};
+/** Owner ruling (31 Oct 2026): every pack is signed by the pharmacy in charge alone. */
+export const signerRoles = (_kind: PackKind): string => IN_CHARGE_ROLE;
 
 /**
- * signPack: the actor is the first signer (`pharmacy.manage`, their own fresh second factor); a different second
- * signer with theirs, or the exception text. The version in force retires in the same transaction.
+ * signPack: one tap by the pharmacy in charge (`pharmacy.manage`, already signed in). No second signer and no fresh
+ * password and code; 0122's check is met by the in-charge exception text. The version in force retires in the same
+ * transaction.
  */
 export async function signPack(ctx: PharmacyCtx, input: z.infer<typeof SignPackInput>) {
   const hospitalId = ctx.actor.hospitalId;
@@ -432,13 +400,6 @@ export async function signPack(ctx: PharmacyCtx, input: z.infer<typeof SignPackI
   if (!(kind in PACK_SCHEMAS)) throw fail("invalid", PACKS.unsupported);
   const parsed = parsePack(kind, draft.content);
   if (!parsed.ok) throw fail("invalid", parsed.error);
-  const first = await signerOf(ctx, input.firstAttestationId);
-  if (first !== ctx.actor.userId) throw fail("forbidden", PACKS.refused.attestation);
-  const alone = "exception" in input.second;
-  const second =
-    "attestationId" in input.second ? await signerOf(ctx, input.second.attestationId) : null;
-  if (second === first) throw fail("forbidden", PACKS.refused.secondSame);
-  const [firstRole, secondRole] = signerRoles(kind, alone);
   await ctx.tx
     .update(pharmacySignedSets)
     .set({ status: "retired", retiredAt: ctx.now })
@@ -453,11 +414,9 @@ export async function signPack(ctx: PharmacyCtx, input: z.infer<typeof SignPackI
     .update(pharmacySignedSets)
     .set({
       status: "signed",
-      firstSigner: first,
-      firstSignerRole: firstRole,
-      secondSigner: second,
-      secondSignerRole: second ? secondRole : null,
-      exceptionText: alone ? CSO_ALONE : null,
+      firstSigner: ctx.actor.userId,
+      firstSignerRole: signerRoles(kind),
+      exceptionText: IN_CHARGE_SIGNS,
       signedAt: ctx.now,
     })
     .where(eq(pharmacySignedSets.id, draft.id));

@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 
 import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
 import { STORES_B } from "@/content/pharmacy-stores";
-import { CSO_ALONE, MONTH_END } from "@/content/pharmacy-stores-supply";
+import { MONTH_END } from "@/content/pharmacy-stores-supply";
 import { bannedTermsScan } from "@/lib/pharmacy/messages";
 import { countMonth } from "@/lib/pharmacy/stores/month-end-read";
 import { confirmCutRefusal, trimToBudget } from "@/lib/pharmacy/stores/order";
@@ -78,10 +78,9 @@ describe("signed packs (Appendix D, Law 6)", () => {
     });
   });
 
-  it("D-PH2-22: the CSO alone signs with the exception text; otherwise the two named roles", () => {
-    expect(CSO_ALONE).toBe("CSO signs alone");
-    expect(signerRoles("recall_template", true)).toEqual(["CSO", null]);
-    expect(signerRoles("recall_template", false)).toEqual(["CSO", "Pharmacist reviewer"]);
+  it("owner ruling 31 Oct 2026: the pharmacy in charge signs every pack alone", () => {
+    expect(signerRoles("recall_template")).toBe("Pharmacy in charge");
+    expect(signerRoles("order_parameters")).toBe("Pharmacy in charge");
   });
 });
 

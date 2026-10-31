@@ -206,6 +206,8 @@ export function SupplyModelDialog({ locationId, name }: { locationId: string; na
 
 /* ─── Suppliers and facilities ────────────────────────────────────────── */
 
+const REGIONS = ["uganda", "africa", "international"] as const;
+
 /**
  * Add or edit a supplier or facility. Adding offers MedSync's sourced supplier list (`data/pharmacy/suppliers.v1.json`,
  * owner item 1) as one-click choices that fill the form; one already at this hospital (`added`, by name) shows as
@@ -251,33 +253,40 @@ export function CounterpartyDialog({
       {existing ? null : (
         <div className="flex flex-col gap-2">
           <p className="text-body-s text-foreground">{L.fromList}</p>
-          <span className="flex flex-wrap gap-2">
-            {SUPPLIERS.suppliers.map((s) =>
-              have.has(s.name.toLowerCase()) ? (
-                <span
-                  key={s.name}
-                  className="border-border text-body-s text-muted-foreground inline-flex min-h-11 items-center gap-2 rounded-md border px-3"
-                >
-                  {L.pick(s.name, s.shortName)}
-                  <StatusWord>{L.added}</StatusWord>
-                </span>
-              ) : (
-                <button
-                  key={s.name}
-                  type="button"
-                  className="border-border text-body-s text-foreground hover:bg-ink-50 min-h-11 rounded-md border px-3"
-                  onClick={() => {
-                    if (kindRef.current) kindRef.current.value = "supplier";
-                    if (nameRef.current) nameRef.current.value = s.name;
-                    if (codeRef.current) codeRef.current.value = s.shortName;
-                    nameRef.current?.focus();
-                  }}
-                >
-                  {L.pick(s.name, s.shortName)}
-                </button>
-              ),
-            )}
-          </span>
+          {REGIONS.map((region) => (
+            <div key={region} className="flex flex-col gap-2">
+              <p className="text-caption text-muted-foreground">{L.regions[region]}</p>
+              <span className="flex flex-wrap gap-2">
+                {SUPPLIERS.suppliers
+                  .filter((s) => s.region === region)
+                  .map((s) =>
+                    have.has(s.name.toLowerCase()) ? (
+                      <span
+                        key={s.name}
+                        className="border-border text-body-s text-muted-foreground inline-flex min-h-11 items-center gap-2 rounded-md border px-3"
+                      >
+                        {L.pick(s.name, s.shortName)}
+                        <StatusWord>{L.added}</StatusWord>
+                      </span>
+                    ) : (
+                      <button
+                        key={s.name}
+                        type="button"
+                        className="border-border text-body-s text-foreground hover:bg-ink-50 min-h-11 rounded-md border px-3"
+                        onClick={() => {
+                          if (kindRef.current) kindRef.current.value = "supplier";
+                          if (nameRef.current) nameRef.current.value = s.name;
+                          if (codeRef.current) codeRef.current.value = s.shortName;
+                          nameRef.current?.focus();
+                        }}
+                      >
+                        {L.pick(s.name, s.shortName)}
+                      </button>
+                    ),
+                  )}
+              </span>
+            </div>
+          ))}
           <p className="text-caption text-muted-foreground">{L.orType}</p>
         </div>
       )}

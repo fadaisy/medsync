@@ -1,6 +1,7 @@
 "use client";
 
 import type { CountItem } from "../_lib/view";
+import type { PharmacyDialogProps } from "../../../_components/pharmacy-dialog";
 import type { ReviewResult as ActionResult } from "@/lib/pharmacy/review/store";
 import type { FormEvent, ReactNode } from "react";
 import { useId, useState, useTransition } from "react";
@@ -20,7 +21,7 @@ import {
   SUPPLY_MODEL,
   WARDS,
 } from "@/content/pharmacy-stores-wards";
-import { PharmacyDialog, Refusal, type PharmacyDialogProps } from "../../../_components/pharmacy-dialog";
+import { PharmacyDialog, Refusal } from "../../../_components/pharmacy-dialog";
 
 /**
  * The ward stock dialogs and the blind count (5.3, 5.4, 5.5). Each pop-up is a centred EditorDialog
@@ -60,8 +61,12 @@ export function Field({ label, id, children }: { label: string; id: string; chil
 }
 
 /** The wards' dialog: the pharmacy's one dialog (D-PW-10) with the wards' words; the actions revalidate. */
-export function ActionDialog(props: Omit<PharmacyDialogProps, "width"> & { width?: "medium" | "wide" }) {
-  return <PharmacyDialog {...props} cancelLabel="Cancel" doneLabel={WARDS.count.back} refresh={false} />;
+export function ActionDialog(
+  props: Omit<PharmacyDialogProps, "width"> & { width?: "medium" | "wide" },
+) {
+  return (
+    <PharmacyDialog {...props} cancelLabel="Cancel" doneLabel={WARDS.count.back} refresh={false} />
+  );
 }
 
 /**
@@ -382,78 +387,16 @@ export function PackDialog({
 }
 
 /** Appendix D, D-PH2-22: the first signer and the second, each with their own factor, or the exception. */
-export function SignDialog({
-  packId,
-  locationId,
-  me,
-  people,
-  secondTitle,
-  attest,
-  sign,
-}: {
-  packId: string;
-  locationId: string;
-  me: string;
-  people: Person[];
-  secondTitle: string;
-  attest: Act;
-  sign: Act;
-}) {
-  const [first, setFirst] = useState<{ id: string; who: string } | null>(null);
-  const [second, setSecond] = useState<{ id: string; who: string } | null>(null);
-  const [exception, setException] = useState(false);
+export function SignDialog({ packId, sign }: { packId: string; sign: Act }) {
   return (
     <ActionDialog
       label={WARDS.sign.open}
       title={WARDS.sign.title}
       description={WARDS.sign.lede}
       submit={WARDS.sign.save}
-      width="wide"
-      onOpen={() => {
-        setFirst(null);
-        setSecond(null);
-        setException(false);
-      }}
-      onSave={async () => {
-        if (!first) return { ok: false, code: "invalid", error: WARDS.factor.lede };
-        return sign({
-          packId,
-          firstAttestationId: first.id,
-          secondAttestationId: exception ? null : (second?.id ?? null),
-          exception,
-        });
-      }}
+      onSave={() => sign({ packId })}
     >
-      <FactorBlock
-        locationId={locationId}
-        role="pack_first"
-        self={me}
-        people={[]}
-        attest={attest}
-        title={WARDS.sign.first}
-        done={first?.who ?? null}
-        onDone={(id, who) => setFirst({ id, who })}
-      />
-      <label className="text-body-s inline-flex min-h-11 items-center gap-2">
-        <input
-          type="checkbox"
-          checked={exception}
-          onChange={(e) => setException(e.target.checked)}
-        />
-        {WARDS.sign.useException}
-      </label>
-      {exception ? null : (
-        <FactorBlock
-          locationId={locationId}
-          role="pack_second"
-          self={null}
-          people={people}
-          attest={attest}
-          title={secondTitle}
-          done={second?.who ?? null}
-          onDone={(id, who) => setSecond({ id, who })}
-        />
-      )}
+      {null}
     </ActionDialog>
   );
 }

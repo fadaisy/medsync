@@ -1,23 +1,21 @@
 "use client";
 
-import type { Person } from "../../_components/supply-kit";
 import type { TemplateField } from "@/lib/pharmacy/stores/pack-templates";
 import type { PackKind } from "@/lib/pharmacy/stores/packs";
-import { useId, useRef, useState } from "react";
+import { useId, useRef } from "react";
 
 import { Input } from "@/components/ui/input";
 import { ALL_PACK_TEXT as PACK_TEXT } from "@/content/pharmacy-network";
 import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
-import { CSO_ALONE, PACK_FIELDS as L, PACKS } from "@/content/pharmacy-stores-supply";
+import { PACK_FIELDS as L, PACKS } from "@/content/pharmacy-stores-supply";
 import {
   basisOf,
   PACK_TEMPLATES,
   PACK_TEMPLATES_COPY,
   startingDraft,
 } from "@/lib/pharmacy/stores/pack-templates";
-import { AttestBox } from "../../_components/supply-kit";
 import { Field, SELECT, StoreDialog, TARGET } from "../../places/_components/store-kit";
-import { attestSigner, saveSignedPack, signPack } from "../actions";
+import { saveSignedPack, signPack } from "../actions";
 
 /**
  * The pack dialogs (Appendix D): a draft is written in fields (or, for the lists and maps, as written JSON in the
@@ -388,21 +386,7 @@ function JsonBasis({
   );
 }
 
-export function SignPackDialog({
-  kind,
-  packId,
-  me,
-  people,
-}: {
-  kind: PackKind;
-  packId: string;
-  me: Person;
-  people: readonly Person[];
-}) {
-  const [first, setFirst] = useState<{ id: string; who: string } | null>(null);
-  const [second, setSecond] = useState<{ id: string; who: string } | null>(null);
-  const [alone, setAlone] = useState(false);
-  const [a, b] = PACK_TEXT[kind].signers;
+export function SignPackDialog({ kind, packId }: { kind: PackKind; packId: string }) {
   return (
     <StoreDialog
       label={PACKS.sign}
@@ -410,46 +394,9 @@ export function SignPackDialog({
       description={PACKS.signIntro}
       submit={PACKS.sign}
       variant="primary"
-      width="wide"
-      onOpen={() => {
-        setFirst(null);
-        setSecond(null);
-        setAlone(false);
-      }}
-      onSave={async (clientKey) => {
-        if (!first) return { ok: false, code: "invalid", error: PACKS.refused.attestation };
-        if (!alone && !second)
-          return { ok: false, code: "invalid", error: PACKS.refused.needSecond };
-        return signPack({
-          clientKey,
-          packId,
-          firstAttestationId: first.id,
-          second: alone ? { exception: CSO_ALONE } : { attestationId: second!.id },
-        });
-      }}
+      onSave={(clientKey) => signPack({ clientKey, packId })}
     >
-      <AttestBox
-        people={[me]}
-        action="sign_pack"
-        attest={attestSigner}
-        done={first}
-        onDone={setFirst}
-        label={`${PACKS.firstSigner}: ${alone ? PACKS.csoRole : a}`}
-      />
-      <label className="text-body-s inline-flex min-h-11 items-center gap-2">
-        <input type="checkbox" checked={alone} onChange={(e) => setAlone(e.target.checked)} />
-        {PACKS.alone}
-      </label>
-      {alone ? null : (
-        <AttestBox
-          people={people.filter((p) => p.userId !== me.userId)}
-          action="sign_pack"
-          attest={attestSigner}
-          done={second}
-          onDone={setSecond}
-          label={`${PACKS.secondSigner}: ${b}`}
-        />
-      )}
+      {null}
     </StoreDialog>
   );
 }

@@ -1,4 +1,4 @@
-import type { Act, Person } from "./ward-dialogs";
+import type { Act } from "./ward-dialogs";
 import type { WardStockPage } from "@/lib/pharmacy/stores/ward-read";
 import Link from "next/link";
 import { TriangleAlertIcon } from "lucide-react";
@@ -33,7 +33,6 @@ export interface WardActions {
   confirm?: Act;
   supply?: Act;
   levels?: Act;
-  attestSigner?: Act;
   sign?: Act;
   gapReason?: Act;
 }
@@ -45,7 +44,6 @@ export function WardStockView({
   me,
   actions,
   products = [],
-  signers = [],
 }: {
   page: WardStockPage;
   base: string;
@@ -53,7 +51,6 @@ export function WardStockView({
   me: string;
   actions: WardActions;
   products?: { id: string; name: string; issueUnit: string }[];
-  signers?: Person[];
 }) {
   const { location: l } = page;
   const T = WARDS.table;
@@ -138,17 +135,7 @@ export function WardStockView({
             action={actions.levels}
           />
         ) : null}
-        {actions.sign && actions.attestSigner && draft ? (
-          <SignDialog
-            packId={draft.id}
-            locationId={l.id}
-            me={me}
-            people={signers}
-            secondTitle={WARDS.sign.second}
-            attest={actions.attestSigner}
-            sign={actions.sign}
-          />
-        ) : null}
+        {actions.sign && draft ? <SignDialog packId={draft.id} sign={actions.sign} /> : null}
       </div>
 
       <p className="text-body-s text-muted-foreground">

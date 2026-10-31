@@ -34,7 +34,6 @@ describe("ward and cart actions name their permission or right", () => {
       createWardLocation: "pharmacy.manage",
       setWardSupplyModel: "pharmacy.manage",
       setWardLevels: "pharmacy.manage",
-      attestWardSigner: "pharmacy.manage",
       signWardLevels: "pharmacy.manage",
       recordWardCount: "pharmacy.stock",
       raiseWardRequisition: "pharmacy.store",
