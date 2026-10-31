@@ -31,9 +31,20 @@ const TIER_LEGACY: Record<PharmacyTier, string | undefined> = {
 /** Which tiers are on for a hospital; the rework's own copy gates production (signed-content rule). */
 export const pharmacyTiersFor = (hospitalId: string) => {
   const on = (t: PharmacyTier) =>
-    workspaceLiveFor(tier(t, TIER_LEGACY[t]), hospitalId, [PHARMACY_REWORK_COPY], `pharmacy_${t.toLowerCase()}`);
+    workspaceLiveFor(
+      tier(t, TIER_LEGACY[t]),
+      hospitalId,
+      // ADR 0468: a PHARMACY_DEV_HOSPITALS test hospital sees the rework in production while its wording is draft.
+      pharmacyDevHospital(hospitalId) ? [] : [PHARMACY_REWORK_COPY],
+      `pharmacy_${t.toLowerCase()}`,
+    );
   const core = on("CORE");
-  return { core, wards: core && on("WARDS"), epi: core && on("EPI"), insights: core && on("INSIGHTS") };
+  return {
+    core,
+    wards: core && on("WARDS"),
+    epi: core && on("EPI"),
+    insights: core && on("INSIGHTS"),
+  };
 };
 
 /**
@@ -87,12 +98,8 @@ export const pharmacyNationalListLiveFor = (hospitalId: string) =>
  * the workspace; needs migrations 0251–0253. In production it stays off while its wording (CATALOGUE_COPY) is draft.
  */
 export const pharmacyCatalogueLiveFor = (hospitalId: string) =>
-  workspaceLiveFor(
-    tier("CORE", "CATALOGUE"),
-    hospitalId,
-    [CATALOGUE_COPY],
-    "pharmacy_catalogue",
-  ) && pharmacyWorkspaceLiveFor(hospitalId);
+  workspaceLiveFor(tier("CORE", "CATALOGUE"), hospitalId, [CATALOGUE_COPY], "pharmacy_catalogue") &&
+  pharmacyWorkspaceLiveFor(hospitalId);
 
 /**
  * Pharmacy Phase 2 (Law 14, D-PH2-24): six per-hospital flags, off by default, each inside the workspace. With all

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { pharmacyDevHospital } from "@/lib/pharmacy/access";
-import { pharmacyWorkspaceV2LiveFor } from "@/lib/pharmacy/feature";
+import { pharmacyTiersFor, pharmacyWorkspaceV2LiveFor } from "@/lib/pharmacy/feature";
 
 // ADR 0468: in production the unsigned v2 wording keeps v2 off, except at a PHARMACY_DEV_HOSPITALS test hospital.
 describe("PHARMACY_WORKSPACE_V2 in production", () => {
@@ -36,5 +36,17 @@ describe("PHARMACY_WORKSPACE_V2 in production", () => {
     expect(pharmacyDevHospital("c", "a, b")).toBe(false);
     expect(pharmacyDevHospital(null, "a")).toBe(false);
     expect(pharmacyDevHospital("c", undefined)).toBe(false);
+  });
+});
+
+// The rework's tiers keep the same exemption: a test hospital is not sent to a 404 while the rework wording is draft.
+describe("the rework tiers in production", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  it("are off at a real hospital and on at a listed test hospital", () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("PHARMACY_WORKSPACE", "1");
+    vi.stubEnv("PHARMACY_DEV_HOSPITALS", "h-test");
+    expect(pharmacyTiersFor("h-real").core).toBe(false);
+    expect(pharmacyTiersFor("h-test").core).toBe(true);
   });
 });
