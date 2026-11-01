@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { db } from "@/db";
 import { overridesOn } from "@/lib/boot-guard";
 import { POINT_COOKIE } from "@/lib/pharmacy/actor";
-import { isDemoHospital } from "@/lib/pharmacy/demo";
+import { demoDataLoaded } from "@/lib/pharmacy/demo";
 import { pharmacyTiersFor } from "@/lib/pharmacy/feature";
 import { PAGES } from "@/lib/pharmacy/ia";
 import { actingPoint, pharmacyPointsFor } from "@/lib/pharmacy/points";
@@ -24,7 +24,7 @@ export async function shellPayload(): Promise<PharmacyShellPayload | null> {
   if (!tiers.core) return null;
   const [points, demo, jar] = await Promise.all([
     pharmacyPointsFor(db as unknown as EmrDb, scope.userId, scope.hospitalId),
-    isDemoHospital(db as unknown as EmrDb, scope.hospitalId),
+    demoDataLoaded(db as unknown as EmrDb, scope.hospitalId),
     cookies(),
   ]);
   const acting = points.length ? actingPoint(points, jar.get(POINT_COOKIE)?.value) : null;
