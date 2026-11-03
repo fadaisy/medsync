@@ -218,6 +218,43 @@ describe.skipIf(!laneOn)("Set-up › Medicines (0270)", () => {
     expect(h.map((x) => x.area).sort()).toEqual(["form", "route"]);
   });
 
+  it("a batch's expiry is corrected from Set-up with a reason; a controlled batch is refused", async () => {
+    const pick = (controlled: boolean) =>
+      rows<{ id: string; expiry: string }>(
+        `SELECT b.id, b.expiry::text AS expiry FROM pharmacy_batches b JOIN pharmacy_products p ON p.id = b.product_id
+          WHERE b.hospital_id = $1 AND (p.controlled_class IS NOT NULL) = $2 ORDER BY b.batch_number LIMIT 1`,
+        [L.h, controlled],
+      );
+    const [b] = await pick(false);
+    const next = new Date(Date.parse(b!.expiry) + 30 * 86_400_000).toISOString().slice(0, 10);
+    await run(chief, M.ExpiryFixInput, M.correctExpiry, {
+      clientKey: randomUUID(),
+      batchId: b!.id,
+      expiry: next,
+      reason: "Typed wrong at receiving",
+    });
+    const [after] = await rows<{ expiry: string }>(
+      `SELECT expiry::text AS expiry FROM pharmacy_batches WHERE id = $1`,
+      [b!.id],
+    );
+    expect(after!.expiry).toBe(next);
+    const c = await rows<{ old_expiry: string; reason: string }>(
+      `SELECT old_expiry::text AS old_expiry, reason FROM pharmacy_batch_corrections WHERE batch_id = $1`,
+      [b!.id],
+    );
+    expect(c).toEqual([{ old_expiry: b!.expiry, reason: "Typed wrong at receiving" }]);
+    const [cd] = await pick(true);
+    if (cd)
+      await expect(
+        run(chief, M.ExpiryFixInput, M.correctExpiry, {
+          clientKey: randomUUID(),
+          batchId: cd.id,
+          expiry: next,
+          reason: "Typed wrong",
+        }),
+      ).rejects.toThrow(/witness/);
+  });
+
   it("the loader reads the lines, the applied rule and the local line back", async () => {
     const { loadMedicinesMaster } = await import("@/lib/pharmacy/medicines/read");
     const data = await loadMedicinesMaster(chief, true, L.s.db as never);

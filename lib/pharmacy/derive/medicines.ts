@@ -61,6 +61,8 @@ export interface Line {
   lastMovedDays: number | null;
   reviewedDays: number | null;
   batches: Batch[];
+  /** Each batch at each place, for correcting its expiry from Set-up. */
+  batchRows?: { id: string; no: string; placeId: string; expiry: string; qty: number }[];
   /** Top-up level per place id. */
   levels: Record<string, number>;
   /** On hand per place id. */

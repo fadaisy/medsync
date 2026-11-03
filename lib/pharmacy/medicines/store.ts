@@ -459,6 +459,53 @@ export async function setLineCell(ctx: PharmacyCtx, input: z.infer<typeof LineCe
   return { id: p.id };
 }
 
+export const ExpiryFixInput = z.object({
+  clientKey: z.uuid(),
+  batchId: z.uuid(),
+  expiry: day,
+  reason: z.string().trim().min(3).max(300),
+});
+
+/**
+ * A batch's expiry typed wrong at receiving, corrected from Set-up at any place (SL-11): the correction row first,
+ * then the batch, in this transaction (the 0124/0180 guard insists); movements are untouched. A controlled
+ * medicine's batch is corrected in Stock, where a witness signs.
+ */
+export async function correctExpiry(ctx: PharmacyCtx, input: z.infer<typeof ExpiryFixInput>) {
+  if (!can(ctx).edit) throw forbid();
+  const [done] = rowsOf<{ id: string }>(
+    await ctx.tx.execute(
+      sql`SELECT id FROM public.pharmacy_batch_corrections WHERE id = ${input.clientKey}`,
+    ),
+  );
+  if (done) return { id: done.id };
+  const [b] = rowsOf<{ product_id: string; batch_number: string; expiry: string }>(
+    await ctx.tx.execute(sql`
+      SELECT product_id, batch_number, expiry::text AS expiry FROM public.pharmacy_batches
+       WHERE id = ${input.batchId} AND hospital_id = ${ctx.actor.hospitalId} FOR UPDATE`),
+  );
+  if (!b) throw new EmrWriteError("not_found", "That batch is not at this hospital.");
+  const p = await stored(ctx, b.product_id);
+  if (p.controlled_class !== null || nationalOf(p)) throw fail(M.expiryDlg.controlled);
+  if (b.expiry === input.expiry) throw fail(M.expiryDlg.unchanged);
+  await ctx.tx.execute(sql`
+    INSERT INTO public.pharmacy_batch_corrections (id, batch_id, hospital_id, old_batch_number, new_batch_number,
+      old_expiry, new_expiry, actor_user_id, reason)
+    VALUES (${input.clientKey}, ${input.batchId}, ${ctx.actor.hospitalId}, ${b.batch_number}, ${b.batch_number},
+      ${b.expiry}::date, ${input.expiry}::date, ${ctx.actor.userId}, ${input.reason})`);
+  await ctx.tx.execute(sql`
+    UPDATE public.pharmacy_batches SET expiry = ${input.expiry}::date, expiry_month_only = false
+     WHERE id = ${input.batchId}`);
+  await history(
+    ctx,
+    p.id,
+    "expiry",
+    H.expiry(b.batch_number, b.expiry, input.expiry, input.reason),
+    null,
+  );
+  return { id: input.clientKey };
+}
+
 async function stockedAs(
   ctx: PharmacyCtx,
   ident: { generic: string; strength: string | null; form: string | null; route: string | null },

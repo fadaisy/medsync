@@ -199,12 +199,21 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
        WHERE r.hospital_id = ${h}
        ORDER BY p.id, coalesce(r.location_id, r.dispensing_point_id), r.set_at DESC`),
     // ponytail: sums the whole ledger per batch and place; a balance table if this grows slow.
-    q<{ product_id: string; place_id: string; batch: string; days: number; qty: number }>(sql`
-      SELECT b.product_id, coalesce(m.location_id, m.dispensing_point_id) AS place_id, b.batch_number AS batch,
-             (b.expiry - ${today}::date) AS days, sum(m.quantity)::int AS qty
+    q<{
+      product_id: string;
+      place_id: string;
+      batch_id: string;
+      batch: string;
+      expiry: string;
+      days: number;
+      qty: number;
+    }>(sql`
+      SELECT b.product_id, coalesce(m.location_id, m.dispensing_point_id) AS place_id, b.id AS batch_id,
+             b.batch_number AS batch, b.expiry::text AS expiry, (b.expiry - ${today}::date) AS days,
+             sum(m.quantity)::int AS qty
         FROM public.pharmacy_stock_movements m JOIN public.pharmacy_batches b ON b.id = m.batch_id
        WHERE m.hospital_id = ${h}
-       GROUP BY 1, 2, 3, 4 HAVING sum(m.quantity) <> 0`),
+       GROUP BY 1, 2, 3, 4, 5, 6 HAVING sum(m.quantity) <> 0`),
     q<{ product_id: string; used: number; last: string | null }>(sql`
       SELECT b.product_id,
              coalesce(sum(-m.quantity) FILTER (WHERE m.kind IN ('supplied','ward_used','cart_used')
@@ -348,6 +357,15 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
         u?.last !== null && u?.last !== undefined ? Number(u.last) : Number(r.age_days),
       reviewedDays: num(r.reviewed_days),
       batches: [...batches.values()].filter((b) => b.qty > 0),
+      batchRows: (stock.get(id) ?? [])
+        .filter((x) => x.qty > 0)
+        .map((x) => ({
+          id: x.batch_id,
+          no: x.batch,
+          placeId: x.place_id,
+          expiry: x.expiry,
+          qty: x.qty,
+        })),
       levels: lv,
       stock: st,
     };

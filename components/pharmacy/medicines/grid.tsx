@@ -17,6 +17,7 @@ import {
   bulkMarkFreeAction,
   bulkSetLevelAction,
   bulkSetVenAction,
+  correctExpiryAction,
   deleteViewAction,
   requestTopUpsAction,
   setLineCellAction,
@@ -1076,6 +1077,151 @@ function HandlingCell({ r, toast }: { r: Row; toast: (m: string) => void }) {
   );
 }
 
+function ExpiryText({ r, data }: { r: Row; data: MedicinesPayload }) {
+  const exp = r.mx.exp;
+  if (exp === null) return <span className="text-ink-500">—</span>;
+  return (
+    <span className={cn("flex flex-col text-[12px] leading-4", near(exp, 90, 30))}>
+      <span>{dateIn(data.today, exp)}</span>
+      <span className="text-[11px]">{G.expIn(exp)}</span>
+    </span>
+  );
+}
+
+/** Expiry, corrected from the table: each batch at each place, a new date and one reason for them all. */
+function ExpiryCell({
+  r,
+  data,
+  toast,
+}: {
+  r: Row;
+  data: MedicinesPayload;
+  toast: (m: string) => void;
+}) {
+  const router = useRouter();
+  const E = M.expiryDlg;
+  const { l } = r;
+  const rows = l.batchRows ?? [];
+  const locked = l.flags.controlled || l.nationalControlled;
+  const [open, setOpen] = useState(false);
+  const [dates, setDates] = useState<Record<string, string>>({});
+  const [why, setWhy] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  if (!rows.length) return <ExpiryText r={r} data={data} />;
+  const changed = rows.filter((b) => dates[b.id] && dates[b.id] !== b.expiry);
+  const save = () => {
+    if (!changed.length) return setErr(E.changeFirst);
+    if (why.trim().length < 3) return setErr(E.needReason);
+    start(async () => {
+      setErr(null);
+      let n = 0;
+      for (const b of changed) {
+        const res = await correctExpiryAction({
+          clientKey: newKey(),
+          batchId: b.id,
+          expiry: dates[b.id],
+          reason: why.trim(),
+        });
+        if (!res.ok) {
+          setErr(res.error);
+          break;
+        }
+        n++;
+      }
+      if (n) toast(E.saved(n));
+      if (n === changed.length) setOpen(false);
+      router.refresh();
+    });
+  };
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={E.aria(l.name)}
+        onClick={() => (setDates({}), setWhy(""), setErr(null), setOpen(true))}
+        className="hover:bg-ink-50 focus-visible:ring-primary -mx-1.5 rounded-lg px-1.5 py-1 text-left outline-none focus-visible:ring-2"
+      >
+        <ExpiryText r={r} data={data} />
+      </button>
+      <EditorDialog
+        open={open}
+        onOpenChange={(o) => !o && !pending && setOpen(false)}
+        width="medium"
+      >
+        <div className="flex flex-col gap-3 px-6 py-5">
+          <DialogTitle>{E.title(l.name)}</DialogTitle>
+          <p className="text-body-s text-ink-600 max-w-prose">{locked ? E.controlled : E.lead}</p>
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="text-ink-600 text-left text-[11px] font-semibold tracking-[0.06em] uppercase">
+                <th className="py-1.5 pr-3 font-semibold">{E.place}</th>
+                <th className="py-1.5 pr-3 font-semibold">{E.batch}</th>
+                <th className="py-1.5 pr-3 text-right font-semibold">{E.onHand}</th>
+                <th className="py-1.5 font-semibold">{E.expiry}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-border divide-y">
+              {rows.map((b) => (
+                <tr key={b.id}>
+                  <td className="py-2 pr-3">
+                    {data.places.find((x) => x.id === b.placeId)?.short ?? "—"}
+                  </td>
+                  <td className="py-2 pr-3 font-semibold">{b.no}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums">{qty(b.qty, l.unit)}</td>
+                  <td className="py-2">
+                    {locked ? (
+                      b.expiry
+                    ) : (
+                      <input
+                        type="date"
+                        aria-label={`${E.expiry} ${b.no}`}
+                        value={dates[b.id] ?? b.expiry}
+                        onChange={(e) => (
+                          setDates((d) => ({ ...d, [b.id]: e.target.value })),
+                          setErr(null)
+                        )}
+                        className={fieldSm}
+                      />
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {locked ? null : (
+            <label className="text-ink-700 flex flex-col gap-1 text-[12px] font-semibold">
+              {E.reason}
+              <input
+                value={why}
+                placeholder={E.reasonPh}
+                maxLength={300}
+                onChange={(e) => (setWhy(e.target.value), setErr(null))}
+                className={cn(field, "w-full rounded-lg font-normal")}
+              />
+            </label>
+          )}
+          {err ? (
+            <p role="alert" className="text-status-critical-fg-aa text-[12px] font-semibold">
+              {err}
+            </p>
+          ) : null}
+          <div className="flex justify-end gap-2">
+            <LabButton variant="text" onClick={() => setOpen(false)}>
+              {E.cancel}
+            </LabButton>
+            {locked ? null : (
+              <LabButton variant="primary" busy={pending} onClick={save}>
+                {E.save}
+              </LabButton>
+            )}
+          </div>
+        </div>
+      </EditorDialog>
+    </>
+  );
+}
+
 function Cell({
   col,
   r,
@@ -1174,13 +1320,10 @@ function Cell({
         </span>
       );
     case "expiry":
-      return mx.exp === null ? (
-        <span className="text-ink-500">—</span>
+      return editable ? (
+        <ExpiryCell r={r} data={data} toast={toast!} />
       ) : (
-        <span className={cn("flex flex-col text-[12px] leading-4", near(mx.exp, 90, 30))}>
-          <span>{dateIn(data.today, mx.exp)}</span>
-          <span className="text-[11px]">{G.expIn(mx.exp)}</span>
-        </span>
+        <ExpiryText r={r} data={data} />
       );
     case "cover":
       return mx.cover === null ? (
