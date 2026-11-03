@@ -278,20 +278,25 @@ export function MedicinesGrid({
 
   return (
     <div className="bg-card shadow-tide-card flex min-w-0 flex-col gap-3 rounded-[22px] p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="text-ink-600 m-0 mt-0.5 flex-[1_1_320px] text-[13px] leading-[17px] font-medium">
-          {edit ? M.lead : M.leadOperate}
-        </p>
-        {edit && data.can.edit ? (
-          <LabButton
-            variant="primary"
-            className="h-11 px-5 text-[16px]"
-            onClick={() => setPicker((n) => Math.abs(n) + 1)}
-          >
-            {M.add}
-          </LabButton>
-        ) : null}
-      </div>
+      {/* Header (MEDICINES-TAB §2): no intro sentence in Set-up; Add from the catalogue, right-aligned. */}
+      {!edit || data.can.edit ? (
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          {!edit ? (
+            <p className="text-ink-600 m-0 mt-0.5 flex-[1_1_320px] text-[13px] leading-[17px] font-medium">
+              {M.leadOperate}
+            </p>
+          ) : null}
+          {edit ? (
+            <LabButton
+              variant="primary"
+              className="ml-auto h-11 px-5 text-[16px]"
+              onClick={() => setPicker((n) => Math.abs(n) + 1)}
+            >
+              {M.add}
+            </LabButton>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">

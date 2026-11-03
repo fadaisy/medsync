@@ -303,7 +303,6 @@ export const QC = {
 };
 
 export const MEDICINES = {
-  lead: "Everything about a medicine is set here: class, VEN, handling, pack sizes, levels per place and a price for each payer, in Uganda shillings per issue unit. Open a row to change it; every change runs from a date and the old value stays in its history.",
   leadOperate:
     "Every stocked medicine, with its stock at each place. Request a top-up from the store or add a line to the next order; set-up changes are made in Set-up › Medicines.",
   add: "Add from the catalogue",
@@ -634,6 +633,7 @@ export const MEDICINES = {
     change: "Change",
     changeAria: (t: string) => `Change: ${t}`,
     newWording: "New wording",
+    newNumber: "New number",
     why: "Why the change",
     send: "Send for signing",
     proposed: "Proposed:",
