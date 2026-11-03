@@ -443,7 +443,7 @@ type Refusal = { kind: "refused" | "no_product" | "several"; note: string };
  */
 export async function productForPick(
   ctx: PharmacyCtx,
-  pick: { packId: string } | { medicineId: string },
+  pick: { packId: string } | { medicineId: string; issueUnit?: string },
 ): Promise<{ id: string; said: string | null } | Refusal> {
   const h = ctx.actor.hospitalId;
   const R = CATALOGUE.receive;
@@ -523,7 +523,9 @@ export async function productForPick(
     return { id: unlinked[0]!.id, said: P.linked(unlinked[0]!.name) };
   }
 
-  if (!m.issue_unit_kind) return { kind: "refused", note: P.noIssueUnit };
+  // Set-up › Medicines may name the unit the catalogue leaves blank; the catalogue's own unit always wins.
+  const issueUnit = m.issue_unit_kind ?? ("issueUnit" in pick ? pick.issueUnit : undefined);
+  if (!issueUnit) return { kind: "refused", note: P.noIssueUnit };
   const name = pack?.brand ?? m.display_name;
   const [row] = await ctx.tx
     .insert(pharmacyProducts)
@@ -535,7 +537,7 @@ export async function productForPick(
       manufacturer: pack?.maker ?? null,
       strength: m.strength_text,
       packSize: pack?.description ?? null,
-      issueUnit: m.issue_unit_kind,
+      issueUnit,
       catalogueMedicineId: medicineId!,
       cataloguePackId,
       addedAtWindow: false,

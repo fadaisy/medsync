@@ -22,6 +22,7 @@ import {
   LOCAL_ROUTES,
   MEDICINES,
   SALE,
+  UNIT_BY_FORM,
   UNITS,
 } from "@/content/pharmacy-medicines";
 import { lineIdentityKey } from "@/lib/pharmacy/derive/medicines";
@@ -58,6 +59,7 @@ export function CatalogueDialog({
   const [cls, setCls] = useState("");
   const [sale, setSale] = useState("");
   const [ticked, setTicked] = useState<Set<string>>(new Set());
+  const [units, setUnits] = useState<Record<string, string>>({});
   const [err, setErr] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const [loc, setLoc] = useState({
@@ -104,7 +106,7 @@ export function CatalogueDialog({
   const add = () =>
     start(async () => {
       setErr(null);
-      const r = await addFromCatalogueAction({ ids: [...ticked] });
+      const r = await addFromCatalogueAction({ ids: [...ticked], units });
       if (!r.ok) return setErr(r.error);
       const d = r.data!;
       if (d.refused.length) setErr(d.refused.join(" "));
@@ -284,17 +286,37 @@ export function CatalogueDialog({
                         type="checkbox"
                         disabled={!!as}
                         checked={on}
-                        onChange={() =>
+                        onChange={() => {
                           setTicked((t) => {
                             const n = new Set(t);
                             if (n.has(i.id)) n.delete(i.id);
                             else n.add(i.id);
                             return n;
-                          })
-                        }
+                          });
+                          if (!i.unit && !units[i.id] && i.formCode && UNIT_BY_FORM[i.formCode])
+                            setUnits((u) => ({ ...u, [i.id]: UNIT_BY_FORM[i.formCode!]! }));
+                        }}
                         className="accent-primary col-start-2 row-span-2 row-start-1 size-5 sm:col-start-3"
                       />
                     </label>
+                    {on && !i.unit ? (
+                      <label className="text-caption text-ink-700 flex items-center gap-2 pb-2.5">
+                        {C.unit}
+                        <select
+                          aria-label={C.unitAria(i.name)}
+                          value={units[i.id] ?? ""}
+                          onChange={(e) => setUnits((u) => ({ ...u, [i.id]: e.target.value }))}
+                          className={field}
+                        >
+                          <option value="" disabled>
+                            {C.choose}
+                          </option>
+                          {UNITS.map((f) => (
+                            <option key={f}>{f}</option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
                   </li>
                 );
               })
@@ -330,7 +352,13 @@ export function CatalogueDialog({
               <LabButton
                 variant="primary"
                 busy={pending}
-                disabledReason={ticked.size ? null : C.ticked(0)}
+                disabledReason={
+                  !ticked.size
+                    ? C.ticked(0)
+                    : items?.some((i) => ticked.has(i.id) && !i.unit && !units[i.id])
+                      ? C.needUnit
+                      : null
+                }
                 onClick={add}
               >
                 {C.addN(ticked.size)}

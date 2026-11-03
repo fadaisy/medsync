@@ -127,7 +127,36 @@ export const UNITS = [
   "dose",
   "pessary",
   "suppository",
+  "bag",
+  "patch",
 ];
+
+/** The unit a catalogue form is issued in, when the catalogue does not say; only the obvious ones, the rest are chosen. */
+export const UNIT_BY_FORM: Record<string, (typeof UNITS)[number]> = {
+  powder_for_injection: "vial",
+  injection_solution: "vial",
+  injection_suspension: "vial",
+  eye_drops: "bottle",
+  ear_drops: "bottle",
+  nasal_drops: "bottle",
+  nasal_spray: "bottle",
+  oral_solution: "bottle",
+  oral_suspension: "bottle",
+  powder_for_oral_solution: "bottle",
+  syrup: "bottle",
+  lotion: "bottle",
+  nebuliser_solution: "bottle",
+  infusion_solution: "bottle",
+  concentrate_for_infusion: "vial",
+  cream: "tube",
+  gel: "tube",
+  ointment: "tube",
+  eye_ointment: "tube",
+  oral_gel: "tube",
+  paste: "tube",
+  inhaler_pressurised: "inhaler",
+  transdermal_patch: "patch",
+};
 
 export const LOCAL_REASONS = {
   specialist_request: "Specialist request",
@@ -685,6 +714,10 @@ export const MEDICINES = {
         ? "Added 1 medicine. Open it to set VEN, levels and price."
         : `Added ${n} medicines. Open each to set VEN, levels and price.`,
     refused: (name: string, why: string) => `${name}: ${why}`,
+    unit: "Counted per",
+    unitAria: (name: string) => `${name}: counted per`,
+    choose: "Choose…",
+    needUnit: "The catalogue does not say how this is counted. Choose a unit beside it.",
   },
   local: {
     title: "Add a medicine that isn't in a catalogue",

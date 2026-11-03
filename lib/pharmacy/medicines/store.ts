@@ -16,6 +16,7 @@ import {
   ugx,
   VEN,
 } from "@/content/pharmacy-medicines";
+import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { rowsOf } from "@/lib/pharmacy/audit/read";
 import { lineIdentityKey } from "@/lib/pharmacy/derive/medicines";
@@ -412,7 +413,11 @@ async function stockedAs(
   return rows.find((r) => r.k === key)?.name ?? null;
 }
 
-export const CatalogueAddInput = z.object({ ids: z.array(z.uuid()).min(1).max(50) });
+export const CatalogueAddInput = z.object({
+  ids: z.array(z.uuid()).min(1).max(50),
+  /** The unit chosen for a medicine the catalogue gives none. */
+  units: z.record(z.uuid(), z.string().trim().min(2).max(40)).optional(),
+});
 
 export async function addLinesFromCatalogue(
   ctx: PharmacyCtx,
@@ -454,9 +459,10 @@ export async function addLinesFromCatalogue(
       refused.push(M.catalogue.refused(m.name, M.catalogue.alreadyAs(as)));
       continue;
     }
-    const r = await productForPick(ctx, { medicineId: id });
+    const r = await productForPick(ctx, { medicineId: id, issueUnit: input.units?.[id] });
     if (!("id" in r)) {
-      refused.push(M.catalogue.refused(m.name, r.note));
+      const note = r.note === STOCK_UP_POLISH.make.noIssueUnit ? M.catalogue.needUnit : r.note;
+      refused.push(M.catalogue.refused(m.name, note));
       continue;
     }
     const f = typeof m.flags === "string" ? JSON.parse(m.flags) : (m.flags ?? {});
@@ -825,6 +831,7 @@ export interface CatalogueItem {
   form: string | null;
   route: string | null;
   unit: string | null;
+  formCode: string | null;
   atc: string | null;
   cls: string | null;
   group: string | null;
@@ -836,7 +843,7 @@ export async function catalogueItems(ctx: PharmacyCtx): Promise<CatalogueItem[]>
   const rows = rowsOf<Record<string, unknown>>(
     await ctx.tx.execute(sql`
       SELECT id, display_name, coalesce(generic, display_name) AS generic, strength_text, form_label, route_label,
-             issue_unit_kind, atc_level1, therapeutic_class, pharm_group, sale_category,
+             issue_unit_kind, dose_form_code, atc_level1, therapeutic_class, pharm_group, sale_category,
              -- The EMHSLU seed (0251) set the list's level and VEN but never the tag; read either as on the list.
              CASE WHEN (emhslu_level IS NOT NULL OR emhslu_ven IS NOT NULL) AND NOT 'EMHSLU' = ANY (sources)
                   THEN sources || 'EMHSLU'::text ELSE sources END AS sources
@@ -851,6 +858,7 @@ export async function catalogueItems(ctx: PharmacyCtx): Promise<CatalogueItem[]>
     form: (r.form_label as string | null) ?? null,
     route: (r.route_label as string | null) ?? null,
     unit: (r.issue_unit_kind as string | null) ?? null,
+    formCode: (r.dose_form_code as string | null) ?? null,
     atc: (r.atc_level1 as string | null) ?? null,
     cls: (r.therapeutic_class as string | null) ?? null,
     group: (r.pharm_group as string | null) ?? null,
