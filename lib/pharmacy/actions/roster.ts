@@ -8,6 +8,7 @@ import { z } from "zod";
 import { dayLabel, ROSTER_REFUSAL, SHIFT } from "@/content/pharmacy-roster";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { blindIndex, encrypt } from "@/lib/encryption";
+import { deviceSeen } from "@/lib/pharmacy/actions/setup/places";
 import { rowsOf } from "@/lib/pharmacy/audit/read";
 import { addDays, fillGaps, SHIFT_START, weekStart } from "@/lib/pharmacy/derive/roster";
 import { e164 } from "@/lib/pharmacy/epi/store";
@@ -538,6 +539,7 @@ export const signIn = (actor: PharmacyActor, raw: unknown) =>
           RETURNING id`,
     );
     must(row, ROSTER_REFUSAL.notHere);
+    await deviceSeen(ctx, i.placeId);
     return { id: row!.id };
   });
 

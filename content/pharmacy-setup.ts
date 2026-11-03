@@ -494,3 +494,48 @@ export const OPT_OUT_REASONS = [
   "Patient has died",
   "Shared phone, privacy",
 ] as const;
+
+/** The database's set-up guards (0274), in words (lib/pharmacy/write.ts `databaseRefusal`). */
+export const SETUP_REFUSAL: [string, string][] = [
+  ["pharmacy_golive: only the in-charge changes this", "Only the in-charge does this."],
+  ["pharmacy_golive: the go-live date is after today", "Pick a date after today."],
+  ["pharmacy_golive: practice only before going live", "Practice runs only before going live."],
+  ["pharmacy_golive: no practice day is running", "No practice day is running."],
+  [
+    "pharmacy_golive: paper is retired only when live",
+    "Paper is retired only once MedSync is live.",
+  ],
+  ["pharmacy_golive: already live", "MedSync is already live."],
+  ["things still block going live", "Something still blocks going live. Check again."],
+  ["only the in-charge signs as in-charge", "Only the in-charge signs as in-charge."],
+  ["only the medical superintendent signs", "Only the medical superintendent signs here."],
+  [
+    "pharmacy_golive: two different people sign",
+    "The two signatures are from two different people.",
+  ],
+  ["pharmacy_practice: no practice day is running", "No practice day is running."],
+  ["pgi_auto", "This item is checked automatically."],
+  [
+    "a store cannot be supplied from itself",
+    "A store cannot be supplied from itself. Pick its supplier.",
+  ],
+  ["supplied from an open store", "Pick an open store to supply it."],
+  ["pharmacy_locations: a handover is open", "A handover is open. Finish it first."],
+  [
+    "places are still supplied from here",
+    "Other places are supplied from here. Change their supplier first.",
+  ],
+  ["pfr_note", "Outside 2–8 °C: say what you did."],
+  ["pfr_not_future", "That time is still to come."],
+  ["pf_sensor_once", "That sensor is linked to another fridge."],
+  ["psup_budget", "Used so far is more than the budget."],
+  ["psup_name", "A supplier with this name already exists."],
+  [
+    "pharmacy_rule_group_signatures: two different people",
+    "The second signature is from a different person.",
+  ],
+  ["pharmacy_sms: that number opted out", "That number opted out."],
+  ["pharmacy_sms: quiet hours", "Quiet hours: it goes at 07:00."],
+  ["pharmacy_sms: weekly cap per patient", "This patient has had this week's reminders."],
+  ["pharmacy_sms: monthly budget cap", "The monthly SMS budget is used up. Sending stopped."],
+];

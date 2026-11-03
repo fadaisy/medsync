@@ -5,6 +5,7 @@ import type { z } from "zod";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { ROSTER_REFUSAL } from "@/content/pharmacy-roster";
+import { SETUP_REFUSAL } from "@/content/pharmacy-setup";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { pharmacyDispensingPoints } from "@/db/schema/pharmacy";
 import { asClinicalWriter } from "@/lib/emr/db";
@@ -239,7 +240,11 @@ export function databaseRefusal(e: unknown): string | null {
     ["the proposer cannot be the second signer", ROSTER_REFUSAL.proposerNotSecond],
     ["pharmacy_roster_delegations: the end date", ROSTER_REFUSAL.endPassed],
     ["pharmacy_roster_week_events: the week is already", ROSTER_REFUSAL.weekState],
+    // 0274: the set-up tabs' guards.
+    ...SETUP_REFUSAL,
   ];
+  const lines = msg.match(/pharmacy_locations: (\d+) lines are still here/);
+  if (lines) return `Move or issue out its stock first: ${lines[1]} lines are still here.`;
   const w = words.find(([k]) => msg.includes(k));
   if (w) return w[1];
   const count = msg.match(/pharmacy_stock: batch (\S+) needs a count/);

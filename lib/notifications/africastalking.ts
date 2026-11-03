@@ -57,13 +57,19 @@ export function parseCost(
  * unconfigured account is fatal (the reminder cron says yes, loudly —
  * silently succeeding while no patient is reminded is the worse failure).
  */
-export function createAfricasTalkingSender(): SmsSender | null {
-  const username = env.AFRICASTALKING_USERNAME;
-  const apiKey = env.AFRICASTALKING_API_KEY;
+export function createAfricasTalkingSender(account?: {
+  username: string;
+  apiKey: string;
+  senderId: string | null;
+  /** A hospital's own account (pharmacy Set-up › Messages) sends up to six parts, any characters. */
+  multipart?: boolean;
+}): SmsSender | null {
+  const username = account ? account.username : env.AFRICASTALKING_USERNAME;
+  const apiKey = account ? account.apiKey : env.AFRICASTALKING_API_KEY;
   if (!username || !apiKey) return null;
 
   const endpoint = username === "sandbox" ? SANDBOX_BASE : LIVE_BASE;
-  const senderId = env.AFRICASTALKING_SENDER_ID;
+  const senderId = account ? account.senderId : env.AFRICASTALKING_SENDER_ID;
 
   return {
     async send({ toE164, body }): Promise<SmsSendResult> {
@@ -71,7 +77,11 @@ export function createAfricasTalkingSender(): SmsSender | null {
       // as well as in the composer.
       if (!/^\+\d{9,15}$/.test(toE164)) return { ok: false, reason: "recipient_not_e164" };
       if (!body.trim()) return { ok: false, reason: "empty_body" };
-      if (body.length > SMS_MAX_BODY_CHARS || !isGsmSafe(body)) {
+      if (
+        account?.multipart
+          ? body.length > 918
+          : body.length > SMS_MAX_BODY_CHARS || !isGsmSafe(body)
+      ) {
         return { ok: false, reason: "body_would_multi_part" };
       }
 

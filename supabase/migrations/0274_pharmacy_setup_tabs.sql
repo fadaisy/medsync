@@ -425,7 +425,7 @@ BEGIN
 END $$;
 
 -- A message moves forward only: scheduled → queued | sent | failed | skipped; queued → sent | failed | skipped;
--- sent → delivered | failed; failed → sent (retry) | failed | called.
+-- sent → sent (the provider's id) | delivered | failed; failed → sent (retry) | failed | called.
 CREATE OR REPLACE FUNCTION private.pharmacy_sms_message_guard() RETURNS trigger
 LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
 DECLARE moving text[] := ARRAY['status','provider_id','cost','cost_ugx','failure','note','sent_at','delivered_at',
@@ -434,7 +434,7 @@ BEGIN
   IF TG_OP = 'DELETE' THEN RAISE EXCEPTION 'pharmacy_sms_messages: never deleted'; END IF;
   IF NOT ((OLD.status = 'scheduled' AND NEW.status IN ('queued','sent','failed','skipped'))
           OR (OLD.status = 'queued' AND NEW.status IN ('queued','sent','failed','skipped'))
-          OR (OLD.status = 'sent' AND NEW.status IN ('delivered','failed'))
+          OR (OLD.status = 'sent' AND NEW.status IN ('sent','delivered','failed'))
           OR (OLD.status = 'failed' AND NEW.status IN ('sent','failed','called')))
      OR (to_jsonb(NEW) - moving) <> (to_jsonb(OLD) - moving) THEN
     RAISE EXCEPTION 'pharmacy_sms_messages: % cannot become %', OLD.status, NEW.status;
