@@ -94,9 +94,21 @@ export function CatalogueDialog({
         (!atc || i.atc === atc) &&
         (!cls || i.cls === cls) &&
         (!sale || i.sale === sale) &&
-        (!s || i.name.toLowerCase().includes(s) || (i.cls ?? "").toLowerCase().includes(s)),
+        (!s ||
+          i.name.toLowerCase().includes(s) ||
+          (i.cls ?? "").toLowerCase().includes(s) ||
+          (i.group ?? "").toLowerCase().includes(s)),
     );
   }, [items, q, src, atc, cls, sale]);
+  // A filter offers only what the catalogue carries; one with nothing behind it is not shown.
+  const has = useMemo(() => {
+    const all = items ?? [];
+    return {
+      atc: new Set(all.map((i) => i.atc).filter(Boolean)),
+      cls: new Set(all.map((i) => i.cls).filter(Boolean)),
+      sale: new Set(all.map((i) => i.sale).filter(Boolean)),
+    };
+  }, [items]);
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: items?.length ?? 0 };
     for (const i of items ?? []) for (const s of i.sources) c[s] = (c[s] ?? 0) + 1;
@@ -197,37 +209,47 @@ export function CatalogueDialog({
               ))}
             </div>
             <div className="grid gap-2 sm:grid-cols-3">
-              <label className={labelCls}>
-                {C.atc}
-                <select value={atc} onChange={(e) => setAtc(e.target.value)} className={input}>
-                  <option value="">{C.all}</option>
-                  {Object.entries(ATC).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {k} {v}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className={labelCls}>
-                {C.cls}
-                <select value={cls} onChange={(e) => setCls(e.target.value)} className={input}>
-                  <option value="">{C.allClasses}</option>
-                  {CLASSES.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </label>
-              <label className={labelCls}>
-                {C.sale}
-                <select value={sale} onChange={(e) => setSale(e.target.value)} className={input}>
-                  <option value="">{C.all}</option>
-                  {Object.entries(SALE).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {has.atc.size ? (
+                <label className={labelCls}>
+                  {C.atc}
+                  <select value={atc} onChange={(e) => setAtc(e.target.value)} className={input}>
+                    <option value="">{C.all}</option>
+                    {Object.entries(ATC)
+                      .filter(([k]) => has.atc.has(k))
+                      .map(([k, v]) => (
+                        <option key={k} value={k}>
+                          {k} {v}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+              ) : null}
+              {has.cls.size ? (
+                <label className={labelCls}>
+                  {C.cls}
+                  <select value={cls} onChange={(e) => setCls(e.target.value)} className={input}>
+                    <option value="">{C.allClasses}</option>
+                    {CLASSES.filter((c) => has.cls.has(c)).map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              {has.sale.size ? (
+                <label className={labelCls}>
+                  {C.sale}
+                  <select value={sale} onChange={(e) => setSale(e.target.value)} className={input}>
+                    <option value="">{C.all}</option>
+                    {Object.entries(SALE)
+                      .filter(([k]) => has.sale.has(k))
+                      .map(([k, v]) => (
+                        <option key={k} value={k}>
+                          {v}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+              ) : null}
             </div>
           </div>
           <ul
