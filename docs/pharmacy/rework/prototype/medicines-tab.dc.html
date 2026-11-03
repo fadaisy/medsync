@@ -1,0 +1,1906 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Set-up › Medicines</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f6f7f9}
+a{color:#0f766e}a:hover{color:#1b2540}
+button{cursor:pointer}
+button:disabled{cursor:default}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #0f766e;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 1800px; background: #f6f7f9; color: #1b2540; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; display: flex; flex-wrap: wrap; gap: 24px; padding: 24px 20px; box-sizing: border-box">
+
+  <nav aria-label="Pharmacy" style="flex: 0 0 112px; align-self: flex-start; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); padding: 12px 8px; display: flex; flex-direction: column; gap: 4px">
+    <div style="width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 14px; background: #1b2540; color: #ffffff; display: grid; place-items: center; font-size: 16px; font-weight: 700">Rx</div>
+    <sc-for list="{{sections}}" as="s" hint-placeholder-count="7">
+      <a href="#" style="{{s.style}}">{{s.label}}</a>
+    </sc-for>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px">
+      <h1 style="margin: 8px 0 0; font-size: 36px; line-height: 40px; font-weight: 500; letter-spacing: -0.03em">Set-up</h1>
+      <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #4a5574">Acting as
+        <select value="{{actor}}" onChange="{{setActor}}" style="height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 600 13px Figtree, sans-serif; color: #1b2540"><option>Pharmacy in-charge</option><option>Pharmacist</option><option>Store keeper</option></select>
+      </label>
+    </div>
+
+    <nav aria-label="Set-up" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #e4e7ee; border-radius: 999px; align-self: flex-start">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+        <a href="{{t.href}}" aria-current="{{t.current}}" style="{{t.style}}">{{t.label}}</a>
+      </sc-for>
+    </nav>
+
+    <section aria-label="Medicines" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px">
+        <p style="margin: 2px 0 0; flex: 1 1 320px; font-size: 13px; line-height: 17px; font-weight: 500; color: #5f6987">Everything about a medicine is set here: class, VEN, handling, pack sizes, levels per place and a price for each payer, in Uganda shillings per issue unit. Open a row to change it; every change runs from a date and the old value stays in its history.</p>
+        <button type="button" onClick="{{openPicker}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px/20px Figtree, sans-serif; box-shadow: 0 8px 22px -6px rgba(45,212,191,0.65)">Add from the catalogue</button>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+        <label style="flex: 1 1 260px; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6987" stroke-width="1.75" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input aria-label="Find a medicine" placeholder="Find a medicine or class" value="{{q}}" onChange="{{setQ}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font: 400 15px Figtree, sans-serif; color: #1b2540">
+        </label>
+        <button type="button" onClick="{{openFilters}}" style="{{filterBtnStyle}}">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"></path></svg>
+          {{filterLabel}}
+        </button>
+        <span style="position: relative">
+          <button type="button" aria-expanded="{{colsOpenAttr}}" onClick="{{toggleCols}}" style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 14px Figtree, sans-serif">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16M15 4v16"></path></svg>
+            Columns
+          </button>
+          <sc-if value="{{colsOpen}}" hint-placeholder-val="{{false}}">
+            <div role="group" aria-label="Columns shown" style="position: absolute; z-index: 6; top: 46px; right: 0; width: 220px; padding: 8px; background: #ffffff; border-radius: 16px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column; gap: 2px">
+              <sc-for list="{{colToggles}}" as="ct" hint-placeholder-count="8">
+                <label style="display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 8px; border-radius: 10px; font-size: 14px; cursor: pointer">
+                  <input type="checkbox" checked="{{ct.on}}" onChange="{{ct.toggle}}" style="width: 18px; height: 18px; margin: 0; accent-color: #0f766e">{{ct.label}}
+                </label>
+              </sc-for>
+            </div>
+          </sc-if>
+        </span>
+        <button type="button" aria-pressed="{{groupAttr}}" onClick="{{toggleGroup}}" style="{{groupStyle}}">Group by class</button>
+      </div>
+
+      <div role="group" aria-label="Saved views" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+        <span style="margin-right: 2px; font-size: 12px; font-weight: 600; color: #5f6987">Views</span>
+        <sc-for list="{{viewChips}}" as="v" hint-placeholder-count="6">
+          <button type="button" aria-pressed="{{v.on}}" onClick="{{v.pick}}" style="{{v.style}}">{{v.name}}</button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{hasConds}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px">
+          <span style="color: #5f6987">Showing medicines where</span>
+          <sc-for list="{{condChips}}" as="cc" hint-placeholder-count="2">
+            <span style="display: inline-flex; align-items: center; gap: 2px; height: 30px; padding: 0 2px 0 10px; border-radius: 999px; background: #e4e7ee; color: #1b2540">{{cc.text}}
+              <button type="button" aria-label="{{cc.aria}}" onClick="{{cc.remove}}" style="width: 26px; height: 26px; border: 0; border-radius: 999px; background: transparent; display: grid; place-items: center">
+                <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+              </button>
+            </span>
+          </sc-for>
+          <button type="button" onClick="{{clearConds}}" style="height: 30px; padding: 0 6px; border: 0; background: transparent; color: #0f766e; font: 600 13px Figtree, sans-serif; text-decoration: underline">Clear</button>
+        </div>
+      </sc-if>
+
+      <div role="group" aria-label="Rules for medicines" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+        <span style="margin-right: 2px; font-size: 12px; font-weight: 600; color: #5f6987">Rules</span>
+        <sc-for list="{{ruleGroups}}" as="rg" hint-placeholder-count="7">
+          <button type="button" aria-haspopup="dialog" aria-label="{{rg.badgeAria}}" onClick="{{rg.open}}" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif; white-space: nowrap">
+            {{rg.scope}} <span style="font-weight: 500; color: #5f6987">· {{rg.n}}</span>
+            <sc-if value="{{rg.hasPending}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 600">{{rg.pendingN}} to sign</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+
+      <div role="group" aria-label="Stock at a glance" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px">
+        <sc-for list="{{kpis}}" as="k" hint-placeholder-count="6">
+          <button type="button" aria-pressed="{{k.on}}" onClick="{{k.pick}}" style="{{k.style}}">
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 500; color: #4a5574"><span aria-hidden="true" style="{{k.dot}}"></span>{{k.label}}</span>
+            <span style="font-size: 22px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums; color: #1b2540">{{k.value}}</span>
+            <span style="font-size: 11px; line-height: 14px; color: #5f6987">{{k.sub}}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{anySel}}" hint-placeholder-val="{{false}}">
+        <div role="toolbar" aria-label="Bulk actions" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 14px; border-radius: 14px; background: #ccfbf1">
+          <b style="font-size: 14px">{{selLine}}</b>
+          <span style="display: inline-flex; align-items: center; gap: 6px">
+            <select aria-label="VEN class for the selected medicines" value="{{bulkVen}}" onChange="{{setBulkVen}}" style="height: 36px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+              <option value="">Set VEN…</option><option>Vital</option><option>Essential</option><option>Necessary</option>
+            </select>
+            <button type="button" onClick="{{applyBulkVen}}" style="height: 36px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Apply</button>
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 6px">
+            <select aria-label="Place for the top-up level" value="{{bulkPlace}}" onChange="{{setBulkPlace}}" style="height: 36px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+              <option value="">Top-up at…</option><option value="store">Main store</option><option value="opd">OPD dispensary</option><option value="w3">Ward 3 · Medical</option><option value="mat">Maternity</option><option value="paed">Paediatrics</option><option value="epi">EPI clinic</option>
+            </select>
+            <input inputmode="numeric" aria-label="Top-up level, in each medicine's own unit" placeholder="Level" value="{{bulkLevel}}" onChange="{{setBulkLevel}}" style="width: 5.5rem; height: 36px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+            <button type="button" onClick="{{applyBulkLevel}}" style="height: 36px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Apply</button>
+          </span>
+          <button type="button" onClick="{{bulkRequest}}" style="height: 36px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Request top-ups</button>
+          <button type="button" onClick="{{bulkFree}}" style="height: 36px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Mark free</button>
+          <button type="button" onClick="{{clearSel}}" style="height: 36px; padding: 0 6px; border: 0; background: transparent; color: #0f766e; font: 600 13px Figtree, sans-serif; text-decoration: underline">Clear selection</button>
+        </div>
+      </sc-if>
+
+      <div style="overflow-x: auto">
+        <div style="min-width: 1240px">
+          <div style="{{headStyle}}">
+            <span style="display: grid; place-items: center"><input type="checkbox" aria-label="Select every medicine on this page" checked="{{allSel}}" onChange="{{toggleAll}}" style="width: 18px; height: 18px; margin: 0; accent-color: #0f766e"></span>
+            <span style="position: relative; display: flex; align-items: center; gap: 2px; min-width: 0">
+              <button type="button" onClick="{{nameHead.sort}}" style="display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 4px; border: 0; background: transparent; font: 600 12px Figtree, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: #4a5574; white-space: nowrap">Medicine <span aria-hidden="true">{{nameHead.ind}}</span></button>
+              <button type="button" aria-label="{{nameHead.menuAria}}" aria-expanded="{{nameHead.menuAttr}}" onClick="{{nameHead.menu}}" style="width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; display: grid; place-items: center; color: #5f6987">
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg>
+              </button>
+              <sc-if value="{{nameHead.menuOpen}}" hint-placeholder-val="{{false}}">
+                <div role="menu" aria-label="{{nameHead.menuAria}}" style="position: absolute; z-index: 6; top: 34px; left: 0; min-width: 200px; padding: 6px; background: #ffffff; border-radius: 14px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column; text-transform: none; letter-spacing: 0">
+                  <sc-for list="{{nameHead.items}}" as="it" hint-placeholder-count="4">
+                    <button type="button" role="menuitem" onClick="{{it.act}}" style="height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; text-align: left; font: 500 14px Figtree, sans-serif; color: #1b2540">{{it.label}}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </span>
+            <sc-for list="{{heads}}" as="h" hint-placeholder-count="7">
+              <span style="position: relative; display: flex; align-items: center; gap: 0; min-width: 0">
+                <button type="button" onClick="{{h.sort}}" style="display: inline-flex; align-items: center; gap: 4px; min-width: 0; height: 32px; padding: 0 4px; border: 0; background: transparent; font: 600 12px Figtree, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: #4a5574; white-space: nowrap; overflow: hidden">{{h.label}} <span aria-hidden="true">{{h.ind}}</span></button>
+                <button type="button" aria-label="{{h.menuAria}}" aria-expanded="{{h.menuAttr}}" onClick="{{h.menu}}" style="flex: 0 0 24px; width: 24px; height: 28px; border: 0; border-radius: 8px; background: transparent; display: grid; place-items: center; color: #5f6987">
+                  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg>
+                </button>
+                <sc-if value="{{h.menuOpen}}" hint-placeholder-val="{{false}}">
+                  <div role="menu" aria-label="{{h.menuAria}}" style="position: absolute; z-index: 6; top: 34px; left: 0; min-width: 200px; padding: 6px; background: #ffffff; border-radius: 14px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+                    <sc-for list="{{h.items}}" as="it" hint-placeholder-count="5">
+                      <button type="button" role="menuitem" onClick="{{it.act}}" style="height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; text-align: left; font: 500 14px Figtree, sans-serif; color: #1b2540">{{it.label}}</button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </span>
+            </sc-for>
+          </div>
+          <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+            <sc-for list="{{rows}}" as="m" hint-placeholder-count="20">
+              <li style="border-top: 1px solid #dde1e9">
+                <sc-if value="{{m.header}}" hint-placeholder-val="{{false}}">
+                  <span style="display: block; padding: 12px 0 4px 48px; font-size: 13px; line-height: 17px; font-weight: 600; color: #4a5574">{{m.name}} <span style="font-weight: 400; color: #5f6987">· {{m.count}}</span></span>
+                </sc-if>
+                <sc-if value="{{m.item}}" hint-placeholder-val="{{true}}">
+                  <div style="{{m.rowStyle}}">
+                    <span style="display: grid; place-items: center"><input type="checkbox" aria-label="{{m.checkAria}}" checked="{{m.checked}}" onChange="{{m.toggleSel}}" style="width: 18px; height: 18px; margin: 0; accent-color: #0f766e"></span>
+                    <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                      <button type="button" aria-expanded="{{m.openAttr}}" aria-label="{{m.openAria}}" onClick="{{m.toggle}}" style="display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 0; border: 0; background: transparent; text-align: left; font: 600 14px/19px Figtree, sans-serif; color: #1b2540; white-space: nowrap; overflow: hidden"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a5574" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" style="{{m.chev}}"><path d="m9 6 6 6-6 6"></path></svg><span style="overflow: hidden; text-overflow: ellipsis">{{m.generic}}</span><sc-if value="{{m.local}}" hint-placeholder-val="{{false}}"><span title="Added locally, not in any catalogue" style="display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; background: #e4e7ee; color: #4a5574">LOCAL</span></sc-if><sc-if value="{{m.lasa}}" hint-placeholder-val="{{false}}"><span title="{{m.lasaTip}}" style="display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; background: #fef3c7; color: #92400e">LASA</span></sc-if></button>
+                      <span style="font-size: 12px; line-height: 16px; color: #5f6987; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{m.sub}}</span>
+                    </span>
+                    <sc-if value="{{c.strength}}" hint-placeholder-val="{{true}}"><span style="font-size: 13px; line-height: 17px; font-weight: 600; font-variant-numeric: tabular-nums">{{m.strength}}</span></sc-if>
+                    <sc-if value="{{c.form}}" hint-placeholder-val="{{true}}"><span style="font-size: 13px; line-height: 17px">{{m.form}}</span></sc-if>
+                    <sc-if value="{{c.route}}" hint-placeholder-val="{{true}}"><span style="font-size: 13px; line-height: 17px; color: #4a5574">{{m.route}}</span></sc-if>
+                    <sc-if value="{{c.cls}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; line-height: 17px; color: #4a5574">{{m.cls}}</span></sc-if>
+                    <sc-if value="{{c.group}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; line-height: 17px; color: #4a5574">{{m.group}}</span></sc-if>
+                    <sc-if value="{{c.sale}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; line-height: 17px; color: #4a5574">{{m.sale}}</span></sc-if>
+                    <sc-if value="{{c.ven}}" hint-placeholder-val="{{true}}"><span style="font-size: 13px; line-height: 17px">{{m.ven}}</span></sc-if>
+                    <sc-if value="{{c.handling}}" hint-placeholder-val="{{true}}">
+                      <span style="display: flex; flex-wrap: wrap; gap: 3px">
+                        <sc-for list="{{m.flags}}" as="g" hint-placeholder-count="1"><span title="{{g.full}}" style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; background: #e4e7ee; color: #4a5574; font-size: 11px; font-weight: 600; white-space: nowrap">{{g.t}}</span></sc-for>
+                      </span>
+                    </sc-if>
+                    <sc-if value="{{c.stock}}" hint-placeholder-val="{{true}}">
+                      <span title="{{m.stockTip}}" style="display: flex; flex-direction: column; gap: 3px; min-width: 0; font-variant-numeric: tabular-nums">
+                        <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px"><span style="font-size: 14px; line-height: 19px; font-weight: 600">{{m.onHand}}</span><span style="font-size: 11px; color: #4a5574">{{m.pct}}</span></span>
+                        <span role="img" aria-label="{{m.barAria}}" style="display: block; height: 5px; border-radius: 999px; background: #e4e7ee; overflow: hidden"><span style="{{m.barStyle}}"></span></span>
+                      </span>
+                    </sc-if>
+                    <sc-if value="{{c.status}}" hint-placeholder-val="{{true}}">
+                      <span title="{{m.stockTip}}" style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; line-height: 16px; color: #4a5574">
+                        <sc-for list="{{m.status}}" as="st" hint-placeholder-count="1"><span style="display: inline-flex; align-items: center; gap: 5px; white-space: nowrap"><span aria-hidden="true" style="{{st.dot}}"></span>{{st.label}}</span></sc-for>
+                      </span>
+                    </sc-if>
+                    <sc-if value="{{c.expiry}}" hint-placeholder-val="{{true}}"><span style="display: flex; flex-direction: column"><span style="{{m.expStyle}}">{{m.expTop}}</span><span style="font-size: 11px; line-height: 14px; color: #5f6987">{{m.expSub}}</span></span></sc-if>
+                    <sc-if value="{{c.cover}}" hint-placeholder-val="{{true}}"><span style="{{m.coverStyle}}">{{m.cover}}</span></sc-if>
+                    <sc-if value="{{c.qc}}" hint-placeholder-val="{{true}}"><span title="{{m.qcTip}}" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; line-height: 16px; color: #4a5574; white-space: nowrap"><span aria-hidden="true" style="{{m.qcDot}}"></span>{{m.qcLabel}}</span></sc-if>
+                    <sc-if value="{{c.price}}" hint-placeholder-val="{{true}}">
+                      <span style="display: flex; flex-direction: column; font-size: 13px; line-height: 17px; font-variant-numeric: tabular-nums"><span>{{m.price}}</span><span style="font-size: 11px; line-height: 14px; color: #5f6987">{{m.priceSub}}</span></span>
+                    </sc-if>
+                  </div>
+                  <sc-if value="{{m.open}}" hint-placeholder-val="{{false}}">
+                    <div role="region" aria-label="{{m.openAria}}" style="margin: 0 0 10px 46px; border-radius: 12px; background: #f6f7f9; overflow: hidden; display: flex; flex-direction: column">
+                      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px 0">
+                        <span style="font-size: 13px; font-weight: 600">{{d.identity}}</span>
+                        <span style="font-size: 12px; line-height: 16px; color: #5f6987">{{d.summary}}</span>
+                      </div>
+
+                      <div style="padding: 12px 16px 14px; box-sizing: border-box">
+                        <sc-if value="{{d.paneAbout}}" hint-placeholder-val="{{true}}">
+                          <h4 style="margin: 0 0 8px; font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5f6987">About</h4>
+                          <dl style="margin: 0 0 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0 12px; padding: 6px 12px; border-radius: 10px; background: #ffffff">
+                            <sc-for list="{{d.spec}}" as="sp" hint-placeholder-count="5"><div style="display: flex; flex-direction: column; gap: 2px; padding: 4px 0"><dt style="font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5f6987">{{sp.k}}</dt><dd style="margin: 0; font-size: 13px; line-height: 17px; font-weight: 600">{{sp.v}}</dd></div></sc-for>
+                          </dl>
+                          <p style="margin: -4px 0 12px; font-size: 11px; line-height: 15px; color: #5f6987">A different strength, form or route is its own line, with its own stock and price. Add it from the catalogue.</p>
+                          <sc-if value="{{d.hasQc}}" hint-placeholder-val="{{false}}">
+                            <div role="note" style="margin: 0 0 12px; padding: 8px 12px; border-radius: 10px; background: #fef3c7; color: #1b2540; font-size: 12px; line-height: 17px">
+                              <b>Checks to fix</b>
+                              <ul style="margin: 2px 0 0; padding-left: 18px"><sc-for list="{{d.qc}}" as="q" hint-placeholder-count="2"><li>{{q}}</li></sc-for></ul>
+                            </div>
+                          </sc-if>
+                          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin: 0 0 12px; font-size: 12px; color: #4a5574">
+                            <span>{{d.reviewedLine}}</span>
+                            <button type="button" onClick="{{markReviewed}}" style="height: 28px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Mark reviewed</button>
+                          </div>
+                          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px">
+                            <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0">
+                              <label style="display: flex; flex-direction: column; gap: 6px">
+                                <span style="font-size: 12px; font-weight: 600; color: #4a5574">Therapeutic class</span>
+                                <select value="{{d.cls}}" onChange="{{setCls}}" style="height: 30px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540">
+                                  <option>Antibiotics</option><option>Analgesics</option><option>Fluids and electrolytes</option><option>Antihypertensives</option><option>Anticonvulsants</option><option>Antidiabetics</option><option>Haematinics</option><option>Obstetric (uterotonics)</option><option>Vaccines</option><option>Antimalarials</option><option>Respiratory</option><option>Gastrointestinal</option><option>Anthelmintics</option><option>Corticosteroids</option><option>Diuretics</option><option>Antineoplastics (anticancer)</option><option>Immunosuppressants</option><option>Antiretrovirals</option><option>Anti-TB</option><option>Antifungals</option><option>Antivirals</option><option>Anticoagulants</option><option>Lipid-lowering</option><option>Psychiatric</option><option>Dermatologicals</option><option>Eye and ear</option><option>Hormones and contraceptives</option><option>Thyroid</option><option>Antihistamines</option><option>Vitamins and minerals</option><option>Anaesthetics</option>
+                                </select>
+                              </label>
+                              <div style="display: flex; flex-direction: column; gap: 6px">
+                                <span style="font-size: 12px; font-weight: 600; color: #4a5574">VEN class</span>
+                                <div role="radiogroup" aria-label="VEN class" style="display: flex; gap: 4px; padding: 4px; background: #e4e7ee; border-radius: 999px; align-self: flex-start">
+                                  <sc-for list="{{venOpts}}" as="v" hint-placeholder-count="3">
+                                    <button type="button" role="radio" aria-checked="{{v.on}}" onClick="{{v.pick}}" style="{{v.style}}">{{v.label}}</button>
+                                  </sc-for>
+                                </div>
+                                <span style="font-size: 12px; line-height: 16px; color: #5f6987">Budget cuts never touch Vital.</span>
+                              </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+                              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Handling</span>
+                              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+                                <sc-for list="{{flagOpts}}" as="f" hint-placeholder-count="4">
+                                  <button type="button" aria-pressed="{{f.pressed}}" onClick="{{f.toggle}}" style="{{f.style}}">
+                                    <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                                      <span style="font-size: 13px; line-height: 17px; font-weight: 600">{{f.label}}</span>
+                                      <span style="{{f.boxStyle}}">
+                                        <sc-if value="{{f.on}}" hint-placeholder-val="{{false}}">
+                                          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                                        </sc-if>
+                                      </span>
+                                    </span>
+                                    <span style="font-size: 11px; line-height: 15px; color: #4a5574">{{f.hint}}</span>
+                                    <sc-if value="{{f.hasFridges}}" hint-placeholder-val="{{false}}">
+                                      <span style="display: flex; flex-direction: column; gap: 3px; margin-top: 4px; padding-top: 6px; border-top: 1px solid rgba(27,37,64,0.12)">
+                                        <sc-for list="{{f.fridges}}" as="fr" hint-placeholder-count="2">
+                                          <span style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px; font-size: 11px; line-height: 15px">
+                                            <span style="color: #1b2540"><b>{{fr.where}}</b> {{fr.fridge}}</span>
+                                            <span style="{{fr.style}}">{{fr.temp}}</span>
+                                          </span>
+                                        </sc-for>
+                                      </span>
+                                    </sc-if>
+                                  </button>
+                                </sc-for>
+                              </div>
+                            </div>
+                          </div>
+                        </sc-if>
+
+                        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #dde1e9">
+                          <h4 style="margin: 0 0 8px; font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5f6987">Rules that apply <span style="font-weight: 500; text-transform: none; letter-spacing: 0">· only the ones for this medicine</span></h4>
+                          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px">
+                            <sc-for list="{{d.rules}}" as="rg" hint-placeholder-count="2">
+                              <div style="background: #ffffff; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px">
+                                <span style="font-size: 13px; line-height: 17px; font-weight: 600">{{rg.scope}} <span style="font-size: 11px; font-weight: 500; color: #5f6987">{{rg.note}}</span></span>
+                                <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 18px; color: #4a5574">
+                                  <sc-for list="{{rg.rules}}" as="r" hint-placeholder-count="2">
+                    <sc-if value="{{r.visible}}" hint-placeholder-val="{{true}}"><li>
+                      <span style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px"><span>{{r.t}}</span><sc-if value="{{r.idle}}" hint-placeholder-val="{{true}}"><button type="button" aria-label="{{r.changeAria}}" onClick="{{r.change}}" style="height: 24px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Change</button></sc-if></span>
+                      <sc-if value="{{r.editing}}" hint-placeholder-val="{{false}}">
+                        <span style="display: flex; flex-direction: column; gap: 6px; margin: 6px 0 4px; padding: 8px; border-radius: 10px; background: #f6f7f9">
+                          <input aria-label="New wording" value="{{r.ev}}" onChange="{{r.setV}}" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                          <input aria-label="Why the change" placeholder="Why the change" value="{{r.er}}" onChange="{{r.setR}}" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                          <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                            <button type="button" onClick="{{r.save}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 12px Figtree, sans-serif">Send for signing</button>
+                            <button type="button" onClick="{{r.cancel}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Cancel</button>
+                          </span>
+                        </span>
+                      </sc-if>
+                      <sc-if value="{{r.pending}}" hint-placeholder-val="{{false}}">
+                        <span style="display: flex; flex-direction: column; gap: 4px; margin: 6px 0 4px; padding: 8px; border-radius: 10px; background: #f6f7f9; color: #1b2540">
+                          <span style="font-size: 12px; line-height: 16px"><b>Proposed:</b> {{r.pv}}</span>
+                          <span style="font-size: 11px; line-height: 15px; color: #4a5574">Why: {{r.pr}} · applies once both have signed</span>
+                          <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                            <sc-for list="{{r.signers}}" as="sg" hint-placeholder-count="2"><button type="button" disabled="{{sg.done}}" onClick="{{sg.sign}}" style="{{sg.style}}">{{sg.label}}</button></sc-for>
+                            <button type="button" onClick="{{r.withdraw}}" style="height: 28px; padding: 0 4px; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Withdraw</button>
+                          </span>
+                        </span>
+                      </sc-if>
+                    </li></sc-if>
+                  </sc-for>
+                                </ul>
+                                <sc-if value="{{rg.canAdd}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{rg.add}}" style="align-self: flex-start; height: 28px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif">+ Add a rule for this medicine</button></sc-if>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </div>
+                        <sc-if value="{{d.paneStock}}" hint-placeholder-val="{{true}}">
+                          <h4 style="margin: 14px 0 8px; padding-top: 12px; border-top: 1px solid #dde1e9; font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5f6987">Packs and top-up levels</h4>
+                          <div style="display: grid; grid-template-columns: minmax(0, 0.75fr) minmax(0, 2fr); gap: 16px">
+                            <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+                              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Pack sizes it arrives in</span>
+                              <span style="font-size: 12px; line-height: 16px; color: #5f6987">Counted in {{d.units}}.</span>
+                              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+                                <sc-for list="{{packOpts}}" as="p" hint-placeholder-count="6">
+                                  <button type="button" aria-pressed="{{p.on}}" onClick="{{p.toggle}}" style="{{p.style}}">{{p.label}}</button>
+                                </sc-for>
+                              </div>
+                              <div style="display: flex; align-items: center; gap: 6px">
+                                <input inputmode="numeric" aria-label="Other pack size" placeholder="Other size" value="{{d.custom}}" onChange="{{setCustom}}" style="width: 7rem; height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                                <button type="button" onClick="{{addCustom}}" style="height: 32px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Add size</button>
+                              </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+                              <span style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px">
+                                <span style="font-size: 12px; font-weight: 600; color: #4a5574">Stock per place</span>
+                                <span role="status" aria-live="polite" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: #4a5574"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #0f766e"></span>{{d.liveLine}}</span>
+                              </span>
+                              <span style="font-size: 12px; line-height: 16px; color: #5f6987">On hand updates live as stock is dispensed, issued or received. Top up to = full stock. Low below half. Blank = not kept.</span>
+                              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 10rem 12rem 7.5rem; gap: 0 12px; font-size: 14px">
+                                <span style="padding: 4px 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6987">Place</span>
+                                <span style="padding: 4px 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6987">On hand now</span>
+                                <span style="padding: 4px 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6987">Top up to</span>
+                                <span style="padding: 4px 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6987; text-align: right">Low below</span>
+                                <sc-for list="{{levelRows}}" as="l" hint-placeholder-count="6">
+                                  <span style="padding: 8px 0; border-top: 1px solid #dde1e9; align-self: center">{{l.place}}</span>
+                                  <span style="{{l.haveCell}}"><span style="font-weight: 600; font-variant-numeric: tabular-nums">{{l.have}}</span><sc-if value="{{l.hasFlag}}" hint-placeholder-val="{{false}}"><span style="{{l.flagStyle}}">{{l.flag}}</span></sc-if><sc-if value="{{l.canOrder}}" hint-placeholder-val="{{false}}"><button type="button" aria-label="{{l.orderAria}}" onClick="{{l.order}}" style="height: 28px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif; white-space: nowrap">{{l.orderLabel}}</button></sc-if><sc-if value="{{l.isOrdered}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #4a5574">{{l.orderedText}} <button type="button" aria-label="{{l.undoAria}}" onClick="{{l.undo}}" style="height: 24px; padding: 0 4px; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Undo</button></span></sc-if></span>
+                                  <span style="padding: 5px 0; border-top: 1px solid #dde1e9; display: flex; align-items: center; gap: 6px"><input inputmode="numeric" aria-label="{{l.aria}}" value="{{l.value}}" onChange="{{l.set}}" placeholder="Not kept" style="flex: 1; min-width: 0; height: 30px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box"><span style="font-size: 13px; color: #4a5574">{{d.units}}</span></span>
+                                  <span style="padding: 8px 0; border-top: 1px solid #dde1e9; text-align: right; align-self: center; font-variant-numeric: tabular-nums; color: #5f6987">{{l.low}}</span>
+                                </sc-for>
+                              </div>
+                            </div>
+                          </div>
+                        </sc-if>
+
+                        <div style="margin-top: 12px">
+                          <span style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: #4a5574">Batches · first to expire, first out</span>
+                          <sc-if value="{{d.noBatches}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #5f6987">No stock received yet.</span></sc-if>
+                          <div style="display: flex; flex-direction: column; gap: 4px">
+                            <sc-for list="{{d.batches}}" as="b" hint-placeholder-count="2"><div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; padding: 6px 10px; border-radius: 8px; background: #ffffff"><span style="font-size: 12px; line-height: 16px; font-weight: 600">{{b.t}}</span><span style="{{b.style}}">{{b.exp}}</span></div></sc-for>
+                          </div>
+                        </div>
+                        <sc-if value="{{d.panePrices}}" hint-placeholder-val="{{true}}">
+                          <h4 style="margin: 14px 0 8px; padding-top: 12px; border-top: 1px solid #dde1e9; font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5f6987">Prices</h4>
+                          <div style="display: flex; flex-direction: column; gap: 14px">
+                            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+                              <span style="display: flex; flex-direction: column; gap: 2px">
+                                <span style="font-size: 12px; font-weight: 600; color: #4a5574">Price, charged per {{d.unit}} issued</span>
+                                <span style="font-size: 12px; line-height: 16px; color: #5f6987">{{d.ruleHint}}</span>
+                              </span>
+                              <span style="display: flex; align-items: center; gap: 10px">
+                                <span style="font-size: 14px; font-weight: 600">Free for every payer</span>
+                                <button type="button" role="switch" aria-checked="{{d.freeAttr}}" aria-label="Free for every payer" onClick="{{toggleFree}}" style="{{d.freeTrack}}"><span style="{{d.freeKnob}}"></span></button>
+                              </span>
+                            </div>
+                            <sc-if value="{{d.charged}}" hint-placeholder-val="{{true}}">
+                              <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr); gap: 0 16px; align-items: center">
+                                <span style="padding: 4px 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6987">Payer</span>
+                                <span style="padding: 4px 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6987">Price</span>
+                                <span style="padding: 4px 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6987">Works out to</span>
+                                <sc-for list="{{priceRows}}" as="pr" hint-placeholder-count="2">
+                                  <span style="padding: 8px 0; border-top: 1px solid #dde1e9; font-size: 14px">{{pr.payer}} <span style="font-size: 12px; color: #5f6987">· {{pr.kind}}</span></span>
+                                  <label style="padding: 5px 0; border-top: 1px solid #dde1e9; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #4a5574; white-space: nowrap">UGX
+                                    <input inputmode="numeric" aria-label="{{pr.aria}}" value="{{pr.value}}" onChange="{{pr.set}}" placeholder="{{pr.ph}}" style="width: 7rem; height: 30px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                                    per {{d.unit}}</label>
+                                  <span style="padding: 8px 0; border-top: 1px solid #dde1e9; font-size: 12px; line-height: 16px; color: #5f6987; font-variant-numeric: tabular-nums">{{pr.packLine}}</span>
+                                </sc-for>
+                              </div>
+                              <sc-if value="{{rowPayerClosed}}" hint-placeholder-val="{{true}}">
+                                <button type="button" onClick="{{openPayerRow}}" style="align-self: flex-start; height: 32px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">+ Add insurance or scheme</button>
+                              </sc-if>
+                              <sc-if value="{{rowPayerOpen}}" hint-placeholder-val="{{false}}">
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: #ffffff">
+                                  <select aria-label="Kind of payer" value="{{payerKind}}" onChange="{{setPayerKind}}" style="height: 32px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540">
+                                    <option>Insurance</option><option>Community scheme</option><option>Employer scheme</option><option>Other scheme</option>
+                                  </select>
+                                  <input aria-label="Name of the insurer or scheme" placeholder="Its name" value="{{payerName}}" onChange="{{setPayerName}}" style="flex: 1 1 10rem; min-width: 0; height: 32px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540">
+                                  <button type="button" onClick="{{addPayer}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 13px Figtree, sans-serif">Add</button>
+                                  <button type="button" onClick="{{closePayer}}" style="height: 32px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Cancel</button>
+                                  <span style="flex-basis: 100%; font-size: 12px; line-height: 16px; color: #5f6987">Added once, it gets a price box on every medicine. Blank means it pays the cash price.</span>
+                                </div>
+                              </sc-if>
+                            </sc-if>
+                          </div>
+                        </sc-if>
+
+                        <sc-if value="{{d.paneBrands}}" hint-placeholder-val="{{true}}">
+                          <h4 style="margin: 14px 0 8px; padding-top: 12px; border-top: 1px solid #dde1e9; font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5f6987">Brands <span style="font-weight: 500; text-transform: none; letter-spacing: 0">· {{d.brandCount}}</span></h4>
+                          <div style="display: flex; flex-direction: column; gap: 10px">
+                            <span style="font-size: 12px; line-height: 16px; color: #5f6987">Blank price = same as the generic.</span>
+                            <sc-if value="{{d.noBrands}}" hint-placeholder-val="{{true}}">
+                              <p style="margin: 0; padding: 12px 14px; border-radius: 14px; background: #ffffff; font-size: 14px; line-height: 19px; color: #4a5574">No brands mapped. Dispensing records the generic name only.</p>
+                            </sc-if>
+                            <sc-for list="{{brandRows}}" as="b" hint-placeholder-count="2">
+                              <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid #dde1e9">
+                                <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                                  <span style="font-size: 15px; line-height: 21px; font-weight: 600">{{b.name}}</span>
+                                  <span style="font-size: 12px; line-height: 16px; color: #5f6987">{{b.maker}}</span>
+                                </span>
+                                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #4a5574; white-space: nowrap">UGX
+                                  <input inputmode="numeric" aria-label="{{b.aria}}" value="{{b.price}}" onChange="{{b.setPrice}}" placeholder="{{b.ph}}" style="width: 8rem; height: 30px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                                  per {{d.unit}}</label>
+                                <button type="button" aria-label="{{b.removeAria}}" onClick="{{b.remove}}" style="height: 30px; padding: 0 10px; border: 0; border-radius: 999px; background: transparent; color: #0f766e; font: 600 13px Figtree, sans-serif; text-decoration: underline">Remove</button>
+                              </div>
+                            </sc-for>
+                            <sc-if value="{{d.brandIdle}}" hint-placeholder-val="{{true}}">
+                              <button type="button" onClick="{{openBrand}}" style="align-self: flex-start; height: 32px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">+ Add a brand</button>
+                            </sc-if>
+                            <sc-if value="{{d.brandAdding}}" hint-placeholder-val="{{false}}">
+                              <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; padding: 10px 12px; border-radius: 14px; background: #ffffff">
+                                <label style="flex: 1 1 14rem; display: flex; flex-direction: column; gap: 4px">
+                                  <span style="font-size: 12px; font-weight: 600; color: #4a5574">Brand</span>
+                                  <select value="{{d.brandPick}}" onChange="{{setBrandPick}}" style="height: 32px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540">
+                                    <option value="">Choose from the list</option>
+                                    <sc-for list="{{brandChoices}}" as="c" hint-placeholder-count="3"><option value="{{c.key}}">{{c.label}}</option></sc-for>
+                                    <option value="__new">Not listed: type it</option>
+                                  </select>
+                                </label>
+                                <sc-if value="{{d.brandNew}}" hint-placeholder-val="{{false}}">
+                                  <label style="flex: 1 1 9rem; display: flex; flex-direction: column; gap: 4px">
+                                    <span style="font-size: 12px; font-weight: 600; color: #4a5574">Brand name</span>
+                                    <input value="{{d.brandName}}" onChange="{{setBrandName}}" style="height: 32px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540">
+                                  </label>
+                                  <label style="flex: 1 1 9rem; display: flex; flex-direction: column; gap: 4px">
+                                    <span style="font-size: 12px; font-weight: 600; color: #4a5574">Maker</span>
+                                    <input value="{{d.brandMaker}}" onChange="{{setBrandMaker}}" style="height: 32px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540">
+                                  </label>
+                                </sc-if>
+                                <button type="button" onClick="{{addBrand}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 13px Figtree, sans-serif">Add brand</button>
+                                <button type="button" onClick="{{closeBrand}}" style="height: 32px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Cancel</button>
+                                <span style="flex-basis: 100%; font-size: 12px; line-height: 16px; color: #5f6987">A starter list of brands common in Uganda and East Africa. Check each one is on the NDA register before you stock it.</span>
+                              </div>
+                            </sc-if>
+                          </div>
+                        </sc-if>
+
+                        <sc-if value="{{d.paneHistory}}" hint-placeholder-val="{{true}}">
+                          <h4 style="margin: 14px 0 8px; padding-top: 12px; border-top: 1px solid #dde1e9; font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5f6987">History</h4>
+                          <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+                            <sc-for list="{{d.history}}" as="h" hint-placeholder-count="2">
+                              <li style="padding: 10px 0; border-bottom: 1px solid #dde1e9; font-size: 14px; line-height: 19px; color: #1b2540">{{h}}</li>
+                            </sc-for>
+                          </ol>
+                        </sc-if>
+                      </div>
+
+                      <sc-if value="{{d.hasError}}" hint-placeholder-val="{{false}}">
+                        <p role="alert" style="margin: 0 20px 12px; padding: 10px 14px; border-radius: 12px; background: #e4e7ee; font-size: 14px; line-height: 19px; font-weight: 600">{{d.error}}</p>
+                      </sc-if>
+                      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 16px; border-top: 1px solid #dde1e9">
+                        <button type="button" onClick="{{stopStocking}}" style="height: 32px; padding: 0 4px; border: 0; background: transparent; color: #0f766e; font: 600 13px Figtree, sans-serif; text-decoration: underline">Stop stocking</button>
+                        <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+                          <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #4a5574">Changes run from
+                            <input type="date" value="{{d.from}}" onChange="{{setFrom}}" style="height: 32px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540">
+                          </label>
+                          <button type="button" onClick="{{closeEdit}}" style="height: 32px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Cancel</button>
+                          <button type="button" onClick="{{saveEdit}}" style="height: 32px; padding: 0 18px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 13px Figtree, sans-serif; box-shadow: 0 8px 22px -6px rgba(45,212,191,0.65)">Save changes</button>
+                        </span>
+                      </div>
+                    </div>
+                  </sc-if>
+                </sc-if>
+              </li>
+            </sc-for>
+          </ul>
+          <sc-if value="{{noMatch}}" hint-placeholder-val="{{false}}">
+            <p style="margin: 0; padding: 12px 14px; border-radius: 14px; background: rgba(228,231,238,0.6); font-size: 15px; line-height: 21px">No medicine matches. <button type="button" onClick="{{clearFind}}" style="border: 0; padding: 0; background: transparent; color: #0f766e; font: 600 15px Figtree, sans-serif; text-decoration: underline">Show all</button></p>
+          </sc-if>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; font-size: 13px; color: #4a5574">
+        <span role="status" style="font-variant-numeric: tabular-nums">{{pageLine}}</span>
+        <span style="display: flex; align-items: center; gap: 8px">
+          <button type="button" disabled="{{noPrev}}" onClick="{{prevPage}}" style="{{prevStyle}}">Previous</button>
+          <span style="font-variant-numeric: tabular-nums">{{pageOf}}</span>
+          <button type="button" disabled="{{noNext}}" onClick="{{nextPage}}" style="{{nextStyle}}">Next</button>
+        </span>
+      </div>
+    </section>
+  </main>
+
+  <sc-if value="{{ruleDlgOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="{{ruleDlgTitle}}" style="width: 600px; max-width: 100%; background: #f6f7f9; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px 8px">
+          <h2 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 600">{{ruleDlgTitle}}</h2>
+          <button type="button" aria-label="Close" onClick="{{closeRuleDlg}}" style="width: 40px; height: 40px; border: 0; border-radius: 12px; background: #ffffff; display: grid; place-items: center">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div style="padding: 4px 20px 12px">
+          <sc-for list="{{ruleDlgList}}" as="rg" hint-placeholder-count="1">
+              <div style="background: #ffffff; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+                  <span style="font-size: 14px; line-height: 19px; font-weight: 600">{{rg.scope}}</span>
+                  <sc-if value="{{rg.canShow}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{rg.show}}" style="height: 28px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline; white-space: nowrap">{{rg.countLabel}}</button></sc-if>
+                  <sc-if value="{{rg.noShow}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #5f6987; white-space: nowrap">{{rg.countLabel}}</span></sc-if>
+                </div>
+                <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 18px; color: #4a5574">
+                  <sc-for list="{{rg.rules}}" as="r" hint-placeholder-count="3">
+                    <li>
+                      <span style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px"><span>{{r.t}}</span><sc-if value="{{r.idle}}" hint-placeholder-val="{{true}}"><button type="button" aria-label="{{r.changeAria}}" onClick="{{r.change}}" style="height: 24px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Change</button></sc-if></span>
+                      <sc-if value="{{r.editing}}" hint-placeholder-val="{{false}}">
+                        <span style="display: flex; flex-direction: column; gap: 6px; margin: 6px 0 4px; padding: 8px; border-radius: 10px; background: #f6f7f9">
+                          <input aria-label="New wording" value="{{r.ev}}" onChange="{{r.setV}}" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                          <input aria-label="Why the change" placeholder="Why the change" value="{{r.er}}" onChange="{{r.setR}}" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                          <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                            <button type="button" onClick="{{r.save}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 12px Figtree, sans-serif">Send for signing</button>
+                            <button type="button" onClick="{{r.cancel}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Cancel</button>
+                          </span>
+                        </span>
+                      </sc-if>
+                      <sc-if value="{{r.pending}}" hint-placeholder-val="{{false}}">
+                        <span style="display: flex; flex-direction: column; gap: 4px; margin: 6px 0 4px; padding: 8px; border-radius: 10px; background: #f6f7f9; color: #1b2540">
+                          <span style="font-size: 12px; line-height: 16px"><b>Proposed:</b> {{r.pv}}</span>
+                          <span style="font-size: 11px; line-height: 15px; color: #4a5574">Why: {{r.pr}} · applies once both have signed</span>
+                          <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                            <sc-for list="{{r.signers}}" as="sg" hint-placeholder-count="2"><button type="button" disabled="{{sg.done}}" onClick="{{sg.sign}}" style="{{sg.style}}">{{sg.label}}</button></sc-for>
+                            <button type="button" onClick="{{r.withdraw}}" style="height: 28px; padding: 0 4px; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Withdraw</button>
+                          </span>
+                        </span>
+                      </sc-if>
+                    </li>
+                  </sc-for>
+                </ul>
+                <sc-if value="{{rg.isAll}}" hint-placeholder-val="{{false}}">
+                  <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid #dde1e9; font-size: 13px; line-height: 17px">
+        <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+          <b>Price rule:</b> <span>{{ruleText}}</span>
+          <sc-if value="{{ruleClosed}}" hint-placeholder-val="{{true}}">
+            <button type="button" onClick="{{openRule}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">{{ruleButton}}</button>
+          </sc-if>
+          <sc-if value="{{ruleOpen}}" hint-placeholder-val="{{false}}">
+            <span style="display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px">
+              <label style="display: inline-flex; align-items: center; gap: 6px">cost +
+                <input inputmode="numeric" aria-label="Mark-up on the received unit cost, percent" value="{{ruleDraft}}" onChange="{{setRuleDraft}}" style="width: 4.5rem; height: 32px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">%</label>
+              <button type="button" onClick="{{saveRule}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 13px Figtree, sans-serif">Save</button>
+              <button type="button" onClick="{{closeRule}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Cancel</button>
+              <sc-if value="{{hasRule}}" hint-placeholder-val="{{false}}">
+                <button type="button" onClick="{{removeRule}}" style="height: 32px; padding: 0 8px; border: 0; background: transparent; color: #0f766e; font: 600 13px Figtree, sans-serif; text-decoration: underline">Remove</button>
+              </sc-if>
+            </span>
+          </sc-if>
+        </span>
+        <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+          <b>Payers:</b> <span>{{payerText}}</span>
+          <sc-if value="{{payerClosed}}" hint-placeholder-val="{{true}}">
+            <button type="button" onClick="{{openPayerBar}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">+ Add insurance or scheme</button>
+          </sc-if>
+          <sc-if value="{{payerOpen}}" hint-placeholder-val="{{false}}">
+            <span style="display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px">
+              <select aria-label="Kind of payer" value="{{payerKind}}" onChange="{{setPayerKind}}" style="height: 32px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                <option>Insurance</option><option>Community scheme</option><option>Employer scheme</option><option>Other scheme</option>
+              </select>
+              <input aria-label="Name of the insurer or scheme" placeholder="Its name" value="{{payerName}}" onChange="{{setPayerName}}" style="width: 10rem; height: 32px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+              <button type="button" onClick="{{addPayer}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 13px Figtree, sans-serif">Add</button>
+              <button type="button" onClick="{{closePayer}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Cancel</button>
+            </span>
+          </sc-if>
+        </span>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+        </div>
+        <p style="margin: 0; padding: 12px 20px 18px; border-top: 1px solid #dde1e9; font-size: 12px; line-height: 16px; color: #5f6987">A change applies once the in-charge and a second signer sign. <a href="Rules.dc.html" style="font-weight: 600">See all rules</a></p>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{filtering}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 48px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="Filters" style="width: 880px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 24px; border-bottom: 1px solid #dde1e9">
+          <h2 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 600">Filters</h2>
+          <button type="button" aria-label="Close" onClick="{{closeFilters}}" style="width: 40px; height: 40px; border: 0; border-radius: 12px; background: #f6f7f9; display: grid; place-items: center">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div style="padding: 16px 24px 8px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: grid; grid-template-columns: 5.5rem minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.2fr) 40px; gap: 8px; align-items: center">
+            <span></span>
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Column</span>
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Operator</span>
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Value</span>
+            <span></span>
+            <sc-for list="{{draftRows}}" as="r" hint-placeholder-count="2">
+              <span>
+                <sc-if value="{{r.first}}" hint-placeholder-val="{{true}}"><span style="display: grid; place-items: center; height: 40px; border-radius: 10px; background: #f6f7f9; font-size: 14px; font-weight: 600">Where</span></sc-if>
+                <sc-if value="{{r.notFirst}}" hint-placeholder-val="{{false}}">
+                  <select aria-label="{{r.joinAria}}" value="{{r.join}}" onChange="{{r.setJoin}}" style="width: 100%; height: 40px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 600 14px Figtree, sans-serif; color: #1b2540"><option>AND</option><option>OR</option></select>
+                </sc-if>
+              </span>
+              <select aria-label="{{r.colAria}}" value="{{r.col}}" onChange="{{r.setCol}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                <sc-for list="{{fcols}}" as="fc" hint-placeholder-count="10"><option value="{{fc.key}}">{{fc.label}}</option></sc-for>
+              </select>
+              <select aria-label="{{r.opAria}}" value="{{r.op}}" onChange="{{r.setOp}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                <sc-for list="{{r.ops}}" as="o" hint-placeholder-count="2"><option value="{{o}}">{{o}}</option></sc-for>
+              </select>
+              <span>
+                <sc-if value="{{r.isSelect}}" hint-placeholder-val="{{true}}">
+                  <select aria-label="{{r.valAria}}" value="{{r.val}}" onChange="{{r.setVal}}" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                    <sc-for list="{{r.opts}}" as="o" hint-placeholder-count="3"><option value="{{o}}">{{o}}</option></sc-for>
+                  </select>
+                </sc-if>
+                <sc-if value="{{r.isInput}}" hint-placeholder-val="{{false}}">
+                  <input aria-label="{{r.valAria}}" inputmode="{{r.mode}}" placeholder="{{r.ph}}" value="{{r.val}}" onChange="{{r.setVal}}" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                </sc-if>
+                <sc-if value="{{r.noValue}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f6987">No value needed</span></sc-if>
+              </span>
+              <button type="button" aria-label="{{r.delAria}}" onClick="{{r.remove}}" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; display: grid; place-items: center; color: #4a5574">
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>
+              </button>
+            </sc-for>
+          </div>
+          <sc-if value="{{draftEmpty}}" hint-placeholder-val="{{false}}">
+            <p style="margin: 0; padding: 10px 14px; border-radius: 12px; background: #f6f7f9; font-size: 14px; color: #4a5574">No conditions, so every medicine shows.</p>
+          </sc-if>
+          <button type="button" onClick="{{addCond}}" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 4px; border: 0; background: transparent; color: #0f766e; font: 600 14px Figtree, sans-serif">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+            Add condition
+          </button>
+          <p style="margin: 0; font-size: 12px; line-height: 16px; color: #5f6987">Conditions are read top to bottom: AND narrows the list, OR widens it.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 24px; border-top: 1px solid #dde1e9">
+          <span style="display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px">
+            <input aria-label="Name for a saved view" placeholder="Name this view, e.g. Low at the wards" value="{{saveName}}" onChange="{{setSaveName}}" style="width: 16rem; height: 40px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+            <button type="button" onClick="{{saveView}}" style="height: 40px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 14px Figtree, sans-serif">Save as a view</button>
+          </span>
+          <span style="display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px">
+            <button type="button" onClick="{{clearDraft}}" style="height: 40px; padding: 0 8px; border: 0; background: transparent; color: #0f766e; font: 600 14px Figtree, sans-serif; text-decoration: underline">Clear all</button>
+            <button type="button" onClick="{{closeFilters}}" style="height: 40px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 15px Figtree, sans-serif">Cancel</button>
+            <button type="button" onClick="{{applyFilters}}" style="height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 15px Figtree, sans-serif; box-shadow: 0 8px 22px -6px rgba(45,212,191,0.65)">Apply filters</button>
+          </span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{picking}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 48px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="{{pickTitle}}" style="width: 820px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); overflow: hidden; display: flex; flex-direction: column">
+
+        <sc-if value="{{pickList}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 0 8px 0 16px; border-bottom: 1px solid #dde1e9">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f6987" stroke-width="1.75" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            <input aria-label="Find in the catalogues" placeholder="Generic name or class" value="{{pq}}" onChange="{{setPq}}" style="flex: 1; min-width: 0; height: 56px; border: 0; outline: none; background: transparent; font: 400 17px Figtree, sans-serif; color: #1b2540">
+            <button type="button" aria-label="Close" onClick="{{closePicker}}" style="width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; display: grid; place-items: center">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          <div role="group" aria-label="Catalogue" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 16px; border-bottom: 1px solid #dde1e9">
+            <sc-for list="{{pickSources}}" as="ps" hint-placeholder-count="5">
+              <button type="button" aria-pressed="{{ps.on}}" title="{{ps.tip}}" onClick="{{ps.pick}}" style="{{ps.style}}">{{ps.label}} <span style="font-weight: 500; color: #4a5574">· {{ps.n}}</span></button>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 8px 16px; border-bottom: 1px solid #dde1e9; font-size: 12px; font-weight: 600; color: #4a5574">
+            <label style="display: inline-flex; align-items: center; gap: 6px">Body system (ATC)
+              <select value="{{pickAtc}}" onChange="{{setPickAtc}}" style="height: 32px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 500 13px Figtree, sans-serif; color: #1b2540"><option value="All">All</option><sc-for list="{{atcOpts}}" as="o" hint-placeholder-count="14"><option value="{{o.v}}">{{o.label}}</option></sc-for></select>
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px">Class
+              <select value="{{pickCls}}" onChange="{{setPickCls}}" style="height: 32px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 500 13px Figtree, sans-serif; color: #1b2540"><option value="All">All classes</option><sc-for list="{{classOpts}}" as="o" hint-placeholder-count="6"><option value="{{o}}">{{o}}</option></sc-for></select>
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px">Sale category
+              <select value="{{pickSale}}" onChange="{{setPickSale}}" style="height: 32px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 500 13px Figtree, sans-serif; color: #1b2540"><option value="All">All</option><option>Controlled</option><option>Prescription only</option><option>Pharmacy only</option><option>Over the counter</option></select>
+            </label>
+          </div>
+          <ul aria-label="Catalogue items" style="list-style: none; margin: 0; padding: 8px; max-height: 420px; overflow: auto">
+            <sc-for list="{{catalogue}}" as="c" hint-placeholder-count="8">
+              <li>
+                <button type="button" aria-pressed="{{c.on}}" disabled="{{c.stocked}}" onClick="{{c.toggle}}" style="{{c.style}}">
+                  <span style="{{c.boxStyle}}">
+                    <sc-if value="{{c.ticked}}" hint-placeholder-val="{{false}}">
+                      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                    </sc-if>
+                  </span>
+                  <span style="display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; text-align: left">
+                    <span style="font-size: 15px; line-height: 21px; font-weight: 600">{{c.name}}</span>
+                    <span style="font-size: 13px; line-height: 17px; color: #5f6987">{{c.sub}}</span>
+                  </span>
+                  <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+                    <span style="display: flex; gap: 4px">
+                      <sc-for list="{{c.srcs}}" as="sr" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; background: #e4e7ee; color: #4a5574; font-size: 11px; font-weight: 600">{{sr}}</span></sc-for>
+                    </span>
+                    <span style="font-size: 12px; color: #5f6987">{{c.note}}</span>
+                  </span>
+                </button>
+              </li>
+            </sc-for>
+          </ul>
+          <sc-if value="{{noCatalogue}}" hint-placeholder-val="{{false}}">
+            <p style="margin: 0; padding: 4px 24px 16px; font-size: 14px; line-height: 20px; color: #4a5574">Nothing in this catalogue matches. If you stock it anyway, add it yourself below.</p>
+          </sc-if>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid #dde1e9">
+            <button type="button" onClick="{{openLocal}}" style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 4px; border: 0; background: transparent; color: #0f766e; font: 600 14px Figtree, sans-serif">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+              Not in any catalogue? Add it yourself
+            </button>
+            <span style="display: flex; align-items: center; gap: 8px">
+              <span role="status" style="font-size: 13px; color: #5f6987">{{pickedLine}}</span>
+              <button type="button" onClick="{{closePicker}}" style="height: 44px; padding: 0 18px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 16px Figtree, sans-serif">Cancel</button>
+              <button type="button" disabled="{{noneTicked}}" onClick="{{addPicked}}" style="{{addStyle}}">{{addLabel}}</button>
+            </span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{pickForm}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 8px 24px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <h2 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 600">Add a medicine that isn't in a catalogue</h2>
+              <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">It is marked as a local item. The in-charge confirms why it is stocked when they next review the list.</p>
+            </div>
+            <button type="button" aria-label="Close" onClick="{{closePicker}}" style="flex: 0 0 44px; width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; display: grid; place-items: center">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          <div style="padding: 8px 24px 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px">
+            <label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Generic name</span>
+              <input value="{{lf.generic}}" onChange="{{lf.setGeneric}}" placeholder="e.g. Cefixime" style="height: 40px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Strength</span>
+              <input value="{{lf.strength}}" onChange="{{lf.setStrength}}" placeholder="e.g. 200 mg or 100 mg/5 ml" style="height: 40px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Form</span>
+              <select value="{{lf.form}}" onChange="{{lf.setForm}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                <sc-for list="{{lf.forms}}" as="o" hint-placeholder-count="6"><option value="{{o}}">{{o}}</option></sc-for>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Route</span>
+              <select value="{{lf.route}}" onChange="{{lf.setRoute}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                <sc-for list="{{lf.routes}}" as="o" hint-placeholder-count="6"><option value="{{o}}">{{o}}</option></sc-for>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Issued and counted per</span>
+              <select value="{{lf.unit}}" onChange="{{lf.setUnit}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                <sc-for list="{{lf.units}}" as="o" hint-placeholder-count="6"><option value="{{o}}">{{o}}</option></sc-for>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Therapeutic class</span>
+              <select value="{{lf.cls}}" onChange="{{lf.setCls}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                <sc-for list="{{lf.classes}}" as="o" hint-placeholder-count="6"><option value="{{o}}">{{o}}</option></sc-for>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Pack sizes it arrives in</span>
+              <input value="{{lf.packs}}" onChange="{{lf.setPacks}}" placeholder="e.g. 10, 100" style="height: 40px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+            </label>
+            <label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; font-weight: 600; color: #4a5574">Why it is stocked</span>
+              <select value="{{lf.why}}" onChange="{{lf.setWhy}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                <option>Specialist request</option><option>Donation</option><option>Not yet on the national list</option><option>Bought locally during a stock-out</option><option>Other</option>
+              </select>
+            </label>
+            <div style="grid-column: 1 / -1; padding: 10px 14px; border-radius: 12px; background: #f6f7f9; font-size: 13px; line-height: 18px; color: #4a5574">
+              <span style="font-weight: 600; color: #1b2540">The new line: </span>{{lf.preview}}
+            </div>
+            <sc-if value="{{lf.hasError}}" hint-placeholder-val="{{false}}">
+              <p role="alert" style="grid-column: 1 / -1; margin: 0; padding: 10px 14px; border-radius: 12px; background: #fde2e1; color: #9f1d1d; font-size: 14px; line-height: 19px; font-weight: 600">{{lf.error}}</p>
+            </sc-if>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px 12px 24px; border-top: 1px solid #dde1e9">
+            <button type="button" onClick="{{backToCatalogue}}" style="height: 40px; padding: 0 4px; border: 0; background: transparent; color: #0f766e; font: 600 14px Figtree, sans-serif">← Back to the catalogues</button>
+            <button type="button" onClick="{{addLocal}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px Figtree, sans-serif; box-shadow: 0 8px 22px -6px rgba(45,212,191,0.65)">Add this medicine</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 20; padding: 12px 20px; border-radius: 999px; background: #1b2540; color: #ffffff; font-size: 15px; font-weight: 500; box-shadow: 0 10px 24px -10px rgba(27,37,64,0.5)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var med = function (id, name, unit, cls, ven, flags, packs, loose) {
+      return { id: id, name: name, unit: unit, cls: cls, ven: ven, flags: flags, packs: packs, loose: loose, levels: {}, prices: {}, free: false, brands: [], from: '2026-11-03', history: ['Added from the catalogue'] };
+    };
+    this.med = med;
+    // Starter brand list, keyed by the generic's id: [brand, maker]
+    this.BRANDS = {
+      amox: [['Amoxil', 'GSK'], ['Novamox', 'Cipla'], ['Generic (any maker)', 'Unbranded']],
+      ceft: [['Rocephin', 'Roche'], ['Oframax', 'Sun Pharma'], ['Monocef', 'Aristo'], ['Generic (any maker)', 'Unbranded']],
+      pcm: [['Panadol', 'Haleon'], ['Hedex', 'Haleon'], ['Generic (any maker)', 'Unbranded']],
+      morph: [['Generic (any maker)', 'Unbranded']],
+      metf: [['Glucophage', 'Merck'], ['Glycomet', 'USV'], ['Generic (any maker)', 'Unbranded']],
+      oxy: [['Syntocinon', 'Novartis'], ['Generic (any maker)', 'Unbranded']],
+      cipro: [['Ciproxin', 'Bayer'], ['Ciprobid', 'Zydus'], ['Generic (any maker)', 'Unbranded']],
+      ibu: [['Brufen', 'Abbott'], ['Nurofen', 'Reckitt'], ['Generic (any maker)', 'Unbranded']],
+      nif: [['Adalat', 'Bayer'], ['Generic (any maker)', 'Unbranded']],
+      insulin: [['Actrapid', 'Novo Nordisk'], ['Humulin R', 'Eli Lilly'], ['Generic (any maker)', 'Unbranded']],
+      miso: [['Cytotec', 'Pfizer'], ['Generic (any maker)', 'Unbranded']]
+    };
+    this.PLACES = [['store', 'Main store', 'Store'], ['opd', 'OPD dispensary', 'OPD'], ['w3', 'Ward 3 · Medical', 'Ward 3'], ['mat', 'Maternity', 'Maternity'], ['paed', 'Paediatrics', 'Paeds'], ['epi', 'EPI clinic', 'EPI']];
+    this.CLASSES = ['Antibiotics', 'Antimalarials', 'Analgesics', 'Fluids and electrolytes', 'Antihypertensives', 'Diuretics', 'Anticonvulsants', 'Antidiabetics', 'Haematinics', 'Obstetric (uterotonics)', 'Respiratory', 'Gastrointestinal', 'Anthelmintics', 'Corticosteroids', 'Vaccines', 'Antineoplastics (anticancer)', 'Immunosuppressants', 'Antiretrovirals', 'Anti-TB', 'Antifungals', 'Antivirals', 'Anticoagulants', 'Lipid-lowering', 'Psychiatric', 'Dermatologicals', 'Eye and ear', 'Hormones and contraceptives', 'Thyroid', 'Antihistamines', 'Vitamins and minerals', 'Anaesthetics'];
+    this.CATALOGUE = [
+      ['cyclo', 'Cyclophosphamide 500 mg powder for injection', 'vial', 'Antineoplastics (anticancer)', { cyto: true, high: true }, ['1'], false],
+      ['doxo', 'Doxorubicin 50 mg powder for injection', 'vial', 'Antineoplastics (anticancer)', { cyto: true, high: true }, ['1'], false],
+      ['mtx', 'Methotrexate 2.5 mg tablet', 'tablet', 'Antineoplastics (anticancer)', { cyto: true, high: true }, ['100'], false],
+      ['fu5', 'Fluorouracil 500 mg/10 ml injection', 'vial', 'Antineoplastics (anticancer)', { cyto: true, high: true }, ['1'], false],
+      ['vcr', 'Vincristine 1 mg/ml injection', 'vial', 'Antineoplastics (anticancer)', { cyto: true, high: true, cold: true }, ['1'], false],
+      ['cisp', 'Cisplatin 50 mg/50 ml injection', 'vial', 'Antineoplastics (anticancer)', { cyto: true, high: true }, ['1'], false],
+      ['pacl', 'Paclitaxel 100 mg/16.7 ml injection', 'vial', 'Antineoplastics (anticancer)', { cyto: true, high: true }, ['1'], false],
+      ['hu', 'Hydroxycarbamide 500 mg capsule', 'capsule', 'Antineoplastics (anticancer)', { cyto: true }, ['100'], false],
+      ['imat', 'Imatinib 400 mg tablet', 'tablet', 'Antineoplastics (anticancer)', { cyto: true }, ['30'], false],
+      ['tamox', 'Tamoxifen 20 mg tablet', 'tablet', 'Antineoplastics (anticancer)', {}, ['30'], false],
+      ['ondan', 'Ondansetron 8 mg tablet', 'tablet', 'Gastrointestinal', {}, ['10'], false],
+      ['aza', 'Azathioprine 50 mg tablet', 'tablet', 'Immunosuppressants', {}, ['100'], false],
+      ['tld', 'Tenofovir + lamivudine + dolutegravir 300/300/50 mg tablet', 'tablet', 'Antiretrovirals', {}, ['30', '90'], false],
+      ['rhze', 'Rifampicin + isoniazid + pyrazinamide + ethambutol 150/75/400/275 mg tablet', 'tablet', 'Anti-TB', {}, ['28', '672'], false],
+      ['fluc', 'Fluconazole 200 mg capsule', 'capsule', 'Antifungals', {}, ['100'], true],
+      ['acyc', 'Aciclovir 400 mg tablet', 'tablet', 'Antivirals', {}, ['100'], true],
+      ['hep', 'Heparin 5,000 IU/ml injection, 5 ml', 'vial', 'Anticoagulants', { high: true }, ['10'], false],
+      ['warf', 'Warfarin 5 mg tablet', 'tablet', 'Anticoagulants', { high: true }, ['100'], true],
+      ['atorva', 'Atorvastatin 20 mg tablet', 'tablet', 'Lipid-lowering', {}, ['30', '100'], true],
+      ['halo', 'Haloperidol 5 mg/ml injection', 'ampoule', 'Psychiatric', {}, ['10'], false],
+      ['fluox', 'Fluoxetine 20 mg capsule', 'capsule', 'Psychiatric', {}, ['100'], true],
+      ['ami', 'Amitriptyline 25 mg tablet', 'tablet', 'Psychiatric', {}, ['100'], true],
+      ['clotri', 'Clotrimazole 1% cream, 20 g', 'tube', 'Dermatologicals', {}, ['1'], false],
+      ['tetey', 'Tetracycline 1% eye ointment, 5 g', 'tube', 'Eye and ear', {}, ['1'], false],
+      ['dmpa', 'Medroxyprogesterone acetate 150 mg/ml injection', 'vial', 'Hormones and contraceptives', {}, ['1'], false],
+      ['coc', 'Levonorgestrel + ethinylestradiol 150/30 mcg tablet', 'tablet', 'Hormones and contraceptives', {}, ['28'], false],
+      ['levo', 'Levothyroxine 50 mcg tablet', 'tablet', 'Thyroid', {}, ['100'], true],
+      ['chlorph', 'Chlorphenamine 4 mg tablet', 'tablet', 'Antihistamines', {}, ['100', '1000'], true],
+      ['vita', 'Vitamin A 200,000 IU capsule', 'capsule', 'Vitamins and minerals', {}, ['100'], false],
+      ['ket', 'Ketamine 50 mg/ml injection, 10 ml', 'vial', 'Anaesthetics', { high: true }, ['1'], false],
+      ['lido', 'Lidocaine 2% injection, 20 ml', 'vial', 'Anaesthetics', {}, ['1'], false],
+      ['al', 'Artemether + lumefantrine 20/120 mg tablet', 'tablet', 'Antimalarials', {}, ['24', '30'], false],
+      ['artes', 'Artesunate 60 mg powder for injection', 'vial', 'Antimalarials', {}, ['1'], false],
+      ['salb', 'Salbutamol 100 mcg/dose inhaler', 'inhaler', 'Respiratory', {}, ['1'], false],
+      ['omep', 'Omeprazole 20 mg capsule', 'capsule', 'Gastrointestinal', {}, ['100'], true],
+      ['alb', 'Albendazole 400 mg tablet', 'tablet', 'Anthelmintics', {}, ['100'], true],
+      ['dexa', 'Dexamethasone 4 mg/ml injection', 'ampoule', 'Corticosteroids', {}, ['10'], false],
+      ['furo', 'Furosemide 40 mg tablet', 'tablet', 'Diuretics', {}, ['100'], true],
+      ['pred', 'Prednisolone 5 mg tablet', 'tablet', 'Corticosteroids', {}, ['100', '1000'], true],
+      ['amlo_dup', 'Amlodipine 5 mg tablets, pack of 30', 'tablet', 'Antihypertensives', {}, ['30'], false],
+      ['cipro', 'Ciprofloxacin 500 mg tablet', 'tablet', 'Antibiotics', {}, ['100'], true],
+      ['genta', 'Gentamicin 40 mg/ml injection', 'vial', 'Antibiotics', { high: true }, ['10', '50'], false],
+      ['ibu', 'Ibuprofen 200 mg tablet', 'tablet', 'Analgesics', {}, ['100', '1000'], true],
+      ['peth', 'Pethidine 50 mg/ml injection', 'ampoule', 'Analgesics', { controlled: true }, ['10'], false],
+      ['omorph', 'Morphine 10 mg/5 ml oral solution', 'bottle', 'Analgesics', { controlled: true }, [], true],
+      ['ns', 'Sodium chloride 0.9% 500 ml infusion', 'bottle', 'Fluids and electrolytes', {}, ['20'], false],
+      ['ors', 'Oral rehydration salts sachet', 'sachet', 'Fluids and electrolytes', {}, ['100'], true],
+      ['nif', 'Nifedipine 20 mg tablet', 'tablet', 'Antihypertensives', {}, ['100'], true],
+      ['mgso4', 'Magnesium sulfate 50% injection', 'ampoule', 'Obstetric (uterotonics)', { high: true }, ['10'], false],
+      ['miso', 'Misoprostol 200 mcg tablet', 'tablet', 'Obstetric (uterotonics)', {}, ['28', '100'], false],
+      ['ffa', 'Ferrous sulfate + folic acid tablet', 'tablet', 'Haematinics', {}, ['100', '1000'], true],
+      ['insulin', 'Soluble insulin 100 IU/ml vial', 'vial', 'Antidiabetics', { cold: true }, ['1'], false],
+      ['penta', 'Pentavalent vaccine (DTP-HepB-Hib)', 'dose', 'Vaccines', { cold: true, freeze: true }, ['10'], false]
+    ];
+    // Filter builder columns and operators; grid columns that can be shown or hidden
+    this.FCOLS = {
+      name: { label: 'Medicine name', type: 'text' },
+      strength: { label: 'Strength', type: 'text' },
+      form: { label: 'Form', type: 'enum', opts: ['Tablet', 'Dispersible tablet', 'Capsule', 'Syrup', 'Suspension', 'Oral solution', 'Oral drops', 'Powder (sachet)', 'Injection', 'Powder for injection', 'Suspension for injection', 'Infusion'] },
+      route: { label: 'Route', type: 'route', opts: ['Oral', 'IV', 'IM', 'SC', 'Intradermal', 'Rectal'] },
+      cls: { label: 'Class', type: 'enum', opts: this.CLASSES },
+      group: { label: 'Pharmacological group', type: 'text' },
+      sale: { label: 'Sale category', type: 'enum', opts: ['Controlled', 'Prescription only', 'Pharmacy only', 'Over the counter'] },
+      ven: { label: 'VEN', type: 'enum', opts: ['Vital', 'Essential', 'Necessary', 'Not set'] },
+      handling: { label: 'Handling', type: 'flag', opts: ['Controlled', 'High-risk', 'Cold chain', 'Freeze-sensitive', 'Cytotoxic'] },
+      status: { label: 'Stock status', type: 'status', opts: ['Low or out', 'Out', 'Low', 'OK', 'Over', 'Top-up not set'] },
+      onhand: { label: 'On hand', type: 'num' },
+      topup: { label: '% of top-up', type: 'num' },
+      cover: { label: 'Days of cover', type: 'num' },
+      price: { label: 'Cash price, UGX', type: 'num' },
+      brands: { label: 'Brands mapped', type: 'num' },
+      expiry: { label: 'Days to nearest expiry', type: 'num' },
+      qc: { label: 'Checks', type: 'qc', opts: ['Any issue', 'Missing details', 'Below cost', 'Top-up cover', 'Ward above store', 'Free with a price', 'Expires before use', 'Not moved in 90 days', 'Review due', 'Controlled flag missing', 'Duplicate line', 'Local item', 'No fridge'] }
+    };
+    this.OPS = { qc: ['shows', 'does not show'], route: ['includes', 'does not include'], text: ['contains', 'does not contain'], enum: ['is', 'is not'], flag: ['has', 'does not have'], status: ['any place is', 'no place is'], num: ['less than', 'more than', 'equals', 'is empty', 'is not empty'] };
+    this.COLDEF = [['strength', 'Strength', '6.5rem'], ['form', 'Form', '7rem'], ['route', 'Route', '5rem'], ['cls', 'Class', '8rem'], ['group', 'Group', '9rem'], ['sale', 'Sale category', '7.5rem'], ['ven', 'VEN', '4.5rem'], ['handling', 'Handling', '6rem'], ['stock', 'Stock', '8rem'], ['status', 'Status', '5.5rem'], ['expiry', 'Expiry', '5.5rem'], ['cover', 'Cover', '4rem'], ['qc', 'Checks', '6.5rem'], ['price', 'Cash price', '5.5rem']];
+
+    // Sample formulary for the prototype: id, name, unit, class, VEN, flags (c controlled, h high-risk, k cold chain, f freeze-sensitive), packs, loose, average use a day, places kept
+    var R = [
+      ['amox', 'Amoxicillin 250 mg capsule', 'capsule', 'A', 'V', '', ['100', '1000'], 1, 240, 'store opd w3 paed'],
+      ['amoxs', 'Amoxicillin 125 mg/5 ml suspension, 100 ml', 'bottle', 'A', 'V', '', ['1'], 0, 12, 'store opd paed'],
+      ['ceft', 'Ceftriaxone 1 g powder for injection', 'vial', 'A', 'V', 'h', ['10', '50'], 0, 30, 'store w3 mat paed'],
+      ['genta', 'Gentamicin 40 mg/ml injection', 'vial', 'A', 'V', 'h', ['10', '50'], 0, 20, 'store w3 mat paed'],
+      ['cipro', 'Ciprofloxacin 500 mg tablet', 'tablet', 'A', 'E', '', ['100'], 1, 120, 'store opd w3'],
+      ['metro', 'Metronidazole 400 mg tablet', 'tablet', 'A', 'E', '', ['100', '1000'], 1, 160, 'store opd w3 mat'],
+      ['ctx', 'Cotrimoxazole 480 mg tablet', 'tablet', 'A', 'V', '', ['100', '1000'], 1, 300, 'store opd w3'],
+      ['doxy', 'Doxycycline 100 mg capsule', 'capsule', 'A', 'E', '', ['100'], 1, 60, 'store opd'],
+      ['bpen', 'Benzylpenicillin 5 MU powder for injection', 'vial', 'A', 'V', '', ['10', '50'], 0, 15, 'store w3 paed'],
+      ['ampi', 'Ampicillin 500 mg powder for injection', 'vial', 'A', 'V', '', ['10', '50'], 0, 18, 'store mat paed'],
+      ['azi', 'Azithromycin 500 mg tablet', 'tablet', 'A', 'E', '', ['3', '100'], 0, 20, 'store opd'],
+      ['eryth', 'Erythromycin 250 mg tablet', 'tablet', 'A', 'N', '', ['100'], 1, 25, 'store opd'],
+      ['pcm', 'Paracetamol 500 mg tablet', 'tablet', 'P', 'E', '', ['100', '1000'], 1, 600, 'store opd w3 mat paed'],
+      ['pcms', 'Paracetamol 120 mg/5 ml syrup, 60 ml', 'bottle', 'P', 'E', '', ['1'], 0, 15, 'store opd paed'],
+      ['ibu', 'Ibuprofen 200 mg tablet', 'tablet', 'P', 'E', '', ['100', '1000'], 1, 150, 'store opd w3'],
+      ['diclo', 'Diclofenac 75 mg/3 ml injection', 'ampoule', 'P', 'E', '', ['10'], 0, 25, 'store w3 mat'],
+      ['morph', 'Morphine 10 mg/ml injection', 'ampoule', 'P', 'V', 'c', ['10'], 0, 4, 'store w3 mat'],
+      ['omorph', 'Morphine 10 mg/5 ml oral solution', 'bottle', 'P', 'V', 'c', ['1'], 0, 1, 'store w3'],
+      ['peth', 'Pethidine 50 mg/ml injection', 'ampoule', 'P', 'E', 'c', ['10'], 0, 3, 'store mat'],
+      ['tram', 'Tramadol 50 mg capsule', 'capsule', 'P', 'N', '', ['100'], 1, 40, 'store opd w3'],
+      ['ns', 'Sodium chloride 0.9% 500 ml infusion', 'bottle', 'F', 'V', '', ['20'], 0, 40, 'store w3 mat paed'],
+      ['rl', 'Ringer’s lactate 500 ml infusion', 'bottle', 'F', 'V', '', ['20'], 0, 35, 'store w3 mat'],
+      ['d5', 'Dextrose 5% 500 ml infusion', 'bottle', 'F', 'E', '', ['20'], 0, 20, 'store w3 paed'],
+      ['ors', 'Oral rehydration salts sachet', 'sachet', 'F', 'V', '', ['100'], 1, 60, 'store opd paed'],
+      ['zinc', 'Zinc 20 mg dispersible tablet', 'tablet', 'F', 'V', '', ['100'], 1, 50, 'store opd paed'],
+      ['nif', 'Nifedipine 20 mg tablet', 'tablet', 'H', 'E', '', ['100'], 1, 90, 'store opd mat'],
+      ['amlo', 'Amlodipine 5 mg tablet', 'tablet', 'H', 'E', '', ['100'], 1, 110, 'store opd'],
+      ['amlo10', 'Amlodipine 10 mg tablet', 'tablet', 'H', 'E', '', ['100'], 1, 40, 'store opd'],
+      ['hydral', 'Hydralazine 20 mg injection', 'ampoule', 'H', 'V', 'h', ['5'], 0, 2, 'store mat'],
+      ['mdopa', 'Methyldopa 250 mg tablet', 'tablet', 'H', 'E', '', ['100'], 1, 70, 'store opd mat'],
+      ['hctz', 'Hydrochlorothiazide 25 mg tablet', 'tablet', 'H', 'N', '', ['100'], 1, 60, 'store opd'],
+      ['pheno', 'Phenobarbital 30 mg tablet', 'tablet', 'S', 'V', 'c', ['100'], 1, 40, 'store opd paed'],
+      ['diaz', 'Diazepam 5 mg/ml injection', 'ampoule', 'S', 'V', 'c', ['10'], 0, 5, 'store w3 mat paed'],
+      ['carba', 'Carbamazepine 200 mg tablet', 'tablet', 'S', 'E', '', ['100'], 1, 50, 'store opd'],
+      ['metf', 'Metformin 500 mg tablet', 'tablet', 'D', 'V', '', ['100', '1000'], 1, 220, 'store opd'],
+      ['glib', 'Glibenclamide 5 mg tablet', 'tablet', 'D', 'E', '', ['100'], 1, 60, 'store opd'],
+      ['insulin', 'Soluble insulin 100 IU/ml, 10 ml vial', 'vial', 'D', 'V', 'k', ['1'], 0, 2, 'store w3 opd'],
+      ['ffa', 'Ferrous sulfate + folic acid tablet', 'tablet', 'I', 'E', '', ['100', '1000'], 1, 200, 'store opd mat'],
+      ['folic', 'Folic acid 5 mg tablet', 'tablet', 'I', 'E', '', ['100', '1000'], 1, 80, 'store opd mat'],
+      ['oxy', 'Oxytocin 10 IU/ml injection', 'ampoule', 'O', 'V', 'kh', ['10', '50'], 0, 10, 'store mat'],
+      ['miso', 'Misoprostol 200 mcg tablet', 'tablet', 'O', 'V', '', ['28', '100'], 0, 6, 'store mat'],
+      ['mgso4', 'Magnesium sulfate 50% injection', 'ampoule', 'O', 'V', 'h', ['10'], 0, 4, 'store mat'],
+      ['bcg', 'BCG vaccine', 'dose', 'X', 'V', 'k', ['20'], 0, 15, 'store epi'],
+      ['bopv', 'bOPV vaccine', 'dose', 'X', 'V', 'k', ['20'], 0, 25, 'store epi'],
+      ['penta', 'Pentavalent vaccine (DTP-HepB-Hib)', 'dose', 'X', 'V', 'kf', ['10'], 0, 25, 'store epi'],
+      ['mr', 'Measles-rubella vaccine', 'dose', 'X', 'V', 'k', ['10'], 0, 10, 'store epi'],
+      ['td', 'Td vaccine', 'dose', 'X', 'V', 'kf', ['10'], 0, 15, 'store epi mat']
+    ];
+    // Each line's identity: generic, strength, form, route. A different strength, form or route is a different line.
+    var ST = this.STRUCT = {
+      amox: ['Amoxicillin', '250 mg', 'Capsule', 'Oral'], amoxs: ['Amoxicillin', '125 mg/5 ml · 100 ml', 'Suspension', 'Oral'],
+      ceft: ['Ceftriaxone', '1 g', 'Powder for injection', 'IV/IM'], genta: ['Gentamicin', '40 mg/ml · 2 ml', 'Injection', 'IV/IM'],
+      cipro: ['Ciprofloxacin', '500 mg', 'Tablet', 'Oral'], metro: ['Metronidazole', '400 mg', 'Tablet', 'Oral'],
+      ctx: ['Cotrimoxazole', '480 mg', 'Tablet', 'Oral'], doxy: ['Doxycycline', '100 mg', 'Capsule', 'Oral'],
+      bpen: ['Benzylpenicillin', '5 MU', 'Powder for injection', 'IV/IM'], ampi: ['Ampicillin', '500 mg', 'Powder for injection', 'IV/IM'],
+      azi: ['Azithromycin', '500 mg', 'Tablet', 'Oral'], eryth: ['Erythromycin', '250 mg', 'Tablet', 'Oral'],
+      pcm: ['Paracetamol', '500 mg', 'Tablet', 'Oral'], pcms: ['Paracetamol', '120 mg/5 ml · 60 ml', 'Syrup', 'Oral'],
+      ibu: ['Ibuprofen', '200 mg', 'Tablet', 'Oral'], diclo: ['Diclofenac', '75 mg/3 ml', 'Injection', 'IM'],
+      morph: ['Morphine', '10 mg/ml', 'Injection', 'IV/IM/SC'], omorph: ['Morphine', '10 mg/5 ml', 'Oral solution', 'Oral'],
+      peth: ['Pethidine', '50 mg/ml', 'Injection', 'IM/IV'], tram: ['Tramadol', '50 mg', 'Capsule', 'Oral'],
+      ns: ['Sodium chloride', '0.9% · 500 ml', 'Infusion', 'IV'], rl: ['Ringer’s lactate', '500 ml', 'Infusion', 'IV'],
+      d5: ['Dextrose', '5% · 500 ml', 'Infusion', 'IV'], ors: ['Oral rehydration salts', 'For 1 litre', 'Powder (sachet)', 'Oral'],
+      zinc: ['Zinc', '20 mg', 'Dispersible tablet', 'Oral'], nif: ['Nifedipine', '20 mg', 'Tablet', 'Oral'],
+      amlo: ['Amlodipine', '5 mg', 'Tablet', 'Oral'], amlo10: ['Amlodipine', '10 mg', 'Tablet', 'Oral'], amlo_dup: ['Amlodipine', '5 mg', 'Tablet', 'Oral'],
+      cyclo: ['Cyclophosphamide', '500 mg', 'Powder for injection', 'IV'],
+      doxo: ['Doxorubicin', '50 mg', 'Powder for injection', 'IV'],
+      mtx: ['Methotrexate', '2.5 mg', 'Tablet', 'Oral'],
+      fu5: ['Fluorouracil', '500 mg/10 ml', 'Injection', 'IV'],
+      vcr: ['Vincristine', '1 mg/ml', 'Injection', 'IV'],
+      cisp: ['Cisplatin', '50 mg/50 ml', 'Injection', 'IV'],
+      pacl: ['Paclitaxel', '100 mg/16.7 ml', 'Injection', 'IV'],
+      hu: ['Hydroxycarbamide', '500 mg', 'Capsule', 'Oral'],
+      imat: ['Imatinib', '400 mg', 'Tablet', 'Oral'],
+      tamox: ['Tamoxifen', '20 mg', 'Tablet', 'Oral'],
+      ondan: ['Ondansetron', '8 mg', 'Tablet', 'Oral'],
+      aza: ['Azathioprine', '50 mg', 'Tablet', 'Oral'],
+      tld: ['Tenofovir + lamivudine + dolutegravir', '300/300/50 mg', 'Tablet', 'Oral'],
+      rhze: ['Rifampicin + isoniazid + pyrazinamide + ethambutol', '150/75/400/275 mg', 'Tablet', 'Oral'],
+      fluc: ['Fluconazole', '200 mg', 'Capsule', 'Oral'],
+      acyc: ['Aciclovir', '400 mg', 'Tablet', 'Oral'],
+      hep: ['Heparin', '5,000 IU/ml · 5 ml', 'Injection', 'IV/SC'],
+      warf: ['Warfarin', '5 mg', 'Tablet', 'Oral'],
+      atorva: ['Atorvastatin', '20 mg', 'Tablet', 'Oral'],
+      halo: ['Haloperidol', '5 mg/ml', 'Injection', 'IM'],
+      fluox: ['Fluoxetine', '20 mg', 'Capsule', 'Oral'],
+      ami: ['Amitriptyline', '25 mg', 'Tablet', 'Oral'],
+      clotri: ['Clotrimazole', '1% · 20 g', 'Cream', 'Topical'],
+      tetey: ['Tetracycline', '1% · 5 g', 'Eye ointment', 'Eye'],
+      dmpa: ['Medroxyprogesterone acetate', '150 mg/ml', 'Injection', 'IM'],
+      coc: ['Levonorgestrel + ethinylestradiol', '150/30 mcg', 'Tablet', 'Oral'],
+      levo: ['Levothyroxine', '50 mcg', 'Tablet', 'Oral'],
+      chlorph: ['Chlorphenamine', '4 mg', 'Tablet', 'Oral'],
+      vita: ['Vitamin A (retinol)', '200,000 IU', 'Capsule', 'Oral'],
+      ket: ['Ketamine', '50 mg/ml · 10 ml', 'Injection', 'IV/IM'],
+      lido: ['Lidocaine', '2% · 20 ml', 'Injection', 'Local infiltration'],
+      al: ['Artemether + lumefantrine', '20 mg/120 mg', 'Tablet', 'Oral'], artes: ['Artesunate', '60 mg', 'Powder for injection', 'IV/IM'],
+      salb: ['Salbutamol', '100 mcg/dose', 'Inhaler', 'Inhaled'], omep: ['Omeprazole', '20 mg', 'Capsule', 'Oral'],
+      alb: ['Albendazole', '400 mg', 'Tablet', 'Oral'], dexa: ['Dexamethasone', '4 mg/ml', 'Injection', 'IV/IM'],
+      furo: ['Furosemide', '40 mg', 'Tablet', 'Oral'], pred: ['Prednisolone', '5 mg', 'Tablet', 'Oral'],
+      hydral: ['Hydralazine', '20 mg', 'Powder for injection', 'IV/IM'], mdopa: ['Methyldopa', '250 mg', 'Tablet', 'Oral'],
+      hctz: ['Hydrochlorothiazide', '25 mg', 'Tablet', 'Oral'], pheno: ['Phenobarbital', '30 mg', 'Tablet', 'Oral'],
+      diaz: ['Diazepam', '5 mg/ml · 2 ml', 'Injection', 'IV/rectal'], carba: ['Carbamazepine', '200 mg', 'Tablet', 'Oral'],
+      metf: ['Metformin', '500 mg', 'Tablet', 'Oral'], glib: ['Glibenclamide', '5 mg', 'Tablet', 'Oral'],
+      insulin: ['Soluble insulin', '100 IU/ml · 10 ml', 'Injection', 'SC/IV'], ffa: ['Ferrous sulfate + folic acid', '200 mg + 0.4 mg', 'Tablet', 'Oral'],
+      folic: ['Folic acid', '5 mg', 'Tablet', 'Oral'], oxy: ['Oxytocin', '10 IU/ml', 'Injection', 'IM/IV'],
+      miso: ['Misoprostol', '200 mcg', 'Tablet', 'Oral'], mgso4: ['Magnesium sulfate', '50% · 10 ml', 'Injection', 'IM/IV'],
+      bcg: ['BCG vaccine', '20-dose vial', 'Powder for injection', 'Intradermal'], bopv: ['bOPV vaccine', '20-dose vial', 'Oral drops', 'Oral'],
+      penta: ['Pentavalent vaccine', '10-dose vial', 'Suspension for injection', 'IM'], mr: ['Measles-rubella vaccine', '10-dose vial', 'Powder for injection', 'SC'],
+      td: ['Td vaccine', '10-dose vial', 'Suspension for injection', 'IM']
+    };
+    var CL = { A: 'Antibiotics', P: 'Analgesics', F: 'Fluids and electrolytes', H: 'Antihypertensives', S: 'Anticonvulsants', D: 'Antidiabetics', I: 'Haematinics', O: 'Obstetric (uterotonics)', X: 'Vaccines' };
+    var VN = { V: 'Vital', E: 'Essential', N: 'Necessary' };
+    var PR = { tablet: [50, 300, 10], capsule: [100, 400, 10], vial: [3000, 12000, 500], ampoule: [1000, 5000, 100], bottle: [2500, 9000, 500], sachet: [300, 600, 50] };
+    var seed = 11, rnd = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    var nice = function (n) { var st = n >= 1000 ? 100 : n >= 100 ? 10 : n >= 20 ? 5 : 1; return Math.max(1, Math.round(n / st) * st); };
+    var meds = [], stock = {};
+    R.forEach(function (r, i) {
+      var fl = {};
+      if (r[5].indexOf('c') >= 0) fl.controlled = true;
+      if (r[5].indexOf('h') >= 0) fl.high = true;
+      if (r[5].indexOf('k') >= 0) fl.cold = true;
+      if (r[5].indexOf('f') >= 0) fl.freeze = true;
+      var m = med(r[0], r[1], r[2], CL[r[3]], VN[r[4]], fl, r[6], !!r[7]);
+      m.use = r[8];
+      if (ST[m.id]) { m.generic = ST[m.id][0]; m.strength = ST[m.id][1]; m.form = ST[m.id][2]; m.route = ST[m.id][3]; }
+      var places = r[9].split(' '), wards = Math.max(1, places.length - 1), setLv = i % 9 !== 4;
+      stock[m.id] = {};
+      places.forEach(function (p) {
+        var lvl = p === 'store' ? nice(r[8] * (i % 11 === 5 ? 120 : i % 13 === 6 ? 5 : 60)) : nice(r[8] * 7 / wards);
+        if (setLv) m.levels[p] = String(lvl);
+        var x = rnd(), f = x < 0.06 ? 0 : x < 0.22 ? 0.15 + rnd() * 0.3 : x < 0.9 ? 0.55 + rnd() * 0.45 : 1.05 + rnd() * 0.25;
+        stock[m.id][p] = Math.round(lvl * f);
+      });
+      if (r[3] === 'X') m.free = true;
+      else if (i % 7 !== 3) { var pr = PR[r[2]]; m.prices.cash = String(Math.round((pr[0] + rnd() * (pr[1] - pr[0])) / pr[2]) * pr[2]); }
+      // sample quality-control data: last received unit cost, batches with expiry, last movement, last review
+      m.cost = m.prices.cash ? String(Math.round(+m.prices.cash * (0.55 + rnd() * 0.55))) : '';
+      var tot = 0; Object.keys(stock[m.id]).forEach(function (k) { tot += stock[m.id][k]; });
+      var e1 = 25 + Math.floor(rnd() * 600);
+      m.batches = tot ? [{ no: 'Batch 1', days: e1, qty: Math.round(tot * 0.4) }, { no: 'Batch 2', days: e1 + 120 + Math.floor(rnd() * 300), qty: tot - Math.round(tot * 0.4) }] : [];
+      m.lastMoved = i % 10 === 7 ? 95 + Math.floor(rnd() * 120) : Math.floor(rnd() * 6);
+      m.reviewed = i % 6 === 2 ? 120 + Math.floor(rnd() * 100) : Math.floor(rnd() * 80);
+      meds.push(m);
+    });
+    meds.forEach(function (m) {
+      if (m.id === 'tram' && m.levels.store) m.levels.w3 = String(Math.round(+m.levels.store * 1.5));
+      if (m.id === 'bcg') m.prices.cash = '500';
+    });
+    // Rules from Set-up › Rules, mapped to the medicines they apply to
+    this.RX = {
+      pcm: 'Children: 10–15 mg/kg a dose', pcms: 'Children: 10–15 mg/kg a dose',
+      amox: 'Children: 12–30 mg/kg a dose · blocked if allergic to penicillin', amoxs: 'Children: 12–30 mg/kg a dose · blocked if allergic to penicillin',
+      bpen: 'Blocked if allergic to penicillin', ampi: 'Blocked if allergic to penicillin',
+      metro: 'Children: 7.5–10 mg/kg a dose · caution in the first trimester',
+      ctx: 'Children: 12–24 mg/kg a dose',
+      metf: 'Stop below eGFR 30 · at most 1 g a day at eGFR 30–45'
+    };
+    // On the national controlled list: the Controlled flag is locked for these lines
+    this.NATCD = ['morph', 'omorph', 'peth', 'diaz', 'pheno'];
+    // Pharmacological group and sale category for each line (sale categories to confirm against NDA)
+    this.PG = { amox: 'Penicillin', amoxs: 'Penicillin', bpen: 'Penicillin', ampi: 'Penicillin', ceft: 'Cephalosporin, 3rd generation', genta: 'Aminoglycoside', cipro: 'Fluoroquinolone',
+      metro: 'Nitroimidazole', ctx: 'Sulfonamide + trimethoprim', doxy: 'Tetracycline', azi: 'Macrolide', eryth: 'Macrolide', pcm: 'Non-opioid analgesic', pcms: 'Non-opioid analgesic',
+      ibu: 'NSAID', diclo: 'NSAID', morph: 'Opioid', omorph: 'Opioid', peth: 'Opioid', tram: 'Opioid (weak)', ns: 'Crystalloid', rl: 'Crystalloid', d5: 'Crystalloid (glucose)',
+      ors: 'Oral rehydration', zinc: 'Mineral supplement', nif: 'Calcium channel blocker', amlo: 'Calcium channel blocker', amlo10: 'Calcium channel blocker', amlo_dup: 'Calcium channel blocker',
+      hydral: 'Vasodilator', mdopa: 'Central alpha-2 agonist', hctz: 'Thiazide diuretic', pheno: 'Barbiturate', diaz: 'Benzodiazepine', carba: 'Sodium-channel anticonvulsant',
+      metf: 'Biguanide', glib: 'Sulfonylurea', insulin: 'Short-acting insulin', ffa: 'Iron + folate', folic: 'Vitamin (folate)', oxy: 'Oxytocic', miso: 'Prostaglandin analogue',
+      mgso4: 'Magnesium (anticonvulsant)', bcg: 'Live attenuated vaccine', bopv: 'Live attenuated vaccine', mr: 'Live attenuated vaccine', penta: 'Inactivated and toxoid vaccine', td: 'Toxoid vaccine',
+      al: 'Artemisinin combination (ACT)', artes: 'Artemisinin', salb: 'Short-acting beta-2 agonist', omep: 'Proton pump inhibitor', alb: 'Benzimidazole', dexa: 'Corticosteroid', pred: 'Corticosteroid', furo: 'Loop diuretic', cyclo: 'Alkylating agent', doxo: 'Anthracycline', mtx: 'Antimetabolite', fu5: 'Antimetabolite', vcr: 'Vinca alkaloid', cisp: 'Platinum compound', pacl: 'Taxane', hu: 'Antimetabolite', imat: 'Tyrosine kinase inhibitor', tamox: 'Anti-oestrogen (hormone therapy)', ondan: 'Antiemetic (5-HT3 antagonist)', aza: 'Immunosuppressant (antimetabolite)', tld: 'Integrase-inhibitor combination', rhze: 'Anti-TB fixed-dose combination', fluc: 'Azole antifungal', acyc: 'Nucleoside antiviral', hep: 'Unfractionated heparin', warf: 'Vitamin K antagonist', atorva: 'Statin', halo: 'Antipsychotic (typical)', fluox: 'SSRI antidepressant', ami: 'Tricyclic antidepressant', clotri: 'Topical azole antifungal', tetey: 'Topical antibiotic (eye)', dmpa: 'Progestogen-only contraceptive', coc: 'Combined oral contraceptive', levo: 'Thyroid hormone', chlorph: 'Sedating antihistamine', vita: 'Vitamin', ket: 'Dissociative anaesthetic', lido: 'Local anaesthetic (amide)', };
+    this.SALE = { chlorph: 'Pharmacy only', clotri: 'Pharmacy only', pcm: 'Over the counter', pcms: 'Over the counter', ors: 'Over the counter', zinc: 'Over the counter', ibu: 'Pharmacy only', ffa: 'Pharmacy only', folic: 'Pharmacy only', alb: 'Pharmacy only' };
+    // Which catalogues list each line (sample membership; the real lists are loaded from EMHSLU, NMS, JMS and UNEPI files)
+    this.SRC = { cyclo: [], doxo: [], mtx: [], fu5: [], vcr: [], cisp: [], pacl: [], hu: [], imat: [], tamox: [], ondan: [], aza: [], tld: [], rhze: [], fluc: [], acyc: [], hep: [], warf: [], atorva: [], halo: [], fluox: [], ami: [], clotri: [], tetey: [], dmpa: [], coc: [], levo: [], chlorph: [], vita: [], ket: [], lido: [], amlo_dup: ['JMS'], al: ['EMHSLU', 'NMS', 'JMS'], artes: ['EMHSLU', 'NMS'], salb: ['EMHSLU', 'NMS', 'JMS'], omep: ['EMHSLU', 'JMS'], alb: ['EMHSLU', 'NMS'],
+      dexa: ['EMHSLU', 'NMS'], furo: ['EMHSLU', 'NMS', 'JMS'], pred: ['EMHSLU', 'JMS'], cipro: ['EMHSLU', 'NMS', 'JMS'], ibu: ['EMHSLU', 'JMS'], amlo: ['EMHSLU', 'NMS', 'JMS'], amlo10: ['EMHSLU', 'JMS'], azi: ['EMHSLU', 'JMS'], tram: ['JMS'], omorph: ['EMHSLU'] };
+    // Look-alike, sound-alike pairs by name (same medicine in another strength or form is added automatically)
+    this.LASA = [['metro', 'metf'], ['hydral', 'hctz']];
+    this.RULESETS = [
+      { id: 'all', scope: 'Every medicine', rules: ['Expiry warning 90 days before', 'Low when below half the top-up level', 'Orders cover the 2-month NMS cycle plus 1 month', 'Over budget: trim Necessary, then Essential, never Vital'] },
+      { id: 'cd', scope: 'Controlled', flag: 'controlled', label: 'Controlled', rules: ['A register at every place that holds it', 'Every dose or issue needs a witness on duty', 'Minimum gap: morphine inj 4 h, pethidine 3 h, oral morphine 4 h', 'Balance check: wards and dispensary daily, store weekly', 'Residue discarded in front of the witness', 'Offline entries must sync within 12 h'] },
+      { id: 'hr', scope: 'High-risk', flag: 'high', label: 'High-risk', rules: ['Counted blind at every handover, 08:00 and 17:00', 'A count difference opens a case'] },
+      { id: 'cold', scope: 'Cold chain', flag: 'cold', label: 'Cold chain', rules: ['Kept at 2–8 °C in a listed fridge', 'Alarm above +8 °C or below −0.5 °C', '30 min or more out of range is an excursion'] },
+      { id: 'freeze', scope: 'Freeze-sensitive', flag: 'freeze', label: 'Freeze-sensitive', rules: ['Shake test before use after a freeze alarm'] },
+      { id: 'cyto', scope: 'Cytotoxic', flag: 'cyto', label: 'Cytotoxic', rules: ['Prepared only in the designated area, with gloves, gown and mask', 'Every dose checked against body surface area by a second pharmacist', 'Stored apart and labelled cytotoxic', 'Waste and spills handled with the cytotoxic spill kit'] },
+      { id: 'vax', scope: 'Vaccines', cls: 'Vaccines', rules: ['Open vials: BCG and MR 6 h; bOPV, IPV, Penta and Td 28 days', 'Given free'] },
+      { id: 'rx', scope: 'Prescription checks', rx: true, rules: [] }
+    ];
+    var PGc = this.PG, SALEc = this.SALE, NCc = this.NATCD;
+    meds.forEach(function (m) { m.group = PGc[m.id] || ''; m.sale = NCc.indexOf(m.id) >= 0 ? 'Controlled' : SALEc[m.id] || 'Prescription only'; });
+    this.state = {
+      q: '', filter: 'All', openId: '', edit: null, picking: false, picked: {}, pq: '', toast: '',
+      stock: stock,
+      sort: { key: 'name', dir: 1 }, group: false, page: 0, sel: {}, colMenu: '', colsOpen: false,
+      cols: { strength: true, form: true, route: true, cls: false, group: false, sale: false, ven: true, handling: true, stock: true, status: true, expiry: true, cover: false, qc: true, price: true },
+      conds: [], rulesOpen: true, ruleDlg: '', ruleEdit: null, medRules: {}, actor: 'Pharmacy in-charge', pickSrc: 'All', pickCls: 'All', pickSale: 'All', pickAtc: 'All', pickMode: 'list', lf: null,
+      fridges: { 'CR-01': { name: 'Main store cold room', temp: 4.6, sensor: true, at: '' }, 'RF-02': { name: 'Maternity ice-lined fridge', temp: 5.3, sensor: true, at: '' }, 'RF-03': { name: 'EPI solar fridge', temp: 6.1, sensor: false, at: '08:00' } }, pend: {}, draft: null,
+      rsets: this.RULESETS.map(function (g) { return Object.assign({}, g, { rules: g.rules.slice() }); }), rx: Object.assign({}, this.RX), saveName: '', view: 'all', bulkVen: '', bulkPlace: '', bulkLevel: '',
+      views: [
+        { id: 'all', name: 'All medicines', conds: [] },
+        { id: 'lowout', name: 'Low or out', conds: [{ join: 'AND', col: 'status', op: 'any place is', val: 'Low or out' }] },
+        { id: 'cover', name: 'Under 14 days of cover', conds: [{ join: 'AND', col: 'cover', op: 'less than', val: '14' }] },
+        { id: 'vital', name: 'Vital and low', conds: [{ join: 'AND', col: 'ven', op: 'is', val: 'Vital' }, { join: 'AND', col: 'status', op: 'any place is', val: 'Low or out' }] },
+        { id: 'cd', name: 'Controlled', conds: [{ join: 'AND', col: 'handling', op: 'has', val: 'Controlled' }] },
+        { id: 'noprice', name: 'No price', conds: [{ join: 'AND', col: 'price', op: 'is empty', val: '' }] },
+        { id: 'notop', name: 'No top-up', conds: [{ join: 'AND', col: 'status', op: 'any place is', val: 'Top-up not set' }] },
+        { id: 'qc', name: 'Need attention', conds: [{ join: 'AND', col: 'qc', op: 'shows', val: 'Any issue' }] },
+        { id: 'exp90', name: 'Expiring within 90 days', conds: [{ join: 'AND', col: 'expiry', op: 'less than', val: '90' }] }
+      ],
+      lastMove: null, orders: {},
+      rule: '', ruleOpen: false, ruleDraft: '',
+      payers: [{ id: 'cash', name: 'Cash', kind: 'Patient pays' }],
+      payerOpen: '', payerName: '', payerKind: 'Insurance',
+      meds: meds
+    };
+  }
+  flash(msg) {
+    var self = this;
+    this.setState({ toast: msg });
+    clearTimeout(this._t);
+    this._t = setTimeout(function () { self.setState({ toast: '' }); }, 3200);
+  }
+  componentDidMount() {
+    var self = this;
+    this._live = setInterval(function () {
+      var st = self.state.stock, opts = [];
+      Object.keys(st).forEach(function (mid) { Object.keys(st[mid]).forEach(function (pl) { if (pl !== 'store' && st[mid][pl] > 0) opts.push([mid, pl]); }); });
+      if (!opts.length) return;
+      var pick = opts[Math.floor(Math.random() * opts.length)];
+      var med = self.state.meds.filter(function (m) { return m.id === pick[0]; })[0];
+      if (!med) return;
+      var many = med.unit === 'tablet' || med.unit === 'capsule';
+      var q = Math.min(st[pick[0]][pick[1]], many ? 1 + Math.floor(Math.random() * 20) : 1 + Math.floor(Math.random() * 2));
+      var ns = Object.assign({}, st); ns[pick[0]] = Object.assign({}, st[pick[0]]); ns[pick[0]][pick[1]] -= q;
+      var fr = Object.assign({}, self.state.fridges), now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      Object.keys(fr).forEach(function (k) { if (fr[k].sensor) fr[k] = Object.assign({}, fr[k], { temp: Math.round(Math.min(7.9, Math.max(2.2, fr[k].temp + (Math.random() - 0.5) * 0.4)) * 10) / 10, at: now }); });
+      self.setState({ fridges: fr, stock: ns, lastMove: { med: pick[0], name: med.name, unit: med.unit, place: pick[1], qty: q, at: Date.now() }, meds: self.state.meds.map(function (mm) { return mm.id === pick[0] && mm.lastMoved ? Object.assign({}, mm, { lastMoved: 0 }) : mm; }) });
+    }, 4000);
+  }
+  componentWillUnmount() { clearTimeout(this._t); clearInterval(this._live); }
+  renderVals() {
+    var self = this, s = this.state;
+    var PLACES = this.PLACES, CLASSES = this.CLASSES, CATALOGUE = this.CATALOGUE, med = this.med;
+    var set = function (p) { self.setState(p); };
+    var base = 'display:block;padding:10px 8px;border-radius:14px;text-align:center;font-size:13px;line-height:17px;font-weight:500;text-decoration:none;';
+    var pill = 'display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;font-size:15px;font-weight:600;text-decoration:none;';
+    var chipBtn = 'height:40px;padding:0 14px;border-radius:999px;font:600 14px Figtree,sans-serif;';
+    var smallChip = 'height:28px;padding:0 10px;border-radius:999px;font:600 12px Figtree,sans-serif;';
+    var onS = 'border:0;background:#ccfbf1;color:#1b2540', offS = 'border:1px solid #c5cbd8;background:#ffffff;color:#4a5574';
+    var grid = 'display:grid;grid-template-columns:minmax(0,1.6fr) 6rem minmax(0,1.2fr) 8rem minmax(0,1.3fr) 5.5rem;align-items:center;gap:4px 12px;padding:8px 0;';
+    var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    var hasLevels = function (m) { return PLACES.some(function (p) { return +m.levels[p[0]] > 0; }); };
+    var DOT = { Out: '#dc2626', Low: '#d97706', OK: '#16a34a', Over: '#2563eb', none: '#c5cbd8' };
+    var dotStyle = function (c) { return 'flex:0 0 8px;width:8px;height:8px;border-radius:999px;background:' + c; };
+    var statFor = function (m) {
+      var sm = s.stock[m.id] || {};
+      return PLACES.map(function (p) {
+        var have = sm[p[0]] || 0, lvl = +m.levels[p[0]] || 0;
+        var flag = lvl > 0 && have === 0 ? 'Out' : lvl > 0 && have < lvl / 2 ? 'Low' : lvl > 0 && have > lvl ? 'Over' : lvl > 0 ? 'OK' : '';
+        return { id: p[0], short: p[2], have: have, lvl: lvl, flag: flag };
+      }).filter(function (x) { return x.have > 0 || x.lvl > 0; });
+    };
+    var isLowMed = function (m) { return statFor(m).some(function (x) { return x.flag === 'Low' || x.flag === 'Out'; }); };
+    var priced = function (m) { return m.free || +m.prices.cash > 0; };
+    var flagList = function (f) { var o = []; if (f.controlled) o.push('Controlled'); if (f.cold) o.push('Cold chain'); if (f.high) o.push('High-risk'); if (f.freeze) o.push('Freeze-sensitive'); if (f.cyto) o.push('Cytotoxic'); return o; };
+    var levelText = function (m) {
+      var on = PLACES.filter(function (p) { return +m.levels[p[0]] > 0; }).map(function (p) { return p[2] + ' ' + fmt(m.levels[p[0]]); });
+      if (!on.length) return 'Not set';
+      return on.slice(0, 2).join(' · ') + (on.length > 2 ? ' · +' + (on.length - 2) + ' more' : '') + (m.unit ? ' ' + m.unit + 's' : '');
+    };
+    var packText = function (m) { var p = m.packs.slice(); if (m.loose) p.push('loose'); return p.length ? p.join(' · ') : 'None set'; };
+    var others = s.payers.filter(function (p) { return p.id !== 'cash'; });
+    var meds = s.meds;
+    var q = s.q.trim().toLowerCase();
+    var match = function (m) {
+      if (q && m.name.toLowerCase().indexOf(q) < 0 && m.cls.toLowerCase().indexOf(q) < 0) return false;
+      switch (s.filter) {
+        case 'Controlled': return !!m.flags.controlled;
+        case 'Cold chain': return !!m.flags.cold;
+        case 'High-risk': return !!m.flags.high;
+        case 'No levels': return !hasLevels(m);
+        case 'No price': return !priced(m);
+        case 'Low stock': return isLowMed(m);
+        default: return true;
+      }
+    };
+    var openRow = function (m) {
+      var lv = {}; PLACES.forEach(function (p) { lv[p[0]] = m.levels[p[0]] || ''; });
+      set({ openId: m.id, edit: { id: m.id, name: m.name, unit: m.unit, cls: m.cls, ven: m.ven, flags: Object.assign({}, m.flags), packs: m.packs.slice(), loose: m.loose, levels: lv, prices: Object.assign({}, m.prices), free: m.free, from: m.from, custom: '', error: '',
+        brands: (m.brands || []).map(function (b) { return Object.assign({}, b); }), pane: 'about', brandMode: '', brandPick: '', brandName: '', brandMaker: '' }, payerOpen: '' });
+    };
+    // ---- data grid: metrics, conditions, sort, group, page ----
+    var FCOLS = this.FCOLS, OPS = this.OPS, COLDEF = this.COLDEF;
+    var VENR = { Vital: 0, Essential: 1, Necessary: 2, 'Not set': 3 };
+    var ABBR = { Controlled: 'CD', 'High-risk': 'High-risk', 'Cold chain': '2–8 °C', 'Freeze-sensitive': 'No freeze', Cytotoxic: 'Cytotoxic' };
+    var metrics = function (m) {
+      var st = statFor(m), haveT = 0, lvlT = 0, cnt = { Out: 0, Low: 0, OK: 0, Over: 0 }, sf = {};
+      st.forEach(function (x) { haveT += x.have; if (x.lvl > 0) { lvlT += x.lvl; cnt[x.flag]++; sf[x.flag] = true; } });
+      if (!lvlT) sf['Top-up not set'] = true;
+      if (cnt.Out || cnt.Low) sf['Low or out'] = true;
+      return { st: st, have: haveT, lvl: lvlT, cnt: cnt, sf: sf, pct: lvlT ? Math.round(haveT / lvlT * 100) : null,
+        cover: m.use > 0 ? Math.floor(haveT / m.use) : null,
+        price: m.free ? 0 : (+m.prices.cash > 0 ? +m.prices.cash : null),
+        sev: cnt.Out ? 0 : cnt.Low ? 1 : !lvlT ? 2 : cnt.Over && !cnt.OK ? 4 : 3 };
+    };
+    var newCond = function (col) { var fc = FCOLS[col]; return { join: 'AND', col: col, op: OPS[fc.type][0], val: fc.opts ? fc.opts[0] : '' }; };
+    var needsVal = function (c) { return c.op !== 'is empty' && c.op !== 'is not empty'; };
+    var evalCond = function (c, m, mx) {
+      var v = c.val;
+      switch (c.col) {
+        case 'name': var hit = m.name.toLowerCase().indexOf(String(v).toLowerCase()) >= 0; return c.op === 'contains' ? hit : !hit;
+        case 'cls': return c.op === 'is' ? m.cls === v : m.cls !== v;
+        case 'group': var hg = String(m.group || '').toLowerCase().indexOf(String(v).toLowerCase()) >= 0; return c.op === 'contains' ? hg : !hg;
+        case 'sale': return c.op === 'is' ? m.sale === v : m.sale !== v;
+        case 'strength': var hs = String(m.strength || '').toLowerCase().indexOf(String(v).toLowerCase()) >= 0; return c.op === 'contains' ? hs : !hs;
+        case 'form': return c.op === 'is' ? m.form === v : m.form !== v;
+        case 'route': var hr = String(m.route || '').toLowerCase().split('/').indexOf(String(v).toLowerCase()) >= 0; return c.op === 'includes' ? hr : !hr;
+        case 'ven': return c.op === 'is' ? m.ven === v : m.ven !== v;
+        case 'handling': var hf = flagList(m.flags).indexOf(v) >= 0; return c.op === 'has' ? hf : !hf;
+        case 'status': return c.op === 'any place is' ? !!mx.sf[v] : !mx.sf[v];
+        case 'qc': var hq = v === 'Any issue' ? mx.qc.length > 0 : mx.qc.some(function (q) { return q.k === v; }); return c.op === 'shows' ? hq : !hq;
+        default:
+          var x = c.col === 'onhand' ? mx.have : c.col === 'topup' ? mx.pct : c.col === 'cover' ? mx.cover : c.col === 'price' ? mx.price : c.col === 'brands' ? (m.brands || []).length : c.col === 'expiry' ? mx.exp : null;
+          if (c.op === 'is empty') return x === null;
+          if (c.op === 'is not empty') return x !== null;
+          if (x === null || v === '') return false;
+          return c.op === 'less than' ? x < +v : c.op === 'more than' ? x > +v : x === +v;
+      }
+    };
+    var passes = function (m, mx) {
+      if (q && m.name.toLowerCase().indexOf(q) < 0 && m.cls.toLowerCase().indexOf(q) < 0) return false;
+      var cs = s.conds;
+      if (!cs.length) return true;
+      var r = evalCond(cs[0], m, mx);
+      for (var i = 1; i < cs.length; i++) { var vv = evalCond(cs[i], m, mx); r = cs[i].join === 'OR' ? (r || vv) : (r && vv); }
+      return r;
+    };
+    var PLACE_FRIDGE = { store: 'CR-01', mat: 'RF-02', epi: 'RF-03' };
+    var fridgeLines = function (m, levels) {
+      var sm = s.stock[m.id] || {}, out = [];
+      PLACES.forEach(function (p) {
+        if (!((sm[p[0]] || 0) > 0 || +((levels || m.levels)[p[0]]) > 0)) return;
+        var fid = PLACE_FRIDGE[p[0]], fr = fid ? s.fridges[fid] : null;
+        if (!fr) { out.push({ where: p[2] + ':', fridge: 'no fridge here', temp: 'Move it or add a fridge in Places', style: 'font-weight:700;color:#9f1d1d' }); return; }
+        var t = fr.temp, bad = t < 2 || t > 8, near = !bad && (t < 2.5 || t > 7.5);
+        out.push({ where: p[2] + ':', fridge: fid + ' · ' + fr.name, temp: t.toFixed(1) + ' °C · ' + (fr.sensor ? 'live' + (fr.at ? ' ' + fr.at : '') : 'typed at ' + fr.at),
+          style: 'font-variant-numeric:tabular-nums;font-weight:700;color:' + (bad ? '#9f1d1d' : near ? '#92400e' : '#166534') });
+      });
+      return out;
+    };
+    var NATCD = this.NATCD, LASAP = this.LASA, MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var dateIn = function (days) { var dt = new Date(2026, 10, 3 + days); return dt.getDate() + ' ' + MON[dt.getMonth()] + ' ' + String(dt.getFullYear()).slice(2); };
+    var idKey = function (m) { return (m.generic ? [m.generic, m.strength, m.form, m.route].join('|') : m.name).toLowerCase(); };
+    var keyCount = {}; meds.forEach(function (m) { var k = idKey(m); keyCount[k] = (keyCount[k] || 0) + 1; });
+    var lasaFor = function (m) {
+      var out = meds.filter(function (o) { return o.id !== m.id && o.generic && o.generic === m.generic; });
+      LASAP.forEach(function (pr) { var other = pr[0] === m.id ? pr[1] : pr[1] === m.id ? pr[0] : null; if (other) meds.forEach(function (o) { if (o.id === other) out.push(o); }); });
+      return out;
+    };
+    var qcFor = function (m, mx) {
+      var iss = [], miss = [];
+      if (m.ven === 'Not set') miss.push('VEN');
+      if (!mx.lvl) miss.push('top-up level');
+      if (!m.free && !(+m.prices.cash > 0)) miss.push('price');
+      if (!m.packs.length && !m.loose) miss.push('pack size');
+      if (miss.length) iss.push({ k: 'Missing details', t: 'Missing ' + miss.join(', ') });
+      if (keyCount[idKey(m)] > 1) iss.push({ k: 'Duplicate line', t: 'Another line has the same medicine, strength, form and route' });
+      if (NATCD.indexOf(m.id) >= 0 && !m.flags.controlled) iss.push({ k: 'Controlled flag missing', t: 'On the national controlled list but not marked Controlled' });
+      if (!m.free && +m.prices.cash > 0 && +m.cost > 0 && +m.prices.cash < +m.cost) iss.push({ k: 'Below cost', t: 'Cash price UGX ' + fmt(m.prices.cash) + ' is below the last cost UGX ' + fmt(m.cost) });
+      var sl = +m.levels.store;
+      if (sl > 0 && m.use > 0) { var dd = Math.round(sl / m.use); if (dd < 7 || dd > 90) iss.push({ k: 'Top-up cover', t: 'Store top-up lasts ' + dd + ' days of use; aim for 7–90' }); }
+      PLACES.forEach(function (p) { if (p[0] !== 'store' && sl > 0 && +m.levels[p[0]] > sl) iss.push({ k: 'Ward above store', t: p[2] + ' top-up is higher than the store’s' }); });
+      if (m.free && +m.prices.cash > 0) iss.push({ k: 'Free with a price', t: 'Marked free but still has a cash price' });
+      if (m.use > 0 && (m.batches || []).length) {
+        var cum = 0, waste = 0;
+        m.batches.slice().sort(function (a, b) { return a.days - b.days; }).forEach(function (b) { var cap = Math.max(0, m.use * b.days - cum); var u = Math.min(b.qty, cap); waste += b.qty - u; cum += u; });
+        if (waste > 0) iss.push({ k: 'Expires before use', t: 'About ' + fmt(waste) + ' ' + m.unit + 's will expire before they are used' });
+      }
+      if (m.lastMoved >= 90) iss.push({ k: 'Not moved in 90 days', t: 'Nothing issued or dispensed for ' + m.lastMoved + ' days' });
+      if (m.reviewed > 90) iss.push({ k: 'Review due', t: 'Last reviewed ' + m.reviewed + ' days ago' });
+      if (m.flags.cold && fridgeLines(m).some(function (z) { return z.fridge === 'no fridge here'; })) iss.push({ k: 'No fridge', t: 'Kept at a place with no fridge: ' + fridgeLines(m).filter(function (z) { return z.fridge === 'no fridge here'; }).map(function (z) { return z.where.replace(':', ''); }).join(', ') });
+      if (m.local) iss.push({ k: 'Local item', t: 'Not in any catalogue (' + m.why + '); the in-charge confirms it at the next review' });
+      return iss;
+    };
+    var all = meds.map(function (m) {
+      var mx = metrics(m);
+      mx.qc = qcFor(m, mx);
+      mx.exp = (m.batches || []).length ? Math.min.apply(null, m.batches.map(function (b) { return b.days; })) : null;
+      return { m: m, mx: mx };
+    });
+    var list = all.filter(function (x) { return passes(x.m, x.mx); });
+    var sk = s.sort.key, sd = s.sort.dir;
+    var keyOf = function (x) {
+      switch (sk) {
+        case 'ven': return VENR[x.m.ven];
+        case 'cls': return CLASSES.indexOf(x.m.cls);
+        case 'group': return String(x.m.group || '');
+        case 'sale': return ['Controlled', 'Prescription only', 'Pharmacy only', 'Over the counter'].indexOf(x.m.sale);
+        case 'strength': return parseFloat(x.m.strength) || 0;
+        case 'form': return String(x.m.form || '');
+        case 'route': return String(x.m.route || '');
+        case 'stock': return x.mx.have;
+        case 'expiry': return x.mx.exp === null ? 1e9 : x.mx.exp;
+        case 'qc': return -x.mx.qc.length;
+        case 'handling': return -flagList(x.m.flags).length;
+        case 'onhand': return x.mx.have;
+        case 'topup': return x.mx.pct === null ? 1e9 : x.mx.pct;
+        case 'status': return x.mx.sev;
+        case 'cover': return x.mx.cover === null ? 1e9 : x.mx.cover;
+        case 'price': return x.mx.price === null ? 1e9 : x.mx.price;
+        default: return (x.m.generic || x.m.name).toLowerCase() + ' ' + String(parseFloat(x.m.strength) || 0).padStart(8, '0');
+      }
+    };
+    list.sort(function (a, b) { var ka = keyOf(a), kb = keyOf(b); return ((ka < kb ? -1 : ka > kb ? 1 : 0) * sd) || a.m.name.localeCompare(b.m.name); });
+    if (s.group) list.sort(function (a, b) { return CLASSES.indexOf(a.m.cls) - CLASSES.indexOf(b.m.cls); });
+    var PS = 20, pages = Math.max(1, Math.ceil(list.length / PS)), page = Math.min(s.page, pages - 1);
+    var pageItems = list.slice(page * PS, page * PS + PS);
+    var tpl = ['36px', 'minmax(180px, 1.8fr)'];
+    COLDEF.forEach(function (c) { if (s.cols[c[0]]) tpl.push(c[2]); });
+    var gridCols = 'display:grid;grid-template-columns:' + tpl.join(' ') + ';align-items:center;gap:0 10px;';
+    var rows = [], lastCls = '';
+    pageItems.forEach(function (x) {
+      var m = x.m, mx = x.mx, isOpen = s.openId === m.id, sel = !!s.sel[m.id];
+      if (s.group && m.cls !== lastCls) {
+        lastCls = m.cls;
+        rows.push({ header: true, item: false, open: false, name: m.cls, count: String(list.filter(function (y) { return y.m.cls === m.cls; }).length) });
+      }
+      var issues = [];
+      if (mx.cnt.Out) issues.push({ label: mx.cnt.Out + ' out', dot: dotStyle(DOT.Out) });
+      if (mx.cnt.Low) issues.push({ label: mx.cnt.Low + ' low', dot: dotStyle(DOT.Low) });
+      if (!issues.length) issues.push(!mx.lvl ? { label: 'Not set', dot: dotStyle(DOT.none) } : mx.sev === 4 ? { label: 'Over', dot: dotStyle(DOT.Over) } : { label: 'All OK', dot: dotStyle(DOT.OK) });
+      var others = meds.filter(function (o) { return o.id !== m.id && o.generic && o.generic === m.generic; });
+      var lz = lasaFor(m), qi = mx.qc, ex = mx.exp;
+      rows.push({ header: false, item: true, open: isOpen, name: m.name, generic: m.generic || m.name,
+        lasa: lz.length > 0, lasaTip: 'Look-alike, sound-alike: ' + lz.map(function (o) { return o.name; }).join('; ') + '. Check strength and form at every pick.',
+        expTop: ex === null ? '—' : dateIn(ex), expSub: ex === null ? '' : 'in ' + ex + ' d',
+        expStyle: 'font-size:13px;line-height:17px;font-variant-numeric:tabular-nums;' + (ex !== null && ex < 30 ? 'font-weight:700;color:#9f1d1d' : ex !== null && ex < 90 ? 'font-weight:700;color:#92400e' : 'color:#1b2540'),
+        local: !!m.local,
+        qcLabel: qi.length ? qi.length + (qi.length === 1 ? ' issue' : ' issues') : 'Ready', qcDot: dotStyle(qi.length ? (qi.some(function (q) { return q.k === 'Duplicate line' || q.k === 'Controlled flag missing' || q.k === 'Below cost' || q.k === 'Expires before use'; }) ? DOT.Out : DOT.Low) : DOT.OK),
+        qcTip: qi.length ? qi.map(function (q) { return '• ' + q.t; }).join('\n') : 'All checks pass', strength: m.strength || '—', form: m.form || '—', route: m.route || '—',
+        chev: 'flex:0 0 14px;transition:transform 0.15s;transform:rotate(' + (isOpen ? 90 : 0) + 'deg)',
+        sub: (others.length ? 'Also stocked: ' + others.map(function (o) { return o.strength + ' ' + String(o.form).toLowerCase(); }).join(', ') + ' · ' : '') + 'issued per ' + m.unit + ' · packs ' + packText(m) + ((m.brands || []).length ? ' · ' + m.brands.length + (m.brands.length === 1 ? ' brand' : ' brands') : ''),
+        cls: m.cls, group: m.group || '—', sale: m.sale || '—', ven: m.ven, flags: flagList(m.flags).map(function (f) { return { t: ABBR[f], full: f === 'Cold chain' ? 'Cold chain · ' + fridgeLines(m).map(function (z) { return z.where + ' ' + z.fridge + ' ' + z.temp; }).join(' | ') : f }; }),
+        onHand: fmt(mx.have), unitS: m.unit + 's',
+        pct: mx.pct === null ? '—' : mx.pct + '%',
+        barStyle: 'display:block;height:100%;border-radius:999px;background:#0f766e;width:' + (mx.pct === null ? 0 : Math.min(mx.pct, 100)) + '%',
+        barAria: mx.pct === null ? 'No top-up level set' : 'On hand is ' + mx.pct + '% of the top-up level',
+        status: issues,
+        stockTip: mx.st.length ? mx.st.map(function (y) { return y.short + ': ' + fmt(y.have) + (y.lvl ? ' of ' + fmt(y.lvl) : '') + (y.flag ? ' (' + y.flag + ')' : ''); }).join('\n') : 'Not kept anywhere yet',
+        cover: mx.cover === null ? '—' : mx.cover > 365 ? '365+ d' : mx.cover + ' d',
+        coverStyle: 'font-size:13px;font-variant-numeric:tabular-nums;' + (mx.cover !== null && mx.cover < 14 ? 'font-weight:700;color:#92400e' : 'color:#1b2540'),
+        price: m.free ? 'Free' : mx.price ? 'UGX ' + fmt(mx.price) : 'Not set', priceSub: m.free || !mx.price ? '' : 'per ' + m.unit,
+        rowStyle: gridCols + 'padding:6px 0;' + (sel || isOpen ? 'background:#f0fdfa;' : ''),
+        checked: sel, checkAria: 'Select ' + m.name,
+        toggleSel: function () { var ns = Object.assign({}, self.state.sel); if (ns[m.id]) delete ns[m.id]; else ns[m.id] = true; set({ sel: ns }); },
+        openAttr: isOpen ? 'true' : 'false', openAria: (isOpen ? 'Close ' : 'Open ') + m.name,
+        btnLabel: isOpen ? 'Close' : 'Open',
+        btnStyle: 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (isOpen ? 'border:0;background:#ccfbf1;color:#1b2540' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+        toggle: function () { if (self.state.openId === m.id) set({ openId: '', edit: null }); else openRow(m); } });
+    });
+    var sortInd = function (k) { return s.sort.key === k ? (s.sort.dir > 0 ? '↑' : '↓') : ''; };
+    var menuFor = function (k, label, canHide) {
+      var items = [
+        { label: 'Sort ascending', act: function () { set({ sort: { key: k, dir: 1 }, colMenu: '', page: 0 }); } },
+        { label: 'Sort descending', act: function () { set({ sort: { key: k, dir: -1 }, colMenu: '', page: 0 }); } },
+        { label: 'Filter by this column', act: function () { var dc = self.state.conds.slice(); dc.push(newCond(FCOLS[k] ? k : (k === 'stock' ? 'onhand' : 'name'))); set({ draft: dc, colMenu: '', saveName: '' }); } },
+        { label: s.group ? 'Stop grouping by class' : 'Group by class', act: function () { set({ group: !self.state.group, colMenu: '', page: 0 }); } }
+      ];
+      if (canHide) items.push({ label: 'Hide this column', act: function () { var c = Object.assign({}, self.state.cols); c[k] = false; set({ cols: c, colMenu: '' }); } });
+      return { label: label, ind: sortInd(k), menuOpen: s.colMenu === k, menuAttr: s.colMenu === k ? 'true' : 'false', menuAria: label + ' column options', items: items,
+        sort: function () { set({ sort: { key: k, dir: s.sort.key === k ? -s.sort.dir : 1 }, colMenu: '', page: 0 }); },
+        menu: function () { set({ colMenu: self.state.colMenu === k ? '' : k, colsOpen: false }); } };
+    };
+    var selIds = Object.keys(s.sel).filter(function (id) { return meds.some(function (m) { return m.id === id; }); });
+    var allSel = pageItems.length > 0 && pageItems.every(function (x) { return s.sel[x.m.id]; });
+    var condText = function (c, i) {
+      var fc = FCOLS[c.col];
+      return (i ? c.join + ' ' : '') + fc.label + ' ' + c.op + (needsVal(c) ? ' ' + (fc.type === 'text' ? '“' + c.val + '”' : c.val) : '');
+    };
+    var validConds = function (cs) { return cs.filter(function (c) { return !needsVal(c) || String(c.val).trim() !== ''; }); };
+    var dr = s.draft || [];
+    var updDraft = function (i, patch) { var a = self.state.draft.slice(); a[i] = Object.assign({}, a[i], patch); set({ draft: a }); };
+    var draftRows = dr.map(function (c, i) {
+      var fc = FCOLS[c.col], ty = fc.type, nv = !needsVal(c);
+      return { first: i === 0, notFirst: i > 0, join: c.join, col: c.col, op: c.op, val: c.val, ops: OPS[ty], opts: fc.opts || [],
+        isSelect: !!fc.opts && !nv, isInput: !fc.opts && !nv, noValue: nv,
+        mode: ty === 'num' ? 'numeric' : 'text', ph: ty === 'num' ? 'A number' : 'A word or part of the name',
+        joinAria: 'Condition ' + (i + 1) + ': AND or OR', colAria: 'Condition ' + (i + 1) + ': column', opAria: 'Condition ' + (i + 1) + ': operator', valAria: 'Condition ' + (i + 1) + ': value', delAria: 'Remove condition ' + (i + 1),
+        setJoin: function (ev) { updDraft(i, { join: ev.target.value }); },
+        setCol: function (ev) { var nc = newCond(ev.target.value); nc.join = c.join; var a = self.state.draft.slice(); a[i] = nc; set({ draft: a }); },
+        setOp: function (ev) { updDraft(i, { op: ev.target.value }); },
+        setVal: function (ev) { updDraft(i, { val: ty === 'num' ? ev.target.value.replace(/[^0-9.]/g, '') : ev.target.value }); },
+        remove: function () { var a = self.state.draft.slice(); a.splice(i, 1); set({ draft: a }); } };
+    });
+    var bulkMap = function (fn, note) {
+      var stamp = ' · from 2026-11-03 (bulk) · by ' + self.state.actor;
+      return self.state.meds.map(function (m) { if (!self.state.sel[m.id]) return m; var p = fn(m); if (!p) return m; return Object.assign({}, m, p, { history: m.history.concat([note(m) + stamp]) }); });
+    };
+    var PLN = {}; PLACES.forEach(function (p) { PLN[p[0]] = p[1]; });
+    var RX = s.rx, RS = s.rsets;
+    var mkRule = function (key, shown, raw, applyNew) {
+      var ed = s.ruleEdit && s.ruleEdit.key === key ? s.ruleEdit : null, pd = s.pend[key];
+      var updE = function (patch) { set({ ruleEdit: Object.assign({}, self.state.ruleEdit, patch) }); };
+      return { t: shown, idle: !ed && !pd, editing: !!ed, pending: !!pd, ev: ed ? ed.v : '', er: ed ? ed.r : '', pv: pd ? pd.v : '', pr: pd ? pd.r : '',
+        changeAria: 'Change: ' + shown,
+        change: function () { set({ ruleEdit: { key: key, v: raw, r: '' } }); },
+        setV: function (ev) { updE({ v: ev.target.value }); },
+        setR: function (ev) { updE({ r: ev.target.value }); },
+        cancel: function () { set({ ruleEdit: null }); },
+        save: function () {
+          var x = self.state.ruleEdit;
+          if (!x.v.trim() || x.v.trim() === raw) { self.flash('Type the new wording first.'); return; }
+          if (!x.r.trim()) { self.flash('Say why, so the signers can decide.'); return; }
+          var pp = Object.assign({}, self.state.pend); pp[key] = { v: x.v.trim(), r: x.r.trim(), a: false, b: false };
+          set({ pend: pp, ruleEdit: null }); self.flash('Sent for signing');
+        },
+        withdraw: function () { var pp = Object.assign({}, self.state.pend); delete pp[key]; set({ pend: pp }); self.flash('Proposal withdrawn'); },
+        signers: pd ? [['a', 'In-charge'], ['b', 'Second signer']].map(function (sg) {
+          var done = !!pd[sg[0]];
+          return { label: done ? sg[1] + ' signed' : 'Sign as ' + sg[1].toLowerCase(), done: done,
+            style: 'height:28px;padding:0 10px;border-radius:999px;font:600 12px Figtree,sans-serif;' + (done ? 'border:0;background:#ccfbf1;color:#1b2540' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+            sign: function () {
+              var pp = Object.assign({}, self.state.pend), q2 = Object.assign({}, pp[key]); q2[sg[0]] = true;
+              if (q2.a && q2.b) { delete pp[key]; set({ pend: pp }); applyNew(q2.v); self.flash('Both signed. The rule now reads: ' + q2.v); }
+              else { pp[key] = q2; set({ pend: pp }); self.flash('Signed. Waiting for the other signer.'); }
+            } };
+        }) : [] };
+    };
+    var applies = function (rs, f, cls, id) { return rs.flag ? !!f[rs.flag] : rs.cls ? cls === rs.cls : rs.rx ? !!RX[id] : true; };
+    var rulesFor = function (f, cls, id) {
+      var out = RS.filter(function (rs) { return applies(rs, f, cls, id); }).map(function (rs) {
+        var n = meds.filter(function (m) { return applies(rs, m.flags, m.cls, m.id); }).length;
+        var rules = rs.rx ? [mkRule('rx|' + id, RX[id], RX[id], function (v) { var r2 = Object.assign({}, self.state.rx); r2[id] = v; set({ rx: r2 }); })]
+          : rs.rules.map(function (t, i) { return mkRule(rs.id + '|' + i, t, t, function (v) { set({ rsets: self.state.rsets.map(function (g) { return g.id !== rs.id ? g : Object.assign({}, g, { rules: g.rules.map(function (u, j) { return j === i ? v : u; }) }); }) }); }); });
+        rules.forEach(function (r) { r.visible = true; });
+        return { scope: rs.scope, rules: rules, canAdd: false, note: rs.rx ? '· this medicine only' : '· shared by ' + n + (n === 1 ? ' medicine' : ' medicines') };
+      });
+      var mine = (s.medRules[id] || []).map(function (t, i) {
+        var r = mkRule('med|' + id + '|' + i, t, t, function (v) { var mr = Object.assign({}, self.state.medRules); mr[id] = (mr[id] || []).map(function (u, j) { return j === i ? v : u; }); set({ medRules: mr }); });
+        r.visible = true; return r;
+      });
+      var addKey = 'medadd|' + id;
+      var adder = mkRule(addKey, 'New rule', '', function (v) { var mr = Object.assign({}, self.state.medRules); mr[id] = (mr[id] || []).concat([v]); set({ medRules: mr }); });
+      adder.visible = adder.editing || adder.pending;
+      out.push({ scope: 'This medicine only', note: mine.length ? '· ' + mine.length : '· none yet', rules: mine.concat([adder]), canAdd: !adder.editing && !adder.pending,
+        add: function () { set({ ruleEdit: { key: addKey, v: '', r: '' } }); } });
+      return out;
+    };
+    var ruleGroups = RS.map(function (rs) {
+      var hit = meds.filter(function (m) { return applies(rs, m.flags, m.cls, m.id); });
+      var rules = rs.rx ? hit.map(function (m) {
+        return mkRule('rx|' + m.id, m.name.split(' ').slice(0, 2).join(' ') + ': ' + RX[m.id], RX[m.id], function (v) { var r2 = Object.assign({}, self.state.rx); r2[m.id] = v; set({ rx: r2 }); });
+      }) : rs.rules.map(function (t, i) {
+        return mkRule(rs.id + '|' + i, t, t, function (v) { set({ rsets: self.state.rsets.map(function (g) { return g.id !== rs.id ? g : Object.assign({}, g, { rules: g.rules.map(function (u, j) { return j === i ? v : u; }) }); }) }); });
+      });
+      var canShow = (!!rs.flag || !!rs.cls) && hit.length > 0;
+      var nPend = Object.keys(s.pend).filter(function (k) { return k.indexOf(rs.id + '|') === 0; }).length;
+      return { id: rs.id, scope: rs.scope, rules: rules, isAll: rs.id === 'all', canShow: canShow, noShow: !canShow,
+        n: rs.id === 'all' ? meds.length : hit.length, hasPending: nPend > 0, pendingN: nPend,
+        badgeAria: rs.scope + ' rules, ' + (rs.id === 'all' ? meds.length : hit.length) + ' medicines' + (nPend ? ', ' + nPend + ' waiting for signatures' : ''),
+        open: function () { set({ ruleDlg: rs.id, ruleEdit: null }); },
+        countLabel: rs.id === 'all' ? 'All ' + meds.length : hit.length + (hit.length === 1 ? ' medicine' : ' medicines') + (canShow ? ' · show' : ''),
+        show: function () { var c = rs.flag ? { join: 'AND', col: 'handling', op: 'has', val: rs.label } : { join: 'AND', col: 'cls', op: 'is', val: rs.cls }; set({ conds: [c], view: 'custom', page: 0, ruleDlg: '' }); } };
+    });
+    var pickView = function (id) {
+      var v = self.state.views.filter(function (x) { return x.id === id; })[0];
+      var extra = { low: [{ join: 'AND', col: 'status', op: 'any place is', val: 'Low' }], out: [{ join: 'AND', col: 'status', op: 'any place is', val: 'Out' }] };
+      var cs = v ? v.conds : (extra[id] || []);
+      set({ view: id, conds: cs.map(function (c) { return Object.assign({}, c); }), page: 0, openId: '', edit: null });
+    };
+    var noLevels = meds.filter(function (m) { return !hasLevels(m); }).length;
+    var noPrice = meds.filter(function (m) { return !priced(m); }).length;
+    var nFree = meds.filter(function (m) { return m.free; }).length;
+    var nPriced = meds.length - noPrice - nFree;
+    var updMed = function (id, patch) { return self.state.meds.map(function (m) { return m.id === id ? Object.assign({}, m, patch) : m; }); };
+
+    // open row
+    var e = s.edit;
+    var upd = function (patch) { set({ edit: Object.assign({}, self.state.edit, patch, { error: '' }) }); };
+    var d = {}, venOpts = [], flagOpts = [], packOpts = [], levelRows = [], priceRows = [];
+    if (e) {
+      var cur = meds.filter(function (m) { return m.id === e.id; })[0];
+      d = { unit: e.unit, cls: e.cls, custom: e.custom, from: e.from, free: e.free, charged: !e.free, hasError: !!e.error, error: e.error,
+        ruleHint: s.rule ? 'Rule suggests cost + ' + s.rule + '%. A typed price wins.' : 'Typed by hand. No price rule set.',
+        history: cur ? cur.history.slice().reverse() : [] };
+      d.identity = cur && cur.generic ? [cur.generic, cur.strength, cur.form, cur.route].join(' · ') : e.name;
+      d.reviewedLine = cur ? (cur.reviewed === 0 ? 'Reviewed today' : 'Last reviewed ' + cur.reviewed + ' days ago') + (cur.reviewed > 90 ? ' · review due' : '') : '';
+      d.batches = cur && cur.batches ? cur.batches.slice().sort(function (a, b) { return a.days - b.days; }).map(function (b, bi) {
+        return { t: (bi === 0 ? 'Use first · ' : '') + b.no + ' · ' + fmt(b.qty) + ' ' + cur.unit + 's', exp: 'Expires ' + dateIn(b.days) + ' · in ' + b.days + ' d',
+          style: 'font-size:12px;line-height:16px;font-variant-numeric:tabular-nums;' + (b.days < 30 ? 'font-weight:700;color:#9f1d1d' : b.days < 90 ? 'font-weight:700;color:#92400e' : 'color:#4a5574') };
+      }) : [];
+      d.noBatches = !d.batches.length;
+      d.qc = cur ? (all.filter(function (x) { return x.m.id === cur.id; })[0] || { mx: { qc: [] } }).mx.qc.map(function (q) { return q.t; }) : [];
+      d.hasQc = d.qc.length > 0;
+      d.spec = [['Medicine', cur && cur.generic || e.name], ['Strength', cur && cur.strength || '—'], ['Form', cur && cur.form || '—'], ['Route', cur && cur.route || '—'], ['Class', e.cls], ['Group', cur && cur.group || '—'], ['Sale category', cur && cur.sale || '—'], ['Issued per', e.unit]].map(function (x) { return { k: x[0], v: x[1] }; });
+      venOpts = ['Vital', 'Essential', 'Necessary'].map(function (v) {
+        var on = e.ven === v;
+        return { label: v, on: on ? 'true' : 'false', pick: function () { upd({ ven: v }); },
+          style: 'height:28px;padding:0 12px;border:0;border-radius:999px;font:600 12px Figtree,sans-serif;' + (on ? 'background:#2dd4bf;color:#1b2540' : 'background:transparent;color:#4a5574') };
+      });
+      flagOpts = [
+        ['controlled', 'Controlled', 'Register and a witness for every dose or issue.'],
+        ['high', 'High-risk', 'Counted at every handover.'],
+        ['cold', 'Cold chain, 2–8 °C', 'Kept in a fridge.'],
+        ['freeze', 'Freeze-sensitive', 'Shake test after freezing.'],
+        ['cyto', 'Cytotoxic', 'PPE, designated area, cytotoxic waste and spill kit.']
+      ].map(function (f) {
+        var fon = !!e.flags[f[0]];
+        var locked = f[0] === 'controlled' && NATCD.indexOf(e.id) >= 0;
+        var frl = f[0] === 'cold' && fon ? fridgeLines({ id: e.id }, e.levels) : [];
+        return { fridges: frl, hasFridges: frl.length > 0, label: f[1], hint: locked ? 'On the national controlled list: locked on.' : f[2], on: fon, pressed: fon ? 'true' : 'false',
+          style: 'display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:10px;text-align:left;font-family:Figtree,sans-serif;color:#1b2540;' + (fon ? 'border:1px solid #2dd4bf;background:#ccfbf1' : 'border:1px solid #dde1e9;background:#ffffff'),
+          boxStyle: 'flex:0 0 16px;width:16px;height:16px;border-radius:999px;display:grid;place-items:center;box-sizing:border-box;' + (fon ? 'background:#2dd4bf' : 'border:1.5px solid #c5cbd8;background:#ffffff'),
+          toggle: function () { if (locked && self.state.edit.flags.controlled) { set({ edit: Object.assign({}, self.state.edit, { error: e.name + ' is on the national controlled list. Removing Controlled needs a signed rule change.' }) }); return; } var fl = Object.assign({}, self.state.edit.flags); fl[f[0]] = !fl[f[0]]; upd({ flags: fl }); } };
+      });
+      var sizes = ['10', '25', '50', '100', '1000'];
+      e.packs.forEach(function (p) { if (sizes.indexOf(p) < 0) sizes.push(p); });
+      sizes.sort(function (a, b) { return a - b; });
+      packOpts = sizes.map(function (p) {
+        var on = e.packs.indexOf(p) >= 0;
+        return { label: p, on: on ? 'true' : 'false', style: smallChip + (on ? onS : offS),
+          toggle: function () { var ps = self.state.edit.packs.slice(); var i = ps.indexOf(p); if (i >= 0) ps.splice(i, 1); else ps.push(p); ps.sort(function (a, b) { return a - b; }); upd({ packs: ps }); } };
+      });
+      packOpts.push({ label: 'Loose', on: e.loose ? 'true' : 'false', style: smallChip + (e.loose ? onS : offS), toggle: function () { upd({ loose: !self.state.edit.loose }); } });
+      levelRows = PLACES.map(function (p) {
+        var v = e.levels[p[0]];
+        var have = ((s.stock[e.id] || {})[p[0]]) || 0, lvl = +v;
+        var flag = lvl > 0 && have === 0 ? 'Out' : lvl > 0 && have < lvl / 2 ? 'Low' : lvl > 0 && have > lvl ? 'Over' : lvl > 0 ? 'OK' : '';
+        var okey = e.id + '|' + p[0], ordered = s.orders[okey] || 0, isStore = p[0] === 'store';
+        var suggest = Math.max(lvl - have, 0);
+        var setOrder = function (val) { var o = Object.assign({}, self.state.orders); if (val) o[okey] = val; else delete o[okey]; set({ orders: o }); };
+        var lowNow = flag === 'Low' || flag === 'Out';
+        var extra = { canOrder: lowNow && !ordered && suggest > 0, isOrdered: !!ordered,
+          orderLabel: isStore ? 'Add ' + fmt(suggest) + ' to the order' : 'Request ' + fmt(suggest) + ' from store',
+          orderAria: (isStore ? 'Add to the supplier order: ' : 'Request from the main store: ') + fmt(suggest) + ' ' + e.unit + 's of ' + e.name + ' for ' + p[1],
+          orderedText: (isStore ? 'On the next order: ' : 'Requested from store: ') + fmt(ordered),
+          undoAria: 'Undo the ' + (isStore ? 'order' : 'request') + ' for ' + p[1],
+          order: function () { setOrder(suggest); self.flash(isStore ? 'Added ' + fmt(suggest) + ' ' + e.unit + 's to the next ' + 'NMS order' : 'Asked the main store for ' + fmt(suggest) + ' ' + e.unit + 's for ' + p[1]); },
+          undo: function () { setOrder(0); self.flash('Cancelled'); } };
+        var FC = { Out: 'background:#fde2e1;color:#9f1d1d', Low: 'background:#fef3c7;color:#92400e', OK: 'background:#dcfce7;color:#166534', Over: 'background:#dbeafe;color:#1e40af' };
+        var just = s.lastMove && s.lastMove.med === e.id && s.lastMove.place === p[0] && Date.now() - s.lastMove.at < 3500;
+        return { canOrder: extra.canOrder, isOrdered: extra.isOrdered, orderLabel: extra.orderLabel, orderAria: extra.orderAria, orderedText: extra.orderedText, undoAria: extra.undoAria, order: extra.order, undo: extra.undo,
+          have: have || lvl ? fmt(have) + ' ' + e.unit + 's' : '—', hasFlag: !!flag, flag: flag,
+          flagStyle: 'display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:600;' + (FC[flag] || ''),
+          haveCell: 'padding:8px 6px;margin:0 -6px;border-top:1px solid #dde1e9;display:flex;flex-wrap:wrap;align-items:center;gap:6px;transition:background 0.6s;' + (just ? 'background:#ccfbf1' : 'background:transparent'),
+          place: p[1], aria: 'Top-up level at ' + p[1] + ', in ' + e.unit + 's', value: v, low: +v > 0 ? fmt(Math.floor(+v / 2)) + ' ' + e.unit + 's' : '',
+          set: function (ev) { var lv = Object.assign({}, self.state.edit.levels); lv[p[0]] = ev.target.value.replace(/[^0-9]/g, ''); upd({ levels: lv }); } };
+      });
+      priceRows = s.payers.map(function (p) {
+        var v = +e.prices[p.id] || (p.id !== 'cash' ? +e.prices.cash : 0);
+        return { payer: p.name, kind: p.kind, aria: p.name + ' price, UGX per ' + e.unit + ', for ' + e.name, value: e.prices[p.id] || '', ph: p.id === 'cash' ? 'e.g. 100' : 'Same as cash',
+          packLine: v > 0 ? e.packs.map(function (k) { return 'UGX ' + fmt(v * +k) + ' a pack of ' + k; }).join(' · ') : '',
+          set: function (ev) { var pr = Object.assign({}, self.state.edit.prices); pr[p.id] = ev.target.value.replace(/[^0-9]/g, ''); upd({ prices: pr }); } };
+      });
+    }
+
+    // brands in the open row
+    var brandRows = [], brandChoices = [], BRANDS = this.BRANDS;
+    if (e) {
+      var genericCash = +e.prices.cash;
+      brandRows = e.brands.map(function (b, i) {
+        return { name: b.name, maker: b.maker, price: b.price || '', aria: b.name + ' price, UGX per ' + e.unit, removeAria: 'Remove ' + b.name,
+          ph: genericCash > 0 ? 'Same: ' + fmt(genericCash) : 'Same as generic',
+          setPrice: function (ev) { var bs = self.state.edit.brands.slice(); bs[i] = Object.assign({}, bs[i], { price: ev.target.value.replace(/[^0-9]/g, '') }); upd({ brands: bs }); },
+          remove: function () { var bs = self.state.edit.brands.slice(); bs.splice(i, 1); upd({ brands: bs }); } };
+      });
+      var have = e.brands.map(function (b) { return b.name.toLowerCase(); });
+      brandChoices = (BRANDS[e.id] || [['Generic (any maker)', 'Unbranded']]).filter(function (b) { return have.indexOf(b[0].toLowerCase()) < 0; }).map(function (b, i) { return { key: b[0] + '|' + b[1], label: b[0] + ' · ' + b[1] }; });
+      var lm = s.lastMove, PL = {}; PLACES.forEach(function (p) { PL[p[0]] = p[2]; });
+      d = Object.assign(d, { units: e.unit + 's', rules: rulesFor(e.flags, e.cls, e.id),
+        liveLine: lm ? 'Live · ' + new Date(lm.at).toLocaleTimeString('en-GB') + ' · ' + lm.name.split(' ')[0] + ' at ' + PL[lm.place] + ' −' + lm.qty + ' ' + lm.unit + (lm.qty === 1 ? '' : 's') : 'Live · waiting for the next movement', levelExample: 'e.g. Ward 3 top-up 200 ' + e.unit + 's, has 60, nothing on the way: Issue suggests 140 ' + e.unit + 's. Low below 100 ' + e.unit + 's.', brandCount: String(e.brands.length), noBrands: e.brands.length === 0, brandIdle: !e.brandMode, brandAdding: !!e.brandMode,
+        brandPick: e.brandPick, brandNew: e.brandPick === '__new', brandName: e.brandName, brandMaker: e.brandMaker });
+      var pane = e.pane || 'about';
+      var nLv = PLACES.filter(function (p) { return +e.levels[p[0]] > 0; }).length;
+      d = Object.assign(d, {
+        tabsLabel: 'Sections of ' + e.name,
+        paneAbout: true, paneStock: true, panePrices: true, paneBrands: true, paneHistory: true,
+        summary: [e.ven === 'Not set' ? 'VEN not set' : e.ven, nLv ? 'levels at ' + nLv + (nLv === 1 ? ' place' : ' places') : 'no levels yet', e.free ? 'free' : +e.prices.cash > 0 ? 'UGX ' + fmt(e.prices.cash) + ' per ' + e.unit : 'no price yet'].join(' · '),
+        freeAttr: e.free ? 'true' : 'false',
+        freeTrack: 'position:relative;width:52px;height:32px;border:0;border-radius:999px;padding:0;' + (e.free ? 'background:#0f766e' : 'background:#c5cbd8'),
+        freeKnob: 'position:absolute;top:4px;width:24px;height:24px;border-radius:999px;background:#ffffff;box-shadow:0 1px 2px rgba(27,37,64,0.3);' + (e.free ? 'left:24px' : 'left:4px')
+      });
+      var histLen = (d.history || []).length;
+      var paneTabs = [['about', 'About'], ['stock', 'Packs and levels'], ['prices', 'Prices'], ['brands', 'Brands · ' + e.brands.length], ['history', 'History · ' + histLen]].map(function (t) {
+        var on = pane === t[0];
+        return { label: t[1], on: on ? 'true' : 'false', pick: function () { upd({ pane: t[0] }); },
+          style: 'height:34px;padding:0 14px;border:0;border-radius:999px;font:600 13px Figtree,sans-serif;white-space:nowrap;' + (on ? 'background:#ffffff;color:#1b2540;box-shadow:0 1px 2px rgba(27,37,64,0.12)' : 'background:transparent;color:#4a5574') };
+      });
+      this._paneTabs = paneTabs;
+    } else { this._paneTabs = []; }
+
+    // catalogue
+    var stockedNames = meds.map(function (m) { return m.name; });
+    var pq = s.pq.trim().toLowerCase();
+    var PG = this.PG, SALE = this.SALE, saleOf = function (id) { return NATCD.indexOf(id) >= 0 ? 'Controlled' : SALE[id] || 'Prescription only'; };
+    var ATCN = { A: 'Alimentary tract and metabolism', B: 'Blood and blood-forming organs', C: 'Cardiovascular system', D: 'Dermatologicals', G: 'Genito-urinary system and sex hormones', H: 'Systemic hormonal preparations', J: 'Anti-infectives for systemic use', L: 'Antineoplastic and immunomodulating agents', M: 'Musculo-skeletal system', N: 'Nervous system', P: 'Antiparasitic products', R: 'Respiratory system', S: 'Sensory organs', V: 'Various' };
+    var ATCC = { 'Antibiotics': 'J', 'Antimalarials': 'P', 'Analgesics': 'N', 'Fluids and electrolytes': 'B', 'Antihypertensives': 'C', 'Diuretics': 'C', 'Anticonvulsants': 'N', 'Antidiabetics': 'A', 'Haematinics': 'B', 'Obstetric (uterotonics)': 'G', 'Respiratory': 'R', 'Gastrointestinal': 'A', 'Anthelmintics': 'P', 'Corticosteroids': 'H', 'Vaccines': 'J',
+      'Antineoplastics (anticancer)': 'L', 'Immunosuppressants': 'L', 'Antiretrovirals': 'J', 'Anti-TB': 'J', 'Antifungals': 'J', 'Antivirals': 'J', 'Anticoagulants': 'B', 'Lipid-lowering': 'C', 'Psychiatric': 'N', 'Dermatologicals': 'D', 'Eye and ear': 'S', 'Hormones and contraceptives': 'G', 'Thyroid': 'H', 'Antihistamines': 'R', 'Vitamins and minerals': 'A', 'Anaesthetics': 'N' };
+    var atcOf = function (id, cls) { var g = PG[id] || ''; if (g === 'NSAID') return 'M'; if (id === 'clotri') return 'D'; if (id === 'tetey') return 'S'; return ATCC[cls] || 'V'; };
+    var SRC = this.SRC, srcOf = function (id, cls) { return SRC[id] || (cls === 'Vaccines' ? ['EMHSLU', 'UNEPI'] : ['EMHSLU', 'NMS']); };
+    var catAll = CATALOGUE.concat(meds.filter(function (m) { return !m.local && !CATALOGUE.some(function (c) { return c[1] === m.name; }); }).map(function (m) { return [m.id, m.name, m.unit, m.cls, m.flags, m.packs, m.loose]; }));
+    var SOURCES = [['All', 'Master catalogue', 'Every known medicine, whether or not it is on a national or supplier list'], ['EMHSLU', 'EMHSLU', 'Essential Medicines and Health Supplies List for Uganda'], ['NMS', 'NMS', 'National Medical Stores catalogue'], ['JMS', 'JMS', 'Joint Medical Store catalogue'], ['UNEPI', 'UNEPI', 'Vaccines supplied through UNEPI']];
+    var pickSources = SOURCES.map(function (sx) {
+      var on = s.pickSrc === sx[0];
+      return { label: sx[1], tip: sx[2], on: on ? 'true' : 'false', n: sx[0] === 'All' ? catAll.length : catAll.filter(function (c) { return srcOf(c[0], c[3]).indexOf(sx[0]) >= 0; }).length,
+        pick: function () { set({ pickSrc: sx[0] }); },
+        style: 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (on ? onS : offS) };
+    });
+    var catalogue = catAll
+      .filter(function (c) { return s.pickSrc === 'All' || srcOf(c[0], c[3]).indexOf(s.pickSrc) >= 0; })
+      .filter(function (c) { return (s.pickCls === 'All' || c[3] === s.pickCls) && (s.pickSale === 'All' || saleOf(c[0]) === s.pickSale) && (s.pickAtc === 'All' || atcOf(c[0], c[3]) === s.pickAtc); })
+      .filter(function (c) { return !pq || c[1].toLowerCase().indexOf(pq) >= 0 || c[3].toLowerCase().indexOf(pq) >= 0; })
+      .map(function (c) {
+        var stc = self.STRUCT[c[0]], ckey = stc ? stc.join('|').toLowerCase() : c[1].toLowerCase();
+        var same = meds.filter(function (m) { return idKey(m) === ckey; })[0];
+        var stocked = !!same || stockedNames.indexOf(c[1]) >= 0, ticked = !!s.picked[c[0]];
+        var sib = !stocked && stc ? meds.filter(function (m) { return m.generic === stc[0]; })[0] : null;
+        var sr = srcOf(c[0], c[3]);
+        return { srcs: sr.length ? sr : ['Master only'], name: c[1], sub: ['ATC ' + atcOf(c[0], c[3]) + ' ' + ATCN[atcOf(c[0], c[3])], c[3], PG[c[0]], saleOf(c[0]), 'counted in ' + c[2] + 's'].filter(Boolean).join(' · '), note: stocked ? 'Already stocked' + (same && same.name !== c[1] ? ' as ' + same.name : '') : sib ? 'Another strength or form is stocked' : '', stocked: stocked, ticked: ticked, on: ticked ? 'true' : 'false',
+          style: 'width:100%;display:flex;align-items:center;gap:12px;padding:10px 12px;border:0;border-radius:12px;font-family:Figtree,sans-serif;color:#1b2540;' + (ticked ? 'background:#ccfbf1' : stocked ? 'background:transparent;opacity:0.6' : 'background:transparent'),
+          boxStyle: 'flex:0 0 22px;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;' + (ticked ? 'background:#2dd4bf' : 'border:1.5px solid #c5cbd8;box-sizing:border-box;background:#ffffff'),
+          toggle: function () { var pk = Object.assign({}, self.state.picked); if (pk[c[0]]) delete pk[c[0]]; else pk[c[0]] = true; set({ picked: pk }); } };
+      });
+    var nPicked = Object.keys(s.picked).length;
+    var lf0 = s.lf || {};
+    var updLf = function (patch) { set({ lf: Object.assign({}, self.state.lf, patch, { error: '' }) }); };
+    var lfName = function (x) { return [x.generic, x.strength, String(x.form || '').toLowerCase()].filter(Boolean).join(' '); };
+    var lf = {
+      generic: lf0.generic || '', strength: lf0.strength || '', form: lf0.form || 'Tablet', route: lf0.route || 'Oral', unit: lf0.unit || 'tablet', cls: lf0.cls || CLASSES[0], packs: lf0.packs || '', why: lf0.why || 'Specialist request',
+      forms: FCOLS.form.opts.concat(['Cream', 'Ointment', 'Eye drops', 'Inhaler', 'Pessary', 'Suppository']),
+      routes: ['Oral', 'IV', 'IM', 'SC', 'IV/IM', 'Topical', 'Inhaled', 'Eye', 'Rectal', 'Vaginal', 'Intradermal'],
+      units: ['tablet', 'capsule', 'vial', 'ampoule', 'bottle', 'sachet', 'tube', 'inhaler', 'dose', 'pessary', 'suppository'],
+      classes: CLASSES, hasError: !!lf0.error, error: lf0.error || '',
+      preview: lf0.generic ? [lf0.generic, lf0.strength || '[strength]', lf0.form || 'Tablet', lf0.route || 'Oral'].join(' · ') + ' · issued per ' + (lf0.unit || 'tablet') + ' · marked LOCAL' : 'Type the generic name and strength.',
+      setGeneric: function (ev) { updLf({ generic: ev.target.value }); }, setStrength: function (ev) { updLf({ strength: ev.target.value }); },
+      setForm: function (ev) { updLf({ form: ev.target.value }); }, setRoute: function (ev) { updLf({ route: ev.target.value }); },
+      setUnit: function (ev) { updLf({ unit: ev.target.value }); }, setCls: function (ev) { updLf({ cls: ev.target.value }); },
+      setPacks: function (ev) { updLf({ packs: ev.target.value.replace(/[^0-9, ]/g, '') }); }, setWhy: function (ev) { updLf({ why: ev.target.value }); }
+    };
+
+    return {
+      sections: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (l) {
+        return { label: l, style: base + (l === 'Set-up' ? 'background:#1b2540;color:#ffffff;font-weight:600' : 'color:#5f6987') };
+      }),
+      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) {
+        var on = t[0] === 'Medicines';
+        return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') };
+      }),
+      q: s.q, setQ: function (ev) { set({ q: ev.target.value }); },
+      clearFind: function () { set({ q: '', filter: 'All' }); },
+      filters: [['All', meds.length], ['Controlled', -1], ['Cold chain', -1], ['High-risk', -1], ['No levels', noLevels], ['No price', noPrice]].map(function (f) {
+        var on = s.filter === f[0];
+        return { label: f[1] >= 0 && f[0] !== 'All' ? f[0] + ' · ' + f[1] : f[0], on: on ? 'true' : 'false', style: chipBtn + (on ? onS : offS), pick: function () { set({ filter: f[0] }); } };
+      }),
+      rows: rows, noMatch: rows.length === 0,
+      kpis: (function () {
+        var kept = 0, ok = 0, low = 0, out = 0, short = 0;
+        all.forEach(function (x) {
+          x.mx.st.forEach(function (y) { if (y.lvl > 0) { kept++; if (y.flag === 'OK' || y.flag === 'Over') ok++; if (y.flag === 'Low') low++; if (y.flag === 'Out') out++; } });
+          if (x.mx.cover !== null && x.mx.cover < 14) short++;
+        });
+        var tile = function (label, value, sub, dot, view) {
+          var on = s.view === view;
+          return { label: label, value: value, sub: sub, dot: dot ? dotStyle(dot) : 'display:none', on: on ? 'true' : 'false',
+            pick: function () { pickView(on ? 'all' : view); },
+            style: 'display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;text-align:left;font-family:Figtree,sans-serif;' + (on ? 'border:1px solid #2dd4bf;background:#ccfbf1' : 'border:1px solid #dde1e9;background:#ffffff') };
+        };
+        return [
+          tile('Medicines', String(meds.length), 'stocked', '', 'all'),
+          tile('Places OK', kept ? ok + ' of ' + kept : '0', 'medicine × place', DOT.OK, 'all'),
+          tile('Low', String(low), 'places below half', DOT.Low, 'low'),
+          tile('Out', String(out), 'places with none', DOT.Out, 'out'),
+          tile('Under 14 days', String(short), 'of cover left', DOT.Low, 'cover'),
+          tile('Need attention', String(all.filter(function (x) { return x.mx.qc.length; }).length), 'lines with a check', DOT.Out, 'qc')
+        ];
+      })(),
+      c: s.cols,
+      actor: s.actor, setActor: function (ev) { set({ actor: ev.target.value }); },
+      markReviewed: function () {
+        var x = self.state.edit;
+        set({ meds: self.state.meds.map(function (m) { return m.id !== x.id ? m : Object.assign({}, m, { reviewed: 0, history: m.history.concat(['Reviewed and confirmed · by ' + self.state.actor]) }); }) });
+        self.flash(x.name + ' marked reviewed');
+      },
+      ruleGroups: ruleGroups, rulesOpen: s.rulesOpen,
+      ruleDlgOpen: !!s.ruleDlg, ruleDlgList: ruleGroups.filter(function (g) { return g.id === s.ruleDlg; }),
+      ruleDlgTitle: s.ruleDlg ? (ruleGroups.filter(function (g) { return g.id === s.ruleDlg; })[0] || {}).scope + ' rules' : '',
+      closeRuleDlg: function () { set({ ruleDlg: '', ruleEdit: null }); }, rulesOpenAttr: s.rulesOpen ? 'true' : 'false',
+      rulesSummary: RS.length + ' groups, each mapped to the medicines it covers',
+      rulesChevron: 'transition: transform 0.15s; transform: rotate(' + (s.rulesOpen ? 90 : 0) + 'deg)',
+      toggleRules: function () { set({ rulesOpen: !self.state.rulesOpen }); },
+      headStyle: gridCols + 'padding:0 0 4px;',
+      nameHead: menuFor('name', 'Medicine', false),
+      heads: COLDEF.filter(function (cd) { return s.cols[cd[0]]; }).map(function (cd) { return menuFor(cd[0], cd[1], true); }),
+      allSel: allSel,
+      toggleAll: function () {
+        var ns = Object.assign({}, self.state.sel);
+        pageItems.forEach(function (x) { if (allSel) delete ns[x.m.id]; else ns[x.m.id] = true; });
+        set({ sel: ns });
+      },
+      pageLine: list.length ? 'Showing ' + (page * PS + 1) + '–' + Math.min(list.length, page * PS + PS) + ' of ' + list.length + (list.length === meds.length ? ' medicines' : ' (of ' + meds.length + ')') : 'No medicines match',
+      pageOf: 'Page ' + (page + 1) + ' of ' + pages,
+      noPrev: page === 0, noNext: page >= pages - 1,
+      prevStyle: 'height:36px;padding:0 14px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (page === 0 ? 'border:1px solid #dde1e9;background:#f6f7f9;color:#5f6987' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+      nextStyle: 'height:36px;padding:0 14px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (page >= pages - 1 ? 'border:1px solid #dde1e9;background:#f6f7f9;color:#5f6987' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+      prevPage: function () { set({ page: Math.max(0, page - 1), openId: '', edit: null }); },
+      nextPage: function () { set({ page: Math.min(pages - 1, page + 1), openId: '', edit: null }); },
+
+      filterLabel: s.conds.length ? 'Filters · ' + s.conds.length : 'Filters',
+      filterBtnStyle: 'display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (s.conds.length ? 'border:0;background:#ccfbf1;color:#1b2540' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+      colsOpen: s.colsOpen, colsOpenAttr: s.colsOpen ? 'true' : 'false',
+      toggleCols: function () { set({ colsOpen: !self.state.colsOpen, colMenu: '' }); },
+      colToggles: COLDEF.map(function (cd) { return { label: cd[1], on: !!s.cols[cd[0]], toggle: function () { var c = Object.assign({}, self.state.cols); c[cd[0]] = !c[cd[0]]; set({ cols: c }); } }; }),
+      groupAttr: s.group ? 'true' : 'false',
+      groupStyle: 'height:40px;padding:0 14px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (s.group ? onS : offS),
+      toggleGroup: function () { set({ group: !self.state.group, page: 0 }); },
+      viewChips: s.views.map(function (v) {
+        var on = s.view === v.id;
+        return { name: v.name, on: on ? 'true' : 'false', pick: function () { pickView(v.id); },
+          style: 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (on ? onS : offS) };
+      }),
+      hasConds: s.conds.length > 0,
+      condChips: s.conds.map(function (c, i) {
+        return { text: condText(c, i), aria: 'Remove the condition ' + condText(c, 0),
+          remove: function () { var a = self.state.conds.slice(); a.splice(i, 1); if (a.length && i === 0) a[0] = Object.assign({}, a[0], { join: 'AND' }); set({ conds: a, view: a.length ? 'custom' : 'all', page: 0 }); } };
+      }),
+      clearConds: function () { set({ conds: [], view: 'all', page: 0 }); },
+
+      filtering: !!s.draft, draftRows: draftRows, draftEmpty: dr.length === 0,
+      fcols: Object.keys(FCOLS).map(function (k) { return { key: k, label: FCOLS[k].label }; }),
+      openFilters: function () { set({ draft: self.state.conds.length ? self.state.conds.slice() : [newCond('status')], saveName: '', colMenu: '', colsOpen: false }); },
+      closeFilters: function () { set({ draft: null }); },
+      addCond: function () { set({ draft: (self.state.draft || []).concat([newCond('ven')]) }); },
+      clearDraft: function () { set({ draft: [] }); },
+      applyFilters: function () {
+        var v = validConds(self.state.draft);
+        set({ conds: v, draft: null, view: v.length ? 'custom' : 'all', page: 0 });
+        self.flash(v.length ? 'Filters applied' : 'Filters cleared');
+      },
+      saveName: s.saveName,
+      setSaveName: function (ev) { set({ saveName: ev.target.value }); },
+      saveView: function () {
+        var n = (self.state.saveName || '').trim(), v = validConds(self.state.draft || []);
+        if (!n) { self.flash('Give the view a name first.'); return; }
+        if (!v.length) { self.flash('Add at least one condition to save.'); return; }
+        var id = 'v' + Date.now();
+        set({ views: self.state.views.concat([{ id: id, name: n, conds: v }]), view: id, conds: v, draft: null, page: 0 });
+        self.flash('Saved the view “' + n + '”');
+      },
+
+      anySel: selIds.length > 0,
+      selLine: selIds.length + (selIds.length === 1 ? ' selected' : ' selected'),
+      bulkVen: s.bulkVen, bulkPlace: s.bulkPlace, bulkLevel: s.bulkLevel,
+      setBulkVen: function (ev) { set({ bulkVen: ev.target.value }); },
+      setBulkPlace: function (ev) { set({ bulkPlace: ev.target.value }); },
+      setBulkLevel: function (ev) { set({ bulkLevel: ev.target.value.replace(/[^0-9]/g, '') }); },
+      applyBulkVen: function () {
+        var v = self.state.bulkVen;
+        if (!v) { self.flash('Choose a VEN class first.'); return; }
+        set({ meds: bulkMap(function (m) { return m.ven === v ? null : { ven: v }; }, function (m) { return 'VEN ' + m.ven + ' → ' + v; }), bulkVen: '' });
+        self.flash('VEN set to ' + v + ' for ' + selIds.length + ' medicines');
+      },
+      applyBulkLevel: function () {
+        var p = self.state.bulkPlace, n = +self.state.bulkLevel;
+        if (!p || !(n > 0)) { self.flash('Choose a place and type a level above 0.'); return; }
+        set({ meds: bulkMap(function (m) { var lv = Object.assign({}, m.levels); lv[p] = String(n); return { levels: lv }; }, function (m) { return 'Top-up at ' + PLN[p] + ' → ' + fmt(n) + ' ' + m.unit + 's'; }), bulkLevel: '' });
+        self.flash('Top-up at ' + PLN[p] + ' set to ' + fmt(n) + ' for ' + selIds.length + ' medicines');
+      },
+      bulkRequest: function () {
+        var o = Object.assign({}, self.state.orders), nReq = 0, nOrd = 0;
+        all.forEach(function (x) {
+          if (!self.state.sel[x.m.id]) return;
+          x.mx.st.forEach(function (y) {
+            if ((y.flag === 'Low' || y.flag === 'Out') && !o[x.m.id + '|' + y.id]) { o[x.m.id + '|' + y.id] = Math.max(y.lvl - y.have, 0); if (y.id === 'store') nOrd++; else nReq++; }
+          });
+        });
+        set({ orders: o });
+        self.flash(nReq + nOrd ? nReq + ' requests to the store · ' + nOrd + ' lines on the next order' : 'Nothing selected is low or out');
+      },
+      bulkFree: function () {
+        set({ meds: bulkMap(function (m) { return m.free ? null : { free: true }; }, function () { return 'Made free'; }) });
+        self.flash(selIds.length + ' medicines marked free');
+      },
+      clearSel: function () { set({ sel: {} }); },
+
+      d: d, venOpts: venOpts, flagOpts: flagOpts, packOpts: packOpts, levelRows: levelRows, priceRows: priceRows,
+      brandRows: brandRows, brandChoices: brandChoices, paneTabs: this._paneTabs,
+      openBrand: function () { upd({ brandMode: 'add', brandPick: '', brandName: '', brandMaker: '' }); },
+      closeBrand: function () { upd({ brandMode: '' }); },
+      setBrandPick: function (ev) { upd({ brandPick: ev.target.value }); },
+      setBrandName: function (ev) { upd({ brandName: ev.target.value }); },
+      setBrandMaker: function (ev) { upd({ brandMaker: ev.target.value }); },
+      addBrand: function () {
+        var x = self.state.edit, name, maker;
+        if (x.brandPick === '__new') { name = x.brandName.trim(); maker = x.brandMaker.trim() || 'Maker not given'; }
+        else if (x.brandPick) { var parts = x.brandPick.split('|'); name = parts[0]; maker = parts[1]; }
+        if (!name) { set({ edit: Object.assign({}, x, { error: x.brandPick === '__new' ? 'Type the brand name.' : 'Choose a brand from the list, or pick “Not listed”.' }) }); return; }
+        if (x.brands.some(function (b) { return b.name.toLowerCase() === name.toLowerCase(); })) { set({ edit: Object.assign({}, x, { error: name + ' is already mapped.' }) }); return; }
+        upd({ brands: x.brands.concat([{ name: name, maker: maker, price: '' }]), brandMode: '', brandPick: '', brandName: '', brandMaker: '' });
+      },
+      setCls: function (ev) { upd({ cls: ev.target.value }); },
+      setCustom: function (ev) { upd({ custom: ev.target.value.replace(/[^0-9]/g, '') }); },
+      addCustom: function () { var c = self.state.edit.custom; if (!c || +c <= 0) return; var ps = self.state.edit.packs.slice(); if (ps.indexOf(String(+c)) < 0) ps.push(String(+c)); ps.sort(function (a, b) { return a - b; }); upd({ packs: ps, custom: '' }); },
+      toggleFree: function () { upd({ free: !self.state.edit.free }); },
+      setFrom: function (ev) { upd({ from: ev.target.value }); },
+      closeEdit: function () { set({ openId: '', edit: null }); },
+      stopStocking: function () {
+        var x = self.state.edit;
+        set({ meds: self.state.meds.filter(function (m) { return m.id !== x.id; }), openId: '', edit: null });
+        self.flash(x.name + ' is no longer stocked. Its history is kept.');
+      },
+      saveEdit: function () {
+        var x = self.state.edit, old = self.state.meds.filter(function (m) { return m.id === x.id; })[0];
+        if (!x.packs.length && !x.loose) { upd({ error: 'Pick at least one pack size, or Loose.' }); return; }
+        if (!x.from) { upd({ error: 'Give the date these changes run from.' }); return; }
+        var lv = {}; PLACES.forEach(function (p) { if (+x.levels[p[0]] > 0) lv[p[0]] = String(+x.levels[p[0]]); });
+        var pr = {}; Object.keys(x.prices).forEach(function (k) { if (+x.prices[k] > 0) pr[k] = String(+x.prices[k]); });
+        var hist = old.history.slice(), when = ' · from ' + x.from + ' · by ' + s.actor;
+        if (x.ven !== old.ven) hist.push('VEN ' + old.ven + ' → ' + x.ven + when);
+        if (x.cls !== old.cls) hist.push('Class ' + old.cls + ' → ' + x.cls + when);
+        if (flagList(x.flags).join() !== flagList(old.flags).join()) hist.push('Handling: ' + (flagList(x.flags).join(', ') || 'none') + when);
+        if (x.free !== old.free) hist.push((x.free ? 'Made free' : 'Charged again') + when);
+        self.state.payers.forEach(function (p) { if ((pr[p.id] || '') !== (old.prices[p.id] || '')) hist.push(p.name + ' price ' + (old.prices[p.id] ? 'UGX ' + fmt(old.prices[p.id]) : 'not set') + ' → ' + (pr[p.id] ? 'UGX ' + fmt(pr[p.id]) : 'not set') + when); });
+        if (JSON.stringify(lv) !== JSON.stringify(old.levels)) hist.push('Levels: ' + levelText({ levels: lv }) + when);
+        if (x.packs.join() !== old.packs.join() || x.loose !== old.loose) hist.push('Packs: ' + packText(x) + when);
+        var br = x.brands.map(function (b) { return { name: b.name, maker: b.maker, price: +b.price > 0 ? String(+b.price) : '' }; });
+        var brText = function (list) { return list.map(function (b) { return b.name + (b.price ? ' UGX ' + fmt(b.price) : ''); }).join(', ') || 'none'; };
+        if (brText(br) !== brText(old.brands || [])) hist.push('Brands: ' + brText(br) + when);
+        set({ meds: updMed(x.id, { cls: x.cls, ven: x.ven, flags: x.flags, packs: x.packs, loose: x.loose, levels: lv, prices: pr, free: x.free, brands: br, from: x.from, history: hist }), openId: '', edit: null });
+        self.flash(hist.length > old.history.length ? 'Saved ' + x.name : 'Nothing changed');
+      },
+
+      ruleOpen: s.ruleOpen, ruleClosed: !s.ruleOpen, hasRule: !!s.rule, ruleDraft: s.ruleDraft,
+      ruleButton: s.rule ? 'Change' : 'Set a rule',
+      ruleText: s.rule ? 'received cost + ' + s.rule + '%, rounded up to UGX 50; each proposal is accepted by hand' : 'none, prices are typed',
+      openRule: function () { set({ ruleOpen: true, ruleDraft: s.rule }); },
+      closeRule: function () { set({ ruleOpen: false }); },
+      setRuleDraft: function (ev) { set({ ruleDraft: ev.target.value.replace(/[^0-9]/g, '') }); },
+      saveRule: function () { var v = self.state.ruleDraft; if (v === '' || +v > 500) { self.flash('Type a mark-up from 0 to 500%.'); return; } set({ rule: String(+v), ruleOpen: false }); self.flash('Price rule saved'); },
+      removeRule: function () { set({ rule: '', ruleOpen: false }); self.flash('Price rule removed'); },
+
+      payerText: others.length ? 'Cash, ' + others.map(function (p) { return p.name + ' (' + p.kind.toLowerCase() + ')'; }).join(', ') : 'Cash only',
+      payerOpen: s.payerOpen === 'bar', payerClosed: s.payerOpen !== 'bar', payerName: s.payerName, payerKind: s.payerKind,
+      rowPayerOpen: s.payerOpen === 'row', rowPayerClosed: s.payerOpen !== 'row',
+      openPayerBar: function () { set({ payerOpen: 'bar', payerName: '' }); },
+      openPayerRow: function () { set({ payerOpen: 'row', payerName: '' }); },
+      closePayer: function () { set({ payerOpen: '' }); },
+      setPayerName: function (ev) { set({ payerName: ev.target.value }); },
+      setPayerKind: function (ev) { set({ payerKind: ev.target.value }); },
+      addPayer: function () {
+        var n = self.state.payerName.trim();
+        if (!n) { self.flash('Type the name of the insurer or scheme first.'); return; }
+        if (self.state.payers.some(function (p) { return p.name.toLowerCase() === n.toLowerCase(); })) { self.flash(n + ' is already added.'); return; }
+        set({ payers: self.state.payers.concat([{ id: 'p' + Date.now(), name: n, kind: self.state.payerKind }]), payerName: '', payerOpen: '' });
+        self.flash('Added ' + n + '. Every medicine now has a price box for it.');
+      },
+
+      pickCls: s.pickCls, pickSale: s.pickSale, classOpts: CLASSES, pickAtc: s.pickAtc,
+      atcOpts: Object.keys(ATCN).map(function (k) { return { v: k, label: k + ' · ' + ATCN[k] }; }),
+      setPickAtc: function (ev) { set({ pickAtc: ev.target.value }); },
+      setPickCls: function (ev) { set({ pickCls: ev.target.value }); }, setPickSale: function (ev) { set({ pickSale: ev.target.value }); },
+      picking: s.picking, pq: s.pq, catalogue: catalogue, pickSources: pickSources, noCatalogue: catalogue.length === 0,
+      pickList: s.pickMode !== 'form', pickForm: s.pickMode === 'form', pickTitle: s.pickMode === 'form' ? 'Add a medicine that isn\u2019t in a catalogue' : 'Add from the catalogues', lf: lf,
+      openLocal: function () { set({ pickMode: 'form', lf: { generic: self.state.pq || '' } }); },
+      backToCatalogue: function () { set({ pickMode: 'list' }); },
+      addLocal: function () {
+        var x = Object.assign({ form: 'Tablet', route: 'Oral', unit: 'tablet', cls: CLASSES[0], why: 'Specialist request', packs: '' }, self.state.lf);
+        var g = (x.generic || '').trim(), st = (x.strength || '').trim();
+        if (!g || !st) { updLf({}); set({ lf: Object.assign({}, self.state.lf, { error: 'Type the generic name and the strength.' }) }); return; }
+        var key = [g, st, x.form, x.route].join('|').toLowerCase();
+        var same = self.state.meds.filter(function (m) { return idKey(m) === key; })[0];
+        if (same) { set({ lf: Object.assign({}, self.state.lf, { error: 'Already stocked as ' + same.name + '. Open that line instead.' }) }); return; }
+        var packs = (x.packs || '').split(/[ ,]+/).filter(Boolean);
+        var nm = med('loc' + Date.now(), lfName({ generic: g, strength: st, form: x.form }), x.unit, x.cls, 'Not set', {}, packs, !packs.length);
+        nm.generic = g; nm.strength = st; nm.form = x.form; nm.route = x.route; nm.local = true; nm.why = x.why; nm.reviewed = 0; nm.lastMoved = 0; nm.batches = [];
+        nm.history = ['Added as a local item, not in any catalogue (' + x.why + ') · by ' + self.state.actor];
+        set({ meds: self.state.meds.concat([nm]), picking: false, pickMode: 'list', lf: null, q: g, conds: [], view: 'all', page: 0 });
+        self.flash('Added ' + nm.name + ' as a local item. Set its VEN, top-up levels and price.');
+      },
+      setPq: function (ev) { set({ pq: ev.target.value }); },
+      openPicker: function () { set({ picking: true, picked: {}, pq: '', pickMode: 'list', pickSrc: 'All', pickCls: 'All', pickSale: 'All', pickAtc: 'All', lf: null }); },
+      closePicker: function () { set({ picking: false }); },
+      noneTicked: nPicked === 0,
+      pickedLine: nPicked === 0 ? 'Tick the medicines you stock.' : nPicked + (nPicked === 1 ? ' medicine ticked' : ' medicines ticked'),
+      addLabel: nPicked === 1 ? 'Add 1 medicine' : 'Add ' + nPicked + ' medicines',
+      addStyle: 'height:44px;padding:0 20px;border:0;border-radius:999px;font:600 16px Figtree,sans-serif;' + (nPicked ? 'background:#2dd4bf;color:#1b2540;box-shadow:0 8px 22px -6px rgba(45,212,191,0.65)' : 'background:#e4e7ee;color:#5f6987'),
+      addPicked: function () {
+        var STc = self.STRUCT, add = CATALOGUE.filter(function (c) { return self.state.picked[c[0]]; }).map(function (c) { var nm = med(c[0], c[1], c[2], c[3], 'Not set', Object.assign({}, c[4]), c[5].slice(), c[6]); nm.group = PG[c[0]] || ''; nm.sale = saleOf(c[0]); if (STc[c[0]]) { nm.generic = STc[c[0]][0]; nm.strength = STc[c[0]][1]; nm.form = STc[c[0]][2]; nm.route = STc[c[0]][3]; } return nm; });
+        set({ meds: self.state.meds.concat(add), picking: false, picked: {}, filter: 'All', q: '' });
+        self.flash(add.length === 1 ? 'Added 1 medicine. Open it to set VEN, levels and price.' : 'Added ' + add.length + ' medicines. Open each to set VEN, levels and price.');
+      },
+      hasToast: !!s.toast, toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>
