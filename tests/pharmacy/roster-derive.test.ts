@@ -313,3 +313,38 @@ describe("holidays and the month grid", () => {
     expect(c.filter((x) => x.inMonth)).toHaveLength(30);
   });
 });
+
+describe("rules registry", async () => {
+  const { ruleText, validateParam, ruleNumbers, rosterParams } =
+    await import("@/lib/pharmacy/rules/registry");
+  const { RULE_REGISTRY } = await import("@/content/pharmacy-rules");
+  const rule = (g: string, k: string) =>
+    RULE_REGISTRY.find((x) => x.key === g)!.rules.find((r) => r.key === k)!;
+  it("pluralises units, keeps % tight, keeps the step's decimals", () => {
+    expect(ruleText(rule("cold", "expiry_warning"))).toBe("Warn 90 days before expiry");
+    expect(ruleText(rule("ord", "covers"), 2)).toBe("The cycle plus a 2 month buffer");
+    expect(ruleText(rule("cd", "offline"), 1)).toBe("Must reach the server within 1 hour");
+    expect(ruleText(rule("price", "markup"))).toBe("Received cost + 25%, rounded to UGX 50");
+    expect(ruleText(rule("cold", "near_limit"))).toBe(
+      "Within 0.5 °C of 2 or 8 °C shows as near the limit",
+    );
+    expect(ruleText(rule("rx", "allergy"))).toBe("Penicillin allergy blocks amoxicillin");
+  });
+  it("validates a number: not a number, out of range, unchanged", () => {
+    const p = rule("cold", "expiry_warning").param!;
+    expect(validateParam("x", p, 90)).toBe("nan");
+    expect(validateParam("", p, 90)).toBe("nan");
+    expect(validateParam("20", p, 90)).toBe("range");
+    expect(validateParam("90", p, 90)).toBe("same");
+    expect(validateParam("120", p, 90)).toBeNull();
+  });
+  it("46 rules in 10 groups; a signed number wins over the default", () => {
+    expect(RULE_REGISTRY).toHaveLength(10);
+    expect(RULE_REGISTRY.reduce((n, g) => n + g.rules.length, 0)).toBe(46);
+    const n = ruleNumbers([
+      { rule_group: "roster", key: "shifts_week", text: "", params: { n: 5 } },
+    ]);
+    expect(rosterParams(n)).toEqual({ ...P, maxWeek: 5 });
+    expect(() => n("roster", "rest")).toThrow(/no number/);
+  });
+});
