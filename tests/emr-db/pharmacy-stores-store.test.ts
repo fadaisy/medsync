@@ -24,6 +24,7 @@ import * as phase1 from "@/lib/pharmacy/stock/store";
 import * as iss from "@/lib/pharmacy/stores/issue-store";
 import * as loc from "@/lib/pharmacy/stores/location-store";
 import * as rcv from "@/lib/pharmacy/stores/receiving-store";
+import * as shelf from "@/lib/pharmacy/stores/shelves";
 import { getDelivery, getIssuesPage, getRequisition } from "@/lib/pharmacy/stores/store-read";
 import { loadLocation, storeNeed } from "@/lib/pharmacy/stores/write";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
@@ -1061,5 +1062,48 @@ describe.skipIf(!laneOn)("The store (Step 4: S11–S17b)", () => {
         WHERE m.pair_id IS NOT NULL AND (SELECT count(*) FROM public.pharmacy_stock_movements o WHERE o.pair_id = m.pair_id) <> 2`,
     );
     expect(one_leg.n).toBe(0);
+  });
+
+  it("put-away (0272): a store batch goes on a shelf, leaves the list, and shows on the pick list", async () => {
+    const list = (await shelf.getPutAway(admin(f.pharmacist!), lane.db))!;
+    expect(list.length).toBeGreaterThan(0);
+    const b = list[0]!;
+    const put = await write(shelf.PutAwayInput, shelf.putAway, {
+      clientKey: randomUUID(),
+      batchId: b.batchId,
+      shelf: " a-02 ",
+    });
+    expect(put.ok).toBe(true);
+    const after = (await shelf.getPutAway(admin(f.pharmacist!), lane.db))!;
+    expect(after.find((r) => r.batchId === b.batchId)).toBeUndefined();
+    const saved = await pg.query(
+      `SELECT shelf FROM public.pharmacy_batch_shelves WHERE batch_id = $1`,
+      [b.batchId],
+    );
+    expect(saved.rows).toEqual([{ shelf: "A-02" }]);
+    // A bad name and a batch outside the store are refused; a shelf row is never changed.
+    const bad = await write(shelf.PutAwayInput, shelf.putAway, {
+      clientKey: randomUUID(),
+      batchId: b.batchId,
+      shelf: "<A>",
+    });
+    expect(bad.ok).toBe(false);
+    const [atPoint] = (
+      await pg.query<{ id: string }>(
+        `SELECT id FROM public.pharmacy_batches WHERE dispensing_point_id IS NOT NULL OR location_id IN
+           (SELECT id FROM public.pharmacy_locations WHERE kind <> 'store') LIMIT 1`,
+      )
+    ).rows;
+    if (atPoint) {
+      const away = await write(shelf.PutAwayInput, shelf.putAway, {
+        clientKey: randomUUID(),
+        batchId: atPoint.id,
+        shelf: "B-01",
+      });
+      expect(away.ok).toBe(false);
+    }
+    await expect(
+      pg.query(`UPDATE public.pharmacy_batch_shelves SET shelf = 'Z'`),
+    ).rejects.toThrow();
   });
 });

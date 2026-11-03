@@ -4,6 +4,7 @@ import { tabOf } from "@/lib/pharmacy/ia";
 import { PageTabs } from "../../_components/page-tabs";
 import DeliveryPage from "../../store/deliveries/[id]/page";
 import { DeliveriesBody } from "../../store/deliveries/body";
+import { PutAwayBody } from "../../store/deliveries/put-away-body";
 import RequisitionPage from "../../store/issues/[id]/page";
 import { IssuesBody } from "../../store/issues/body";
 import { OrdersBody } from "../../store/orders/body";
@@ -34,7 +35,10 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
       delivery && UUID.test(delivery) ? (
         <DeliveryPage params={Promise.resolve({ id: delivery })} />
       ) : (
-        <DeliveriesBody />
+        <div className="flex flex-col gap-6">
+          <DeliveriesBody />
+          <PutAwayBody />
+        </div>
       );
   else if (tab === "issue" && UUID.test(one(sp.issue) ?? ""))
     body = <RequisitionPage params={Promise.resolve({ id: one(sp.issue)! })} />;

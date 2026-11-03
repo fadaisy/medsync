@@ -43,6 +43,7 @@ import { controlledRefusals, planIssue } from "./issue";
 import { controlledSet } from "./location-store";
 import { discrepancyLines, lineResults, stillOwed } from "./receiving";
 import { asLine, expiryLookahead, productCatalogueFacts } from "./receiving-store";
+import { shelvesOf } from "./shelves";
 import { locationLive } from "./write";
 
 /**
@@ -860,8 +861,13 @@ export async function getRequisition(
         .limit(1);
       const controlled = await controlledSet(tx, scope.hospitalId);
       const picks = pharmacyCatalogueLiveFor(scope.hospitalId) ? await pickedLines(tx, r.id) : null;
+      const shelves = await shelvesOf(
+        tx,
+        batches.map((b) => b.id),
+      );
       return {
         picks,
+        shelves,
         r,
         locations,
         lines,
@@ -924,6 +930,7 @@ export async function getRequisition(
         expiry: b.expiry,
         expiryMonthOnly: b.expiryMonthOnly,
         held: read.balances.get(b.id) ?? 0,
+        shelf: read.shelves.get(b.id) ?? null,
       })),
       issuedRows: read.issued.filter((x) => x.productId === l.productId),
     };

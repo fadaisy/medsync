@@ -338,12 +338,27 @@ export const STORE = {
     issued: (time: string) => `Issued ${time}`,
     controlled: "Controlled drug: issued only with the witness here.",
     countOnWard: "No count from the requesting place was taken.",
-    take: (batch: string, expiry: string, n: number) => `${batch} · exp ${expiry} · take ${n}`,
+    take: (batch: string, expiry: string, n: number, shelf: string | null) =>
+      `${shelf ? `Shelf ${shelf} · ` : ""}${batch} · exp ${expiry} · take ${n}`,
     only: (n: number, unit: string) => `Only ${n} ${unit} held here.`,
     short: (n: number, unit: string) => `${n} ${unit} short of what was asked.`,
     cool: "Cold chain: pack it in a cool box.",
     printPick: "Print the pick list",
     pickTitle: (from: string, to: string) => `Pick list · ${from} to ${to}`,
+  },
+
+  putAway: {
+    title: "Put away",
+    lede: "Stock in the store with no shelf yet. Put each batch where its medicine already is, so a pick list can find it. Cold-chain lines come first.",
+    none: "Everything in the store is on a shelf.",
+    shelf: "Shelf",
+    suggest: (shelf: string) => `Where it already is: ${shelf}`,
+    put: "Put away",
+    cold: "Cold chain",
+    bad: "A shelf is letters and numbers, up to 20, e.g. A-02.",
+    notHere: "That batch is not in a store of this hospital.",
+    migration: "Shelves need migration 0272, which is not applied yet.",
+    done: (shelf: string) => `On shelf ${shelf}.`,
   },
 
   voucher: {

@@ -125,6 +125,7 @@ export default async function RequisitionPage({ params }: { params: Promise<{ id
                     batchNumber: b.batchNumber,
                     expiry: expiryText(b),
                     held: b.held,
+                    shelf: b.shelf,
                   })),
                   decided: l.issued !== null,
                   picked: l.pick === undefined ? undefined : (l.pick?.method ?? null),

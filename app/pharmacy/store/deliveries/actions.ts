@@ -1,6 +1,7 @@
 "use server";
 
 import * as receiving from "@/lib/pharmacy/stores/receiving-store";
+import * as shelves from "@/lib/pharmacy/stores/shelves";
 import { bare, storeAct } from "@/lib/pharmacy/stores/store-action";
 
 /**
@@ -102,5 +103,12 @@ export async function printGrn(raw: unknown) {
       "pharmacy.store",
       receiving.printGrn,
     ),
+  );
+}
+
+/** Put a store batch on a shelf (0272), for the pick list. */
+export async function putAway(raw: unknown) {
+  return bare(
+    await storeAct("putAway", shelves.PutAwayInput, raw, "pharmacy.store", shelves.putAway),
   );
 }

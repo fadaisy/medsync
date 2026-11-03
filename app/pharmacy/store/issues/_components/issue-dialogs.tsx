@@ -722,7 +722,7 @@ export interface IssueLine {
   controlled: boolean;
   cold: boolean;
   /** Usable batches here, first to expire first, with the expiry as words. */
-  stock: { batchNumber: string; expiry: string; held: number }[];
+  stock: { batchNumber: string; expiry: string; held: number; shelf: string | null }[];
   decided: boolean;
   /** 4.11: the line's pick; undefined with the catalogue check off. */
   picked?: "scan" | "hand" | null;
@@ -836,7 +836,7 @@ export function IssueForm({
                     {l.stock.length ? null : <span>{S.noBatch}</span>}
                     {takes.map((t) => (
                       <span key={t.batchNumber} className="block font-mono">
-                        {S.take(t.batchNumber, t.expiry, t.take)}
+                        {S.take(t.batchNumber, t.expiry, t.take, t.shelf)}
                       </span>
                     ))}
                     {n > l.held ? (
@@ -909,7 +909,7 @@ export function IssueForm({
                 asked: l.asked,
                 issue: n,
                 take: takeFrom(l.stock, Math.min(n, l.held)).map((t) =>
-                  S.take(t.batchNumber, t.expiry, t.take),
+                  S.take(t.batchNumber, t.expiry, t.take, t.shelf),
                 ),
               };
             }),
