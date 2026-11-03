@@ -441,7 +441,7 @@ type Refusal = { kind: "refused" | "no_product" | "several"; note: string };
  * (whose signed class it takes), or (ADR 0470) a medicine off the prescribing list as a local medicine under its
  * catalogue key, its class from the signed substance list. Anything else is refused in words, nothing written.
  */
-async function productForPick(
+export async function productForPick(
   ctx: PharmacyCtx,
   pick: { packId: string } | { medicineId: string },
 ): Promise<{ id: string; said: string | null } | Refusal> {

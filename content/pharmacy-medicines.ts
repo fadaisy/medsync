@@ -526,6 +526,7 @@ export const MEDICINES = {
     nothing: "Nothing changed",
     needPack: "Pick at least one pack size, or Loose.",
     needDate: "Give the date these changes run from.",
+    needCash: "Type a cash price to charge it again.",
     readOnly: "Read only. Set-up changes are made in Set-up › Medicines.",
     regionAria: (name: string) => `Details of ${name}`,
   },
@@ -708,5 +709,7 @@ export const MEDICINES = {
     failed: "That did not save. Try again.",
     notAllowed: "Your role cannot change this.",
     migration: "Medicines needs database update 0270. Ask the owner to apply it.",
+    duplicate: "Another line already has this medicine, strength, form and route.",
+    orderAsk: "Asked for in Medicines",
   },
 };

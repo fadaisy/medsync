@@ -9,7 +9,7 @@
 --   2. pharmacy_reorder_levels gains `location_id` and `product_id`: a top-up level for any place (store, point, ward),
 --      append-only as before; the latest row per line and place wins.
 --   3. pharmacy_payers kinds: insurance, community, employer (cash, scheme, staff and other stay).
---   4. pharmacy_line_brands, and pharmacy_product_prices gains `brand_id` (a brand's own price).
+--   4. pharmacy_line_brands, each with its own cash price (null = the generic's price).
 --   5. pharmacy_rules, pharmacy_rule_proposals, pharmacy_rule_signatures: a rule's text changes only when the in-charge
 --      and a second, different person have signed (trigger `prs_apply`).
 --   6. pharmacy_saved_views (per user) and pharmacy_line_history (append-only, one line per changed area).
@@ -97,6 +97,8 @@ CREATE TABLE IF NOT EXISTS public.pharmacy_line_brands (
   brand text NOT NULL CHECK (char_length(brand) BETWEEN 1 AND 120),
   maker text CHECK (maker IS NULL OR char_length(maker) BETWEEN 1 AND 120),
   nda_reg_no text CHECK (nda_reg_no IS NULL OR char_length(nda_reg_no) BETWEEN 2 AND 80),
+  -- UGX per issue unit, for the cash payer; null = the generic's price. Changes are in pharmacy_line_history.
+  price_ugx integer CHECK (price_ugx IS NULL OR price_ugx > 0),
   added_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
   added_at timestamptz NOT NULL DEFAULT now(),
   removed_at timestamptz,
@@ -106,8 +108,6 @@ CREATE TABLE IF NOT EXISTS public.pharmacy_line_brands (
 CREATE UNIQUE INDEX IF NOT EXISTS plb_one_name ON public.pharmacy_line_brands (product_id, lower(brand))
   WHERE removed_at IS NULL;
 
-ALTER TABLE public.pharmacy_product_prices
-  ADD COLUMN IF NOT EXISTS brand_id uuid REFERENCES public.pharmacy_line_brands(id) ON DELETE RESTRICT;
 
 -- ─── 5. Rules with two signatures ────────────────────────────────────────
 -- A rule row exists once its text first changes or a line gets its own rule; until then the signed default stands.
