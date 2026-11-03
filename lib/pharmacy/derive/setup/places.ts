@@ -1,5 +1,9 @@
 import type { PlaceKind } from "@/content/pharmacy-setup";
 
+import { RULES } from "@/content/pharmacy-rework-patients";
+
+const { low: LOW, high: HIGH } = RULES.cold;
+
 /**
  * Set-up › Places (SETUP-TABS §B, §F): the prototype's `hoToday`, `fState`, `snapSlot`, typed readings, device
  * status, order due, budget, stock flow and close guards. Every number comes from the caller (the signed rules).
@@ -53,10 +57,10 @@ export function handoverToday(
 }
 
 export type FridgeState = "ok" | "near" | "out";
-/** Out below 2 or above 8 °C (Rules › Fridge range); near within `near` of either limit. */
+/** Out of `RULES.cold` (Rules › Fridge range, 2–8 °C); near within `near` of either limit. */
 export const fridgeState = (temp: number, near: number): FridgeState =>
-  temp < 2 || temp > 8 ? "out" : temp < 2 + near || temp > 8 - near ? "near" : "ok";
-export const outOfRange = (temp: number) => temp < 2 || temp > 8;
+  outOfRange(temp) ? "out" : temp < LOW + near || temp > HIGH - near ? "near" : "ok";
+export const outOfRange = (temp: number) => temp < LOW || temp > HIGH;
 
 /** The typed check a reading counts for: within 90 minutes of 08:00 or 17:00, else none. */
 export function readingSlot(time: string, checks: readonly string[] = ["08:00", "17:00"]) {

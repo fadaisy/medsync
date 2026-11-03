@@ -535,11 +535,11 @@ export async function loadRulesView(
     }>(
       db,
       sql`SELECT p.id, p.rule_group, p.key, p.name, p.kind, p.old_text, p.new_text, p.reason, p.proposed_by, ${who} AS who,
-             p.created_at AS at, p.applies_to,
+             p.proposed_at AS at, p.applies_to,
              (SELECT array_agg(s.role) FROM public.pharmacy_rule_signatures s WHERE s.proposal_id = p.id) AS roles,
              (SELECT array_agg(s.signed_by::text) FROM public.pharmacy_rule_signatures s WHERE s.proposal_id = p.id) AS signers
            FROM public.pharmacy_rule_proposals p LEFT JOIN public.users u ON u.id = p.proposed_by
-          WHERE p.hospital_id = ${h}::uuid AND p.status = 'pending' AND p.product_id IS NULL ORDER BY p.created_at`,
+          WHERE p.hospital_id = ${h}::uuid AND p.status = 'pending' AND p.product_id IS NULL ORDER BY p.proposed_at`,
     ),
     q<{
       at: string;
@@ -556,7 +556,7 @@ export async function loadRulesView(
       rejecter: string | null;
     }>(
       db,
-      sql`SELECT coalesce(p.closed_at, p.created_at) AS at, p.rule_group, p.key, p.name, p.old_text, p.new_text, p.status,
+      sql`SELECT coalesce(p.closed_at, p.proposed_at) AS at, p.rule_group, p.key, p.name, p.old_text, p.new_text, p.status,
              p.kind, ${who} AS who, p.reject_note,
              (SELECT coalesce(r.full_name, r.email) FROM public.users r WHERE r.id = p.rejected_by) AS rejecter,
              (SELECT array_agg(coalesce(x.full_name, x.email)) FROM public.pharmacy_rule_signatures s

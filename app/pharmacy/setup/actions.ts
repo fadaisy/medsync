@@ -26,19 +26,7 @@ async function guarded<T extends { ok: boolean }>(fn: () => Promise<T>) {
   }
 }
 
-/** Set-up › Places: fridges, the immunisation clinic and its vaccines. */
-export async function addFridgeAction(raw: unknown) {
-  return guarded(async () =>
-    runPharmacyWrite(
-      cold.AddFridgeInput,
-      raw,
-      await requirePharmacyActor(),
-      cold.SETUP_NEED,
-      cold.addFridge,
-    ),
-  );
-}
-
+/** Set-up › Places: the immunisation clinic and its vaccines. */
 export async function setEpiClinicAction(raw: unknown) {
   return guarded(async () =>
     runPharmacyWrite(

@@ -124,6 +124,41 @@ Not built, no source yet: ward rosters (the Doctors and nurses view shows its em
 Checks: `tests/emr-db/pharmacy-roster.test.ts` (database rules), `tests/emr-db/pharmacy-roster-actions.test.ts`
 (actions on the demo lane), `tests/pharmacy/roster-derive.test.ts`. Visual: `/styleguide/pharmacy-roster` (dev only).
 
+## Set-up › Going live, Places, Rules and Messages (3 Nov 2026, branch `feat/pharmacy-setup-tabs`)
+
+Spec: `docs/pharmacy/rework/SETUP-TABS.md`; map: `RECON-SETUP.md`. Old `?tab=live` and `?tab=sms` links still work.
+Before it goes live (owner):
+
+1. Apply GATED 0274 (after 0273) from this branch's folder: `cd ~/Desktop/medsync && npm run db:migrate`.
+   Until then the four tabs say they need the update.
+2. Sign the copy: `content/pharmacy-setup-{going-live,places,rules,messages}.ts` are draft, including the test SMS
+   wording, the hold notes ("Quiet hours: goes at 07:00", "Monthly budget reached: sending stopped") and "Replied STOP".
+3. Supply: the SMS provider account (Africa's Talking username in "Provider", sender ID, API key), Luganda text from a
+   native speaker for each patient template, supplier contacts and budgets, the HMIS 105 and NDA column maps, the
+   second signer's name, and the go-live date.
+4. Point the provider's delivery and STOP callbacks at `/api/pharmacy/sms/delivery` and `/api/pharmacy/sms/inbound`, both with
+   `PHARMACY_SMS_INBOUND_KEY`.
+
+Defaults taken (change in one place if wrong):
+
+- The medical superintendent is the hospital's `hospital_admin`; "witness on the ward" becomes a two-signature
+  `cd.witness_ward` proposal; practice writes go to their own schema and are discarded on Go live.
+- Places: a store needs a hub unit, a ward a hub ward; dispensing points come from the hub; kind is locked except
+  clinic ↔ theatre. Typed fridge readings turn late after the handover "missed" minutes and count for the 08:00 or
+  17:00 check within 90 minutes. The fridge range is `RULES.cold` (2–8 °C).
+- Budget bars: supplier amber at 75 %, red at 90 %; SMS amber at 80 %, stops at the signed cap. These two warning
+  levels are display only, not rules.
+- The SMS API key is stored with `encrypt()`; an empty phone or key on edit keeps the saved one. A disconnected
+  hospital account sends nothing; with no account saved, the platform sender is used.
+- Not wired: the excursion push alert, a device heartbeat (devices show their last roster sign-in), and un-marking
+  the Luganda check. Consent counts are platform-wide. Quiet-held messages go at the next daily run.
+- Rules: group signatures and the Places badge show "on record", not names; a new rule's "applies to" may be empty.
+  "Opening and closing" has no rule badge; "Open in Medicines" from Places is not filtered by place.
+
+Checks: `tests/emr-db/pharmacy-setup.test.ts` (0274 guards), `tests/emr-db/pharmacy-setup-actions.test.ts` (every tab
+loads, §I.1–I.12 on the demo lane), `tests/pharmacy/setup-derive.test.ts`. Visual: `/styleguide/pharmacy-setup`
+(dev only, `?tab=` and `?empty=1`), checked at 1440 and 390 px.
+
 ## Still open
 
 - Luganda wording: draft until a native speaker signs.

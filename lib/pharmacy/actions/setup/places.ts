@@ -8,6 +8,7 @@ import { DEVICES, HANDOVER_SLOTS } from "@/content/pharmacy-setup";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { encrypt } from "@/lib/encryption";
 import { rowsOf } from "@/lib/pharmacy/audit/read";
+import { sensorKeyHash } from "@/lib/pharmacy/cold/store";
 import { normalisePhoneUG } from "@/lib/pharmacy/derive/setup/messages";
 import { kampalaNow, outOfRange, readingSlot } from "@/lib/pharmacy/derive/setup/places";
 import { createLocation } from "@/lib/pharmacy/stores/location-store";
@@ -201,9 +202,14 @@ export const SensorInput = z.object({
 export const linkSensor = (actor: PharmacyActor, raw: unknown) =>
   runPharmacyWrite(SensorInput, raw, actor, NEED, async (ctx, i) => {
     must(storeKeeper(ctx), "Only the in-charge or the store keeper links sensors.");
-    await ctx.tx.execute(sql`UPDATE public.pharmacy_fridges SET sensor_id = ${i.sensorId}
+    // The sensor posts with this key (app/api/pharmacy/cold/reading); only its hash is kept, so it is shown once.
+    const key = i.sensorId
+      ? `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "")
+      : null;
+    await ctx.tx.execute(sql`UPDATE public.pharmacy_fridges SET sensor_id = ${i.sensorId},
+        sensor_key_hash = ${key ? sensorKeyHash(key) : null}
       WHERE id = ${i.id}::uuid AND hospital_id = ${ctx.actor.hospitalId}::uuid`);
-    return { id: i.id };
+    return { id: i.id, key };
   });
 export const unlinkSensor = (actor: PharmacyActor, raw: unknown) =>
   linkSensor(actor, { ...(raw as object), sensorId: null });
@@ -252,7 +258,7 @@ export const SupplierInput = z
     usedUgx: z.number().int().min(0),
     period: z.string().trim().max(40),
     contact: z.string().trim().max(120),
-    /** Empty keeps no phone; never invented. */
+    /** Never invented. Empty on an edit keeps the saved number. */
     phone: z.string().trim().max(20),
   })
   .refine((v) => !v.budgetUgx || v.usedUgx <= v.budgetUgx, {
@@ -266,7 +272,9 @@ export const upsertSupplier = (actor: PharmacyActor, raw: unknown) =>
       throw new EmrWriteError("invalid", "Type a Ugandan mobile number, e.g. +256 772 000 000.");
     const h = ctx.actor.hospitalId;
     const vals = sql`${i.name}, ${i.what || null}, ${i.cycleMonths}, ${i.nextCycleOn}::date, ${i.leadDays}, ${i.budgetUgx},
-      ${i.usedUgx}, ${i.period || null}, ${i.contact || null}, ${phone ? encrypt(phone) : null}, ${ctx.actor.userId}::uuid`;
+      ${i.usedUgx}, ${i.period || null}, ${i.contact || null},
+      ${i.id ? sql`coalesce(${phone ? encrypt(phone) : null}, phone_encrypted)` : sql`${phone ? encrypt(phone) : null}`},
+      ${ctx.actor.userId}::uuid`;
     const r = rowsOf<{ id: string }>(
       i.id
         ? await ctx.tx

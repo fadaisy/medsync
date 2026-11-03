@@ -251,7 +251,7 @@ export const RULE_REGISTRY: readonly RegistryGroup[] = [
       R(
         "shifts_week",
         "Shifts a week",
-        "At most {n} day or night shifts a week per person",
+        "At most {n} a week per person, day or night",
         "Everyone rostered",
         [6, "shifts", 3, 7],
       ),

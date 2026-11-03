@@ -21,7 +21,7 @@ describe("Medicines source rules", () => {
     expect(read("app/pharmacy/stock/body.tsx")).toMatch(/<MedicinesGrid[^>]*mode="operate"/);
     for (const f of ["add-from-catalogue", "prices-view", "prices-controls"])
       expect(existsSync(`app/pharmacy/setup/_components/${f}.tsx`), f).toBe(false);
-    expect(read("app/pharmacy/setup/_components/places-tab.tsx")).toMatch(/<PointBilling/);
+    expect(read("components/pharmacy/setup/places/open-row.tsx")).toMatch(/<PointControls/);
   });
 
   it("a page of 20 rows, cards below 640 px, and a 30 s poll while live is down", () => {

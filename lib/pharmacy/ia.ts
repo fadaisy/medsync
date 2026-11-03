@@ -91,7 +91,14 @@ export const PAGES: readonly PharmacyPage[] = [
 
 /** Reached from the account menu only (PRD §3). */
 export const SETUP_HREF = "/pharmacy/setup";
-export const SETUP_TABS = ["live", "places", "medicines", "rules", "people", "sms"] as const;
+export const SETUP_TABS = [
+  "going-live",
+  "places",
+  "medicines",
+  "rules",
+  "people",
+  "messages",
+] as const;
 
 export const pageByKey = (key: string) => PAGES.find((p) => p.key === key);
 export const pagesIn = (section: SectionId, tiers: Record<Tier, boolean>) =>

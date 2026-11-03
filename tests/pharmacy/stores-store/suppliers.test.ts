@@ -49,7 +49,7 @@ describe("supplier list (owner item 1)", () => {
     expect(src).toContain(".filter((s) => s.region === region)");
     expect(src).toContain("L.added");
     expect(src).toContain("actions.saveCounterparty(");
-    const body = readFileSync(resolve("app/pharmacy/setup/_components/places-tab.tsx"), "utf8");
+    const body = readFileSync(resolve("app/pharmacy/setup/_components/place-extras.tsx"), "utf8");
     expect(body).toContain("<CounterpartyDialog added={data.counterparties.map((c) => c.name)} />");
   });
 });

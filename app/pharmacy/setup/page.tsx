@@ -1,65 +1,86 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { MedicinesGrid } from "@/components/pharmacy/medicines/grid";
 import { RosterTab } from "@/components/pharmacy/roster/roster-tab";
-import { EmptyState, Panel, Pill } from "@/components/tide/work/kit";
+import { GoLiveTab } from "@/components/pharmacy/setup/going-live";
+import { MessagesTab } from "@/components/pharmacy/setup/messages";
+import { PlacesTab } from "@/components/pharmacy/setup/places";
+import { RulesTab } from "@/components/pharmacy/setup/rules";
+import { EmptyState } from "@/components/tide/work/kit";
 import { PillTabs } from "@/components/tide/work/space";
 import { MEDICINES } from "@/content/pharmacy-medicines";
 import { RW } from "@/content/pharmacy-rework";
-import { RC, RULES } from "@/content/pharmacy-rework-records";
+import { RC } from "@/content/pharmacy-rework-records";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { appDb } from "@/lib/pharmacy/audit/read";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
 import { SETUP_HREF, SETUP_TABS } from "@/lib/pharmacy/ia";
 import { loadMedicinesMaster, permissionsFor } from "@/lib/pharmacy/medicines/read";
 import { rosterView } from "@/lib/pharmacy/roster/view";
+import { loadGoLive, loadMessages, loadPlaces, loadRulesView } from "@/lib/pharmacy/setup/read";
 import { supplyFlagOn } from "@/lib/pharmacy/stores/supply-action";
 import { pharmacyV2 } from "../_lib/v2";
 import { PacksView } from "./_components/packs-view";
-import { PlacesTab } from "./_components/places-tab";
-import { loadLive, loadPeople, loadRules } from "./_lib/read";
+import { PlaceExtras } from "./_components/place-extras";
+import { SetupLive } from "./_components/setup-live";
+import { loadPeople } from "./_lib/read";
 
 export const metadata: Metadata = { title: "Set-up · Pharmacy" };
 export const dynamic = "force-dynamic";
 
 type SP = Record<string, string | string[] | undefined>;
 type Tab = (typeof SETUP_TABS)[number];
-const S = RC.setup;
 const LABELS = RW.tabs.setup as Record<string, string>;
-const link =
-  "text-body-s text-primary inline-flex min-h-11 items-center font-semibold underline-offset-4 hover:underline";
+/** The old tab names keep working. */
+const ALIAS: Record<string, Tab> = { live: "going-live", sms: "messages" };
 
 /**
- * Set-up (rework PRD §6.7): Going live, Places, Medicines, Rules, People and roster, Messages. Only the active tab's
- * data is read; rules and signed sets are shown, never edited as JSON. The shell owns the heading.
+ * Set-up (SETUP-TABS.md): Going live, Places, Medicines, Rules, People and roster, Messages. Only the active tab's data
+ * is read; every rule comes from the one registry and changes with two signatures. The shell owns the heading.
  */
 export default async function SetupPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
-  const tab: Tab = SETUP_TABS.find((t) => t === sp.tab) ?? "live";
+  const asked = typeof sp.tab === "string" ? (ALIAS[sp.tab] ?? sp.tab) : null;
+  const tab: Tab = SETUP_TABS.find((t) => t === asked) ?? "going-live";
   const actor = await requirePharmacyActor();
   const manages = await managesPharmacy(actor.userId, actor.hospitalId);
+  const db = appDb();
 
   let body;
-  if (tab === "live") body = <LiveTab hospitalId={actor.hospitalId} />;
-  else if (tab === "places") body = <PlacesTab actor={actor} manages={manages} />;
-  else if (tab === "medicines") body = <MedicinesTab actor={actor} manages={manages} />;
-  else if (tab === "rules") body = <RulesTab hospitalId={actor.hospitalId} />;
+  if (tab === "going-live") body = <GoLiveTab view={await loadGoLive(db, actor, manages)} />;
+  else if (tab === "places") {
+    const [view, rules] = await Promise.all([
+      loadPlaces(db, actor, manages),
+      loadRulesView(db, actor, manages),
+    ]);
+    body = (
+      <>
+        <SetupLive hospitalId={actor.hospitalId} />
+        <PlacesTab view={view} rules={rules} />
+        <PlaceExtras actor={actor} manages={manages} />
+      </>
+    );
+  } else if (tab === "medicines") body = <MedicinesTab actor={actor} manages={manages} />;
+  else if (tab === "rules")
+    body = (
+      <>
+        <RulesTab view={await loadRulesView(db, actor, manages)} />
+        {supplyFlagOn("packs", actor.hospitalId) ? <PacksView v2={await pharmacyV2()} /> : null}
+      </>
+    );
   else if (tab === "people") body = <PeopleTab actor={actor} manages={manages} sp={sp} />;
   else
     body = (
-      <Panel>
-        <p className="text-body-s text-ink-700 max-w-prose">{S.sms.lead}</p>
-        <Link href="/pharmacy/patients/reminders?tab=rules" className={link}>
-          {S.sms.open}
-        </Link>
-      </Panel>
+      <>
+        <SetupLive hospitalId={actor.hospitalId} />
+        <MessagesTab view={await loadMessages(db, actor, manages)} />
+      </>
     );
 
   return (
     <div className="flex flex-col gap-4">
       <PillTabs
-        label={S.tabsLabel}
+        label={RC.setup.tabsLabel}
         current={tab}
         tabs={SETUP_TABS.map((t) => ({
           key: t,
@@ -69,49 +90,6 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
       />
       {body}
     </div>
-  );
-}
-
-async function LiveTab({ hospitalId }: { hospitalId: string }) {
-  const { items, overrides } = await loadLive(hospitalId);
-  const missing = items.filter((i) => !i.met).length;
-  return (
-    <Panel title={missing ? S.live.count(missing) : S.live.allMet} note={S.live.lead}>
-      <ul className="divide-border flex flex-col divide-y">
-        {items.map((i) => {
-          const [title, why, who] = S.live.items[i.key]!;
-          return (
-            <li
-              key={i.key}
-              className="grid gap-x-3 gap-y-1 py-2.5 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:items-start"
-            >
-              <span>
-                <Pill tone={i.met ? "neutral" : "caution"} glyph={null}>
-                  {i.met ? S.live.met : S.live.missing}
-                </Pill>
-              </span>
-              <span className="min-w-0">
-                <span className="text-body-s block font-semibold">{title}</span>
-                {!i.met ? (
-                  <span className="text-caption text-ink-700 block">
-                    {why}
-                    {i.key === "overrides" && overrides.length
-                      ? ` ${S.live.overridesNamed(overrides.join(", "))}`
-                      : ""}
-                  </span>
-                ) : null}
-                <span className="text-caption text-muted-foreground block">{S.live.who(who)}</span>
-              </span>
-              {!i.met && i.href ? (
-                <Link href={i.href} className={link}>
-                  {S.live.open}
-                </Link>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-    </Panel>
   );
 }
 
@@ -125,58 +103,6 @@ async function MedicinesTab({
   const data = await loadMedicinesMaster(actor, manages);
   if (!data.ok) return <EmptyState title={MEDICINES.refused.migration} />;
   return <MedicinesGrid data={data} hospitalId={actor.hospitalId} mode="edit" />;
-}
-
-async function RulesTab({ hospitalId }: { hospitalId: string }) {
-  const R = S.rules;
-  const sets = await loadRules(hospitalId);
-  const values: [string, string][] = [
-    [R.values.riskMonths, String(RULES.riskMonths)],
-    [R.values.amcMonths, String(RULES.amcMonths)],
-    [R.values.lossMonths, String(RULES.lossMonths)],
-    [R.values.epiWastageRemarkPct, String(RULES.epiWastageRemarkPct)],
-    [R.values.shifts, R.shiftsValue],
-  ];
-  return (
-    <div className="flex flex-col gap-4">
-      <p className="text-body-s text-ink-700 max-w-prose">{R.lock}</p>
-      <Panel title={R.signedTitle}>
-        {sets.length === 0 ? (
-          <EmptyState compact title={R.none} />
-        ) : (
-          <ul className="divide-border flex flex-col divide-y">
-            {sets.map((s) => (
-              <li
-                key={s.kind}
-                className="grid gap-x-3 gap-y-1 py-2 sm:grid-cols-[minmax(0,1fr)_7rem_5rem_8rem] sm:items-center"
-              >
-                <span className="text-body-s">{s.kind.replace(/_/g, " ")}</span>
-                <span>
-                  <Pill tone={s.status === "draft" ? "caution" : "neutral"} glyph={null}>
-                    {R.status[s.status] ?? s.status}
-                  </Pill>
-                </span>
-                <span className="text-caption tabular-nums">v{s.version}</span>
-                <span className="text-caption tabular-nums">{s.signed_at?.slice(0, 10) ?? ""}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-      <Panel title={R.valuesTitle}>
-        <dl className="divide-border flex flex-col divide-y">
-          {values.map(([k, v]) => (
-            <div key={k} className="flex flex-wrap justify-between gap-2 py-2">
-              <dt className="text-body-s text-ink-700">{k}</dt>
-              <dd className="text-body-s font-semibold tabular-nums">{v}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="text-caption text-muted-foreground max-w-prose">{R.secondSigner}</p>
-      </Panel>
-      {supplyFlagOn("packs", hospitalId) ? <PacksView v2={await pharmacyV2()} /> : null}
-    </div>
-  );
 }
 
 async function PeopleTab({
