@@ -103,6 +103,27 @@ Before it goes live (owner):
 Checks: `tests/emr-db/pharmacy-medicines.test.ts` (PGlite: identity index, local line, national lock, two signatures,
 bulk history, top-up and Undo), `tests/pharmacy/medicines-derive.test.ts`, `tests/pharmacy/medicines-source.test.ts`.
 
+## Set-up › People and roster (3 Nov 2026, branch `feat/pharmacy-roster`)
+
+Spec: `docs/pharmacy/rework/PEOPLE-ROSTER.md`; map: `RECON-ROSTER.md`. Before it goes live (owner):
+
+1. Apply GATED 0273 (after 0271, 0272) from this branch's folder: `cd ~/Desktop/medsync && npm run db:migrate`.
+   Until then the tab says it needs the update. The strict duty rules switch on per hospital once it lists its people.
+2. Sign the copy: `PHARMACY_ROSTER_COPY` is draft (`content/pharmacy-roster*.ts`). Wording added beyond the spec:
+   the unlock dialog, "n could not be copied without breaking a rule", "Signed in.", the swap form's "no shifts" line,
+   "Everyone at this hospital is already on the roster", and the licence-number field on Record renewal.
+3. Confirm the rules the roster enforces: 2 per shift, 6 day/night shifts a week, 10 and 15 minutes, 30 days, 7 days
+   (each a signed number in Rules), and that PSU (pharmacists) and AHPC (technicians, dispensers) are the bodies.
+4. Confirm the Eid dates: the dev seed stores 2027 estimates as `confirmed = false`; the gazette replaces them.
+5. Decide the sign-in device: sign-in is a button on On duty now; no attendance device is linked.
+
+Not built, no source yet: ward rosters (the Doctors and nurses view shows its empty state), in-app staff messaging
+(the contact card has Call and SMS only), and the prescriptions/doses lists on that card. On duty now re-reads every
+30 s (no realtime channel). Swap and leave states use ink chips, not green, because green is the patient's state only.
+
+Checks: `tests/emr-db/pharmacy-roster.test.ts` (database rules), `tests/emr-db/pharmacy-roster-actions.test.ts`
+(actions on the demo lane), `tests/pharmacy/roster-derive.test.ts`. Visual: `/styleguide/pharmacy-roster` (dev only).
+
 ## Still open
 
 - Luganda wording: draft until a native speaker signs.

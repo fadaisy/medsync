@@ -10,7 +10,7 @@ import { DialogTitle } from "@/components/ui/dialog";
 import { VACCINE_NAMES } from "@/content/pharmacy-rework-patients";
 import { RC } from "@/content/pharmacy-rework-records";
 import { addFridgeAction, setEpiClinicAction, setEpiVaccineAction } from "../actions";
-import { Chips } from "./roster";
+import { Chips } from "./chips";
 
 const C = RC.setup.places.cold;
 type Place = { id: string; name: string };

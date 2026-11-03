@@ -9,10 +9,9 @@ import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import * as cold from "@/lib/pharmacy/cold/setup";
 import * as receiving from "@/lib/pharmacy/stores/receiving-store";
 import { storeAct } from "@/lib/pharmacy/stores/store-action";
-import * as roster from "@/lib/pharmacy/team/roster";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
 
-/** Set-up › People (rework PRD §6.7): the in-charge adds or ends a duty roster line. */
+/** Every Set-up action: a refusal comes back in words; success refreshes the page. */
 async function guarded<T extends { ok: boolean }>(fn: () => Promise<T>) {
   try {
     const r = await fn();
@@ -25,30 +24,6 @@ async function guarded<T extends { ok: boolean }>(fn: () => Promise<T>) {
     });
     return { ok: false as const, code: "conflict", error: RC.refused.failed };
   }
-}
-
-export async function addRosterLineAction(raw: unknown) {
-  return guarded(async () =>
-    runPharmacyWrite(
-      roster.AddRosterInput,
-      raw,
-      await requirePharmacyActor(),
-      roster.ROSTER_NEED,
-      roster.addRosterLine,
-    ),
-  );
-}
-
-export async function endRosterLineAction(raw: unknown) {
-  return guarded(async () =>
-    runPharmacyWrite(
-      roster.EndRosterInput,
-      raw,
-      await requirePharmacyActor(),
-      roster.ROSTER_NEED,
-      roster.endRosterLine,
-    ),
-  );
 }
 
 /** Set-up › Places: fridges, the immunisation clinic and its vaccines. */
