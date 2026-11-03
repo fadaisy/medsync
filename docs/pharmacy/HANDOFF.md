@@ -88,6 +88,21 @@ worktree `~/Desktop/medsync-rework`, cut from the stock-up polish branch (fe6f44
   refills due within 5 days, check-in every 2 days, adherence bands 80 % and 95 %; SMS on by default, English only.
 - **Reports:** simplified HMIS 105 and NDA layout; tracer list = every product moved or held that month.
 
+## Set-up › Medicines (3 Nov 2026, branch `feat/pharmacy-medicines`, ADR 0471)
+
+Before it goes live (owner):
+
+1. Apply GATED 0270 from the main folder: `cd ~/Desktop/medsync && npm run db:migrate`. Until then Set-up › Medicines
+   says it needs the update and Stock › Medicines keeps the old table.
+2. Sign the copy: `PHARMACY_MEDICINES_COPY` (`content/pharmacy-medicines.ts`) is draft. The prescription-check dose
+   lines (`RX_CHECKS`) need the CSO's sign-off.
+3. Confirm the national controlled list (`data/pharmacy/national-list/controlled.v1.json`, `unconfirmed`) and the
+   starter brands against the NDA register.
+4. Decide who the second rule signer is. Today it is anyone with `pharmacy.view` other than the first signer.
+
+Checks: `tests/emr-db/pharmacy-medicines.test.ts` (PGlite: identity index, local line, national lock, two signatures,
+bulk history, top-up and Undo), `tests/pharmacy/medicines-derive.test.ts`, `tests/pharmacy/medicines-source.test.ts`.
+
 ## Still open
 
 - Luganda wording: draft until a native speaker signs.

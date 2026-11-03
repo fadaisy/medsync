@@ -677,7 +677,7 @@ export function MedicinesGrid({
                           open={open}
                           toggle={() => setOpenId(open ? null : r.l.id)}
                         />
-                        <p className="text-ink-700 m-0 mt-1 text-[12px]">
+                        <p className="text-ink-700 m-0 mt-1 pl-8 text-[12px]">
                           {[r.l.strength, r.l.form, r.l.route].filter(Boolean).join(" · ")}
                         </p>
                       </div>
@@ -742,7 +742,7 @@ export function MedicinesGrid({
       )}
 
       <FiltersDialog
-        key={filters.n}
+        key={`filters-${filters.n}`}
         open={filters.open}
         initial={filters.initial}
         onClose={() => setFilters((f) => ({ ...f, open: false }))}
@@ -773,7 +773,7 @@ export function MedicinesGrid({
       />
       {edit ? (
         <CatalogueDialog
-          key={Math.abs(picker)}
+          key={`picker-${Math.abs(picker)}`}
           open={picker > 0}
           onClose={() => setPicker((n) => -Math.abs(n))}
           lines={data.lines}

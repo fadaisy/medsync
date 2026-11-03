@@ -1,6 +1,5 @@
 "use server";
 
-import type { ActionResult } from "@/lib/emr/write/context";
 import type { PharmacyCtx, PharmacyNeed } from "@/lib/pharmacy/write";
 import type { z } from "zod";
 import { revalidatePath } from "next/cache";
@@ -23,7 +22,7 @@ async function act<I, R extends { id: string }>(
   raw: unknown,
   need: PharmacyNeed,
   write: (ctx: PharmacyCtx, input: I) => Promise<R>,
-): Promise<ActionResult<R>> {
+): ReturnType<typeof runPharmacyWrite<I, R>> {
   try {
     const r = await runPharmacyWrite(schema, raw, await requirePharmacyActor(), need, write);
     if (r.ok) {

@@ -547,8 +547,15 @@ export function sortLines(rows: Row[], key: SortKey, dir: 1 | -1, group: boolean
     const blankA = ka === BLANK;
     const blankB = kb === BLANK;
     if (blankA !== blankB) return blankA ? 1 : -1;
-    const c = ka < kb ? -1 : ka > kb ? 1 : 0;
-    return c * dir || a.l.name.localeCompare(b.l.name);
+    const c =
+      typeof ka === "string" && typeof kb === "string"
+        ? ka.localeCompare(kb, undefined, { numeric: true })
+        : ka < kb
+          ? -1
+          : ka > kb
+            ? 1
+            : 0;
+    return c * dir || a.l.name.localeCompare(b.l.name, undefined, { numeric: true });
   });
   if (group) {
     const ci = (r: Row) => (r.l.cls ? CLASSES.indexOf(r.l.cls as never) : 99);

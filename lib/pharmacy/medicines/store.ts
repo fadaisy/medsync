@@ -37,6 +37,9 @@ const day = z.iso.date();
 const fail = (m: string) => new EmrWriteError("invalid", m);
 const forbid = () => new EmrWriteError("forbidden", M.refused.notAllowed);
 
+/** A Postgres array literal: a JS array parameter is not portable across drivers. */
+const intArray = (xs: readonly number[]) => `{${xs.map((x) => Math.trunc(x)).join(",")}}`;
+
 export const MED_NEED: PharmacyNeed = {
   permission: ["pharmacy.manage", "pharmacy.review", "pharmacy.store", "pharmacy.stock"],
   point: "none",
@@ -264,7 +267,7 @@ export async function saveLine(ctx: PharmacyCtx, input: z.infer<typeof SaveLineI
     UPDATE public.pharmacy_products SET ven = ${input.ven}, therapeutic_class = ${input.cls},
       controlled_class = CASE WHEN ${input.flags.controlled} THEN coalesce(controlled_class, 'controlled') ELSE NULL END,
       high_risk = ${input.flags.high}, cold_chain = ${input.flags.cold}, freeze_sensitive = ${input.flags.freeze},
-      cytotoxic = ${input.flags.cyto}, packs = ${packsNow}::int[], loose = ${input.loose}, updated_at = now()
+      cytotoxic = ${input.flags.cyto}, packs = ${intArray(packsNow)}::int[], loose = ${input.loose}, updated_at = now()
      WHERE id = ${p.id}`);
 
   // Levels per place.
@@ -463,7 +466,7 @@ export async function addLinesFromCatalogue(
         therapeutic_class = ${m.cls}, pharm_group = ${m.grp}, sale_category = ${m.sale},
         controlled_class = CASE WHEN ${controlled} THEN coalesce(controlled_class, 'controlled') ELSE controlled_class END,
         high_risk = ${f.high === true}, cold_chain = ${f.cold === true}, freeze_sensitive = ${f.freeze === true},
-        cytotoxic = ${f.cyto === true}, packs = ${(m.packs ?? []).map(Number)}::int[], updated_at = now()
+        cytotoxic = ${f.cyto === true}, packs = ${intArray((m.packs ?? []).map(Number))}::int[], updated_at = now()
        WHERE id = ${r.id} AND hospital_id = ${ctx.actor.hospitalId}`);
     await history(ctx, r.id, "added", H.added, null, false, who);
     added.push(r.id);
@@ -502,7 +505,7 @@ export async function addLocalLine(ctx: PharmacyCtx, input: z.infer<typeof Local
       form, route, therapeutic_class, packs, controlled_class, hand_added, local_reason, created_by)
     VALUES (${input.clientKey}, ${ctx.actor.hospitalId}, ${catalogueKey(randomUUID())}, ${name}, ${input.strength},
       ${input.unit}, 'local_medicine', ${input.generic}, ${input.form}, ${input.route}, ${input.cls},
-      ${input.packs}::int[], ${controlled ? "controlled" : null}, true, ${input.reason}, ${ctx.actor.userId})`);
+      ${intArray(input.packs)}::int[], ${controlled ? "controlled" : null}, true, ${input.reason}, ${ctx.actor.userId})`);
   await history(ctx, input.clientKey, "added", H.addedLocal(LOCAL_REASONS[input.reason]), null);
   return { id: input.clientKey };
 }

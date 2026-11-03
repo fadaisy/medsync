@@ -1,0 +1,201 @@
+/**
+ * Set-up › Medicines (MEDICINES-TAB.md; migration 0270) on the demo lane: the identity index in the database, a
+ * local line, the national controlled lock (acceptance 5), a rule applied only by two different people (6), a bulk
+ * top-up level writing one history line per line marked bulk (9), a top-up request and its Undo (4), and the
+ * loader reading it all back. Runs with EMR_PGLITE=1.
+ */
+import { randomUUID } from "node:crypto";
+import type { DemoLane } from "./_pharmacy-demo";
+import type * as MedicinesStore from "@/lib/pharmacy/medicines/store";
+import type { PharmacyActor } from "@/lib/pharmacy/write";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+
+import { laneOn } from "./_pglite";
+import { demoLane } from "./_pharmacy-demo";
+
+vi.mock("server-only", () => ({}));
+const held = vi.hoisted(() => ({ db: undefined as unknown }));
+vi.mock("@/db", () => ({
+  get db() {
+    return held.db;
+  },
+}));
+
+describe.skipIf(!laneOn)("Set-up › Medicines (0270)", () => {
+  let L: DemoLane;
+  let chief: PharmacyActor;
+  let second: PharmacyActor;
+  let M: typeof MedicinesStore;
+  let run: (
+    who: PharmacyActor,
+    schema: unknown,
+    fn: unknown,
+    raw: Record<string, unknown>,
+  ) => Promise<{ id: string } & Record<string, unknown>>;
+  const rows = async <T>(q: string, p: unknown[] = []) => (await L.pg.query<T>(q, p)).rows;
+  const local = (generic: string, strength: string, form: string) => ({
+    clientKey: randomUUID(),
+    generic,
+    strength,
+    form,
+    route: null,
+    unit: "tablet",
+    cls: null,
+    packs: [10],
+    reason: "donation",
+  });
+
+  beforeAll(async () => {
+    L = await demoLane((db) => (held.db = db));
+    const state = await import("@/lib/pharmacy/demo/state");
+    M = await import("@/lib/pharmacy/medicines/store");
+    chief = state.chiefActor(L.s, null);
+    second = state.pharmacyActor(L.s, L.s.people.pharmacists[0]!, "PHARMACIST", null);
+    run = (who, schema, fn, raw) =>
+      state.write(L.s, who, schema as never, M.MED_NEED, fn as never, raw) as never;
+  }, 900_000);
+
+  it("a local line is added once; the same identity again is refused, and the index holds in the database", async () => {
+    const a = local("Testamol", "500 mg", "tablet");
+    await run(chief, M.LocalInput, M.addLocalLine, a);
+    const [p] = await rows<{ hand_added: boolean; local_reason: string; item_kind: string }>(
+      `SELECT hand_added, local_reason, item_kind FROM pharmacy_products WHERE id = $1`,
+      [a.clientKey],
+    );
+    expect(p).toEqual({ hand_added: true, local_reason: "donation", item_kind: "local_medicine" });
+    await expect(
+      run(chief, M.LocalInput, M.addLocalLine, local("testamol", "500 MG", "Tablet")),
+    ).rejects.toThrow(/conflict/);
+    // Past the app's pre-check, the unique index refuses it.
+    await expect(
+      L.pg.query(
+        `INSERT INTO pharmacy_products (hospital_id, medicine_id, name, issue_unit, item_kind, generic, strength, form,
+           hand_added, local_reason, created_by)
+         SELECT hospital_id, medicine_id || 'x', name, issue_unit, item_kind, 'TESTAMOL', strength, form, true,
+           'donation', created_by FROM pharmacy_products WHERE id = $1`,
+        [a.clientKey],
+      ),
+    ).rejects.toThrow(/pp_line_identity|duplicate/);
+  });
+
+  it("acceptance 5: a line on the national controlled list cannot be unticked", async () => {
+    const m = local("Morphine", "10 mg", "injection");
+    await run(chief, M.LocalInput, M.addLocalLine, m);
+    const [p] = await rows<{ controlled_class: string | null }>(
+      `SELECT controlled_class FROM pharmacy_products WHERE id = $1`,
+      [m.clientKey],
+    );
+    expect(p!.controlled_class).toBe("controlled");
+    const save = {
+      id: m.clientKey,
+      fromDate: new Date(L.s.now.getTime() + 3 * 3_600_000).toISOString().slice(0, 10),
+      ven: "V",
+      cls: null,
+      flags: { controlled: false, high: false, cold: false, freeze: false, cyto: false },
+      packs: [10],
+      loose: false,
+      free: false,
+      prices: {},
+      levels: {},
+      brands: [],
+    };
+    await expect(run(chief, M.SaveLineInput, M.saveLine, save)).rejects.toThrow(/national/i);
+  });
+
+  it("acceptance 6: a rule changes only after two different people sign", async () => {
+    const pr = await run(chief, M.ProposeInput, M.proposeRuleChange, {
+      group: "all",
+      key: "0",
+      productId: null,
+      newText: "Check the label twice before it leaves the counter.",
+      reason: "Ward audit",
+    });
+    const text = async () =>
+      (
+        await rows<{ text: string }>(
+          `SELECT text FROM pharmacy_rules WHERE hospital_id = $1 AND rule_group = 'all' AND key = '0'`,
+          [L.h],
+        )
+      )[0]?.text;
+    const first = await run(chief, M.SignInput, M.signRuleProposal, {
+      id: pr.id,
+      role: "in_charge",
+    });
+    expect(first.applied).toBe(false);
+    expect(await text()).toBeUndefined();
+    await expect(
+      run(chief, M.SignInput, M.signRuleProposal, { id: pr.id, role: "second" }),
+    ).rejects.toThrow(/different person/);
+    const both = await run(second, M.SignInput, M.signRuleProposal, { id: pr.id, role: "second" });
+    expect(both.applied).toBe(true);
+    expect(await text()).toBe("Check the label twice before it leaves the counter.");
+    // Straight to the table, without the signatures, the trigger refuses it.
+    await expect(
+      L.pg.query(
+        `INSERT INTO pharmacy_rules (hospital_id, rule_group, key, text) VALUES ($1, 'all', '9', 'x')`,
+        [L.h],
+      ),
+    ).rejects.toThrow(/two signatures/);
+  });
+
+  it("acceptance 9: a bulk top-up level on 3 lines writes 3 history lines marked bulk, by the actor", async () => {
+    const ids = (
+      await rows<{ id: string }>(
+        `SELECT id FROM pharmacy_products WHERE hospital_id = $1 AND active ORDER BY name LIMIT 3`,
+        [L.h],
+      )
+    ).map((r) => r.id);
+    const [place] = await rows<{ id: string }>(
+      `SELECT id FROM pharmacy_locations WHERE hospital_id = $1 AND kind <> 'store' AND switched_off_at IS NULL
+       ORDER BY name LIMIT 1`,
+      [L.h],
+    );
+    await run(chief, M.BulkLevelInput, M.bulkSetLevel, { ids, placeId: place!.id, level: 200 });
+    const h = await rows<{ bulk: boolean; actor_id: string }>(
+      `SELECT bulk, actor_id FROM pharmacy_line_history WHERE product_id = ANY($1::uuid[]) AND area = 'levels'`,
+      [ids],
+    );
+    expect(h).toHaveLength(3);
+    expect(h.every((r) => r.bulk && r.actor_id === chief.userId)).toBe(true);
+  });
+
+  it("acceptance 4: a top-up request creates an issue request; Undo withdraws it", async () => {
+    // The demo has no main store; requests are issued from one.
+    await L.pg.query(
+      `INSERT INTO pharmacy_locations (hospital_id, kind, name, live_at, department_id)
+       SELECT $1, 'store', 'Main store', now(), id FROM hospital_departments WHERE hospital_id = $1 LIMIT 1`,
+      [L.h],
+    );
+    const [line] = await rows<{ id: string }>(
+      `SELECT id FROM pharmacy_products WHERE hospital_id = $1 AND active ORDER BY name LIMIT 1`,
+      [L.h],
+    );
+    const [place] = await rows<{ id: string }>(
+      `SELECT id FROM pharmacy_locations WHERE hospital_id = $1 AND kind <> 'store' AND switched_off_at IS NULL
+       ORDER BY name LIMIT 1`,
+      [L.h],
+    );
+    const key = randomUUID();
+    const r = await run(chief, M.TopUpInput, M.requestTopUps, {
+      items: [{ clientKey: key, lineId: line!.id, placeId: place!.id, qty: 140 }],
+    });
+    expect(r.requests).toBe(1);
+    const state = async () =>
+      (
+        await rows<{ state: string }>(`SELECT state FROM pharmacy_requisitions WHERE id = $1`, [
+          key,
+        ])
+      )[0]?.state;
+    expect(await state()).toBe("raised");
+    await run(chief, M.UndoTopUpInput, M.undoTopUp, { id: key, kind: "request" });
+    expect(await state()).toBe("withdrawn");
+  });
+
+  it("the loader reads the lines, the applied rule and the local line back", async () => {
+    const { loadMedicinesMaster } = await import("@/lib/pharmacy/medicines/read");
+    const data = await loadMedicinesMaster(chief, true, L.s.db as never);
+    if (!data.ok) throw new Error("migration");
+    expect(data.lines.some((l) => l.generic === "Testamol" && l.local)).toBe(true);
+    expect(data.rules.some((r) => r.group === "all" && r.key === "0")).toBe(true);
+  });
+});

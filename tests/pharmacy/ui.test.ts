@@ -230,6 +230,8 @@ describe("source rules", () => {
       "app/pharmacy/downtime/entry-actions.ts",
       // Workspace v2: Find, reads only (GATE A §1).
       "app/pharmacy/find-actions.ts",
+      // Set-up › Medicines (MEDICINES-TAB.md): the master data, through runPharmacyWrite.
+      "app/pharmacy/medicines-actions.ts",
       "app/pharmacy/open-lines/actions.ts",
       // Rework P4 and P5: Patients, Records.
       "app/pharmacy/patients/actions.ts",
