@@ -60,6 +60,8 @@ export function CatalogueDialog({
   const [sale, setSale] = useState("");
   const [ticked, setTicked] = useState<Set<string>>(new Set());
   const [units, setUnits] = useState<Record<string, string>>({});
+  const [onlyTicked, setOnlyTicked] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const [loc, setLoc] = useState({
@@ -115,16 +117,54 @@ export function CatalogueDialog({
     return c;
   }, [items]);
 
+  const tickedItems = (items ?? []).filter((i) => ticked.has(i.id));
+  const ready = tickedItems.filter((i) => i.unit || units[i.id]);
+  const listed = onlyTicked ? tickedItems : shown.slice(0, 300);
+  const tickable = shown.filter((i) => !stocked.byKey.has(lineIdentityKey(i)));
+  const unitFor = (i: CatalogueItem) =>
+    !i.unit && i.formCode && UNIT_BY_FORM[i.formCode] ? UNIT_BY_FORM[i.formCode] : null;
+  const tickAll = () => {
+    setTicked((t) => new Set([...t, ...tickable.map((i) => i.id)]));
+    setUnits((u) => {
+      const n = { ...u };
+      for (const i of tickable) if (!n[i.id] && unitFor(i)) n[i.id] = unitFor(i)!;
+      return n;
+    });
+  };
+
+  // A whole class or list goes in batches of 50 (the server's limit), with progress. Medicines still without a
+  // unit are not sent; they stay ticked, shown alone, for the unit to be chosen.
   const add = () =>
     start(async () => {
       setErr(null);
-      const r = await addFromCatalogueAction({ ids: [...ticked], units });
-      if (!r.ok) return setErr(r.error);
-      const d = r.data!;
-      if (d.refused.length) setErr(d.refused.join(" "));
-      if (d.added) toast(C.added(d.added));
-      if (!d.refused.length) onClose();
-      setTicked(new Set());
+      const wait = tickedItems.filter((i) => !i.unit && !units[i.id]);
+      let added = 0;
+      const refused: string[] = [];
+      for (let k = 0; k < ready.length; k += 50) {
+        setProgress(C.adding(k, ready.length));
+        const ids = ready.slice(k, k + 50).map((i) => i.id);
+        const r = await addFromCatalogueAction({
+          ids,
+          units: Object.fromEntries(ids.filter((id) => units[id]).map((id) => [id, units[id]])),
+        });
+        if (!r.ok) {
+          refused.push(r.error);
+          break;
+        }
+        added += r.data!.added;
+        refused.push(...r.data!.refused);
+      }
+      setProgress(null);
+      if (added) toast(C.added(added));
+      const msgs = [
+        ...(wait.length ? [C.waiting(wait.length)] : []),
+        ...refused.slice(0, 3),
+        ...(refused.length > 3 ? [C.more(refused.length - 3)] : []),
+      ];
+      setErr(msgs.length ? msgs.join(" ") : null);
+      setTicked(new Set(wait.map((i) => i.id)));
+      setOnlyTicked(wait.length > 0);
+      if (!msgs.length) onClose();
       router.refresh();
     });
 
@@ -252,16 +292,36 @@ export function CatalogueDialog({
               ) : null}
             </div>
           </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-6 pt-3">
+            {onlyTicked ? (
+              <button type="button" className={linkBtn} onClick={() => setOnlyTicked(false)}>
+                {C.showAll}
+              </button>
+            ) : tickable.length ? (
+              <button type="button" className={linkBtn} onClick={tickAll}>
+                {C.tickAll(tickable.length)}
+              </button>
+            ) : null}
+            {ticked.size ? (
+              <button
+                type="button"
+                className={linkBtn}
+                onClick={() => (setTicked(new Set()), setOnlyTicked(false))}
+              >
+                {C.untickAll}
+              </button>
+            ) : null}
+          </div>
           <ul
             aria-label={C.itemsAria}
             className="divide-border mt-3 flex min-h-48 flex-1 flex-col divide-y overflow-y-auto px-6"
           >
             {items === null ? (
               <li className="text-body-s text-ink-600 py-6">{C.loading}</li>
-            ) : shown.length === 0 ? (
+            ) : listed.length === 0 ? (
               <li className="text-body-s text-ink-600 py-6">{C.none}</li>
             ) : (
-              shown.slice(0, 300).map((i) => {
+              listed.map((i) => {
                 const as = stocked.byKey.get(lineIdentityKey(i));
                 const sib = !as && stocked.generics.has(i.generic.toLowerCase());
                 const on = ticked.has(i.id);
@@ -315,8 +375,8 @@ export function CatalogueDialog({
                             else n.add(i.id);
                             return n;
                           });
-                          if (!i.unit && !units[i.id] && i.formCode && UNIT_BY_FORM[i.formCode])
-                            setUnits((u) => ({ ...u, [i.id]: UNIT_BY_FORM[i.formCode!]! }));
+                          if (!units[i.id] && unitFor(i))
+                            setUnits((u) => ({ ...u, [i.id]: unitFor(i)! }));
                         }}
                         className="accent-primary col-start-2 row-span-2 row-start-1 size-5 sm:col-start-3"
                       />
@@ -374,16 +434,10 @@ export function CatalogueDialog({
               <LabButton
                 variant="primary"
                 busy={pending}
-                disabledReason={
-                  !ticked.size
-                    ? C.ticked(0)
-                    : items?.some((i) => ticked.has(i.id) && !i.unit && !units[i.id])
-                      ? C.needUnit
-                      : null
-                }
+                disabledReason={!ticked.size ? C.ticked(0) : !ready.length ? C.needUnit : null}
                 onClick={add}
               >
-                {C.addN(ticked.size)}
+                {progress ?? C.addN(ready.length)}
               </LabButton>
             </span>
           </div>

@@ -718,6 +718,13 @@ export const MEDICINES = {
     unitAria: (name: string) => `${name}: counted per`,
     choose: "Choose…",
     needUnit: "The catalogue does not say how this is counted. Choose a unit beside it.",
+    tickAll: (n: number) => `Tick all ${n} shown`,
+    untickAll: "Untick all",
+    showAll: "Show the whole catalogue",
+    adding: (done: number, n: number) => `Adding ${done} of ${n}…`,
+    waiting: (n: number) =>
+      `${n} ${plural(n, "medicine needs", "medicines need")} a unit. ${n === 1 ? "It stays" : "They stay"} ticked below: choose one beside each, or untick.`,
+    more: (n: number) => `And ${n} more.`,
   },
   local: {
     title: "Add a medicine that isn't in a catalogue",
