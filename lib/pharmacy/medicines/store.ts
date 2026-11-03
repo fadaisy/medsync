@@ -836,7 +836,10 @@ export async function catalogueItems(ctx: PharmacyCtx): Promise<CatalogueItem[]>
   const rows = rowsOf<Record<string, unknown>>(
     await ctx.tx.execute(sql`
       SELECT id, display_name, coalesce(generic, display_name) AS generic, strength_text, form_label, route_label,
-             issue_unit_kind, atc_level1, therapeutic_class, pharm_group, sale_category, sources
+             issue_unit_kind, atc_level1, therapeutic_class, pharm_group, sale_category,
+             -- The EMHSLU seed (0251) set the list's level and VEN but never the tag; read either as on the list.
+             CASE WHEN (emhslu_level IS NOT NULL OR emhslu_ven IS NOT NULL) AND NOT 'EMHSLU' = ANY (sources)
+                  THEN sources || 'EMHSLU'::text ELSE sources END AS sources
         FROM public.cat_medicines WHERE status = 'active' AND kind = 'medicine'
        ORDER BY 3, strength_text LIMIT 5000`),
   );
