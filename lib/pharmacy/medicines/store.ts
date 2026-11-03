@@ -397,6 +397,68 @@ export async function stopStocking(ctx: PharmacyCtx, input: z.infer<typeof LineI
 
 /* ─── Add lines (§11) ────────────────────────────────────────────────── */
 
+export const LineCellInput = z.object({
+  id: z.uuid(),
+  form: z.string().trim().min(2).max(60).nullable().optional(),
+  route: z.string().trim().min(2).max(40).nullable().optional(),
+  flags: SaveLineInput.shape.flags.optional(),
+});
+
+/**
+ * One cell changed from the table: form, route or handling. Form and route are part of the line's identity, so a
+ * change that makes it the same as another line is refused; a form that puts it on the national controlled list
+ * turns Controlled on.
+ */
+export async function setLineCell(ctx: PharmacyCtx, input: z.infer<typeof LineCellInput>) {
+  if (!can(ctx).edit) throw forbid();
+  const p = await stored(ctx, input.id);
+  if (input.form !== undefined || input.route !== undefined) {
+    const [cur] = rowsOf<{ strength: string | null; form: string | null; route: string | null }>(
+      await ctx.tx.execute(sql`
+        SELECT p.strength, coalesce(p.form, cm.form_label) AS form, coalesce(p.route, cm.route_label) AS route
+          FROM public.pharmacy_products p LEFT JOIN public.cat_medicines cm ON cm.id = p.catalogue_medicine_id
+         WHERE p.id = ${p.id}`),
+    );
+    const form = input.form !== undefined ? input.form : cur!.form;
+    const route = input.route !== undefined ? input.route : cur!.route;
+    const same = (a: string | null, b: string | null) =>
+      (a ?? "").toLowerCase() === (b ?? "").toLowerCase();
+    if (!same(form, cur!.form) || !same(route, cur!.route)) {
+      const as = await stockedAs(ctx, { generic: p.generic, strength: cur!.strength, form, route });
+      if (as) throw fail(M.catalogue.alreadyAs(as));
+      const national = onNationalList(p.generic, form);
+      await ctx.tx.execute(sql`
+        UPDATE public.pharmacy_products SET generic = ${p.generic}, form = ${form}, route = ${route},
+          controlled_class = CASE WHEN ${national} THEN coalesce(controlled_class, 'controlled') ELSE controlled_class END,
+          updated_at = now()
+         WHERE id = ${p.id}`);
+      if (!same(form, cur!.form))
+        await history(ctx, p.id, "form", H.form(cur!.form ?? "Not set", form ?? "Not set"), null);
+      if (!same(route, cur!.route))
+        await history(
+          ctx,
+          p.id,
+          "route",
+          H.route(cur!.route ?? "Not set", route ?? "Not set"),
+          null,
+        );
+    }
+  }
+  if (input.flags) {
+    const f = input.flags;
+    if (p.controlled_class !== null && !f.controlled && nationalOf(p))
+      throw fail(M.row.lockedError(p.generic));
+    await ctx.tx.execute(sql`
+      UPDATE public.pharmacy_products SET
+        controlled_class = CASE WHEN ${f.controlled} THEN coalesce(controlled_class, 'controlled') ELSE NULL END,
+        high_risk = ${f.high}, cold_chain = ${f.cold}, freeze_sensitive = ${f.freeze}, cytotoxic = ${f.cyto},
+        updated_at = now()
+       WHERE id = ${p.id}`);
+    await history(ctx, p.id, "handling", H.handling(flagsText(f)), null);
+  }
+  return { id: p.id };
+}
+
 async function stockedAs(
   ctx: PharmacyCtx,
   ident: { generic: string; strength: string | null; form: string | null; route: string | null },

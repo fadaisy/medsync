@@ -56,6 +56,8 @@ export const markReviewedAction = async (raw: unknown) =>
   act("markReviewed", m.LineInput, raw, N, m.markReviewed);
 export const stopStockingAction = async (raw: unknown) =>
   act("stopStocking", m.LineInput, raw, N, m.stopStocking);
+export const setLineCellAction = async (raw: unknown) =>
+  act("setLineCell", m.LineCellInput, raw, N, m.setLineCell);
 export const addFromCatalogueAction = async (raw: unknown) =>
   act("addLinesFromCatalogue", m.CatalogueAddInput, raw, N, m.addLinesFromCatalogue);
 export const addLocalLineAction = async (raw: unknown) =>

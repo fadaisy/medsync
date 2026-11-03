@@ -19,8 +19,11 @@ import {
   bulkSetVenAction,
   deleteViewAction,
   requestTopUpsAction,
+  setLineCellAction,
 } from "@/app/pharmacy/medicines-actions";
+import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { LabButton } from "@/components/tide/work/button";
+import { DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,8 +32,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
+  FLAG_KEYS,
   FLAGS,
+  LOCAL_FORMS,
   LOCAL_REASONS,
+  LOCAL_ROUTES,
   MEDICINES,
   qty,
   RULE_GROUPS,
@@ -61,7 +67,7 @@ import { CatalogueDialog } from "./catalogue-dialog";
 import { FiltersDialog } from "./filters-dialog";
 import { OpenRow } from "./open-row";
 import { flagFilterWord, RulesDialog } from "./rules";
-import { Dot, field, newKey, pillBtn, Tip, useToast } from "./shared";
+import { Dot, field, fieldSm, newKey, pillBtn, Tip, useToast } from "./shared";
 import { DOT, near } from "./tones";
 import { useStockLive } from "./use-stock-live";
 
@@ -613,7 +619,7 @@ export function MedicinesGrid({
                         </td>
                         {visible.map((k) => (
                           <td key={k} className="py-2.5 pr-3 whitespace-nowrap">
-                            <Cell col={k} r={r} data={data} />
+                            <Cell col={k} r={r} data={data} edit={edit} toast={toast} />
                           </td>
                         ))}
                       </tr>
@@ -932,15 +938,174 @@ function MedicineCell({
   );
 }
 
-function Cell({ col, r, data }: { col: Col; r: Row; data: MedicinesPayload }) {
+/** Form or route, changed in the table (Set-up only). */
+function PickCell({
+  r,
+  field,
+  options,
+  toast,
+}: {
+  r: Row;
+  field: "form" | "route";
+  options: readonly string[];
+  toast: (m: string) => void;
+}) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const value = r.l[field] ?? "";
+  const opts = value && !options.includes(value) ? [value, ...options] : options;
+  return (
+    <select
+      aria-label={(field === "form" ? M.cell.formAria : M.cell.routeAria)(r.l.name)}
+      value={value}
+      disabled={pending}
+      onChange={(e) =>
+        start(async () => {
+          const res = await setLineCellAction({ id: r.l.id, [field]: e.target.value || null });
+          if (!res.ok) return toast(res.error);
+          toast(M.cell.saved(r.l.name));
+          router.refresh();
+        })
+      }
+      className={cn(fieldSm, "max-w-[170px] pr-7")}
+    >
+      <option value="">{M.cell.notSet}</option>
+      {opts.map((o) => (
+        <option key={o}>{o}</option>
+      ))}
+    </select>
+  );
+}
+
+function HandlingTags({ flags }: { flags: Row["l"]["flags"] }) {
+  const fl = flagList(flags);
+  if (!fl.length) return <span className="text-ink-500">—</span>;
+  return (
+    <span className="flex flex-wrap gap-1">
+      {fl.map((k) => (
+        <span
+          key={k}
+          className="bg-tide-sunken text-foreground rounded-full px-2 py-0.5 text-[11px] font-semibold"
+        >
+          {FLAGS[k][2]}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Handling, changed in the table: the tags open a centred dialog with the five flags. */
+function HandlingCell({ r, toast }: { r: Row; toast: (m: string) => void }) {
+  const router = useRouter();
+  const { l } = r;
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState(l.flags);
+  const [err, setErr] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  const save = () =>
+    start(async () => {
+      setErr(null);
+      const res = await setLineCellAction({ id: l.id, flags: f });
+      if (!res.ok) return setErr(res.error);
+      toast(M.cell.saved(l.name));
+      setOpen(false);
+      router.refresh();
+    });
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={M.cell.handlingAria(l.name)}
+        onClick={() => (setF(l.flags), setErr(null), setOpen(true))}
+        className="hover:bg-ink-50 focus-visible:ring-primary -mx-1.5 rounded-lg px-1.5 py-1 text-left outline-none focus-visible:ring-2"
+      >
+        <HandlingTags flags={l.flags} />
+      </button>
+      <EditorDialog
+        open={open}
+        onOpenChange={(o) => !o && !pending && setOpen(false)}
+        width="medium"
+      >
+        <div className="flex flex-col gap-3 px-6 py-5">
+          <DialogTitle>{M.cell.handlingTitle(l.name)}</DialogTitle>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {FLAG_KEYS.map((k) => {
+              const locked = k === "controlled" && l.nationalControlled && f.controlled;
+              return (
+                <label
+                  key={k}
+                  className={cn(
+                    "flex items-start gap-2.5 rounded-xl px-3 py-2.5",
+                    f[k] ? "bg-tide-lagoon-tint" : "shadow-[inset_0_0_0_1px_var(--color-ink-200)]",
+                    locked ? "cursor-default" : "cursor-pointer",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={f[k]}
+                    disabled={locked}
+                    onChange={() => setF((x) => ({ ...x, [k]: !x[k] }))}
+                    className="accent-primary mt-0.5 size-4"
+                  />
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-[13px] font-semibold">{FLAGS[k][1]}</span>
+                    <span className="text-ink-600 text-[11px] leading-[14px]">
+                      {locked ? M.row.locked : FLAGS[k][3]}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          {err ? (
+            <p role="alert" className="text-status-critical-fg-aa text-[12px] font-semibold">
+              {err}
+            </p>
+          ) : null}
+          <div className="flex justify-end gap-2">
+            <LabButton variant="text" onClick={() => setOpen(false)}>
+              {M.cell.cancel}
+            </LabButton>
+            <LabButton variant="primary" busy={pending} onClick={save}>
+              {M.cell.save}
+            </LabButton>
+          </div>
+        </div>
+      </EditorDialog>
+    </>
+  );
+}
+
+function Cell({
+  col,
+  r,
+  data,
+  edit = false,
+  toast,
+}: {
+  col: Col;
+  r: Row;
+  data: MedicinesPayload;
+  edit?: boolean;
+  toast?: (m: string) => void;
+}) {
   const { l, mx } = r;
+  const editable = edit && !!toast && data.can.edit;
   switch (col) {
     case "strength":
       return <span className="font-semibold">{l.strength ?? "—"}</span>;
     case "form":
-      return <>{l.form ?? "—"}</>;
+      return editable ? (
+        <PickCell r={r} field="form" options={LOCAL_FORMS} toast={toast!} />
+      ) : (
+        <>{l.form ?? "—"}</>
+      );
     case "route":
-      return <>{l.route ?? "—"}</>;
+      return editable ? (
+        <PickCell r={r} field="route" options={LOCAL_ROUTES} toast={toast!} />
+      ) : (
+        <>{l.route ?? "—"}</>
+      );
     case "cls":
       return <>{l.cls ?? "—"}</>;
     case "group":
@@ -951,22 +1116,8 @@ function Cell({ col, r, data }: { col: Col; r: Row; data: MedicinesPayload }) {
       return (
         <span className={cn(!l.ven && "text-ink-600")}>{l.ven ? VEN[l.ven as Ven] : G.notSet}</span>
       );
-    case "handling": {
-      const fl = flagList(l.flags);
-      if (!fl.length) return <span className="text-ink-500">—</span>;
-      return (
-        <span className="flex flex-wrap gap-1">
-          {fl.map((k) => (
-            <span
-              key={k}
-              className="bg-tide-sunken text-foreground rounded-full px-2 py-0.5 text-[11px] font-semibold"
-            >
-              {FLAGS[k][2]}
-            </span>
-          ))}
-        </span>
-      );
-    }
+    case "handling":
+      return editable ? <HandlingCell r={r} toast={toast!} /> : <HandlingTags flags={l.flags} />;
     case "stock": {
       const tip = mx.st.length
         ? mx.st

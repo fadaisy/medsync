@@ -191,6 +191,33 @@ describe.skipIf(!laneOn)("Set-up › Medicines (0270)", () => {
     expect(await state()).toBe("withdrawn");
   });
 
+  it("form and route change from the table; a duplicate is refused; a national form turns Controlled on", async () => {
+    const a = local("Cellamol", "5 mg", "Tablet");
+    const b = local("Cellamol", "5 mg", "Capsule");
+    await run(chief, M.LocalInput, M.addLocalLine, a);
+    await run(chief, M.LocalInput, M.addLocalLine, b);
+    await expect(
+      run(chief, M.LineCellInput, M.setLineCell, { id: b.clientKey, form: "tablet" }),
+    ).rejects.toThrow(/Already stocked/);
+    await run(chief, M.LineCellInput, M.setLineCell, { id: b.clientKey, route: "Oral" });
+    const m = local("Morphine", "30 mg", "Tablet");
+    await run(chief, M.LocalInput, M.addLocalLine, m);
+    await run(chief, M.LineCellInput, M.setLineCell, { id: m.clientKey, form: "Injection" });
+    const got = await rows<{ form: string; route: string | null; controlled_class: string | null }>(
+      `SELECT form, route, controlled_class FROM pharmacy_products WHERE id = ANY($1::uuid[]) ORDER BY name, form`,
+      [[b.clientKey, m.clientKey]],
+    );
+    expect(got.map((g) => [g.form, g.route, g.controlled_class])).toEqual([
+      ["Capsule", "Oral", null],
+      ["Injection", null, "controlled"],
+    ]);
+    const h = await rows<{ area: string }>(
+      `SELECT area FROM pharmacy_line_history WHERE product_id = ANY($1::uuid[]) AND area IN ('form', 'route')`,
+      [[b.clientKey, m.clientKey]],
+    );
+    expect(h.map((x) => x.area).sort()).toEqual(["form", "route"]);
+  });
+
   it("the loader reads the lines, the applied rule and the local line back", async () => {
     const { loadMedicinesMaster } = await import("@/lib/pharmacy/medicines/read");
     const data = await loadMedicinesMaster(chief, true, L.s.db as never);
