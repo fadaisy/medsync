@@ -106,6 +106,7 @@ export async function loadRosterWorld(
     reminders,
     hols,
     rules,
+    props,
   ] = await Promise.all([
     rowsOf<{ id: string; name: string; kind: string }>(
       await db.execute(sql`
@@ -201,6 +202,18 @@ export async function loadRosterWorld(
           SELECT rule_group, key, text, ${ready?.ok ? sql`params` : sql`NULL::jsonb AS params`}
             FROM public.pharmacy_rules WHERE hospital_id = ${h} AND product_id IS NULL`),
     ),
+    rowsOf<Record<string, string | null>>(
+      await db.execute(sql`
+        SELECT p.id, p.rule_group, p.key, p.new_text, p.reason, p.proposed_by,
+               (SELECT coalesce(u.full_name, u.email) FROM public.pharmacy_rule_signatures s
+                  LEFT JOIN public.users u ON u.id = s.signed_by WHERE s.proposal_id = p.id AND s.role = 'in_charge') AS ic,
+               (SELECT coalesce(u.full_name, u.email) FROM public.pharmacy_rule_signatures s
+                  LEFT JOIN public.users u ON u.id = s.signed_by WHERE s.proposal_id = p.id AND s.role = 'second') AS sec
+          FROM public.pharmacy_rule_proposals p
+         WHERE p.hospital_id = ${h} AND p.status = 'pending'
+           AND (p.rule_group IN ('roster', 'swap') OR p.rule_group LIKE 'rb!_%' ESCAPE '!')
+         ORDER BY p.proposed_at`),
+    ),
   ]);
 
   const lic = new Map(
@@ -250,6 +263,17 @@ export async function loadRosterWorld(
     range: { from, to },
     params,
     rules,
+    proposals: props.map((p) => ({
+      id: p.id!,
+      group: p.rule_group!,
+      key: p.key!,
+      newText: p.new_text!,
+      reason: p.reason!,
+      productId: null,
+      inCharge: p.ic ?? null,
+      second: p.sec ?? null,
+      proposedBy: p.proposed_by!,
+    })),
     inCharge,
     viewerId,
     places: rosterPlaces,

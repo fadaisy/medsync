@@ -8,7 +8,6 @@ import { PHARMACY_REWORK_COPY } from "@/content/pharmacy-rework";
 import { overridesOn } from "@/lib/boot-guard";
 import { appDb, rowsOf } from "@/lib/pharmacy/audit/read";
 import { legalQ1RecordedFor } from "@/lib/pharmacy/legal";
-import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { peopleAt } from "@/lib/pharmacy/stores/packs";
 
 /** Set-up › Going live (PRD §6.7): each condition, met or missing, with where it is fixed. Two queries. */
@@ -59,33 +58,9 @@ export const loadRules = cache(async (hospitalId: string, database: Exec = appDb
   ),
 );
 
-export interface RosterRow {
-  id: string;
-  userId: string;
-  who: string;
-  place: string | null;
-  role: string;
-  shift: string;
-  dateFrom: string;
-  dateTo: string;
-}
-
-/** Set-up › People: the current and coming roster, the people and places to choose from, the CD prescribers. */
+/** Set-up › People: the CD prescribers (§15) and the hospital's staff, for "Add a person". */
 export const loadPeople = cache(async (hospitalId: string, database: Exec = appDb()) => {
-  const today = localDate(new Date());
-  const [roster, places, prescribers, people] = await Promise.all([
-    database.execute(sql`
-    SELECT r.id, r.user_id, coalesce(u.full_name, u.email) AS who, l.name AS place, r.role, r.shift,
-           r.date_from::text AS date_from, r.date_to::text AS date_to
-      FROM public.pharmacy_duty_roster r
-      LEFT JOIN public.users u ON u.id = r.user_id
-      LEFT JOIN public.pharmacy_locations l ON l.id = r.location_id
-     WHERE r.hospital_id = ${hospitalId}::uuid AND r.ended_at IS NULL AND r.date_to >= ${today}::date
-     ORDER BY r.date_from, who
-     LIMIT 500`),
-    database.execute(sql`
-    SELECT id, name FROM public.pharmacy_locations
-     WHERE hospital_id = ${hospitalId}::uuid AND switched_off_at IS NULL ORDER BY name`),
+  const [prescribers, staff] = await Promise.all([
     database.execute(sql`
     SELECT DISTINCT ON (x.user_id) x.user_id, coalesce(u.full_name, u.email) AS who, x.department, x.cd_allowed,
            cardinality(x.only_medicines) AS only
@@ -95,28 +70,20 @@ export const loadPeople = cache(async (hospitalId: string, database: Exec = appD
     peopleAt(database as Parameters<typeof peopleAt>[0], hospitalId),
   ]);
   return {
-    today,
-    roster: rowsOf<Record<string, string>>(roster).map(
-      (r): RosterRow => ({
-        id: r.id!,
-        userId: r.user_id!,
-        who: r.who ?? "",
-        place: r.place ?? null,
-        role: r.role!,
-        shift: r.shift!,
-        dateFrom: r.date_from!,
-        dateTo: r.date_to!,
-      }),
-    ),
-    places: rowsOf<{ id: string; name: string }>(places),
     prescribers: rowsOf<{
       user_id: string;
       who: string | null;
       department: string | null;
       cd_allowed: boolean;
       only: number;
-    }>(prescribers),
-    people,
+    }>(prescribers).map((r) => ({
+      userId: r.user_id,
+      who: r.who,
+      department: r.department,
+      cdAllowed: r.cd_allowed,
+      only: Number(r.only),
+    })),
+    staff: staff.map((s) => ({ userId: s.userId, name: s.label })),
   };
 });
 

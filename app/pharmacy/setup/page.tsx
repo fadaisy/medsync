@@ -2,20 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { MedicinesGrid } from "@/components/pharmacy/medicines/grid";
+import { RosterTab } from "@/components/pharmacy/roster/roster-tab";
 import { EmptyState, Panel, Pill } from "@/components/tide/work/kit";
 import { PillTabs } from "@/components/tide/work/space";
 import { MEDICINES } from "@/content/pharmacy-medicines";
 import { RW } from "@/content/pharmacy-rework";
 import { RC, RULES } from "@/content/pharmacy-rework-records";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
+import { appDb } from "@/lib/pharmacy/audit/read";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
 import { SETUP_HREF, SETUP_TABS } from "@/lib/pharmacy/ia";
-import { loadMedicinesMaster } from "@/lib/pharmacy/medicines/read";
+import { loadMedicinesMaster, permissionsFor } from "@/lib/pharmacy/medicines/read";
+import { rosterView } from "@/lib/pharmacy/roster/view";
 import { supplyFlagOn } from "@/lib/pharmacy/stores/supply-action";
 import { pharmacyV2 } from "../_lib/v2";
 import { PacksView } from "./_components/packs-view";
 import { PlacesTab } from "./_components/places-tab";
-import { AddRosterDialog, EndRosterButton } from "./_components/roster";
 import { loadLive, loadPeople, loadRules } from "./_lib/read";
 
 export const metadata: Metadata = { title: "Set-up · Pharmacy" };
@@ -43,7 +45,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
   else if (tab === "places") body = <PlacesTab actor={actor} manages={manages} />;
   else if (tab === "medicines") body = <MedicinesTab actor={actor} manages={manages} />;
   else if (tab === "rules") body = <RulesTab hospitalId={actor.hospitalId} />;
-  else if (tab === "people") body = <PeopleTab hospitalId={actor.hospitalId} manages={manages} />;
+  else if (tab === "people") body = <PeopleTab actor={actor} manages={manages} sp={sp} />;
   else
     body = (
       <Panel>
@@ -177,62 +179,29 @@ async function RulesTab({ hospitalId }: { hospitalId: string }) {
   );
 }
 
-async function PeopleTab({ hospitalId, manages }: { hospitalId: string; manages: boolean }) {
-  const P = S.people;
-  const { roster, places, prescribers, people, today } = await loadPeople(hospitalId);
+async function PeopleTab({
+  actor,
+  manages,
+  sp,
+}: {
+  actor: Awaited<ReturnType<typeof requirePharmacyActor>>;
+  manages: boolean;
+  sp: SP;
+}) {
+  const one = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
+  const [view, { prescribers, staff }] = await Promise.all([
+    rosterView(appDb(), actor.hospitalId, actor.userId, manages, {
+      week: one("week"),
+      month: one("month"),
+    }),
+    loadPeople(actor.hospitalId),
+  ]);
+  const listed = new Set(view.people.map((p) => p.userId));
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-body-s text-ink-700 max-w-prose">{P.lead}</p>
-        {manages ? <AddRosterDialog people={people} places={places} today={today} /> : null}
-      </div>
-      {!manages ? <p className="text-caption text-muted-foreground">{P.manageOnly}</p> : null}
-      <Panel title={P.rosterTitle}>
-        {roster.length === 0 ? (
-          <EmptyState compact title={P.none} next={P.noneNext} />
-        ) : (
-          <ul className="divide-border flex flex-col divide-y">
-            {roster.map((r) => (
-              <li
-                key={r.id}
-                className="grid gap-x-3 gap-y-1 py-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_6rem_minmax(0,1fr)_auto] sm:items-center"
-              >
-                <span className="text-body-s font-semibold">{r.who}</span>
-                <span className="text-caption text-ink-700">{r.place ?? P.everywhere}</span>
-                <span className="text-caption">{P.roles[r.role] ?? r.role}</span>
-                <span className="text-caption">{P.shifts[r.shift] ?? r.shift}</span>
-                <span className="text-caption tabular-nums">{P.dates(r.dateFrom, r.dateTo)}</span>
-                <span>{manages ? <EndRosterButton id={r.id} /> : null}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-      <Panel title={P.prescribersTitle}>
-        {prescribers.length === 0 ? (
-          <EmptyState compact title={P.prescribersNone} />
-        ) : (
-          <ul className="divide-border flex flex-col divide-y">
-            {prescribers.map((p) => (
-              <li key={p.user_id} className="text-body-s flex flex-wrap justify-between gap-2 py-2">
-                <span>
-                  <span className="font-semibold">{p.who}</span>
-                  {p.department ? (
-                    <span className="text-muted-foreground"> · {p.department}</span>
-                  ) : null}
-                </span>
-                <span className="text-caption text-ink-700">
-                  {!p.cd_allowed
-                    ? P.notAllowed
-                    : Number(p.only) > 0
-                      ? P.onlySome(Number(p.only))
-                      : P.any}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-    </div>
+    <RosterTab
+      view={{ ...view, staff: staff.filter((s) => !listed.has(s.userId)) }}
+      prescribers={prescribers}
+      can={permissionsFor(actor, manages)}
+    />
   );
 }

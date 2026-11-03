@@ -13,6 +13,9 @@ import { sql } from "drizzle-orm";
 
 import { addDays, fillGaps, ROSTER_DEFAULTS, weekStart } from "@/lib/pharmacy/derive/roster";
 
+/** A uuid[] literal: drizzle spreads a JS array into a parameter list. */
+const uuids = (xs: readonly string[]) => `{${xs.join(",")}}`;
+
 type Db = { execute: (q: ReturnType<typeof sql>) => Promise<unknown> };
 const rows = <T>(r: unknown): T[] =>
   (Array.isArray(r) ? r : ((r as { rows?: T[] }).rows ?? [])) as T[];
@@ -81,7 +84,7 @@ export async function seedRoster(db: Db, hospitalId: string) {
 
   for (const [i, p] of people.entries()) {
     await db.execute(sql`INSERT INTO public.pharmacy_roster_people (hospital_id, user_id, cadre, places, added_by)
-      VALUES (${h}, ${p.userId}::uuid, ${p.cadre}, ${p.places}::uuid[], ${boss}::uuid)`);
+      VALUES (${h}, ${p.userId}::uuid, ${p.cadre}, ${uuids(p.places)}::uuid[], ${boss}::uuid)`);
     if (p.cadre === "store_keeper") continue;
     // The last licensed person's licence lapsed a few days ago; the second-to-last expires in 17 days.
     const expiresOn =
@@ -192,7 +195,7 @@ export async function seedRoster(db: Db, hospitalId: string) {
 
   // A delegation: the first colleague makes the dispensing point's roster until the end of next month.
   await db.execute(sql`INSERT INTO public.pharmacy_roster_delegations (hospital_id, from_user, to_user, places, until)
-    VALUES (${h}, ${boss}::uuid, ${p1}::uuid, ${[places.find((p) => p.kind === "dispensing_point")!.id]}::uuid[],
+    VALUES (${h}, ${boss}::uuid, ${p1}::uuid, ${uuids([places.find((p) => p.kind === "dispensing_point")!.id])}::uuid[],
       ${addDays(today, 30)}::date)`);
   return { people: people.length, duties: kept.length };
 }

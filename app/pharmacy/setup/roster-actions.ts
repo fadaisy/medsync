@@ -9,6 +9,7 @@ import { storeAvatar } from "@/lib/avatars";
 import { logger } from "@/lib/logger";
 import * as r from "@/lib/pharmacy/actions/roster";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
+import * as rules from "@/lib/pharmacy/rules/actions";
 
 /** Set-up › People and roster (PEOPLE-ROSTER.md §18): the session user acts; every check runs again on the server. */
 type Act = (
@@ -60,3 +61,6 @@ export async function updateMyPhotoAction(
   revalidatePath("/pharmacy/setup");
   return { ok: true };
 }
+
+export const proposeRegistryRuleAction = async (raw: unknown) =>
+  run(rules.proposeRegistryRule, raw);

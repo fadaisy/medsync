@@ -277,3 +277,43 @@ export const ROSTER_REFUSAL = {
   already: (shift: Shift) => `Already on ${SHIFT[shift].label.toLowerCase()}`,
   weekState: "The week has already changed. Look again.",
 } as const;
+
+const n_ = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+export const LEAVE_KIND = {
+  annual: "Annual leave",
+  day_off: "Day off",
+  study: "Study leave",
+  sick: "Sick leave",
+} as const;
+
+/** §3.3 and §11: the badge row, its issue chips and the dialog's "This week" lines. */
+export const ROSTER_BADGES = {
+  rules: "Rules",
+  groupAria: "Rules for people and the roster",
+  badgeAria: (scope: string, n: number, issue: string | null, pending: number) =>
+    `${scope} rules, ${n}${issue ? `, ${issue}` : ""}${pending ? `, ${pending} waiting for signatures` : ""}`,
+  toSign: (n: number) => `${n} to sign`,
+  thisWeek: "This week",
+  addRule: "+ Add a rule here",
+  gaps: (n: number) => n_(n, "gap", "gaps"),
+  nobody: (n: number) => `${n} shifts with nobody`,
+  single: (n: number) => `${n} shifts without two people who can witness`,
+  unwitnessed: (n: number) => `${n} unwitnessed`,
+  breaks: (n: number) => n_(n, "break", "breaks"),
+  open: (n: number) => `${n} open`,
+  toApprove: (n: number) => `${n} to approve`,
+  andMore: (n: number) => `and ${n} more`,
+  waitingFor: (first: string) => ` · waiting for ${first}`,
+  waitingApproval: " · waiting for approval",
+  licence: (ex: number, due: number) =>
+    [ex ? `${ex} expired` : "", due ? `${due} due` : ""].filter(Boolean).join(" · "),
+  licExpired: (name: string, on: string) =>
+    `${name}: expired ${on}. Cannot be rostered until renewed.`,
+  licDue: (name: string, on: string, days: number) => `${name}: expires ${on} (${days} days)`,
+  attend: (late: number, none: number) =>
+    [late ? `${late} late` : "", none ? `${none} not in` : ""].filter(Boolean).join(" · "),
+  late: (at: string) => `late · in ${at}`,
+  notIn: "not in",
+  notPublished: "Not published",
+  draft: "This week is still a draft. Publish it so staff see it and the witness pickers use it.",
+} as const;

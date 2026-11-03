@@ -240,6 +240,8 @@ describe("source rules", () => {
       "app/pharmacy/refill-actions.ts",
       "app/pharmacy/review-actions.ts",
       "app/pharmacy/setup/actions.ts",
+      // Set-up › People and roster (PEOPLE-ROSTER.md §18), through runPharmacyWrite.
+      "app/pharmacy/setup/roster-actions.ts",
       "app/pharmacy/stock/actions.ts",
       "app/pharmacy/stock/store/count-actions.ts",
       // Pharmacy Phase 2: the Store group (Steps 4 to 9).

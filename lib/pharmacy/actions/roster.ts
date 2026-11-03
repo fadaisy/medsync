@@ -20,6 +20,8 @@ import { runPharmacyWrite } from "@/lib/pharmacy/write";
  * database cannot see (rest rules for fill gaps, the actor's own request) and queue the staff SMS. Each write is
  * audited by the tables' audit triggers.
  */
+/** A uuid[] literal: drizzle spreads a JS array into a parameter list. */
+const uuids = (xs: readonly string[]) => `{${xs.join(",")}}`;
 const NEED: PharmacyNeed = { permission: "pharmacy.view", point: "none" };
 const ShiftZ = z.enum(["day", "night", "call"]);
 const Slot = z.object({ placeId: z.uuid(), date: z.iso.date(), shift: ShiftZ });
@@ -282,7 +284,7 @@ export const handOver = (actor: PharmacyActor, raw: unknown) =>
     const row = await one<{ id: string }>(
       ctx,
       sql`INSERT INTO public.pharmacy_roster_delegations (hospital_id, from_user, to_user, places, until, can_publish)
-          VALUES (${h}::uuid, ${ctx.actor.userId}::uuid, ${i.toUser}::uuid, ${i.places}::uuid[], ${i.until}::date,
+          VALUES (${h}::uuid, ${ctx.actor.userId}::uuid, ${i.toUser}::uuid, ${uuids(i.places)}::uuid[], ${i.until}::date,
             ${i.places.length === 0 && i.canPublish})
           RETURNING id`,
     );
@@ -480,8 +482,8 @@ export const addPerson = (actor: PharmacyActor, raw: unknown) =>
     const row = await one<{ id: string }>(
       ctx,
       sql`INSERT INTO public.pharmacy_roster_people (hospital_id, user_id, cadre, places, added_by)
-          SELECT ${h}::uuid, ${i.userId}::uuid, ${i.cadre}, ${i.places}::uuid[], ${ctx.actor.userId}::uuid
-           WHERE NOT EXISTS (SELECT 1 FROM unnest(${i.places}::uuid[]) p
+          SELECT ${h}::uuid, ${i.userId}::uuid, ${i.cadre}, ${uuids(i.places)}::uuid[], ${ctx.actor.userId}::uuid
+           WHERE NOT EXISTS (SELECT 1 FROM unnest(${uuids(i.places)}::uuid[]) p
                               WHERE NOT EXISTS (SELECT 1 FROM public.pharmacy_locations l WHERE l.id = p
                                 AND l.hospital_id = ${h}::uuid AND l.kind IN ('store','dispensing_point')))
           RETURNING id`,

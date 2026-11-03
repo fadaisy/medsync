@@ -90,15 +90,24 @@ export function RuleLine({
   can,
   toast,
   compact,
+  numeric,
+  propose,
+  onCancel,
 }: {
   item: RuleItem;
   can: MedicinesPayload["can"] | null;
   toast: (m: string) => void;
   compact?: boolean;
+  /** A rule with a number (the registry's `param`): Change asks for the number, prefilled with this. */
+  numeric?: string;
+  /** Sends the proposal elsewhere than the Medicines rules (the registry, People's badges). */
+  propose?: (value: string, why: string) => Promise<{ ok: boolean; error?: string }>;
+  /** A new rule: opens editing at once, and Cancel removes the line. */
+  onCancel?: () => void;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [text, setText] = useState(item.text);
+  const [open, setOpen] = useState(!!onCancel);
+  const [text, setText] = useState(numeric ?? item.text);
   const [why, setWhy] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -118,10 +127,11 @@ export function RuleLine({
     });
 
   const send = () => {
-    if (!text.trim() || text.trim() === item.text) return setErr(D.typeFirst);
+    if (!text.trim() || text.trim() === (numeric ?? item.text)) return setErr(D.typeFirst);
     if (!why.trim()) return setErr(D.sayWhy);
     run(
       () =>
+        propose?.(text.trim(), why.trim()) ??
         proposeRuleAction({
           clientKey: newKey(),
           group: item.group,
@@ -166,11 +176,12 @@ export function RuleLine({
       {open ? (
         <span className="bg-ink-50 flex flex-col gap-2 rounded-xl p-2.5">
           <input
-            aria-label={D.newWording}
-            placeholder={D.newWording}
+            aria-label={numeric ? D.newNumber : D.newWording}
+            placeholder={numeric ? D.newNumber : D.newWording}
+            inputMode={numeric ? "decimal" : undefined}
             value={text}
             onChange={(e) => (setText(e.target.value), setErr(null))}
-            className={cn(field, "w-full rounded-lg")}
+            className={cn(field, numeric ? "w-24 rounded-lg tabular-nums" : "w-full rounded-lg")}
           />
           <input
             aria-label={D.why}
@@ -183,7 +194,11 @@ export function RuleLine({
             <LabButton size="sm" variant="primary" busy={pending} onClick={send}>
               {D.send}
             </LabButton>
-            <LabButton size="sm" variant="text" onClick={() => (setOpen(false), setErr(null))}>
+            <LabButton
+              size="sm"
+              variant="text"
+              onClick={() => (onCancel ? onCancel() : setOpen(false), setErr(null))}
+            >
               {MEDICINES.row.cancel}
             </LabButton>
           </span>
