@@ -46,6 +46,8 @@ export interface Line {
   ven: Ven | null;
   flags: Flags;
   packs: number[];
+  /** The pack's GS1 GTIN, when one is linked (a scan finds the line by it). */
+  gtin?: string | null;
   loose: boolean;
   free: boolean;
   /** Prices per payer id, UGX per issue unit. */

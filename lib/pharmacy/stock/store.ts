@@ -396,6 +396,7 @@ async function move(
     deliveryFrom?: string | null;
     deliveryRef?: string | null;
     witnessAttestationId?: string | null;
+    unitCost?: string | null;
   },
 ): Promise<string> {
   const { pointId, ...rest } = m;
@@ -472,6 +473,7 @@ export async function receiveStock(
   ctx: PharmacyCtx,
   input: z.infer<typeof ReceiveInput>,
   witness: string | null = null,
+  extra: { unitCost?: string | null; reasonNote?: string | null } = {},
 ) {
   const point = pointOf(ctx);
   if (await replayed(ctx.tx, pharmacyStockMovements, input.clientKey, ctx.actor.hospitalId))
@@ -493,8 +495,48 @@ export async function receiveStock(
     deliveryFrom: input.from,
     deliveryRef: input.deliveryRef,
     witnessAttestationId,
+    ...extra,
   });
   return { id, batchId, medicineId: product.medicineId };
+}
+
+export const DeliveryInput = z.object({
+  clientKey: key,
+  from: ReceiveInput.shape.from,
+  deliveryRef: optional(120),
+  lines: z
+    .array(
+      z.object({
+        clientKey: key,
+        productId: z.uuid(),
+        batchNumber,
+        expiry,
+        quantity,
+        /** UGX per issue unit, as the delivery note gives it. */
+        unitCost: z.number().min(0).max(100_000_000).nullable(),
+        /** What was rejected and the cold-chain reading, kept on the receipt. */
+        note: optional(300),
+        sendOn: z.object({ clientKey: key, toPointId: z.uuid(), quantity }).nullable(),
+      }),
+    )
+    .min(1)
+    .max(100),
+});
+
+/** A delivery line by line in one transaction: each line a receipt, some sent straight on as a transfer. */
+export async function receiveDelivery(ctx: PharmacyCtx, input: z.infer<typeof DeliveryInput>) {
+  for (const [i, l] of input.lines.entries()) {
+    if (l.sendOn && l.sendOn.quantity > l.quantity)
+      throw fail("invalid", STOCK.delivery.sendTooMany(i + 1));
+    const r = await receiveStock(
+      ctx,
+      { ...l, from: input.from, deliveryRef: input.deliveryRef },
+      null,
+      { unitCost: l.unitCost === null ? null : l.unitCost.toFixed(2), reasonNote: l.note },
+    );
+    if (l.sendOn && r.batchId) await transferStock(ctx, { ...l.sendOn, batchId: r.batchId });
+  }
+  return { id: input.clientKey };
 }
 
 /** 5.3.1 Add a batch found on the shelf (S8); a new product is marked "Added at the window". */

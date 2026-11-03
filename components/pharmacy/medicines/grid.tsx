@@ -1174,7 +1174,9 @@ function ExpiryCell({
                       b.expiry
                     ) : (
                       <input
-                        type="date"
+                        inputMode="numeric"
+                        placeholder="YYYY-MM-DD"
+                        maxLength={10}
                         aria-label={`${E.expiry} ${b.no}`}
                         value={dates[b.id] ?? b.expiry}
                         onChange={(e) => (

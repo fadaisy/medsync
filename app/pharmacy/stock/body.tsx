@@ -1,3 +1,4 @@
+import type { ReceiveMed } from "./_components/receive-delivery";
 import type { DialogBatch, DialogProduct } from "./_components/stock-dialogs";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -23,6 +24,7 @@ import { loadMedicinesMaster } from "@/lib/pharmacy/medicines/read";
 import { getStockPage } from "@/lib/pharmacy/stock/read";
 import { deliveryFromOffered } from "@/lib/pharmacy/stock/store";
 import { DRUGS } from "@/lib/prescribing/formulary";
+import { ReceiveDeliveryDialog } from "./_components/receive-delivery";
 import {
   AddProductDialog,
   CloseRequestDialog,
@@ -80,6 +82,34 @@ export async function StockBody() {
       name: p.name,
       issueUnit: p.issueUnit,
     }));
+  // The medicines master is the list (its controlled lines are received with a witness); health supplies,
+  // which it does not hold, come from the stock products.
+  const meds: ReceiveMed[] = master.ok
+    ? [
+        ...master.lines
+          .filter((l) => !l.flags.controlled)
+          .map((l) => ({
+            id: l.id,
+            name: l.name,
+            unit: l.unit,
+            pack: l.packs[0] ?? null,
+            cold: l.flags.cold,
+            gtin: l.gtin ?? null,
+            price: master.cashPayerId ? (l.prices[master.cashPayerId] ?? null) : null,
+          })),
+        ...products
+          .filter((p) => !master.lines.some((l) => l.id === p.id))
+          .map((p) => ({
+            id: p.id,
+            name: `${p.medicineName} · ${p.name}`,
+            unit: p.issueUnit,
+            pack: null,
+            cold: false,
+            gtin: null,
+            price: null,
+          })),
+      ].sort((a, b) => a.name.localeCompare(b.name))
+    : [];
   const medicines = DRUGS.map((d) => ({ id: d.id, name: d.generic })).sort((a, b) =>
     a.name.localeCompare(b.name),
   );
@@ -104,7 +134,19 @@ export async function StockBody() {
           canStock ? (
             <>
               {nationalList}
-              <ReceiveDialog products={products} from={deliveryFromOffered(actor.hospitalId)} />
+              {master.ok ? (
+                <ReceiveDeliveryDialog
+                  meds={meds}
+                  point={{ id: point.id, name: point.name }}
+                  points={data.points}
+                  from={deliveryFromOffered(actor.hospitalId)}
+                  rulePct={master.rulePct}
+                  today={master.today}
+                  canAddLocal={master.can.edit}
+                />
+              ) : (
+                <ReceiveDialog products={products} from={deliveryFromOffered(actor.hospitalId)} />
+              )}
               <CountDialog
                 label={STOCK.actions.fullCount}
                 what={point.name}

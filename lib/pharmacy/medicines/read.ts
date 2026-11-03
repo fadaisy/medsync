@@ -167,7 +167,7 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
              coalesce(p.generic, cm.generic, p.name) AS generic, coalesce(p.form, cm.form_label) AS form,
              coalesce(p.route, cm.route_label) AS route, coalesce(p.therapeutic_class, cm.therapeutic_class) AS cls,
              coalesce(p.pharm_group, cm.pharm_group) AS grp, coalesce(p.sale_category, cm.sale_category) AS sale,
-             p.ven, p.high_risk, p.cold_chain, p.freeze_sensitive, p.cytotoxic, p.packs, p.loose,
+             p.ven, p.high_risk, p.cold_chain, p.freeze_sensitive, p.cytotoxic, p.packs, p.loose, p.gtin,
              coalesce(cm.national_controlled, false) AS national,
              (${today}::date - coalesce(p.reviewed_at, p.created_at)::date) AS reviewed_days,
              (${today}::date - p.created_at::date) AS age_days
@@ -337,6 +337,7 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
         cyto: r.cytotoxic === true,
       },
       packs: ((r.packs as number[] | null) ?? []).map(Number),
+      gtin: (r.gtin as string | null) ?? null,
       loose: r.loose === true,
       free: !!cash && p.some((x) => x.payer_id === cash && x.free),
       prices: Object.fromEntries(
