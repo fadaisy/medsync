@@ -69,6 +69,8 @@ export interface MedicinesPayload {
   /** Open "add to the order" asks, by line. */
   orders: Record<string, Ask>;
   lastMove: { at: string; text: string; productId: string; placeId: string } | null;
+  /** Starter brands per line, from the NDA register's products for its catalogue medicine (§4.5). */
+  starters: Record<string, { name: string; maker: string | null }[]>;
   can: MedicinesCan;
 }
 export type MedicinesLoad = MedicinesPayload | { ok: false; reason: "migration" };
@@ -145,6 +147,7 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
     requestRows,
     orderRows,
     moveRows,
+    starterRows,
     costs,
     rule,
   ] = await Promise.all([
@@ -249,6 +252,12 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
         JOIN public.pharmacy_products p ON p.id = b.product_id
         LEFT JOIN public.pharmacy_locations l ON l.id = coalesce(m.location_id, m.dispensing_point_id)
        WHERE m.hospital_id = ${h} ORDER BY m.recorded_at DESC LIMIT 1`),
+    q<{ product_id: string; name: string; maker: string | null }>(sql`
+      SELECT DISTINCT p.id AS product_id, cp.brand_name AS name, f.name AS maker
+        FROM public.pharmacy_products p
+        JOIN public.cat_products cp ON cp.medicine_id = p.catalogue_medicine_id AND cp.status = 'active'
+        LEFT JOIN public.cat_manufacturers f ON f.id = cp.manufacturer_id
+       WHERE p.hospital_id = ${h} AND p.active AND cp.brand_name IS NOT NULL`),
     lastUnitCosts(db, h),
     ruleOn(db, h, today),
   ]);
@@ -393,6 +402,9 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
           placeId: m.place_id,
         }
       : null,
+    starters: Object.fromEntries(
+      [...by(starterRows)].map(([k, v]) => [k, v.map((x) => ({ name: x.name, maker: x.maker }))]),
+    ),
     can: permissionsFor(actor, manages),
   };
 }
