@@ -6,17 +6,20 @@ import { ArchiveIcon, CalendarClockIcon, ClipboardCheckIcon } from "lucide-react
 import { CautionNotice } from "@/components/medsync/caution-notice";
 import { PageHeader } from "@/components/medsync/page-header";
 import { StatCard } from "@/components/medsync/stat-card";
+import { MedicinesGrid } from "@/components/pharmacy/medicines/grid";
 import { PHARMACY } from "@/content/pharmacy";
 import { NATIONAL_LIST } from "@/content/pharmacy-catalogue";
 import { expiryText, STOCK } from "@/content/pharmacy-stock";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
+import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
 import {
   pharmacyCatalogueLiveFor,
   pharmacyDispensingLiveFor,
   pharmacyNationalListLiveFor,
 } from "@/lib/pharmacy/feature";
+import { loadMedicinesMaster } from "@/lib/pharmacy/medicines/read";
 import { getStockPage } from "@/lib/pharmacy/stock/read";
 import { deliveryFromOffered } from "@/lib/pharmacy/stock/store";
 import { DRUGS } from "@/lib/prescribing/formulary";
@@ -48,9 +51,10 @@ export async function StockBody() {
       </div>
     );
   const now = new Date();
-  const [data, signed] = await Promise.all([
+  const [data, signed, master] = await Promise.all([
     getStockPage(actor, point, now),
     controlledMedicineIds(db, actor.hospitalId),
+    managesPharmacy(actor.userId, actor.hospitalId).then((m) => loadMedicinesMaster(actor, m)),
   ]);
   const canStock = actor.access.permissions.has("pharmacy.stock");
   // CD-5: a controlled product moves only with a witness, on the Controlled drugs page.
@@ -150,33 +154,42 @@ export async function StockBody() {
         </section>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard
-          label={F.out}
-          value={fig.out}
-          icon={<ArchiveIcon />}
-          hint={fig.outVital === null ? F.vitalNotImported : F.outVital(fig.outVital)}
-        />
-        <StatCard
-          label={F.expiring(fig.lookaheadDays)}
-          value={fig.lookaheadDays === null ? "—" : fig.expiringBatches}
-          icon={<CalendarClockIcon />}
-          hint={fig.lookaheadDays === null ? F.noLookahead : F.expiringHint(fig.expiringBatches)}
-        />
-        <StatCard
-          label={F.counted}
-          value={fig.counted}
-          icon={<ClipboardCheckIcon />}
-          hint={F.countedHint(fig.counted, fig.medicines)}
-        />
-      </div>
-      <p className="text-body-s text-foreground">{STOCK.opening(data.openingMissing)}</p>
+      {master.ok ? (
+        // MEDICINES-TAB.md: the Set-up grid in operate mode replaces the old table and its three figures.
+        <MedicinesGrid data={master} hospitalId={actor.hospitalId} mode="operate" />
+      ) : (
+        <>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <StatCard
+              label={F.out}
+              value={fig.out}
+              icon={<ArchiveIcon />}
+              hint={fig.outVital === null ? F.vitalNotImported : F.outVital(fig.outVital)}
+            />
+            <StatCard
+              label={F.expiring(fig.lookaheadDays)}
+              value={fig.lookaheadDays === null ? "—" : fig.expiringBatches}
+              icon={<CalendarClockIcon />}
+              hint={
+                fig.lookaheadDays === null ? F.noLookahead : F.expiringHint(fig.expiringBatches)
+              }
+            />
+            <StatCard
+              label={F.counted}
+              value={fig.counted}
+              icon={<ClipboardCheckIcon />}
+              hint={F.countedHint(fig.counted, fig.medicines)}
+            />
+          </div>
+          <p className="text-body-s text-foreground">{STOCK.opening(data.openingMissing)}</p>
 
-      <StockTable rows={data.rows.map((r) => tableRow(r, now))} />
+          <StockTable rows={data.rows.map((r) => tableRow(r, now))} />
 
-      <p className="text-muted-foreground text-body-s">
-        {STOCK.noLevelNeverLow} {STOCK.controlledWitnessed}
-      </p>
+          <p className="text-muted-foreground text-body-s">
+            {STOCK.noLevelNeverLow} {STOCK.controlledWitnessed}
+          </p>
+        </>
+      )}
     </div>
   );
 }

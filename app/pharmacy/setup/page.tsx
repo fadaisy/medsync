@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { MedicinesGrid } from "@/components/pharmacy/medicines/grid";
 import { EmptyState, Panel, Pill } from "@/components/tide/work/kit";
 import { PillTabs } from "@/components/tide/work/space";
+import { MEDICINES } from "@/content/pharmacy-medicines";
 import { RW } from "@/content/pharmacy-rework";
 import { RC, RULES } from "@/content/pharmacy-rework-records";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
-import { pharmacyCatalogueLiveFor } from "@/lib/pharmacy/feature";
 import { SETUP_HREF, SETUP_TABS } from "@/lib/pharmacy/ia";
+import { loadMedicinesMaster } from "@/lib/pharmacy/medicines/read";
 import { supplyFlagOn } from "@/lib/pharmacy/stores/supply-action";
 import { pharmacyV2 } from "../_lib/v2";
-import { AddFromCatalogue } from "./_components/add-from-catalogue";
 import { PacksView } from "./_components/packs-view";
 import { PlacesTab } from "./_components/places-tab";
-import { PricesView } from "./_components/prices-view";
 import { AddRosterDialog, EndRosterButton } from "./_components/roster";
-import { loadLive, loadMedicines, loadPeople, loadRules } from "./_lib/read";
+import { loadLive, loadPeople, loadRules } from "./_lib/read";
 
 export const metadata: Metadata = { title: "Set-up · Pharmacy" };
 export const dynamic = "force-dynamic";
@@ -41,7 +41,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
   let body;
   if (tab === "live") body = <LiveTab hospitalId={actor.hospitalId} />;
   else if (tab === "places") body = <PlacesTab actor={actor} manages={manages} />;
-  else if (tab === "medicines") body = <MedicinesTab hospitalId={actor.hospitalId} />;
+  else if (tab === "medicines") body = <MedicinesTab actor={actor} manages={manages} />;
   else if (tab === "rules") body = <RulesTab hospitalId={actor.hospitalId} />;
   else if (tab === "people") body = <PeopleTab hospitalId={actor.hospitalId} manages={manages} />;
   else
@@ -113,46 +113,16 @@ async function LiveTab({ hospitalId }: { hospitalId: string }) {
   );
 }
 
-async function MedicinesTab({ hospitalId }: { hospitalId: string }) {
-  const M = S.medicines;
-  const meds = await loadMedicines(hospitalId);
-  const catalogue = pharmacyCatalogueLiveFor(hospitalId);
-  return (
-    <div className="flex flex-col gap-4">
-      <Panel note={M.lead} action={catalogue ? <AddFromCatalogue /> : null}>
-        {meds.length === 0 ? (
-          <EmptyState compact title={M.none} next={M.noneNext} />
-        ) : (
-          <ul className="divide-border flex flex-col divide-y">
-            {meds.map((m) => (
-              <li
-                key={m.id}
-                className="grid gap-x-3 gap-y-1 py-2 sm:grid-cols-[minmax(0,1.4fr)_6rem_8rem_8rem_minmax(0,1.4fr)] sm:items-center"
-              >
-                <span className="text-body-s font-semibold">
-                  {m.name}{" "}
-                  <span className="text-caption text-muted-foreground font-normal">· {m.unit}</span>
-                </span>
-                <span className="text-caption">{m.ven ? (M.ven[m.ven] ?? m.ven) : M.notSet}</span>
-                <span className="text-caption">
-                  {m.controlled ? <Pill glyph={null}>{M.controlled}</Pill> : null}
-                </span>
-                <span className="text-caption tabular-nums">
-                  {m.price === null ? M.notSet : RC.ugx(m.price)}
-                </span>
-                <span className="text-caption text-ink-700">
-                  {m.levels.length
-                    ? m.levels.map((l) => M.level(l.place, l.n)).join(" · ")
-                    : M.notSet}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-      {catalogue ? <PricesView v2={await pharmacyV2()} /> : null}
-    </div>
-  );
+async function MedicinesTab({
+  actor,
+  manages,
+}: {
+  actor: Awaited<ReturnType<typeof requirePharmacyActor>>;
+  manages: boolean;
+}) {
+  const data = await loadMedicinesMaster(actor, manages);
+  if (!data.ok) return <EmptyState title={MEDICINES.refused.migration} />;
+  return <MedicinesGrid data={data} hospitalId={actor.hospitalId} mode="edit" />;
 }
 
 async function RulesTab({ hospitalId }: { hospitalId: string }) {

@@ -10,10 +10,11 @@ import { EmptyState, Panel, Pill } from "@/components/tide/work/kit";
 import { VACCINE_NAMES } from "@/content/pharmacy-rework-patients";
 import { RC } from "@/content/pharmacy-rework-records";
 import { STORE } from "@/content/pharmacy-stores-store";
-import { pharmacyStoreLiveFor } from "@/lib/pharmacy/feature";
+import { pharmacyCatalogueLiveFor, pharmacyStoreLiveFor } from "@/lib/pharmacy/feature";
 import { getPlacesPage } from "@/lib/pharmacy/stores/store-read";
 import { loadColdSetup } from "../_lib/read";
 import { AddFridgeDialog, EpiClinicDialog, EpiVaccineDialog } from "./cold-setup";
+import { PointBilling } from "./point-billing";
 
 const P = RC.setup.places;
 
@@ -83,6 +84,7 @@ export async function PlacesTab({ actor, manages }: { actor: PharmacyActor; mana
           </ul>
         )}
       </Panel>
+      {pharmacyCatalogueLiveFor(actor.hospitalId) ? <PointBilling manages={manages} /> : null}
       <Panel
         title={C.title}
         action={manages && places.length ? <AddFridgeDialog places={places} /> : null}

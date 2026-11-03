@@ -24,7 +24,9 @@ export const loadLive = cache(async (hospitalId: string, database: Exec = appDb(
           AND d.live_at IS NOT NULL AND d.switched_off_at IS NULL) AS points,
       (SELECT count(*)::int FROM public.pharmacy_locations l WHERE l.hospital_id = ${hospitalId}::uuid) AS places,
       (SELECT count(*)::int FROM public.pharmacy_products p WHERE p.hospital_id = ${hospitalId}::uuid AND p.active
-          AND p.price_ugx IS NULL) AS unpriced,
+          AND NOT EXISTS (SELECT 1 FROM public.pharmacy_product_prices pp
+                JOIN public.pharmacy_payers py ON py.id = pp.payer_id AND py.code = 'cash'
+               WHERE pp.product_id = p.id AND pp.from_date <= private.pharmacy_local_date())) AS unpriced,
       (SELECT count(*)::int FROM public.pharmacy_cd_prescribers x WHERE x.hospital_id = ${hospitalId}::uuid) AS prescribers`,
       )
       .then((r) => rowsOf<Record<string, number>>(r)),
@@ -46,49 +48,6 @@ export const loadLive = cache(async (hospitalId: string, database: Exec = appDb(
     ],
   };
 });
-
-export interface MedicineLine {
-  id: string;
-  name: string;
-  unit: string;
-  ven: string | null;
-  controlled: string | null;
-  price: number | null;
-  levels: { place: string; n: number }[];
-}
-
-/** Set-up › Medicines: VEN, controlled, price and the current reorder level per place. One query. */
-export const loadMedicines = cache(
-  async (hospitalId: string, database: Exec = appDb()): Promise<MedicineLine[]> => {
-    const rows = rowsOf<Record<string, unknown>>(
-      await database.execute(sql`
-    SELECT p.id, p.name, p.issue_unit, p.controlled_class, p.price_ugx::float8 AS price,
-           (SELECT cm.emhslu_ven FROM public.cat_medicines cm WHERE cm.id = p.catalogue_medicine_id) AS ven,
-           coalesce((SELECT jsonb_agg(jsonb_build_object('place', d.name, 'n', l.level) ORDER BY d.name)
-              FROM (SELECT DISTINCT ON (r.dispensing_point_id) r.dispensing_point_id, r.level
-                      FROM public.pharmacy_reorder_levels r
-                     WHERE r.hospital_id = p.hospital_id AND r.medicine_id = p.medicine_id
-                     ORDER BY r.dispensing_point_id, r.set_at DESC) l
-              JOIN public.hospital_departments d ON d.id = l.dispensing_point_id
-             WHERE l.level IS NOT NULL), '[]'::jsonb) AS levels
-      FROM public.pharmacy_products p
-     WHERE p.hospital_id = ${hospitalId}::uuid AND p.active
-     ORDER BY p.name
-     LIMIT 1000`),
-    );
-    return rows.map((r) => ({
-      id: String(r.id),
-      name: String(r.name),
-      unit: String(r.issue_unit),
-      ven: (r.ven as string | null) ?? null,
-      controlled: (r.controlled_class as string | null) ?? null,
-      price: r.price === null || r.price === undefined ? null : Number(r.price),
-      levels: (typeof r.levels === "string"
-        ? JSON.parse(r.levels)
-        : r.levels) as MedicineLine["levels"],
-    }));
-  },
-);
 
 /** Set-up › Rules: the signed sets' latest version per kind. One query. */
 export const loadRules = cache(async (hospitalId: string, database: Exec = appDb()) =>
