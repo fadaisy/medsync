@@ -111,6 +111,7 @@ export default async function RequisitionPage({ params }: { params: Promise<{ id
               <IssueForm
                 requisitionId={r.id}
                 witnesses={witnesses}
+                pickTitle={S.pickTitle(atName, fromName)}
                 lines={v.lines.map((l) => ({
                   id: l.id,
                   productName: l.productName,
@@ -118,8 +119,13 @@ export default async function RequisitionPage({ params }: { params: Promise<{ id
                   asked: l.asked,
                   held: l.held,
                   prefill: l.prefill,
-                  first: l.first ? `${expiryText(l.first)} · ${l.first.batchNumber}` : null,
                   controlled: l.controlled,
+                  cold: l.cold,
+                  stock: l.stock.map((b) => ({
+                    batchNumber: b.batchNumber,
+                    expiry: expiryText(b),
+                    held: b.held,
+                  })),
                   decided: l.issued !== null,
                   picked: l.pick === undefined ? undefined : (l.pick?.method ?? null),
                 }))}

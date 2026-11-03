@@ -801,6 +801,7 @@ export async function getRequisition(
           productName: pharmacyProducts.name,
           issueUnit: pharmacyProducts.issueUnit,
           medicineId: pharmacyProducts.medicineId,
+          cold: sql<boolean>`coalesce(${pharmacyProducts}.cold_chain, false)`,
         })
         .from(pharmacyRequisitionLines)
         .innerJoin(pharmacyProducts, eq(pharmacyProducts.id, pharmacyRequisitionLines.productId))
@@ -889,12 +890,16 @@ export async function getRequisition(
       blocked: read.recalled,
       localDate: today,
     });
-    const first = batches
+    // What a pick list takes from: usable batches, first to expire first.
+    const usable = batches
       .filter(
         (b) =>
           !read.recalled.has(b.id) && !isExpired(b, today) && (read.balances.get(b.id) ?? 0) > 0,
       )
-      .sort((a, b) => expiresOn(a).localeCompare(expiresOn(b)))[0];
+      .sort(
+        (a, b) =>
+          expiresOn(a).localeCompare(expiresOn(b)) || a.batchNumber.localeCompare(b.batchNumber),
+      );
     const byId = new Map(batches.map((b) => [b.id, b]));
     return {
       ...l,
@@ -913,14 +918,13 @@ export async function getRequisition(
         witnessAttestationId: null,
         confirmerSecondFactor: false,
       }),
-      first: first
-        ? {
-            batchNumber: first.batchNumber,
-            expiry: first.expiry,
-            expiryMonthOnly: first.expiryMonthOnly,
-          }
-        : null,
       controlled: read.controlled(l.medicineId),
+      stock: usable.map((b) => ({
+        batchNumber: b.batchNumber,
+        expiry: b.expiry,
+        expiryMonthOnly: b.expiryMonthOnly,
+        held: read.balances.get(b.id) ?? 0,
+      })),
       issuedRows: read.issued.filter((x) => x.productId === l.productId),
     };
   });

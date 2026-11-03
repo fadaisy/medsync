@@ -4,6 +4,8 @@ import type { ScanProduct, WitnessOption } from "../../places/_components/store-
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 
+import { StatusWord } from "@/components/emr/status-word";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
 import { RETURN_REASONS, SHORT_DATED_DECISIONS, STORE } from "@/content/pharmacy-stores-store";
@@ -717,21 +719,56 @@ export interface IssueLine {
   asked: number;
   held: number;
   prefill: number;
-  first: string | null;
   controlled: boolean;
+  cold: boolean;
+  /** Usable batches here, first to expire first, with the expiry as words. */
+  stock: { batchNumber: string; expiry: string; held: number }[];
   decided: boolean;
   /** 4.11: the line's pick; undefined with the catalogue check off. */
   picked?: "scan" | "hand" | null;
+}
+
+/** IS-2: the batches a quantity comes from, first to expire first. */
+const takeFrom = (stock: IssueLine["stock"], qty: number) => {
+  let left = qty;
+  return stock.flatMap((b) => {
+    const n = Math.min(b.held, Math.max(left, 0));
+    left -= n;
+    return n ? [{ ...b, take: n }] : [];
+  });
+};
+
+const esc = (t: string) =>
+  t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+
+function printPickList(
+  title: string,
+  rows: { name: string; asked: number; issue: number; take: string[] }[],
+) {
+  const S = STORE.issue;
+  const w = window.open("", "_blank");
+  if (!w) return;
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>${esc(title)}</title>
+<style>body{font:14px system-ui,sans-serif;margin:32px}table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid silver;vertical-align:top}</style>
+<h1 style="font-size:20px">${esc(title)}</h1><table><tr><th>${esc(S.columns.product)}</th><th>${esc(S.columns.asked)}</th>
+<th>${esc(S.columns.issue)}</th><th>${esc(S.columns.takeFrom)}</th><th>✓</th></tr>
+${rows.map((r) => `<tr><td>${esc(r.name)}</td><td>${r.asked}</td><td>${r.issue}</td><td>${r.take.map(esc).join("<br>")}</td><td></td></tr>`).join("")}
+</table>`);
+  w.document.close();
+  w.print();
 }
 
 export function IssueForm({
   requisitionId,
   lines,
   witnesses,
+  pickTitle,
 }: {
   requisitionId: string;
   lines: readonly IssueLine[];
   witnesses: readonly WitnessOption[];
+  pickTitle: string;
 }) {
   const router = useRouter();
   const S = STORE.issue;
@@ -765,7 +802,7 @@ export function IssueForm({
                 {S.columns.held}
               </th>
               <th scope="col" className="px-3 py-2">
-                {S.columns.first}
+                {S.columns.takeFrom}
               </th>
               <th scope="col" className="px-3 py-2">
                 {S.columns.issue}
@@ -782,7 +819,9 @@ export function IssueForm({
           </thead>
           <tbody className="divide-border divide-y">
             {open.map((l) => {
-              const zero = Number(qty[l.id] ?? 0) === 0;
+              const n = Number(qty[l.id] ?? 0);
+              const zero = n === 0;
+              const takes = n > l.held ? [] : takeFrom(l.stock, n);
               return (
                 <tr key={l.id} className="align-top">
                   <td className="px-3 py-2">
@@ -793,7 +832,22 @@ export function IssueForm({
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{l.asked}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{l.held}</td>
-                  <td className="px-3 py-2 font-mono">{l.first ?? S.noBatch}</td>
+                  <td className="px-3 py-2">
+                    {l.stock.length ? null : <span>{S.noBatch}</span>}
+                    {takes.map((t) => (
+                      <span key={t.batchNumber} className="block font-mono">
+                        {S.take(t.batchNumber, t.expiry, t.take)}
+                      </span>
+                    ))}
+                    {n > l.held ? (
+                      <StatusWord tone="caution">{S.only(l.held, l.issueUnit)}</StatusWord>
+                    ) : n && n < l.asked ? (
+                      <span className="text-caption text-muted-foreground block">
+                        {S.short(l.asked - n, l.issueUnit)}
+                      </span>
+                    ) : null}
+                    {l.cold && n ? <span className="text-caption block">{S.cool}</span> : null}
+                  </td>
                   <td className="px-3 py-2">
                     <Input
                       type="number"
@@ -841,6 +895,29 @@ export function IssueForm({
           onWitnessed={setWitness}
         />
       ) : null}
+      <Button
+        type="button"
+        variant="secondary"
+        className={`${TARGET} self-start`}
+        onClick={() =>
+          printPickList(
+            pickTitle,
+            open.map((l) => {
+              const n = Number(qty[l.id] ?? 0);
+              return {
+                name: l.productName,
+                asked: l.asked,
+                issue: n,
+                take: takeFrom(l.stock, Math.min(n, l.held)).map((t) =>
+                  S.take(t.batchNumber, t.expiry, t.take),
+                ),
+              };
+            }),
+          )
+        }
+      >
+        {S.printPick}
+      </Button>
       <ActButton
         label={S.issue}
         disabled={(needsWitness && !witness) || unpicked.length > 0}

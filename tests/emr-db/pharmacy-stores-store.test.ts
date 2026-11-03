@@ -620,7 +620,8 @@ describe.skipIf(!laneOn)("The store (Step 4: S11–S17b)", () => {
       lane.db,
     ))!;
     const l3 = v.lines.find((l) => l.productId === products[3])!;
-    expect(l3).toMatchObject({ asked: 10, held: 150, prefill: 10, first: { batchNumber: "B-4" } });
+    expect(l3).toMatchObject({ asked: 10, held: 150, prefill: 10, cold: false });
+    expect(l3.stock[0]).toMatchObject({ batchNumber: "B-4" });
     const l5 = v.lines.find((l) => l.productId === products[5])!;
     // A line issued as zero needs its reason.
     const noReason = await write(iss.IssueRequisitionInput, iss.issueRequisition, {
@@ -761,11 +762,40 @@ describe.skipIf(!laneOn)("The store (Step 4: S11–S17b)", () => {
 
   it("rework scenario 3: one witness covers every controlled line of a delivery, and stock rises", async () => {
     const d = await delivery("DN-RW3");
-    ok(await line(d, 1, { productId: f.morphine, batchNumber: "RW3-A", expiry: FAR, noteQuantity: 5, accepted: 5 }));
-    ok(await line(d, 2, { productId: f.morphine, batchNumber: "RW3-B", expiry: FAR, noteQuantity: 4, accepted: 4 }));
-    ok(await line(d, 3, { productId: products[0], batchNumber: "RW3-C", expiry: FAR, noteQuantity: 6, accepted: 6 }));
+    ok(
+      await line(d, 1, {
+        productId: f.morphine,
+        batchNumber: "RW3-A",
+        expiry: FAR,
+        noteQuantity: 5,
+        accepted: 5,
+      }),
+    );
+    ok(
+      await line(d, 2, {
+        productId: f.morphine,
+        batchNumber: "RW3-B",
+        expiry: FAR,
+        noteQuantity: 4,
+        accepted: 4,
+      }),
+    );
+    ok(
+      await line(d, 3, {
+        productId: products[0],
+        batchNumber: "RW3-C",
+        expiry: FAR,
+        noteQuantity: 6,
+        accepted: 6,
+      }),
+    );
     const one = await witnessFor(f.pharmacist!);
-    ok(await receive(d, pharmacist(), [{ lineNo: 1, attestationId: one }, { lineNo: 2, attestationId: one }]));
+    ok(
+      await receive(d, pharmacist(), [
+        { lineNo: 1, attestationId: one },
+        { lineNo: 2, attestationId: one },
+      ]),
+    );
     const r = await pg.query<{ n: number }>(
       `SELECT coalesce(sum(m.quantity), 0)::int AS n FROM public.pharmacy_stock_movements m
          JOIN public.pharmacy_batches b ON b.id = m.batch_id WHERE b.batch_number IN ('RW3-A','RW3-B','RW3-C')`,

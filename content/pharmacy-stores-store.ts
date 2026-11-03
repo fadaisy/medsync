@@ -322,6 +322,7 @@ export const STORE = {
       asked: "Asked",
       held: "Held here",
       first: "First to expire",
+      takeFrom: "Take from",
       issue: "To issue",
       notIssued: "Not issued, because",
     },
@@ -337,6 +338,12 @@ export const STORE = {
     issued: (time: string) => `Issued ${time}`,
     controlled: "Controlled drug: issued only with the witness here.",
     countOnWard: "No count from the requesting place was taken.",
+    take: (batch: string, expiry: string, n: number) => `${batch} · exp ${expiry} · take ${n}`,
+    only: (n: number, unit: string) => `Only ${n} ${unit} held here.`,
+    short: (n: number, unit: string) => `${n} ${unit} short of what was asked.`,
+    cool: "Cold chain: pack it in a cool box.",
+    printPick: "Print the pick list",
+    pickTitle: (from: string, to: string) => `Pick list · ${from} to ${to}`,
   },
 
   voucher: {
