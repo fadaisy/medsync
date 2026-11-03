@@ -56,8 +56,8 @@ Port it **behaviour for behaviour**: same columns, same wording, same thresholds
    - h1 "Set-up"
    - sub-tabs: Going live · Places · **Medicines** · Rules · People and roster · Messages
 2. **Card header:**
-   - the one-sentence intro: "Everything about a medicine is set here…"
-   - the primary button **Add from the catalogue**
+   - no intro sentence
+   - the primary button **Add from the catalogue**, right-aligned
    - the card fills the full content width; there is no max-width
 3. **Toolbar:**
    - search box ("Find a medicine or class"; matches name or class)

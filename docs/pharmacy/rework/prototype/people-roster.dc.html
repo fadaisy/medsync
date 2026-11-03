@@ -1,0 +1,1772 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Set-up › People and roster</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f6f7f9}
+a{color:#0f766e}a:hover{color:#1b2540}
+button{cursor:pointer}
+button:disabled{cursor:default}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #0f766e;outline-offset:2px}
+.rs-day{display:none}
+.rs-mdot{display:none}
+.print-only{display:none}
+@media print{body *{visibility:hidden !important}.print-area,.print-area *{visibility:visible !important}.print-area{position:absolute;left:0;top:0;width:100%;overflow:visible !important}.print-area .rs-add{display:none !important}.print-only{display:block !important}@page{size:landscape;margin:10mm}}
+@media (max-width: 760px){.rs-week{display:none}.rs-day{display:flex}.rs-mdet{display:none !important}.rs-mdot{display:block}.rs-mcell{min-height:56px !important;padding:4px !important}}
+</style>
+</helmet>
+<div style="min-height: 3700px; background: #f6f7f9; color: #1b2540; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; display: flex; flex-wrap: wrap; gap: 24px; padding: 24px 20px; box-sizing: border-box">
+  <nav aria-label="Pharmacy" style="flex: 0 0 112px; align-self: flex-start; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); padding: 12px 8px; display: flex; flex-direction: column; gap: 4px">
+    <div style="width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 14px; background: #1b2540; color: #ffffff; display: grid; place-items: center; font-size: 16px; font-weight: 700">Rx</div>
+    <sc-for list="{{sections}}" as="s" hint-placeholder-count="7">
+      <a href="#" style="{{s.style}}">{{s.label}}</a>
+    </sc-for>
+  </nav>
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+    <h1 style="margin: 8px 0 0; font-size: 36px; line-height: 40px; font-weight: 500; letter-spacing: -0.03em">Set-up</h1>
+    <nav aria-label="Set-up" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #e4e7ee; border-radius: 999px; align-self: flex-start">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+        <a href="{{t.href}}" aria-current="{{t.current}}" style="{{t.style}}">{{t.label}}</a>
+      </sc-for>
+    </nav>
+
+    <section aria-label="On duty now" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px">
+        <h2 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 22px; font-weight: 600"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #16a34a; box-shadow: 0 0 0 3px #dcfce7"></span>On duty now</h2>
+        <span style="font-size: 12px; color: #5f6987; font-variant-numeric: tabular-nums">{{nowLine}}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 10px">
+        <sc-for list="{{nowGroups}}" as="ng" hint-placeholder-count="2">
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 14px; background: #f6f7f9">
+            <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: #4a5574">{{ng.label}}</span>
+            <sc-for list="{{ng.people}}" as="np" hint-placeholder-count="3">
+              <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                <span style="display: flex; align-items: center; gap: 8px; min-width: 0">
+                  <span aria-hidden="true" style="{{np.avStyle}}">{{np.initials}}</span>
+                  <span style="display: flex; flex-direction: column; min-width: 0">
+                    <span style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{np.name}}</span>
+                    <span style="font-size: 11px; color: #5f6987; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{np.sub}}</span>
+                  </span>
+                </span>
+                <span style="display: flex; align-items: center; gap: 6px; flex: 0 0 auto">
+                  <sc-if value="{{np.hasAtt}}" hint-placeholder-val="{{false}}"><span style="{{np.attStyle}}">{{np.att}}</span></sc-if>
+                  <a href="{{np.tel}}" aria-label="{{np.callAria}}" style="display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; background: #ffffff; box-shadow: inset 0 0 0 1px #dde1e9; color: #0f766e"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"></path></svg></a>
+                </span>
+              </span>
+            </sc-for>
+            <sc-if value="{{ng.none}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f6987">Nobody on this shift.</span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-label="Roster" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <div role="group" aria-label="Department" style="display: inline-flex; gap: 2px; padding: 3px; height: 40px; box-sizing: border-box; background: #e4e7ee; border-radius: 12px">
+            <sc-for list="{{deptOpts}}" as="dp" hint-placeholder-count="2"><button type="button" aria-pressed="{{dp.on}}" onClick="{{dp.pick}}" style="{{dp.style}}">{{dp.label}}</button></sc-for>
+          </div>
+          <div role="group" aria-label="View" style="display: inline-flex; gap: 2px; padding: 3px; height: 40px; box-sizing: border-box; background: #e4e7ee; border-radius: 12px">
+            <sc-for list="{{viewOpts}}" as="vo" hint-placeholder-count="2"><button type="button" aria-pressed="{{vo.on}}" onClick="{{vo.pick}}" style="{{vo.style}}">{{vo.label}}</button></sc-for>
+          </div>
+          <div style="display: inline-flex; align-items: center; height: 40px; border: 1px solid #dde1e9; border-radius: 12px; overflow: hidden">
+            <button type="button" aria-label="{{prevAria}}" onClick="{{prevPeriod}}" style="width: 40px; height: 40px; border: 0; background: #ffffff; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"></path></svg></button>
+            <span style="padding: 0 10px; font-size: 14px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">{{periodLabel}}</span>
+            <button type="button" aria-label="{{nextAria}}" onClick="{{nextPeriod}}" style="width: 40px; height: 40px; border: 0; background: #ffffff; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg></button>
+          </div>
+          <button type="button" onClick="{{goToday}}" style="height: 40px; padding: 0 14px; border: 0; border-radius: 12px; background: #f6f7f9; color: #1b2540; font: 600 14px Figtree, sans-serif">Today</button>
+          <sc-if value="{{isMonth}}" hint-placeholder-val="{{false}}">
+            <span style="display: inline-flex; align-items: center; gap: 6px">
+              <select aria-label="Month" value="{{mMonthVal}}" onChange="{{setMonth}}" style="height: 40px; padding: 0 8px; border: 1px solid #dde1e9; border-radius: 12px; background: #ffffff; font: 600 13px Figtree, sans-serif; color: #1b2540">
+                <sc-for list="{{monthOpts}}" as="mo" hint-placeholder-count="12"><option value="{{mo.v}}">{{mo.label}}</option></sc-for>
+              </select>
+              <input type="number" aria-label="Year" min="1900" max="2200" step="1" value="{{mYearVal}}" onChange="{{setYear}}" style="width: 84px; height: 40px; box-sizing: border-box; padding: 0 8px; border: 1px solid #dde1e9; border-radius: 12px; font: 600 13px Figtree, sans-serif; color: #1b2540; font-variant-numeric: tabular-nums">
+            </span>
+          </sc-if>
+          <label style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 4px 0 12px; border: 1px solid #dde1e9; border-radius: 12px; font-size: 13px; font-weight: 600; color: #4a5574">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"></path></svg>
+            <select aria-label="Show place" value="{{placeFilter}}" onChange="{{setPlaceFilter}}" style="height: 36px; border: 0; background: transparent; font: 600 13px Figtree, sans-serif; color: #1b2540">
+              <option value="all">All places</option>
+              <sc-for list="{{placeOpts}}" as="o" hint-placeholder-count="6"><option value="{{o.id}}">{{o.name}}</option></sc-for>
+            </select>
+          </label>
+        </div>
+        <sc-if value="{{showPub}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <span style="{{pubChipStyle}}">{{pubChip}}</span>
+          <button type="button" disabled="{{copyOff}}" onClick="{{copyLastWeek}}" style="{{copyStyle}}">Copy last week</button>
+          <button type="button" disabled="{{copyOff}}" onClick="{{fillGaps}}" title="Fill empty slots with the best fit, following the rules" style="{{copyStyle}}">Fill gaps</button>
+          <button type="button" onClick="{{printWeek}}" aria-label="Print this week" style="height: 40px; width: 40px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"></path><rect x="3" y="9" width="18" height="8" rx="2"></rect><path d="M7 14h10v7H7z"></path></svg></button>
+          <button type="button" disabled="{{pubOff}}" onClick="{{togglePublish}}" style="{{publishStyle}}">{{publishLabel}}</button>
+        </div>
+        </sc-if>
+        <sc-if value="{{showMonthHint}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f6987">Click a day to open its week and edit.</span></sc-if>
+      </div>
+
+      <sc-if value="{{isWards}}" hint-placeholder-val="{{false}}">
+        <div role="note" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 12px; border-radius: 14px; background: #f6f7f9; font-size: 13px; line-height: 18px; color: #4a5574">
+          <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #e4e7ee; color: #4a5574; font-size: 12px; font-weight: 700">View only</span>
+          <span>Doctors' and nurses' rosters are made by each ward's in-charge. Click anyone to contact them, or to see what they prescribed or gave that day.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{isPharm}}" hint-placeholder-val="{{true}}">
+      <div role="group" aria-label="Who makes the roster" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 8px 10px; border-radius: 14px; background: #f6f7f9">
+        <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px">
+          <span style="font-size: 12px; font-weight: 600; color: #5f6987">Made by</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px 0 4px; border-radius: 999px; background: #ffffff; box-shadow: inset 0 0 0 1px #dde1e9; font-size: 13px; white-space: nowrap"><span aria-hidden="true" style="{{owner.avStyle}}">{{owner.initials}}</span><b style="font-weight: 600">{{owner.name}}</b><span style="color: #5f6987">· Pharmacy in-charge</span></span>
+          <sc-if value="{{hasDelegs}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; font-weight: 600; color: #5f6987">Handed to</span></sc-if>
+          <sc-for list="{{delegs}}" as="dg" hint-placeholder-count="1">
+            <span style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px 0 4px; border-radius: 999px; background: #ffffff; box-shadow: inset 0 0 0 1px #dde1e9; font-size: 13px; white-space: nowrap"><span aria-hidden="true" style="{{dg.avStyle}}">{{dg.initials}}</span><b style="font-weight: 600">{{dg.name}}</b><span style="color: #5f6987">· {{dg.scope}}</span>
+              <sc-if value="{{dg.canRevoke}}" hint-placeholder-val="{{true}}"><button type="button" aria-label="{{dg.revokeAria}}" onClick="{{dg.revoke}}" style="height: 24px; padding: 0 2px; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Take back</button></sc-if>
+            </span>
+          </sc-for>
+        </span>
+        <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <sc-if value="{{hasRoNote}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 999px; background: #e4e7ee; color: #4a5574; font-size: 12px; font-weight: 700">{{roNote}}</span></sc-if>
+          <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #5f6987">Acting as
+            <select aria-label="Acting as (prototype only)" value="{{actor}}" onChange="{{setActor}}" style="height: 32px; padding: 0 6px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 600 13px Figtree, sans-serif; color: #1b2540">
+              <sc-for list="{{actorOpts}}" as="ao" hint-placeholder-count="6"><option value="{{ao.id}}">{{ao.label}}</option></sc-for>
+            </select>
+          </label>
+          <sc-if value="{{isInCharge}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{openDeleg}}" style="height: 32px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Hand over this duty</button></sc-if>
+        </span>
+      </div>
+      </sc-if>
+
+      <div role="group" aria-label="Rules for people and the roster" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+        <span style="margin-right: 2px; font-size: 12px; font-weight: 600; color: #5f6987">Rules</span>
+        <sc-for list="{{ruleGroups}}" as="rg" hint-placeholder-count="7">
+          <button type="button" aria-haspopup="dialog" aria-label="{{rg.badgeAria}}" onClick="{{rg.open}}" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif; white-space: nowrap">
+            {{rg.scope}} <span style="font-weight: 500; color: #5f6987">· {{rg.n}}</span>
+            <sc-if value="{{rg.hasIssue}}" hint-placeholder-val="{{false}}"><span style="{{rg.issueStyle}}">{{rg.issue}}</span></sc-if>
+            <sc-if value="{{rg.hasPending}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 600">{{rg.pendingN}} to sign</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px">
+        <p role="status" style="margin: 0; font-size: 13px; line-height: 18px; color: #4a5574">{{coverLine}}</p>
+        <span style="display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: #4a5574">
+          <sc-for list="{{legend}}" as="lg" hint-placeholder-count="3"><span style="display: inline-flex; align-items: center; gap: 6px"><span aria-hidden="true" style="{{lg.sw}}"></span>{{lg.label}}</span></sc-for>
+        </span>
+      </div>
+
+      <sc-if value="{{isWeek}}" hint-placeholder-val="{{true}}">
+      <!-- Week view -->
+      <div class="rs-week print-area" style="overflow-x: auto">
+        <p class="print-only" style="margin: 0 0 8px; font-size: 16px; font-weight: 700">{{printTitle}}</p>
+        <div style="min-width: 1080px; display: grid; grid-template-columns: 10.5rem repeat(7, minmax(120px, 1fr)); gap: 6px 8px; align-items: stretch">
+          <span></span>
+          <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0 8px">
+              <span style="{{d.dowStyle}}">{{d.dow}}</span>
+              <span style="{{d.numStyle}}">{{d.num}}</span>
+              <span aria-hidden="true" style="{{d.barStyle}}"></span>
+              <span style="margin-top: 6px; font-size: 11px; line-height: 14px; color: #5f6987; text-align: center; font-variant-numeric: tabular-nums">{{d.counts}}</span>
+              <sc-if value="{{d.hasGaps}}" hint-placeholder-val="{{false}}"><span style="font-size: 11px; line-height: 14px; font-weight: 700; color: #92400e">{{d.gaps}}</span></sc-if>
+              <sc-if value="{{d.hasHol}}" hint-placeholder-val="{{false}}"><span title="Public holiday" style="margin-top: 2px; display: inline-flex; align-items: center; min-height: 20px; padding: 1px 8px; border-radius: 999px; background: #fde2e1; color: #9f1d1d; font-size: 10px; line-height: 13px; font-weight: 700; text-align: center">{{d.hol}}</span></sc-if>
+            </div>
+          </sc-for>
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="14">
+            <sc-if value="{{r.isLeave}}" hint-placeholder-val="{{false}}">
+              <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 4px 0">
+                <span style="font-size: 13px; font-weight: 600">Leave and off</span>
+                <span style="font-size: 11px; color: #5f6987">Approved · asked</span>
+              </div>
+              <sc-for list="{{r.cells}}" as="lc" hint-placeholder-count="7">
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; padding: 4px; min-height: 28px; border-radius: 10px; background: #f6f7f9">
+                  <sc-for list="{{lc.chips}}" as="lp" hint-placeholder-count="1"><span title="{{lp.tip}}" style="{{lp.style}}">{{lp.label}}</span></sc-for>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{r.isPlace}}" hint-placeholder-val="{{false}}">
+              <div style="grid-column: 1 / -1; display: flex; align-items: baseline; gap: 8px; padding: 10px 0 2px; border-top: 1px solid #dde1e9">
+                <span style="font-size: 14px; font-weight: 700">{{r.name}}</span>
+                <span style="font-size: 12px; color: #5f6987">{{r.kind}}</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{r.isShift}}" hint-placeholder-val="{{true}}">
+              <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 4px 0">
+                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600"><span aria-hidden="true" style="{{r.sw}}"></span>{{r.shiftLabel}}</span>
+                <span style="font-size: 11px; color: #5f6987; font-variant-numeric: tabular-nums">{{r.time}}</span>
+              </div>
+              <sc-for list="{{r.cells}}" as="c" hint-placeholder-count="7">
+                <div onDragOver="{{c.over}}" onDrop="{{c.drop}}" style="{{c.style}}">
+                  <sc-for list="{{c.cards}}" as="p" hint-placeholder-count="1">
+                    <button type="button" draggable="{{p.draggable}}" onDragStart="{{p.dragStart}}" onClick="{{p.open}}" aria-label="{{p.aria}}" style="{{p.style}}">
+                      <span aria-hidden="true" style="{{p.avStyle}}">{{p.initials}}</span>
+                      <span style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; min-width: 0; text-align: left">
+                        <span style="font-size: 12px; line-height: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.name}}</span>
+                        <span style="font-size: 11px; line-height: 14px; color: #4a5574; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.sub}}</span>
+                      </span>
+                      <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="#5f6987" style="flex: 0 0 12px"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg>
+                    </button>
+                  </sc-for>
+                  <sc-if value="{{c.canAdd}}" hint-placeholder-val="{{true}}">
+                    <button type="button" class="rs-add" aria-label="{{c.addAria}}" onClick="{{c.add}}" style="{{c.addStyle}}">
+                      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{c.hasNote}}" hint-placeholder-val="{{false}}"><span style="{{c.noteStyle}}">{{c.note}}</span></sc-if>
+                </div>
+              </sc-for>
+            </sc-if>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Day view (phones) -->
+      <div class="rs-day" style="flex-direction: column; gap: 10px">
+        <div role="group" aria-label="Day" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px">
+          <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+            <button type="button" aria-pressed="{{d.pickedAttr}}" onClick="{{d.pick}}" style="{{d.chipStyle}}">
+              <span style="display: block; font-size: 11px; font-weight: 600">{{d.dow}}</span>
+              <span style="display: block; font-size: 15px; font-weight: 700">{{d.num}}</span>
+            </button>
+          </sc-for>
+        </div>
+        <sc-for list="{{dayList}}" as="pl" hint-placeholder-count="4">
+          <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid #dde1e9">
+            <span style="font-size: 14px; font-weight: 700">{{pl.name}}</span>
+            <sc-for list="{{pl.shifts}}" as="sh" hint-placeholder-count="2">
+              <div style="display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 8px; align-items: start">
+                <span style="display: flex; flex-direction: column; font-size: 12px; font-weight: 600">{{sh.label}}<span style="font-weight: 400; color: #5f6987">{{sh.time}}</span></span>
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <sc-for list="{{sh.cards}}" as="p" hint-placeholder-count="1">
+                    <button type="button" onClick="{{p.open}}" aria-label="{{p.aria}}" style="{{p.style}}">
+                      <span aria-hidden="true" style="{{p.avStyle}}">{{p.initials}}</span>
+                      <span style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; text-align: left"><span style="font-size: 13px; font-weight: 700">{{p.name}}</span><span style="font-size: 11px; color: #4a5574">{{p.sub}}</span></span>
+                    </button>
+                  </sc-for>
+                  <sc-if value="{{sh.canAdd}}" hint-placeholder-val="{{true}}"><button type="button" aria-label="{{sh.addAria}}" onClick="{{sh.add}}" style="height: 40px; border: 1.5px dashed #c5cbd8; border-radius: 10px; background: transparent; color: #4a5574; font: 600 13px Figtree, sans-serif">+ Assign</button></sc-if>
+                  <sc-if value="{{sh.hasNote}}" hint-placeholder-val="{{false}}"><span style="font-size: 11px; font-weight: 700; color: #92400e">{{sh.note}}</span></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+      <!-- Month view -->
+      <sc-if value="{{isMonth}}" hint-placeholder-val="{{false}}">
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{mDows}}" as="md" hint-placeholder-count="7"><span style="padding: 2px 0 4px; text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: #5f6987">{{md}}</span></sc-for>
+          <sc-for list="{{mCells}}" as="mc" hint-placeholder-count="35">
+            <button type="button" class="rs-mcell" aria-label="{{mc.aria}}" onClick="{{mc.open}}" style="{{mc.style}}">
+              <span style="display: flex; align-items: center; justify-content: space-between; gap: 4px">
+                <span style="{{mc.numStyle}}">{{mc.num}}</span>
+                <sc-if value="{{mc.hasHol}}" hint-placeholder-val="{{false}}"><span title="{{mc.hol}}" style="flex: 1 1 auto; min-width: 0; font-size: 10px; font-weight: 700; color: #9f1d1d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right">{{mc.hol}}</span></sc-if>
+                <sc-if value="{{mc.locked}}" hint-placeholder-val="{{false}}"><svg class="rs-mdet" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5f6987" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></sc-if>
+              </span>
+              <sc-if value="{{mc.rostered}}" hint-placeholder-val="{{true}}">
+                <span class="rs-mdet" style="display: flex; flex-direction: column; gap: 4px">
+                  <span style="display: flex; flex-wrap: wrap; gap: 4px">
+                    <span style="display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 6px; background: #fff1cc; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums">Day {{mc.dc}}</span>
+                    <span style="display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 6px; background: #e4e7ee; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums">Night {{mc.nc}}</span>
+                  </span>
+                  <span style="display: flex; align-items: center">
+                    <sc-for list="{{mc.faces}}" as="p" hint-placeholder-count="3"><span aria-hidden="true" style="{{p.avStyle}}">{{p.initials}}</span></sc-for>
+                    <sc-if value="{{mc.hasMore}}" hint-placeholder-val="{{false}}"><span style="margin-left: 6px; font-size: 11px; font-weight: 600; color: #5f6987">+{{mc.more}}</span></sc-if>
+                  </span>
+                  <sc-if value="{{mc.hasGaps}}" hint-placeholder-val="{{false}}"><span style="font-size: 11px; font-weight: 700; color: #92400e">{{mc.gaps}}</span></sc-if>
+                </span>
+              </sc-if>
+              <sc-if value="{{mc.notRostered}}" hint-placeholder-val="{{false}}"><span class="rs-mdet" style="font-size: 11px; color: #8a93ab">Not rostered</span></sc-if>
+              <span class="rs-mdot" aria-hidden="true" style="{{mc.dotStyle}}"></span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </section>
+
+    <section aria-label="Swap requests" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 12px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 24px; font-weight: 600">Swap requests <sc-if value="{{rqHasNeed}}" hint-placeholder-val="{{true}}"><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 12px; font-weight: 700">{{rqNeedLabel}}</span></sc-if></h2>
+          <p style="margin: 0; font-size: 13px; line-height: 17px; color: #5f6987">Ask a colleague to swap or cover a shift. They accept first, then the in-charge approves. The roster changes only once it is approved.</p>
+        </div>
+        <sc-if value="{{canAsk}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{openSwap}}" style="height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 15px Figtree, sans-serif">Ask for a swap</button></sc-if>
+      </div>
+      <div role="group" aria-label="Show requests" style="display: flex; flex-wrap: wrap; gap: 6px">
+        <sc-for list="{{rqFilters}}" as="rf" hint-placeholder-count="3"><button type="button" aria-pressed="{{rf.on}}" onClick="{{rf.pick}}" style="{{rf.style}}">{{rf.label}}</button></sc-for>
+      </div>
+      <ul style="list-style: none; margin: 0; padding: 0">
+        <sc-for list="{{rqList}}" as="rq" hint-placeholder-count="3">
+          <li style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; padding: 12px 0; border-top: 1px solid #dde1e9">
+            <span style="flex: 1 1 360px; display: flex; gap: 12px; min-width: 0">
+              <span aria-hidden="true" style="display: flex; align-items: center; flex: 0 0 auto"><span style="{{rq.fromAv}}">{{rq.fromIni}}</span><span style="{{rq.toAv}}">{{rq.toIni}}</span></span>
+              <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                <span style="font-size: 14px; line-height: 20px"><b style="font-weight: 600">{{rq.headline}}</b></span>
+                <span style="font-size: 13px; line-height: 18px; color: #4a5574">{{rq.detail}}</span>
+                <sc-if value="{{rq.hasReason}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; line-height: 16px; color: #5f6987">“{{rq.reason}}”</span></sc-if>
+                <sc-if value="{{rq.hasWarn}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; line-height: 16px; font-weight: 700; color: #9f1d1d">{{rq.warn}}</span></sc-if>
+                <span aria-label="Progress" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 2px">
+                  <sc-for list="{{rq.steps}}" as="sp" hint-placeholder-count="3"><span style="{{sp.style}}">{{sp.label}}</span></sc-for>
+                </span>
+                <span style="font-size: 11px; line-height: 15px; color: #5f6987">{{rq.trail}}</span>
+              </span>
+            </span>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+              <span style="{{rq.statStyle}}">{{rq.stat}}</span>
+              <sc-if value="{{rq.asking}}" hint-placeholder-val="{{false}}">
+                <span style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px">
+                  <input aria-label="Why (optional)" placeholder="Why (optional)" value="{{rq.noteVal}}" onChange="{{rq.setNote}}" style="width: 12rem; height: 32px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; font: 400 13px Figtree, sans-serif; color: #1b2540">
+                  <button type="button" onClick="{{rq.confirm}}" style="height: 32px; padding: 0 12px; border-radius: 999px; font: 600 13px Figtree, sans-serif; border: 0; background: #1b2540; color: #ffffff">{{rq.confirmLabel}}</button>
+                  <button type="button" onClick="{{rq.cancelAsk}}" style="height: 32px; padding: 0 12px; border-radius: 999px; font: 600 13px Figtree, sans-serif; border: 1px solid #c5cbd8; background: #ffffff; color: #1b2540">Cancel</button>
+                </span>
+              </sc-if>
+              <sc-if value="{{rq.hasActions}}" hint-placeholder-val="{{false}}">
+                <span style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px">
+                  <sc-for list="{{rq.actions}}" as="ac" hint-placeholder-count="2"><button type="button" disabled="{{ac.off}}" title="{{ac.tip}}" onClick="{{ac.go}}" style="{{ac.style}}">{{ac.label}}</button></sc-for>
+                </span>
+              </sc-if>
+              <sc-if value="{{rq.hasHint}}" hint-placeholder-val="{{false}}"><span style="max-width: 16rem; text-align: right; font-size: 11px; line-height: 15px; color: #5f6987">{{rq.hint}}</span></sc-if>
+            </span>
+          </li>
+        </sc-for>
+        <sc-if value="{{rqEmpty}}" hint-placeholder-val="{{false}}"><li style="padding: 12px 0; border-top: 1px solid #dde1e9; font-size: 14px; color: #5f6987">{{rqEmptyText}}</li></sc-if>
+      </ul>
+    </section>
+
+    <section aria-label="Leave and days off" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 12px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 24px; font-weight: 600">Leave and days off <sc-if value="{{lvHasNeed}}" hint-placeholder-val="{{true}}"><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 12px; font-weight: 700">{{lvNeedLabel}}</span></sc-if></h2>
+          <p style="margin: 0; font-size: 13px; line-height: 17px; color: #5f6987">The in-charge approves. Once approved, the person's shifts on those days are freed and nobody can be rostered on them.</p>
+        </div>
+        <sc-if value="{{canAsk}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{openLeave}}" style="height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 15px Figtree, sans-serif">Ask for leave or a day off</button></sc-if>
+      </div>
+      <ul style="list-style: none; margin: 0; padding: 0">
+        <sc-for list="{{lvList}}" as="lv" hint-placeholder-count="3">
+          <li style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; padding: 12px 0; border-top: 1px solid #dde1e9">
+            <span style="flex: 1 1 340px; display: flex; gap: 12px; min-width: 0">
+              <span aria-hidden="true" style="{{lv.avStyle}}">{{lv.initials}}</span>
+              <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                <span style="font-size: 14px; line-height: 20px"><b style="font-weight: 600">{{lv.name}}</b> · {{lv.type}}</span>
+                <span style="font-size: 13px; line-height: 18px; color: #4a5574">{{lv.when}}</span>
+                <sc-if value="{{lv.hasReason}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; color: #5f6987">“{{lv.reason}}”</span></sc-if>
+                <sc-if value="{{lv.hasClash}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; font-weight: 700; color: #92400e">{{lv.clash}}</span></sc-if>
+                <span style="font-size: 11px; line-height: 15px; color: #5f6987">{{lv.trail}}</span>
+              </span>
+            </span>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+              <span style="{{lv.statStyle}}">{{lv.stat}}</span>
+              <sc-if value="{{lv.hasActions}}" hint-placeholder-val="{{false}}">
+                <span style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px">
+                  <sc-for list="{{lv.actions}}" as="ac" hint-placeholder-count="2"><button type="button" onClick="{{ac.go}}" style="{{ac.style}}">{{ac.label}}</button></sc-for>
+                </span>
+              </sc-if>
+            </span>
+          </li>
+        </sc-for>
+        <sc-if value="{{lvEmpty}}" hint-placeholder-val="{{false}}"><li style="padding: 12px 0; border-top: 1px solid #dde1e9; font-size: 14px; color: #5f6987">No leave requests.</li></sc-if>
+      </ul>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 16px; align-items: start">
+      <section aria-label="Load" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 12px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Who carries the load</h2>
+          <p style="margin: 0; font-size: 13px; line-height: 17px; color: #5f6987">{{loadSub}}</p>
+        </div>
+        <div style="overflow-x: auto">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums">
+            <thead><tr style="color: #5f6987; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em">
+              <th style="padding: 6px 4px; text-align: left; font-weight: 700">Person</th><th style="padding: 6px 4px; text-align: right; font-weight: 700">Day</th><th style="padding: 6px 4px; text-align: right; font-weight: 700">Night</th><th style="padding: 6px 4px; text-align: right; font-weight: 700">On call</th><th style="padding: 6px 4px; text-align: right; font-weight: 700">Weekend</th><th style="padding: 6px 4px; text-align: right; font-weight: 700">Holiday</th><th style="padding: 6px 4px 6px 10px; text-align: left; font-weight: 700">Total</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{loadRows}}" as="lr" hint-placeholder-count="6">
+                <tr style="border-top: 1px solid #dde1e9">
+                  <td style="padding: 8px 4px; font-weight: 600; white-space: nowrap">{{lr.name}}</td><td style="padding: 8px 4px; text-align: right">{{lr.day}}</td><td style="padding: 8px 4px; text-align: right">{{lr.night}}</td><td style="padding: 8px 4px; text-align: right">{{lr.call}}</td><td style="padding: 8px 4px; text-align: right">{{lr.wkend}}</td><td style="padding: 8px 4px; text-align: right">{{lr.hol}}</td>
+                  <td style="padding: 8px 4px 8px 10px; min-width: 9rem"><span style="display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="flex: 1 1 auto; height: 6px; border-radius: 999px; background: #eef0f4; overflow: hidden"><span style="{{lr.bar}}"></span></span><b style="font-weight: 600; min-width: 1.5rem; text-align: right">{{lr.total}}</b><sc-if value="{{lr.hasFlag}}" hint-placeholder-val="{{false}}"><span style="{{lr.flagStyle}}">{{lr.flag}}</span></sc-if></span></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-label="Reminders" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 14px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Reminders</h2>
+          <p style="margin: 0; font-size: 13px; line-height: 17px; color: #5f6987">Sent by SMS through Messages. <a href="Messages.dc.html" style="font-weight: 600">Edit wording and Luganda versions</a></p>
+        </div>
+        <sc-for list="{{reminders}}" as="rm" hint-placeholder-count="4">
+          <label style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid #dde1e9; cursor: pointer">
+            <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">{{rm.label}}</span><span style="font-size: 12px; color: #5f6987">{{rm.sub}}</span></span>
+            <input type="checkbox" role="switch" checked="{{rm.on}}" onChange="{{rm.toggle}}" style="flex: 0 0 auto; width: 20px; height: 20px; margin: 2px 0 0; accent-color: #0f766e">
+          </label>
+        </sc-for>
+        <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #4a5574">Evening reminder at
+          <select value="{{remTime}}" onChange="{{setRemTime}}" style="height: 32px; padding: 0 6px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 600 13px Figtree, sans-serif; color: #1b2540"><option>17:00</option><option>18:00</option><option>19:00</option><option>20:00</option></select>
+        </label>
+        <div style="padding: 10px 12px; border-radius: 14px; background: #f6f7f9; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 11px; font-weight: 700; color: #5f6987; text-transform: uppercase; letter-spacing: 0.04em">Example SMS</span>
+          <span style="font-size: 13px; line-height: 18px">{{remPreview}}</span>
+        </div>
+      </section>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 16px; align-items: start">
+      <section style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 12px; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 12px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">People <span style="font-weight: 400; color: #5f6987">· {{peopleCount}}</span></h2>
+            <p style="margin: 0; font-size: 13px; line-height: 17px; color: #5f6987">Pharmacy staff who can be rostered, and where.</p>
+          </div>
+          <button type="button" onClick="{{openPerson}}" style="height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 15px Figtree, sans-serif">Add a person</button>
+        </div>
+        <ul style="list-style: none; margin: 0; padding: 0">
+          <sc-for list="{{people}}" as="p" hint-placeholder-count="8">
+            <li style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 10px 0; border-top: 1px solid #dde1e9">
+              <span style="display: flex; align-items: center; gap: 12px; min-width: 0">
+                <span aria-hidden="true" style="{{p.avStyle}}">{{p.initials}}</span>
+                <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                  <span style="font-size: 15px; line-height: 21px; font-weight: 600">{{p.name}}</span>
+                  <span style="font-size: 13px; line-height: 17px; color: #5f6987">{{p.cadre}} · {{p.where}}</span>
+                  <sc-if value="{{p.hasLic}}" hint-placeholder-val="{{true}}"><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: #4a5574">{{p.licLine}} <span style="{{p.licStyle}}">{{p.licStat}}</span>
+                    <sc-if value="{{p.canRenew}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{p.openRenew}}" style="height: 24px; padding: 0 2px; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Record renewal</button></sc-if>
+                  </span></sc-if>
+                  <sc-if value="{{p.renewing}}" hint-placeholder-val="{{false}}"><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px">
+                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #4a5574">New expiry <input type="date" value="{{p.renewVal}}" onChange="{{p.setRenew}}" style="height: 32px; padding: 0 6px; border: 1px solid #c5cbd8; border-radius: 8px; font: 400 13px Figtree, sans-serif; color: #1b2540"></label>
+                    <button type="button" onClick="{{p.saveRenew}}" style="height: 32px; padding: 0 12px; border-radius: 999px; font: 600 13px Figtree, sans-serif; border: 0; background: #2dd4bf; color: #1b2540">Save</button>
+                    <button type="button" onClick="{{p.cancelRenew}}" style="height: 32px; padding: 0 12px; border-radius: 999px; font: 600 13px Figtree, sans-serif; border: 1px solid #c5cbd8; background: #ffffff; color: #1b2540">Cancel</button>
+                  </span></sc-if>
+                </span>
+              </span>
+              <span style="display: flex; align-items: center; gap: 12px">
+                <span style="font-size: 13px; color: #4a5574">{{p.witness}}</span>
+                <sc-if value="{{p.isMe}}" hint-placeholder-val="{{false}}">                <label style="position: relative; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; font-size: 13px; font-weight: 600; color: #1b2540; cursor: pointer">{{p.photoLabel}}<input type="file" accept="image/*" aria-label="{{p.photoAria}}" onChange="{{p.setPhoto}}" style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden"></label></sc-if>
+                <sc-if value="{{p.notMe}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; color: #8a93ab">{{p.photoNote}}</span></sc-if>
+              </span>
+            </li>
+          </sc-for>
+        </ul>
+      </section>
+
+      <section style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 12px; display: flex; flex-direction: column">
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px">
+          <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Prescribers</h2>
+          <p style="margin: 0; font-size: 13px; line-height: 17px; color: #5f6987">Controlled entries pick the prescriber from this list. Changes here are confirmed by the medical superintendent.</p>
+        </div>
+        <ul style="list-style: none; margin: 0; padding: 0">
+          <sc-for list="{{prescribers}}" as="p" hint-placeholder-count="3">
+            <li style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid #dde1e9">
+              <span style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+                <span style="display: flex; align-items: center; gap: 12px"><span aria-hidden="true" style="{{p.avStyle}}">{{p.initials}}</span><span style="font-size: 15px; line-height: 21px; font-weight: 600">{{p.name}}</span></span>
+                <span style="font-size: 13px; color: #5f6987">{{p.cadre}}</span>
+              </span>
+              <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer">
+                <input type="checkbox" checked="{{p.cd}}" onChange="{{p.toggleCd}}" style="width: 20px; height: 20px; margin: 0; accent-color: #0f766e">
+                May prescribe controlled drugs
+              </label>
+              <sc-if value="{{p.cd}}" hint-placeholder-val="{{false}}">
+                <label style="display: flex; flex-direction: column; gap: 4px">
+                  <span style="font-size: 12px; font-weight: 600; color: #4a5574">Limited to (blank = all controlled drugs)</span>
+                  <input value="{{p.limit}}" onChange="{{p.setLimit}}" placeholder="All controlled drugs" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                </label>
+              </sc-if>
+            </li>
+          </sc-for>
+        </ul>
+        <div style="margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #f6f7f9; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 14px; font-weight: 600">Who may witness</span>
+          <span style="font-size: 13px; line-height: 17px; color: #4a5574">On a ward: a second nurse on shift, the nurse in-charge or the doctor on duty. In the pharmacy: a technician, a second pharmacist or the in-charge. From Rules; the witness approves on their own device.</span>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <sc-if value="{{slotOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="{{sl.title}}" style="width: 520px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 8px 24px">
+          <div style="display: flex; align-items: center; gap: 12px"><sc-if value="{{sl.isCard}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" style="{{sl.avStyle}}">{{sl.initials}}</span></sc-if><div style="display: flex; flex-direction: column; gap: 4px">
+            <h2 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 600">{{sl.title}}</h2>
+            <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">{{sl.sub}}</p>
+          </div></div>
+          <button type="button" aria-label="Close" onClick="{{closeSlot}}" style="flex: 0 0 40px; width: 40px; height: 40px; border: 0; border-radius: 12px; background: #f6f7f9; display: grid; place-items: center">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <sc-if value="{{sl.isAssign}}" hint-placeholder-val="{{true}}">
+          <ul style="list-style: none; margin: 0; padding: 4px 12px 16px; display: flex; flex-direction: column; gap: 2px">
+            <sc-for list="{{sl.choices}}" as="ch" hint-placeholder-count="4">
+              <li>
+                <button type="button" aria-disabled="{{ch.blockedAttr}}" onClick="{{ch.pick}}" style="{{ch.btnStyle}}">
+                  <span style="display: flex; align-items: center; gap: 12px"><span aria-hidden="true" style="{{ch.avStyle}}">{{ch.initials}}</span><span style="display: flex; flex-direction: column; gap: 2px">
+                    <span style="font-size: 15px; font-weight: 600">{{ch.name}}</span>
+                    <span style="font-size: 12px; color: #5f6987">{{ch.sub}}</span>
+                  </span></span>
+                  <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+                    <sc-if value="{{ch.hasWarn}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 700; white-space: nowrap">{{ch.warn}}</span></sc-if>
+                    <sc-if value="{{ch.hasRest}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #fde2e1; color: #9f1d1d; font-size: 11px; font-weight: 700; white-space: nowrap">{{ch.rest}}</span></sc-if>
+                    <sc-if value="{{ch.hasBlock}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #1b2540; color: #ffffff; font-size: 11px; font-weight: 700; white-space: nowrap">{{ch.block}}</span></sc-if>
+                    <sc-if value="{{ch.isBest}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #ccfbf1; color: #0f766e; font-size: 11px; font-weight: 700; white-space: nowrap">Best fit</span></sc-if>
+                  </span>
+                </button>
+              </li>
+            </sc-for>
+            <sc-if value="{{sl.noChoices}}" hint-placeholder-val="{{false}}"><li style="padding: 10px 12px; font-size: 14px; color: #4a5574">Nobody else works at this place. Add a person below the roster.</li></sc-if>
+          </ul>
+        </sc-if>
+        <sc-if value="{{sl.isCard}}" hint-placeholder-val="{{false}}">
+          <div style="padding: 4px 24px 18px; display: flex; flex-direction: column; gap: 10px">
+            <p style="margin: 0; font-size: 14px; line-height: 20px; color: #4a5574">{{sl.cardLine}}</p>
+            <sc-if value="{{sl.hasRest}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; padding: 8px 12px; border-radius: 12px; background: #fde2e1; color: #9f1d1d; font-size: 13px; font-weight: 600">{{sl.rest}}</p></sc-if>
+            <sc-if value="{{sl.isPharm}}" hint-placeholder-val="{{true}}">
+            <span style="display: flex; flex-wrap: wrap; gap: 8px">
+              <button type="button" onClick="{{sl.remove}}" style="height: 40px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 14px Figtree, sans-serif">Remove from this shift</button>
+              <button type="button" onClick="{{sl.swap}}" style="height: 40px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 14px Figtree, sans-serif">Replace with someone else</button>
+            </span>
+            <sc-if value="{{sl.canAskSwap}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{sl.askSwap}}" style="align-self: flex-start; height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 14px Figtree, sans-serif">Ask a colleague to swap or cover</button></sc-if>
+            <span style="font-size: 12px; color: #5f6987">Tip: drag a card onto an empty slot to move it.</span>
+            </sc-if>
+            <sc-if value="{{sl.isContact}}" hint-placeholder-val="{{false}}">
+              <div style="display: flex; flex-direction: column; gap: 12px">
+                <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+                  <span style="font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums">{{sl.phone}}</span>
+                  <a href="{{sl.tel}}" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: #2dd4bf; color: #1b2540; font-size: 14px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"></path></svg>Call</a>
+                  <a href="{{sl.sms}}" style="display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font-size: 14px; font-weight: 600; text-decoration: none">SMS</a>
+                  <button type="button" onClick="{{sl.openMsg}}" style="height: 36px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 14px Figtree, sans-serif">Message in MedSync</button>
+                </span>
+                <sc-if value="{{sl.msgOpen}}" hint-placeholder-val="{{false}}">
+                  <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                    <input aria-label="Message" value="{{sl.msgVal}}" onChange="{{sl.setMsg}}" placeholder="e.g. Please confirm the morphine dose for Bed 4" style="flex: 1 1 260px; height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; font: 400 14px Figtree, sans-serif; color: #1b2540">
+                    <button type="button" onClick="{{sl.sendMsg}}" style="height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #1b2540; color: #ffffff; font: 600 14px Figtree, sans-serif">Send</button>
+                  </span>
+                </sc-if>
+                <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid #dde1e9">
+                  <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px"><span style="font-size: 14px; font-weight: 700">{{sl.medTitle}}</span><span style="font-size: 12px; color: #5f6987">{{sl.medCount}}</span></span>
+                  <sc-if value="{{sl.hasMeds}}" hint-placeholder-val="{{true}}">
+                    <ul style="list-style: none; margin: 0; padding: 0">
+                      <sc-for list="{{sl.meds}}" as="md" hint-placeholder-count="4">
+                        <li style="display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) auto; gap: 4px 10px; align-items: baseline; padding: 7px 0; border-top: 1px solid #eef0f4">
+                          <span style="font-size: 12px; font-weight: 600; color: #5f6987; font-variant-numeric: tabular-nums">{{md.time}}</span>
+                          <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                            <span style="font-size: 13px; font-weight: 600">{{md.med}}<sc-if value="{{md.cd}}" hint-placeholder-val="{{false}}"> <span style="display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 6px; background: #ede9fe; color: #5b21b6; font-size: 10px; font-weight: 700; vertical-align: 1px">CD</span></sc-if></span>
+                            <span style="font-size: 12px; color: #5f6987">{{md.sub}}</span>
+                          </span>
+                          <span style="{{md.stStyle}}">{{md.st}}</span>
+                        </li>
+                      </sc-for>
+                    </ul>
+                  </sc-if>
+                  <sc-if value="{{sl.noMeds}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f6987">{{sl.noMedsText}}</span></sc-if>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ruleDlgOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="{{ruleDlgTitle}}" style="width: 600px; max-width: 100%; background: #f6f7f9; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px 8px">
+          <h2 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 600">{{ruleDlgTitle}}</h2>
+          <button type="button" aria-label="Close" onClick="{{closeRuleDlg}}" style="width: 40px; height: 40px; border: 0; border-radius: 12px; background: #ffffff; display: grid; place-items: center">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div style="padding: 4px 20px 12px">
+          <sc-for list="{{ruleDlgList}}" as="rg" hint-placeholder-count="1">
+            <div style="background: #ffffff; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+                <span style="font-size: 14px; line-height: 19px; font-weight: 600">{{rg.scope}}</span>
+                <span style="font-size: 12px; color: #5f6987; white-space: nowrap">{{rg.affects}}</span>
+              </div>
+              <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 18px; color: #4a5574">
+                <sc-for list="{{rg.rules}}" as="r" hint-placeholder-count="3">
+                  <li>
+                    <span style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px"><span>{{r.t}}</span><sc-if value="{{r.idle}}" hint-placeholder-val="{{true}}"><button type="button" aria-label="{{r.changeAria}}" onClick="{{r.change}}" style="height: 24px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Change</button></sc-if></span>
+                    <sc-if value="{{r.editing}}" hint-placeholder-val="{{false}}">
+                      <span style="display: flex; flex-direction: column; gap: 6px; margin: 6px 0 4px; padding: 8px; border-radius: 10px; background: #f6f7f9">
+                        <input aria-label="New wording" value="{{r.ev}}" onChange="{{r.setV}}" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                        <input aria-label="Why the change" placeholder="Why the change" value="{{r.er}}" onChange="{{r.setR}}" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                        <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                          <button type="button" onClick="{{r.save}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 12px Figtree, sans-serif">Send for signing</button>
+                          <button type="button" onClick="{{r.cancel}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Cancel</button>
+                        </span>
+                      </span>
+                    </sc-if>
+                    <sc-if value="{{r.pending}}" hint-placeholder-val="{{false}}">
+                      <span style="display: flex; flex-direction: column; gap: 4px; margin: 6px 0 4px; padding: 8px; border-radius: 10px; background: #f6f7f9; color: #1b2540">
+                        <span style="font-size: 12px; line-height: 16px"><b>Proposed:</b> {{r.pv}}</span>
+                        <span style="font-size: 11px; line-height: 15px; color: #4a5574">Why: {{r.pr}} · applies once both have signed</span>
+                        <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                          <sc-for list="{{r.signers}}" as="sg" hint-placeholder-count="2"><button type="button" disabled="{{sg.done}}" onClick="{{sg.sign}}" style="{{sg.style}}">{{sg.label}}</button></sc-for>
+                          <button type="button" onClick="{{r.withdraw}}" style="height: 28px; padding: 0 4px; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Withdraw</button>
+                        </span>
+                      </span>
+                    </sc-if>
+                  </li>
+                </sc-for>
+              </ul>
+              <sc-if value="{{rg.canAdd}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{rg.add}}" style="align-self: flex-start; height: 28px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">+ Add a rule here</button></sc-if>
+              <sc-if value="{{rg.hasNow}}" hint-placeholder-val="{{false}}">
+                <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 6px; border-top: 1px solid #dde1e9">
+                  <span style="font-size: 12px; font-weight: 700; color: #4a5574">This week</span>
+                  <sc-for list="{{rg.now}}" as="nw" hint-placeholder-count="3"><span style="font-size: 12px; line-height: 16px; color: #1b2540">{{nw}}</span></sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin: 0; padding: 12px 20px 18px; border-top: 1px solid #dde1e9; font-size: 12px; line-height: 16px; color: #5f6987">A change applies once the in-charge and a second signer sign. <a href="Rules.dc.html" style="font-weight: 600">See all rules</a></p>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{delegOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="Hand over making the roster" style="width: 580px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="padding: 20px 24px 8px; display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">Hand over making the roster</h2>
+          <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">You stay responsible for it, and you can take it back at any time.</p>
+        </div>
+        <div style="padding: 8px 24px 16px; display: flex; flex-direction: column; gap: 14px">
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Hand it to</span>
+            <select value="{{df.to}}" onChange="{{setDfTo}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540">
+              <option value="">Pick a person</option>
+              <sc-for list="{{df.people}}" as="o" hint-placeholder-count="8"><option value="{{o.id}}">{{o.label}}</option></sc-for>
+            </select>
+          </label>
+          <fieldset style="margin: 0; padding: 0; border: 0">
+            <legend style="padding: 0 0 6px; font-size: 13px; font-weight: 600; color: #4a5574">For</legend>
+            <span style="display: flex; flex-wrap: wrap; gap: 6px">
+              <sc-for list="{{df.places}}" as="pl" hint-placeholder-count="7"><button type="button" aria-pressed="{{pl.on}}" onClick="{{pl.toggle}}" style="{{pl.style}}">{{pl.label}}</button></sc-for>
+            </span>
+          </fieldset>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Until</span>
+            <input type="date" value="{{df.until}}" onChange="{{setDfUntil}}" min="2026-11-03" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540">
+            <span style="font-size: 12px; color: #5f6987">Leave blank to keep it until you take it back.</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer">
+            <input type="checkbox" checked="{{df.publish}}" onChange="{{toggleDfPublish}}" style="width: 20px; height: 20px; margin: 0; accent-color: #0f766e">
+            May also publish and unlock weeks
+          </label>
+          <sc-if value="{{df.hasError}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #e4e7ee; font-size: 14px; font-weight: 600">{{df.error}}</p></sc-if>
+          <sc-if value="{{hasDelegLog}}" hint-placeholder-val="{{true}}">
+            <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 10px; border-top: 1px solid #dde1e9">
+              <span style="font-size: 12px; font-weight: 700; color: #4a5574">History</span>
+              <sc-for list="{{delegLog}}" as="lg" hint-placeholder-count="2"><span style="font-size: 12px; line-height: 16px; color: #4a5574">{{lg}}</span></sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 24px; border-top: 1px solid #dde1e9">
+          <button type="button" onClick="{{closeDeleg}}" style="height: 44px; padding: 0 18px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 16px Figtree, sans-serif">Cancel</button>
+          <button type="button" onClick="{{saveDeleg}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px Figtree, sans-serif">Hand over</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{swapOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="Ask for a swap" style="width: 580px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="padding: 20px 24px 8px; display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">Ask for a swap</h2>
+          <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">{{sf.who}}</p>
+        </div>
+        <div style="padding: 8px 24px 16px; display: flex; flex-direction: column; gap: 14px">
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Your shift</span>
+            <select value="{{sf.give}}" onChange="{{setSfGive}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540">
+              <option value="">Pick one of your shifts</option>
+              <sc-for list="{{sf.gives}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+            </select>
+          </label>
+          <div role="group" aria-label="Kind of request" style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{sf.kinds}}" as="kd" hint-placeholder-count="2"><button type="button" aria-pressed="{{kd.on}}" onClick="{{kd.pick}}" style="{{kd.style}}">{{kd.label}}</button></sc-for>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Colleague</span>
+            <select value="{{sf.to}}" onChange="{{setSfTo}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540">
+              <option value="">{{sf.toHint}}</option>
+              <sc-for list="{{sf.tos}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+            </select>
+          </label>
+          <sc-if value="{{sf.isSwap}}" hint-placeholder-val="{{false}}">
+            <label style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 13px; font-weight: 600; color: #4a5574">You take their shift</span>
+              <select value="{{sf.take}}" onChange="{{setSfTake}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540">
+                <option value="">{{sf.takeHint}}</option>
+                <sc-for list="{{sf.takes}}" as="o" hint-placeholder-count="3"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+              </select>
+            </label>
+          </sc-if>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Reason (optional)</span>
+            <input value="{{sf.reason}}" onChange="{{setSfReason}}" placeholder="e.g. Family function upcountry" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540">
+          </label>
+          <sc-if value="{{sf.hasPreview}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #f6f7f9; font-size: 14px; line-height: 20px">{{sf.preview}}</p></sc-if>
+          <sc-if value="{{sf.hasWarn}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #fde2e1; color: #9f1d1d; font-size: 13px; font-weight: 600">{{sf.warn}}</p></sc-if>
+          <sc-if value="{{sf.hasError}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #e4e7ee; font-size: 14px; font-weight: 600">{{sf.error}}</p></sc-if>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 24px; border-top: 1px solid #dde1e9">
+          <button type="button" onClick="{{closeSwap}}" style="height: 44px; padding: 0 18px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 16px Figtree, sans-serif">Cancel</button>
+          <button type="button" onClick="{{sendSwap}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px Figtree, sans-serif">Send request</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{leaveOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="Ask for leave or a day off" style="width: 560px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="padding: 20px 24px 8px; display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">Ask for leave or a day off</h2>
+          <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">{{lf.who}}</p>
+        </div>
+        <div style="padding: 8px 24px 16px; display: flex; flex-direction: column; gap: 14px">
+          <div role="group" aria-label="Kind" style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{lf.types}}" as="ty" hint-placeholder-count="4"><button type="button" aria-pressed="{{ty.on}}" onClick="{{ty.pick}}" style="{{ty.style}}">{{ty.label}}</button></sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px">
+            <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">From</span><input type="date" min="2026-11-03" value="{{lf.from}}" onChange="{{setLfFrom}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540"></label>
+            <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">To (same day for one day)</span><input type="date" min="2026-11-03" value="{{lf.to}}" onChange="{{setLfTo}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540"></label>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Reason (optional)</span><input value="{{lf.reason}}" onChange="{{setLfReason}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540"></label>
+          <sc-if value="{{lf.hasClash}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #fef3c7; color: #92400e; font-size: 13px; line-height: 18px; font-weight: 600">{{lf.clash}}</p></sc-if>
+          <sc-if value="{{lf.hasError}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #e4e7ee; font-size: 14px; font-weight: 600">{{lf.error}}</p></sc-if>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 24px; border-top: 1px solid #dde1e9">
+          <button type="button" onClick="{{closeLeave}}" style="height: 44px; padding: 0 18px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 16px Figtree, sans-serif">Cancel</button>
+          <button type="button" onClick="{{sendLeave}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px Figtree, sans-serif">Send request</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{personOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="Add a person" style="width: 560px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <h2 style="margin: 0; padding: 20px 24px 8px; font-size: 22px; line-height: 28px; font-weight: 600">Add a person</h2>
+        <div style="padding: 8px 24px 20px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <span aria-hidden="true" style="{{pf.avStyle}}">{{pf.initials}}</span>
+            <span style="display: flex; flex-direction: column; gap: 4px">
+              <span style="font-size: 13px; font-weight: 600; color: #4a5574">Profile picture</span>
+              <span style="font-size: 12px; line-height: 16px; color: #5f6987">They add their own photo after they sign in. Until then the roster shows their initials.</span>
+            </span>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Full name</span>
+            <input value="{{pf.name}}" onChange="{{setPfName}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540">
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Cadre</span>
+            <select value="{{pf.cadre}}" onChange="{{setPfCadre}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540">
+              <option>Pharmacist</option><option>Pharmacy technician</option><option>Dispenser</option><option>Store keeper</option>
+            </select>
+          </label>
+          <fieldset style="margin: 0; padding: 0; border: 0">
+            <legend style="padding: 0 0 6px; font-size: 13px; font-weight: 600; color: #4a5574">Works at</legend>
+            <span style="display: flex; flex-wrap: wrap; gap: 6px">
+              <sc-for list="{{pf.places}}" as="pl" hint-placeholder-count="6">
+                <button type="button" aria-pressed="{{pl.on}}" onClick="{{pl.toggle}}" style="{{pl.style}}">{{pl.label}}</button>
+              </sc-for>
+            </span>
+          </fieldset>
+          <sc-if value="{{pf.hasError}}" hint-placeholder-val="{{false}}">
+            <p role="alert" style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #e4e7ee; font-size: 14px; font-weight: 600">{{pf.error}}</p>
+          </sc-if>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 24px; border-top: 1px solid #dde1e9">
+          <button type="button" onClick="{{closePerson}}" style="height: 44px; padding: 0 18px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 16px Figtree, sans-serif">Cancel</button>
+          <button type="button" onClick="{{savePerson}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px Figtree, sans-serif">Add person</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 20; padding: 12px 20px; border-radius: 999px; background: #1b2540; color: #ffffff; font-size: 15px; font-weight: 500; box-shadow: 0 10px 24px -10px rgba(27,37,64,0.5)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3700}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    // place id, name, kind, shifts staffed [day, night, on call]
+    this.PLACES = [['store', 'Main store', 'Store', [1, 0, 1]], ['opd', 'OPD dispensary', 'Dispensing point', [1, 0, 0]], ['w3', 'Ward 3 · Medical', 'Ward', [1, 1, 1]], ['mat', 'Maternity', 'Ward', [1, 1, 1]], ['paed', 'Paediatrics', 'Ward', [1, 1, 1]], ['epi', 'EPI clinic', 'Clinic', [1, 0, 0]]];
+    this.RRULES = [
+      { id: 'witness', scope: 'Witnessing', affects: 'Every ward and the pharmacy', rules: ['On a ward: a second nurse on shift, the nurse in-charge or the doctor on duty', 'In the pharmacy: a pharmacy technician, a second pharmacist or the in-charge', 'Store keepers cannot witness', 'Nobody witnesses a dose they gave', 'The witness approves on their own device'] },
+      { id: 'cover', scope: 'Shift cover', affects: 'Every staffed shift', rules: ['Every staffed shift has at least one person', 'Ward and pharmacy day and night shifts have two people who can witness, so a controlled dose is witnessed on the shift', 'On call is one person, reachable by phone', 'At most two people on a shift at one place'] },
+      { id: 'rest', scope: 'Rest and hours', affects: 'Every person on the roster', rules: ['No day shift the morning after a night shift', 'No day and night shift on the same date', 'At most 6 day or night shifts a week per person (on call does not count)'] },
+      { id: 'elig', scope: 'Who works where', affects: 'Every person on the roster', rules: ['Only people listed at a place can be rostered there', 'A person is at one place per shift'] },
+      { id: 'hand', scope: 'Handover', affects: 'Every change of shift', rules: ['Controlled and high-risk medicines are counted blind at every handover', 'The outgoing and incoming person both sign the count', 'You hand over only the place you are working at'] },
+      { id: 'maker', scope: 'Who makes the roster', affects: 'Every place', rules: ['The pharmacy in-charge makes and publishes the roster', 'The in-charge can hand this duty to someone else, for all places or only some, with an end date', 'Someone handed only some places can change only those places', 'Publishing and unlocking need the in-charge, or someone handed that too', 'The in-charge can take the duty back at any time; every handover is logged'] },
+      { id: 'swap', scope: 'Swaps', affects: 'Every person on the roster', rules: ['Anyone on the roster can ask a colleague who works at the same place to swap or cover a shift', 'The colleague accepts first; only then can the in-charge (or whoever makes the roster for that place) approve', 'Nothing changes on the roster until the request is approved', 'Rest rules are checked before approval', 'A request not answered before the shift starts expires'] },
+      { id: 'leave', scope: 'Leave', affects: 'Pharmacy staff', rules: ['Leave and days off are asked for here and approved by the in-charge', 'Once approved, the person is taken off their shifts on those days', 'Nobody can be rostered on a day they are on approved leave', 'Ask at least 7 days ahead, except sick leave'] },
+      { id: 'licence', scope: 'Licences', affects: 'Pharmacists, technicians and dispensers', rules: ['Pharmacists need a current practising licence from the Pharmaceutical Society of Uganda', 'Pharmacy technicians and dispensers need a current licence from the Allied Health Professionals Council', 'Nobody can be rostered on a date after their licence expires', 'The in-charge is warned 30 days before a licence expires'] },
+      { id: 'attend', scope: 'Attendance', affects: 'Pharmacy day and night shifts', rules: ['Everyone signs in at the start of their shift on the pharmacy device', 'Signing in more than 10 minutes after the start counts as late', 'The in-charge is alerted if someone has not signed in 15 minutes after the start', 'The person who signed in signs the handover count'] },
+      { id: 'pub', scope: 'Publishing', affects: 'Every week', rules: ['Publish the week by the Thursday before it starts', 'A published week is locked; unlocking it is logged', 'People get an SMS when their shift changes after publishing'] },
+      { id: 'presc', scope: 'Prescribers', affects: 'Controlled-drug entries', rules: ['Controlled entries pick the prescriber from the Prescribers list', 'Changes to that list are confirmed by the medical superintendent', 'A prescriber limit (e.g. "Oral morphine only") blocks other controlled drugs'] }
+    ];
+    this.SHIFTS = [['day', 'Day', '08:00–17:00'], ['night', 'Night', '17:00–08:00'], ['call', 'On call', '17:00–08:00, by phone']];
+    var P = function (id, name, cadre, places) { return { id: id, name: name, cadre: cadre, places: places }; };
+    var people = [
+      P('ph1', 'Grace Namutebi', 'Pharmacist', ['store', 'opd']),
+      P('ph2', 'Brian Okello', 'Pharmacist', ['store', 'opd']),
+      P('tech', 'Joseph Ssemakula', 'Pharmacy technician', ['store', 'opd']),
+      P('sk', 'Moses Wanyama', 'Store keeper', ['store']),
+      P('nic3', 'Sarah Akello', 'Nurse in-charge', ['w3']),
+      P('n3a', 'Ruth Nansubuga', 'Nurse', ['w3']),
+      P('n3b', 'Peter Mugisha', 'Nurse', ['w3']),
+      P('mw1', 'Harriet Nalwoga', 'Midwife', ['mat']),
+      P('mw2', 'Florence Adong', 'Midwife', ['mat']),
+      P('mw3', 'Juliet Kyomugisha', 'Midwife', ['mat']),
+      P('npa', 'Christine Auma', 'Nurse', ['paed']),
+      P('npb', 'Rebecca Nabirye', 'Nurse', ['paed']),
+      P('epi', 'Margaret Nakimuli', 'Nurse', ['epi']),
+      P('dr1', 'Dr Samuel Kato', 'Doctor', ['w3', 'mat', 'paed']),
+      P('dr2', 'Dr Patience Ainembabazi', 'Doctor', ['w3', 'mat', 'paed']),
+      P('tech2', 'Prossy Nakato', 'Pharmacy technician', ['store', 'opd']),
+      P('n3c', 'Agnes Apio', 'Nurse', ['w3']),
+      P('mw4', 'Annet Namuli', 'Midwife', ['mat']),
+      P('npc', 'Brenda Akot', 'Nurse', ['paed']),
+      P('co1', 'Isaac Waiswa', 'Clinical officer', ['w3', 'paed']),
+      P('npd', 'Ivan Tumusiime', 'Nurse', ['paed']),
+      P('n3d', 'Denis Opio', 'Nurse', ['w3']),
+      P('dr3', 'Dr Ronald Byaruhanga', 'Doctor', ['w3', 'mat', 'paed']),
+      P('ph3', 'Esther Achieng', 'Pharmacist', ['store', 'opd'])
+    ];
+    var LIC = { ph1: ['Pharmaceutical Society of Uganda', 'PSU/P/0412', '2026-12-31'], ph2: ['Pharmaceutical Society of Uganda', 'PSU/P/0877', '2026-12-31'], ph3: ['Pharmaceutical Society of Uganda', 'PSU/P/1093', '2026-11-20'], tech: ['Allied Health Professionals Council', 'AHPC/PT/2210', '2027-03-31'], tech2: ['Allied Health Professionals Council', 'AHPC/PT/2675', '2026-10-31'] };
+    people.forEach(function (p) { if (LIC[p.id]) p.lic = { body: LIC[p.id][0], no: LIC[p.id][1], exp: LIC[p.id][2] }; });
+    // sample roster: last 8 weeks (published) and this week (draft), filled so the rest rules hold, with a few gaps left
+    var roster = {}, PL = this.PLACES, published = {};
+    var WITC = ['Pharmacist', 'Pharmacy technician', 'Nurse', 'Nurse in-charge', 'Midwife', 'Doctor'];
+    for (var wk = -8; wk <= 0; wk++) {
+      if (wk < 0) published[wk] = true;
+      var count = {}, onD = {};
+      for (var d = 0; d < 7; d++) {
+        PL.forEach(function (p, pi) {
+          [0, 1, 2].forEach(function (sh) {
+            if (!p[3][sh]) return;
+            var elig = people.filter(function (x) { return x.places.indexOf(p[0]) >= 0; });
+            var start = (d * 2 + pi + sh + wk * 3 + 900) % elig.length;
+            var want = sh === 2 || p[2] === 'Clinic' ? 1 : 2, cell = [];
+            if ((d * 3 + pi + sh - wk * 4 + 1100) % 13 === 0 && wk === 0) want = 0;
+            else if ((d + pi + sh - wk) % 7 === 0 && sh !== 2) want = 1;
+            for (var i = 0; i < elig.length && cell.length < want; i++) {
+              var x = elig[(start + i) % elig.length], id = x.id;
+              if (onD[d + '|' + id + '|0'] || onD[d + '|' + id + '|1'] || onD[d + '|' + id + '|2']) continue;
+              if (sh === 0 && onD[(d - 1) + '|' + id + '|1']) continue;
+              if (sh !== 2 && (count[id] || 0) >= 6) continue;
+              if (want === 2 && cell.length === 1 && WITC.indexOf(x.cadre) < 0) continue;
+              cell.push(id); onD[d + '|' + id + '|' + sh] = true; if (sh !== 2) count[id] = (count[id] || 0) + 1;
+            }
+            roster[wk + '|' + d + '|' + p[0] + '|' + sh] = cell;
+          });
+        });
+      }
+    }
+    // one deliberate rest-rule break in this week's draft, so the check shows
+    var nn = (roster['0|2|mat|1'] || [])[0];
+    if (nn) roster['0|3|mat|0'] = [nn].concat((roster['0|3|mat|0'] || []).filter(function (id) { return id !== nn; })).slice(0, 2);
+    // sample swap requests
+    var findShift = function (pid, wk, fromD, ok) {
+      for (var d = fromD; d < 7; d++) for (var i = 0; i < PL.length; i++) for (var sh = 0; sh < 3; sh++) {
+        var c = { w: wk, d: d, pid: PL[i][0], sh: sh };
+        if (PL[i][3][sh] && (roster[wk + '|' + d + '|' + PL[i][0] + '|' + sh] || []).indexOf(pid) >= 0 && (!ok || ok(c))) return c;
+      }
+      return null;
+    };
+    var onDate = function (pid, wk, d, sh0) { return PL.some(function (p) { return [0, 1, 2].some(function (sh) { return (sh0 === undefined || sh === sh0) && (roster[wk + '|' + d + '|' + p[0] + '|' + sh] || []).indexOf(pid) >= 0; }); }); };
+    var requests = [];
+    var g1 = findShift('ph2', 0, 3, function (c) { return c.sh === 0 && !onDate('ph3', 0, c.d, c.sh); });
+    if (g1) requests.push({ id: 'r1', from: 'ph2', to: 'ph3', kind: 'cover', give: g1, take: null, reason: 'Family function upcountry', status: 'colleague', log: ['Asked 3 Nov, 08:40'] });
+    var g2 = findShift('tech', 0, 2, function (c) { return c.sh === 2 && !onDate('tech2', 0, c.d, c.sh); });
+    var t2 = g2 && findShift('tech2', 0, 2, function (c) { return c.sh !== 2 && !onDate('tech', 0, c.d, c.sh); });
+    if (g2 && t2) requests.push({ id: 'r2', from: 'tech', to: 'tech2', kind: 'swap', give: g2, take: t2, reason: 'Clinic appointment', status: 'incharge', log: ['Asked 2 Nov, 16:05', 'Prossy Nakato accepted 2 Nov, 18:20'] });
+    var g3 = findShift('ph3', 0, 4, function (c) { return c.sh !== 2 && !onDate('ph1', 0, c.d, c.sh); });
+    if (g3) requests.push({ id: 'r3', from: 'ph3', to: 'ph1', kind: 'cover', give: g3, take: null, reason: '', status: 'declined', note: 'I am at the regional stock review that day', log: ['Asked 1 Nov, 10:12', 'Grace Namutebi declined 1 Nov, 12:30'] });
+    var g4 = findShift('tech', -1, 2);
+    if (g4) requests.push({ id: 'r4', from: 'tech2', to: 'tech', kind: 'cover', give: g4, take: null, reason: 'Pharmacy board exam', status: 'approved', log: ['Asked 26 Oct, 09:00', 'Joseph Ssemakula accepted 26 Oct, 09:45', 'Grace Namutebi approved 26 Oct, 11:10'] });
+    this.state = {
+      requests: requests, rqFilter: 'open', rqAct: null, swapForm: null,
+      leaves: [
+        { id: 'l1', pid: 'ph3', type: 'Study leave', from: '2026-11-05', to: '2026-11-05', status: 'pending', reason: 'Continuing professional development course', log: ['Asked 2 Nov, 15:30'] },
+        { id: 'l2', pid: 'sk', type: 'Annual leave', from: '2026-11-09', to: '2026-11-13', status: 'approved', reason: 'Family visit in Mbale', log: ['Asked 28 Oct, 10:00', 'Grace Namutebi approved 28 Oct, 14:20'] },
+        { id: 'l3', pid: 'tech2', type: 'Sick leave', from: '2026-10-28', to: '2026-10-29', status: 'approved', reason: '', log: ['Asked 28 Oct, 06:40', 'Grace Namutebi approved 28 Oct, 07:05'] }
+      ],
+      leaveForm: null, renew: null, rem: { eve: true, change: true, unpub: true, lic: true }, remTime: '18:00',
+      view: 'week', mYear: 2026, mMonth: 10, week: 0, dayPick: 1, placeFilter: 'all', roster: roster, published: published, drag: null, slot: null, personForm: null, toast: '', inCharge: 'ph1', actor: 'ph1', delegForm: null, dept: 'pharmacy', msgDraft: null, delegs: [{ id: 'd1', to: 'ph2', places: ['opd'], until: '2026-11-30', publish: false }], delegLog: ['2 Nov 2026 · Grace Namutebi handed OPD dispensary to Brian Okello until 30 Nov, without publishing'], ruleDlg: '', ruleEdit: null, pend: {}, rrules: this.RRULES.map(function (g) { return Object.assign({}, g, { rules: g.rules.slice() }); }),
+      people: people,
+      prescribers: [
+        { name: 'Dr Samuel Kato', cadre: 'Medical officer', cd: true, limit: '' },
+        { name: 'Dr Patience Ainembabazi', cadre: 'Medical officer', cd: true, limit: '' },
+        { name: 'Isaac Waiswa', cadre: 'Clinical officer', cd: false, limit: '' },
+        { name: 'Lydia Nantongo', cadre: 'Nurse prescriber', cd: true, limit: 'Oral morphine only' }
+      ]
+    };
+  }
+  avatar(per, size) {
+    var name = String((per && per.name) || '?').replace(/[\[\]]/g, '').replace(/,.*$/, '').replace(/^Dr\.?\s+/, '').trim();
+    var parts = name.split(/\s+/).filter(Boolean);
+    var ini = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]) : (parts[0] || '?').slice(0, 2);
+    var TINTS = [['#ccfbf1', '#0f766e'], ['#dbeafe', '#1e40af'], ['#fde2e1', '#9f1d1d'], ['#fef3c7', '#92400e'], ['#ede9fe', '#5b21b6'], ['#dcfce7', '#166534']];
+    var h = 0; for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997;
+    var t = TINTS[h % TINTS.length], fs = Math.max(9, Math.round(size * 0.4));
+    var st = 'flex:0 0 ' + size + 'px;width:' + size + 'px;height:' + size + 'px;border-radius:999px;display:grid;place-items:center;overflow:hidden;font-size:' + fs + 'px;font-weight:700;letter-spacing:0.02em;box-shadow:0 0 0 2px #ffffff;';
+    if (per && per.photo) return { initials: '', avStyle: st + "background:#e4e7ee center/cover no-repeat url('" + per.photo + "')" };
+    return { initials: ini.toUpperCase(), avStyle: st + 'background:' + t[0] + ';color:' + t[1] };
+  }
+  holidays(y) {
+    this._hol = this._hol || {};
+    if (this._hol[y]) return this._hol[y];
+    var H = {}, p2 = function (n) { return ('0' + n).slice(-2); }, put = function (m, d, name) { H[y + '-' + p2(m) + '-' + p2(d)] = name; };
+    put(1, 1, "New Year's Day"); put(1, 26, 'Liberation Day'); put(2, 16, 'Janani Luwum Day'); put(3, 8, "Women's Day"); put(5, 1, 'Labour Day'); put(6, 3, "Martyrs' Day"); put(6, 9, "Heroes' Day"); put(10, 9, 'Independence Day'); put(12, 25, 'Christmas Day'); put(12, 26, 'Boxing Day');
+    var a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var em = Math.floor((h + l - 7 * m + 114) / 31), ed = ((h + l - 7 * m + 114) % 31) + 1, easter = new Date(Date.UTC(y, em - 1, ed));
+    var gf = new Date(easter.getTime() - 2 * 864e5), emon = new Date(easter.getTime() + 864e5);
+    put(gf.getUTCMonth() + 1, gf.getUTCDate(), 'Good Friday'); put(emon.getUTCMonth() + 1, emon.getUTCDate(), 'Easter Monday');
+    var EID = { 2026: [[3, 20, 'Eid al-Fitr (expected)'], [5, 27, 'Eid al-Adha (expected)']], 2027: [[3, 10, 'Eid al-Fitr (expected)'], [5, 17, 'Eid al-Adha (expected)']] };
+    (EID[y] || []).forEach(function (x) { put(x[0], x[1], x[2]); });
+    this._hol[y] = H; return H;
+  }
+  phoneOf(id) { var h2 = 0; for (var i = 0; i < id.length; i++) h2 = (h2 * 37 + id.charCodeAt(i)) % 9973; var n7 = String(1000000 + (h2 * 7919) % 9000000).slice(-7); return '+256 7' + ['0', '5', '7', '8'][h2 % 4] + n7.charAt(0) + ' ' + n7.slice(1, 4) + ' ' + n7.slice(4); }
+  dayMeds(per, pid, sh, off, byId) {
+    if (off > 1) return [];
+    var POOL = {
+      w3: [['Ceftriaxone 1 g', 'IV', 0], ['Metronidazole 500 mg', 'IV', 0], ['Paracetamol 1 g', 'Oral', 0], ['Morphine 5 mg', 'IV', 1], ['Amlodipine 10 mg', 'Oral', 0], ['Metformin 500 mg', 'Oral', 0], ['Omeprazole 20 mg', 'Oral', 0], ['Furosemide 40 mg', 'IV', 0]],
+      mat: [['Oxytocin 10 IU', 'IM', 0], ['Magnesium sulfate 4 g', 'IV', 0], ['Ferrous + folic acid', 'Oral', 0], ['Pethidine 50 mg', 'IM', 1], ['Ampicillin 1 g', 'IV', 0], ['Paracetamol 1 g', 'Oral', 0]],
+      paed: [['Amoxicillin 250 mg/5 mL, 5 mL', 'Oral', 0], ['Artesunate 60 mg', 'IV', 0], ['Paracetamol 120 mg/5 mL, 7.5 mL', 'Oral', 0], ['ORS 1 sachet', 'Oral', 0], ['Zinc 20 mg', 'Oral', 0], ['Gentamicin 40 mg', 'IV', 0], ['Diazepam 5 mg', 'Rectal', 1]],
+      epi: [['BCG 0.05 mL', 'Intradermal', 0], ['bOPV 2 drops', 'Oral', 0], ['Penta 0.5 mL', 'IM', 0], ['PCV 0.5 mL', 'IM', 0], ['Measles-rubella 0.5 mL', 'Subcutaneous', 0]]
+    };
+    var pool = POOL[pid] || POOL.w3, h = 0, key = per.id + '|' + off + '|' + sh;
+    for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) % 100003;
+    var rnd = function () { h = (h * 1103 + 12345) % 100003; return h / 100003; };
+    var prescriber = ['Doctor', 'Clinical officer'].indexOf(per.cadre) >= 0;
+    var n = off === 1 ? 2 + Math.floor(rnd() * 3) : 3 + Math.floor(rnd() * 4);
+    var start = sh === 0 ? 8 * 60 + 20 : 17 * 60 + 30, span = off === 1 && sh === 0 ? 4 * 60 : 8 * 60;
+    var nurses = Object.keys(byId).map(function (k) { return byId[k]; }).filter(function (q) { return q.places.indexOf(pid) >= 0 && q.id !== per.id && ['Nurse', 'Nurse in-charge', 'Midwife', 'Doctor'].indexOf(q.cadre) >= 0; });
+    var INI = 'ABDEGHJKLMNOPRSTW', out = [];
+    for (var j = 0; j < n; j++) {
+      var m = pool[Math.floor(rnd() * pool.length)], t = start + Math.floor((span / n) * j + rnd() * (span / n));
+      var hh = Math.floor(t / 60) % 24, mm = t % 60, bed = 1 + Math.floor(rnd() * 24);
+      var pat = (pid === 'epi' ? 'Child ' : 'Bed ' + bed + ' · ') + INI.charAt(Math.floor(rnd() * INI.length)) + '.' + INI.charAt(Math.floor(rnd() * INI.length)) + '.';
+      var st, stc;
+      if (prescriber) { var r = rnd(); st = r < 0.6 ? 'Dispensed' : r < 0.85 ? 'At pharmacy' : 'Part dispensed'; stc = st === 'Dispensed' ? ['#dcfce7', '#166534'] : st === 'At pharmacy' ? ['#fef3c7', '#92400e'] : ['#dbeafe', '#1e40af']; }
+      else { st = 'Given'; stc = ['#dcfce7', '#166534']; }
+      var wit = m[2] && !prescriber && nurses.length ? ' · witnessed by ' + nurses[Math.floor(rnd() * nurses.length)].name : '';
+      out.push({ time: ('0' + hh).slice(-2) + ':' + ('0' + mm).slice(-2), med: m[0], cd: !!m[2], sub: pat + ' · ' + m[1] + wit, st: st,
+        stStyle: 'display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;background:' + stc[0] + ';color:' + stc[1] });
+    }
+    return out;
+  }
+  readPhoto(ev, done) {
+    var file = ev && ev.target && ev.target.files && ev.target.files[0]; if (!file) return;
+    if (!/^image\//.test(file.type)) { this.flash('Pick an image file.'); return; }
+    var r = new FileReader(); r.onload = function () { done(String(r.result)); }; r.readAsDataURL(file);
+  }
+  flash(msg) { var self = this; this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(function () { self.setState({ toast: '' }); }, 3200); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  renderVals() {
+    var self = this, s = this.state, set = function (p) { self.setState(p); };
+    var PLACES = this.PLACES, SHIFTS = this.SHIFTS;
+    var base = 'display:block;padding:10px 8px;border-radius:14px;text-align:center;font-size:13px;line-height:17px;font-weight:500;text-decoration:none;';
+    var pill = 'display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;font-size:15px;font-weight:600;text-decoration:none;';
+    var onS = 'border:0;background:#ccfbf1;color:#1b2540', offS = 'border:1px solid #c5cbd8;background:#ffffff;color:#4a5574';
+    var TINT = { day: '#fff1cc', night: '#e4e7ee', call: '#ede9fe' };
+    var SW = function (k) { return 'display:inline-block;width:10px;height:10px;border-radius:3px;background:' + TINT[k] + ';box-shadow:inset 0 0 0 1px rgba(27,37,64,0.12)'; };
+    var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DOW = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    var dateOf = function (w, d) { return new Date(2026, 10, 2 + w * 7 + d); };
+    var w = s.week, locked = !!s.published[w];
+    var TODAY = '2026-11-03', isInCharge = s.actor === s.inCharge;
+    var activeDel = function (dg) { return !dg.until || dg.until >= TODAY; };
+    var myDel = s.delegs.filter(function (dg) { return dg.to === s.actor && activeDel(dg); });
+    var canEditPlace = function (pid) { return isPharmPlace(pid) && (isInCharge || myDel.some(function (dg) { return dg.places === 'all' || dg.places.indexOf(pid) >= 0; })); };
+    var canPublish = isInCharge || myDel.some(function (dg) { return dg.publish; });
+    var canAnyEdit = isInCharge || myDel.length > 0;
+    var roOf = function (pid) { return locked || !canEditPlace(pid); };
+    var roWhy = function (pid) { return !isPharmPlace(pid) ? 'View only. Ward rosters are made by the ward in-charge.' : locked ? 'This week is published. Unlock it to change.' : 'View only. You are not making the roster for this place.'; };
+    var fmtD = function (iso) { var q = iso.split('-'); return +q[2] + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+q[1] - 1]; };
+    var byId = {}; s.people.forEach(function (p) { byId[p.id] = p; });
+    var key = function (d, pid, sh) { return w + '|' + d + '|' + pid + '|' + sh; };
+    var cellOf = function (d, pid, sh) { return s.roster[key(d, pid, sh)] || []; };
+    var setCell = function (k, list) { var r = Object.assign({}, self.state.roster); r[k] = list; set({ roster: r }); };
+    var isToday = function (d) { return w === 0 && d === 1; };
+    var PHARM = ['store', 'opd'], isPharmPlace = function (pid) { return PHARM.indexOf(pid) >= 0; };
+    var deptPlaces = PLACES.filter(function (p) { return s.dept === 'wards' ? !isPharmPlace(p[0]) : isPharmPlace(p[0]); });
+    var shown = deptPlaces.filter(function (p) { return s.placeFilter === 'all' || s.placeFilter === p[0]; });
+    var isPharmPerson = function (pp) { return pp.places.some(isPharmPlace); };
+    var witnessCadres = ['Pharmacist', 'Pharmacy technician', 'Nurse', 'Nurse in-charge', 'Midwife', 'Doctor'];
+    var shiftsOfPerson = function (pid, d) {
+      var out = [];
+      PLACES.forEach(function (p) { [0, 1, 2].forEach(function (sh) { if (p[3][sh] && cellOf(d, p[0], sh).indexOf(pid) >= 0) out.push(SHIFTS[sh][1] + ' at ' + p[1]); }); });
+      return out;
+    };
+    var canW = function (pid) { var pp = byId[pid]; return !!pp && witnessCadres.indexOf(pp.cadre) >= 0; };
+    var needsWitness = function (c, sh, p) { return sh !== 2 && p[2] !== 'Clinic' && c.filter(canW).length < 2; };
+    // rest and hours (this week)
+    var onShift = function (pid, d, sh) { if (d < 0 || d > 6) return false; return PLACES.some(function (p) { return p[3][sh] && cellOf(d, p[0], sh).indexOf(pid) >= 0; }); };
+    var weekCount = function (pid) { var n = 0; for (var d = 0; d < 7; d++) { if (onShift(pid, d, 0)) n++; if (onShift(pid, d, 1)) n++; } return n; };
+    var restWhy = function (pid, d, sh, adding) {
+      var out = [];
+      if (sh === 0 && onShift(pid, d - 1, 1)) out.push('Night shift the evening before');
+      if (sh === 1 && onShift(pid, d + 1, 0)) out.push('Day shift the next morning');
+      if (sh === 0 && onShift(pid, d, 1)) out.push('Also on night the same date');
+      if (sh === 1 && onShift(pid, d, 0)) out.push('Also on day the same date');
+      if (sh !== 2 && weekCount(pid) + (adding ? 1 : 0) > 6) out.push((weekCount(pid) + (adding ? 1 : 0)) + ' shifts this week');
+      return out;
+    };
+    var PLN = {}; PLACES.forEach(function (p) { PLN[p[0]] = p[1]; });
+    var dayName = function (wk, d) { var dt3 = dateOf(wk, d); return DOW[d].charAt(0) + DOW[d].slice(1).toLowerCase() + ' ' + dt3.getDate() + ' ' + MON[dt3.getMonth()]; };
+    var slotTxt = function (c) { return SHIFTS[c.sh][1] + ' · ' + dayName(c.w, c.d) + ' · ' + PLN[c.pid]; };
+    var ckey = function (c) { return c.w + '|' + c.d + '|' + c.pid + '|' + c.sh; };
+    var inR = function (R, c, pid) { return (R[ckey(c)] || []).indexOf(pid) >= 0; };
+    var isPast = function (c) { return c.w < 0 || (c.w === 0 && c.d < 1); };
+    var applySwap = function (R, rq) {
+      var R2 = Object.assign({}, R);
+      R2[ckey(rq.give)] = (R2[ckey(rq.give)] || []).map(function (id) { return id === rq.from ? rq.to : id; });
+      if (rq.take) R2[ckey(rq.take)] = (R2[ckey(rq.take)] || []).map(function (id) { return id === rq.to ? rq.from : id; });
+      return R2;
+    };
+    var breaksFor = function (R, wk, pid) {
+      var on = function (d, sh) { if (d < 0 || d > 6) return false; return PLACES.some(function (p) { return p[3][sh] && (R[wk + '|' + d + '|' + p[0] + '|' + sh] || []).indexOf(pid) >= 0; }); };
+      var out = [], n = 0;
+      for (var d = 0; d < 7; d++) {
+        var dn = DOW[d].charAt(0) + DOW[d].slice(1).toLowerCase();
+        if (on(d, 0) && on(d - 1, 1)) out.push('day on ' + dn + ' after a night');
+        if (on(d, 0) && on(d, 1)) out.push('day and night on ' + dn);
+        if (on(d, 0)) n++; if (on(d, 1)) n++;
+      }
+      if (n > 6) out.push(n + ' shifts that week');
+      return out;
+    };
+    var newBreaks = function (rq) {
+      var R2 = applySwap(s.roster, rq), out = [];
+      [rq.from, rq.to].forEach(function (pid) {
+        var wks = [rq.give.w].concat(rq.take && rq.take.w !== rq.give.w ? [rq.take.w] : []);
+        wks.forEach(function (wk) { var b0 = breaksFor(s.roster, wk, pid), b1 = breaksFor(R2, wk, pid); b1.forEach(function (b) { if (b0.indexOf(b) < 0) out.push(byId[pid].name + ': ' + b); }); });
+      });
+      return out;
+    };
+    var effStatus = function (rq) {
+      if (rq.status !== 'colleague' && rq.status !== 'incharge') return rq.status;
+      if (isPast(rq.give) || (rq.take && isPast(rq.take))) return 'expired';
+      if (!inR(s.roster, rq.give, rq.from) || (rq.take && !inR(s.roster, rq.take, rq.to))) return 'stale';
+      return rq.status;
+    };
+    var canApprove = function (rq) { return canEditPlace(rq.give.pid) && (!rq.take || canEditPlace(rq.take.pid)); };
+    var isOpenSt = function (st) { return st === 'colleague' || st === 'incharge'; };
+    var needsMe = function (rq) { var st = effStatus(rq); return (st === 'colleague' && rq.to === s.actor) || (st === 'incharge' && canApprove(rq)); };
+    var rqVisible = function (rq) { var st = effStatus(rq); if (s.rqFilter === 'open') return isOpenSt(st); if (s.rqFilter === 'mine') return needsMe(rq) || (isOpenSt(st) && rq.from === s.actor); return true; };
+    var pendingOn = {};
+    s.requests.forEach(function (rq) { var st = effStatus(rq); if (st === 'colleague' || st === 'incharge') { pendingOn[rq.from + '@' + ckey(rq.give)] = st; if (rq.take) pendingOn[rq.to + '@' + ckey(rq.take)] = st; } });
+    var restBreaks = [];
+    s.people.filter(function (pp) { return s.dept === 'wards' ? !isPharmPerson(pp) : isPharmPerson(pp); }).forEach(function (pp) {
+      for (var d = 0; d < 7; d++) { if (onShift(pp.id, d, 0) && onShift(pp.id, d - 1, 1)) restBreaks.push(pp.name + ': day on ' + DOW[d].charAt(0) + DOW[d].slice(1).toLowerCase() + ' after a night'); if (onShift(pp.id, d, 0) && onShift(pp.id, d, 1)) restBreaks.push(pp.name + ': day and night on ' + DOW[d].charAt(0) + DOW[d].slice(1).toLowerCase()); }
+      var wc = weekCount(pp.id); if (wc > 6) restBreaks.push(pp.name + ': ' + wc + ' shifts this week');
+    });
+    // dates, holidays, leave, licences, attendance
+    var p2 = function (n) { return ('0' + n).slice(-2); };
+    var isoOf = function (dt) { return dt.getFullYear() + '-' + p2(dt.getMonth() + 1) + '-' + p2(dt.getDate()); };
+    var isoWD = function (wk, d) { return isoOf(dateOf(wk, d)); };
+    var holOn = function (iso) { return self.holidays(+iso.slice(0, 4))[iso] || ''; };
+    var leaveOn = function (pid, iso, sts) { return s.leaves.filter(function (l) { return l.pid === pid && (sts || ['approved']).indexOf(l.status) >= 0 && l.from <= iso && iso <= l.to; })[0] || null; };
+    var LIC_CADRES = ['Pharmacist', 'Pharmacy technician', 'Dispenser'];
+    var daysBetween = function (a, b) { return Math.round((Date.UTC(+b.slice(0, 4), +b.slice(5, 7) - 1, +b.slice(8, 10)) - Date.UTC(+a.slice(0, 4), +a.slice(5, 7) - 1, +a.slice(8, 10))) / 864e5); };
+    var licState = function (pp, iso) {
+      if (!pp || LIC_CADRES.indexOf(pp.cadre) < 0) return 'na';
+      if (!pp.lic || !pp.lic.exp) return 'missing';
+      if (pp.lic.exp < (iso || TODAY)) return 'expired';
+      if (daysBetween(iso || TODAY, pp.lic.exp) <= 30) return 'soon';
+      return 'ok';
+    };
+    var NOW = new Date(), nowMin = NOW.getHours() * 60 + NOW.getMinutes(), hhmm = function (mins) { return p2(Math.floor(mins / 60) % 24) + ':' + p2(mins % 60); };
+    var attOf = function (pid, wk, d, plc, sh) {
+      if (!isPharmPlace(plc) || sh === 2) return null;
+      var off = wk * 7 + d, start = sh === 0 ? 480 : 1020;
+      if (off > 1 || (off === 1 && nowMin < start)) return null;
+      var h = 7; var k2 = pid + '|' + off + '|' + sh; for (var i = 0; i < k2.length; i++) h = (h * 31 + k2.charCodeAt(i)) % 10007;
+      var r = h % 100;
+      if (off === 1 && pid === 'tech' && sh === 0) r = 90;
+      if (off === 1 && pid === 'ph3' && sh === 0) r = 97;
+      if (r < 82) return { kind: 'ok', t: hhmm(start - 20 + (h % 24)), label: 'In ' + hhmm(start - 20 + (h % 24)) };
+      if (r < 94) return { kind: 'late', t: hhmm(start + 11 + (h % 35)), label: 'Late · in ' + hhmm(start + 11 + (h % 35)) };
+      if (off === 1 && nowMin - start < 15) return null;
+      return { kind: 'none', t: '', label: off === 1 ? 'Not signed in' : 'Did not sign in' };
+    };
+    var ATT_ST = { ok: ['#dcfce7', '#166534'], late: ['#fef3c7', '#92400e'], none: ['#fde2e1', '#9f1d1d'] };
+    var onR = function (R, wk, pid, d, sh) { if (d < 0 || d > 6) return false; return PLACES.some(function (p) { return p[3][sh] && (R[wk + '|' + d + '|' + p[0] + '|' + sh] || []).indexOf(pid) >= 0; }); };
+    var loadOf = function (pid) { var n = 0; Object.keys(s.roster).forEach(function (k3) { var q = k3.split('|'); if (+q[0] >= -4 && +q[0] <= 0 && s.roster[k3].indexOf(pid) >= 0) n++; }); return n; };
+    var judge = function (R, wk, d, plc, sh, pp, cur) {
+      var iso = isoWD(wk, d), block = '';
+      if (pp.places.indexOf(plc) < 0) block = 'Not at this place';
+      else if (leaveOn(pp.id, iso)) block = 'On leave';
+      else if (licState(pp, iso) === 'expired') block = 'Licence expired';
+      else if (licState(pp, iso) === 'missing') block = 'No licence recorded';
+      else if (onR(R, wk, pp.id, d, sh)) block = 'Already on ' + SHIFTS[sh][1].toLowerCase();
+      var R2 = Object.assign({}, R), kk = wk + '|' + d + '|' + plc + '|' + sh; R2[kk] = (R2[kk] || []).concat([pp.id]);
+      var b0 = breaksFor(R, wk, pp.id), nb = breaksFor(R2, wk, pp.id).filter(function (b) { return b0.indexOf(b) < 0; });
+      var score = nb.length * 100 + (leaveOn(pp.id, iso, ['pending']) ? 40 : 0) + ([0, 1, 2].some(function (x5) { return x5 !== sh && onR(R, wk, pp.id, d, x5); }) ? 25 : 0) + loadOf(pp.id);
+      var wn = 0; for (var d3 = 0; d3 < 7; d3++) { if (onR(R, wk, pp.id, d3, 0)) wn++; if (onR(R, wk, pp.id, d3, 1)) wn++; } score += wn * 4;
+      if (sh !== 2 && cur.length === 1 && !canW(pp.id)) score += 60;
+      return { block: block, score: score, breaks: nb };
+    };
+    // coverage
+    var filled = 0, open = 0, single = 0, empty = 0;
+    var dayStats = [0, 1, 2, 3, 4, 5, 6].map(function (d) {
+      var dc = 0, nc = 0, gaps = 0;
+      deptPlaces.forEach(function (p) {
+        [0, 1, 2].forEach(function (sh) {
+          if (!p[3][sh]) return;
+          var c = cellOf(d, p[0], sh); open++;
+          if (c.length) filled++; else { empty++; gaps++; }
+          if (c.length && needsWitness(c, sh, p)) { single++; gaps++; }
+          if (sh === 0) dc += c.length; else if (sh === 1) nc += c.length;
+        });
+      });
+      return { dc: dc, nc: nc, gaps: gaps };
+    });
+    var openSlot = function (d, p, sh, mode, pid) { set({ slot: { d: d, pid: p[0], pname: p[1], sh: sh, mode: mode, person: pid || '' } }); };
+    var cardFor = function (pid, d, p, sh, idx) {
+      var per = byId[pid] || { name: '[Removed]', cadre: '' }, av = self.avatar(per, 24), rw = restWhy(pid, d, sh, false);
+      var cIso = isoWD(w, d), licX = licState(per, cIso) === 'expired', onLv = leaveOn(pid, cIso), att = attOf(pid, w, d, p[0], sh);
+      var bad = rw.length || licX || onLv;
+      return { initials: av.initials, avStyle: av.avStyle, name: per.name, sub: licX ? 'Licence expired' : onLv ? 'On leave · take off' : rw.length ? 'Rest rule: ' + rw[0] : pendingOn[pid + '@' + key(d, p[0], sh)] ? 'Swap requested' : att ? att.label : per.cadre + ' · ' + SHIFTS[sh][2].replace(', by phone', ''), aria: per.name + ', ' + SHIFTS[sh][1] + ' shift at ' + p[1] + '. Open options',
+        draggable: roOf(p[0]) ? 'false' : 'true',
+        style: 'width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border:0;border-radius:10px;background:' + TINT[SHIFTS[sh][0]] + ';' + (bad ? 'box-shadow:inset 0 0 0 1.5px #dc2626;' : att && att.kind === 'none' ? 'box-shadow:inset 0 0 0 1.5px #dc2626;' : att && att.kind === 'late' ? 'box-shadow:inset 0 0 0 1.5px #d97706;' : '') + 'color:#1b2540;font-family:Figtree,sans-serif;cursor:' + (roOf(p[0]) ? 'pointer' : 'grab'),
+        dragStart: function (ev) { if (roOf(p[0])) return; try { ev.dataTransfer.setData('text/plain', pid); ev.dataTransfer.effectAllowed = 'move'; } catch (e) {} set({ drag: { from: key(d, p[0], sh), pid: pid, place: p[0] } }); },
+        open: function () { openSlot(d, p, sh, 'card', pid); } };
+    };
+    var rows = [];
+    if (s.dept !== 'wards') {
+      rows.push({ isLeave: true, isPlace: false, isShift: false, cells: [0, 1, 2, 3, 4, 5, 6].map(function (d) {
+        var iso = isoWD(w, d);
+        return { chips: s.leaves.filter(function (l) { return (l.status === 'approved' || l.status === 'pending') && l.from <= iso && iso <= l.to && byId[l.pid]; }).map(function (l) {
+          var ap = l.status === 'approved';
+          return { label: byId[l.pid].name.split(' ')[0] + (ap ? '' : ' ?'), tip: byId[l.pid].name + ' · ' + l.type + (ap ? ' · approved' : ' · waiting for approval'),
+            style: 'display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap;' + (ap ? 'background:#e4e7ee;color:#4a5574' : 'background:#ffffff;color:#92400e;box-shadow:inset 0 0 0 1px #d97706') };
+        }) };
+      }) });
+    }
+    shown.forEach(function (p) {
+      rows.push({ isPlace: true, isShift: false, name: p[1], kind: p[2], cells: [] });
+      [0, 1, 2].forEach(function (sh) {
+        if (!p[3][sh]) return;
+        rows.push({ isPlace: false, isShift: true, shiftLabel: SHIFTS[sh][1], time: SHIFTS[sh][2], sw: SW(SHIFTS[sh][0]),
+          cells: [0, 1, 2, 3, 4, 5, 6].map(function (d) {
+            var c = cellOf(d, p[0], sh), cap = sh === 2 ? 1 : 2, k = key(d, p[0], sh);
+            var note = !c.length ? 'Nobody on duty' : (needsWitness(c, sh, p) ? 'No witness' : '');
+            return { cards: c.map(function (pid, i) { return cardFor(pid, d, p, sh, i); }), canAdd: !roOf(p[0]) && c.length < cap,
+              addAria: 'Assign someone to ' + SHIFTS[sh][1] + ' at ' + p[1] + ', ' + DOW[d] + ' ' + dateOf(w, d).getDate(),
+              addStyle: 'width:100%;min-height:' + (c.length ? 30 : 40) + 'px;display:grid;place-items:center;border:1.5px dashed #c5cbd8;border-radius:10px;background:transparent;color:#5f6987',
+              add: function () { openSlot(d, p, sh, 'assign'); },
+              hasNote: !!note, note: note, noteStyle: 'font-size:10px;line-height:13px;font-weight:700;color:' + (!c.length ? '#9f1d1d' : '#92400e'),
+              style: 'display:flex;flex-direction:column;gap:4px;padding:4px;border-radius:12px;min-height:44px;' + (isToday(d) ? 'background:#f0fdfa;' : '') + (s.drag && !roOf(p[0]) && c.length < cap && s.drag.from !== k ? 'box-shadow:inset 0 0 0 1.5px #2dd4bf;' : ''),
+              over: function (ev) { if (self.state.drag && !roOf(p[0]) && c.length < cap) { ev.preventDefault(); } },
+              drop: function (ev) {
+                ev.preventDefault();
+                var dg = self.state.drag; if (!dg || roOf(p[0])) return;
+                if (dg.from === k) { set({ drag: null }); return; }
+                var per = byId[dg.pid];
+                if (per.places.indexOf(p[0]) < 0) { set({ drag: null }); self.flash(per.name + ' does not work at ' + p[1]); return; }
+                if (c.indexOf(dg.pid) >= 0) { set({ drag: null }); return; }
+                var r = Object.assign({}, self.state.roster);
+                r[dg.from] = (r[dg.from] || []).filter(function (x) { return x !== dg.pid; });
+                r[k] = (r[k] || []).concat([dg.pid]).slice(0, cap);
+                set({ roster: r, drag: null });
+                self.flash('Moved ' + per.name + ' to ' + SHIFTS[sh][1] + ' at ' + p[1]);
+              } };
+          }) });
+      });
+    });
+    // phone day view
+    var dd = s.dayPick;
+    var dayList = shown.map(function (p) {
+      return { name: p[1], shifts: [0, 1, 2].filter(function (sh) { return p[3][sh]; }).map(function (sh) {
+        var c = cellOf(dd, p[0], sh), cap = sh === 2 ? 1 : 2;
+        return { label: SHIFTS[sh][1], time: SHIFTS[sh][2].replace(', by phone', ''), cards: c.map(function (pid, i) { return cardFor(pid, dd, p, sh, i); }),
+          canAdd: !roOf(p[0]) && c.length < cap, addAria: 'Assign someone to ' + SHIFTS[sh][1] + ' at ' + p[1], add: function () { openSlot(dd, p, sh, 'assign'); },
+          hasNote: !c.length || needsWitness(c, sh, p), note: !c.length ? 'Nobody on duty' : 'No witness on this shift' };
+      }) };
+    });
+    // slot dialog
+    var sl = {};
+    if (s.slot) {
+      var x = s.slot, k = key(x.d, x.pid, x.sh), cur = s.roster[k] || [], dt = dateOf(w, x.d);
+      var when = DOW[x.d].charAt(0) + DOW[x.d].slice(1).toLowerCase() + ' ' + dt.getDate() + ' ' + MON[dt.getMonth()] + ' · ' + SHIFTS[x.sh][1] + ' ' + SHIFTS[x.sh][2];
+      if (x.mode === 'assign') {
+        var judged = s.people.filter(function (p) { return p.places.indexOf(x.pid) >= 0 && cur.indexOf(p.id) < 0; }).map(function (p) { return { p: p, j: judge(s.roster, w, x.d, x.pid, x.sh, p, cur) }; });
+        judged.sort(function (a, b) { return (a.j.block ? 1 : 0) - (b.j.block ? 1 : 0) || a.j.score - b.j.score; });
+        var bestId = judged.length && !judged[0].j.block && judged[0].j.score < 100 ? judged[0].p.id : '';
+        var choices = judged.map(function (jj) {
+          var p = jj.p, jd = jj.j;
+          var other = shiftsOfPerson(p.id, x.d), rw = restWhy(p.id, x.d, x.sh, true);
+          var av = self.avatar(p, 36);
+          var pend = leaveOn(p.id, isoWD(w, x.d), ['pending']);
+          return { hasBlock: !!jd.block, block: jd.block, isBest: p.id === bestId, blockedAttr: jd.block ? 'true' : 'false',
+            btnStyle: 'width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:0;border-radius:12px;text-align:left;font-family:Figtree,sans-serif;color:#1b2540;' + (jd.block ? 'background:transparent;opacity:0.55;cursor:not-allowed' : p.id === bestId ? 'background:#f0fdfa' : 'background:transparent'), initials: av.initials, avStyle: av.avStyle, name: p.name, sub: p.cadre + (witnessCadres.indexOf(p.cadre) >= 0 ? ' · can witness' : ' · cannot witness'), hasWarn: !jd.block && (other.length > 0 || !!pend), warn: pend ? 'Asked for leave' : other.length ? 'Already on ' + other[0] : '', hasRest: !jd.block && rw.length > 0, rest: rw.length ? 'Rest rule: ' + rw[0] : '',
+            pick: function () {
+              if (jd.block) { self.flash(p.name + ': ' + jd.block.toLowerCase() + ' on this date.'); return; }
+              setCell(k, cur.concat([p.id]).slice(0, x.sh === 2 ? 1 : 2));
+              set({ slot: null });
+              self.flash(p.name + ' assigned' + (rw.length ? '. Breaks a rest rule: ' + rw.join(', ').toLowerCase() : other.length ? '. Note: also on ' + other.join(', ') : ''));
+            } };
+        });
+        sl = { isAssign: true, isCard: false, title: 'Assign to ' + x.pname, sub: when, choices: choices, noChoices: choices.length === 0 };
+      } else {
+        var per = byId[x.person], av2 = self.avatar(per, 44);
+        var rw2 = restWhy(x.person, x.d, x.sh, false);
+        var giveC = { w: w, d: x.d, pid: x.pid, sh: x.sh };
+        var isPh = isPharmPlace(x.pid), dateIso = dateOf(w, x.d), off2 = w * 7 + x.d;
+        var phone = self.phoneOf(x.person);
+        var meds = isPh ? [] : self.dayMeds(per, x.pid, x.sh, off2, byId);
+        var prescriber = ['Doctor', 'Clinical officer'].indexOf(per.cadre) >= 0, dlab = dateIso.getDate() + ' ' + MON[dateIso.getMonth()];
+        var msg = s.msgDraft && s.msgDraft.to === x.person ? s.msgDraft : null;
+        sl = { isPharm: isPh, isContact: !isPh, phone: phone, tel: 'tel:' + phone.replace(/\s/g, ''), sms: 'sms:' + phone.replace(/\s/g, ''),
+          msgOpen: !!msg, msgVal: msg ? msg.text : '',
+          openMsg: function () { set({ msgDraft: { to: x.person, text: '' } }); },
+          setMsg: function (ev) { set({ msgDraft: { to: x.person, text: ev.target.value } }); },
+          sendMsg: function () { var t2 = (self.state.msgDraft || {}).text || ''; if (!t2.trim()) { self.flash('Type a message first.'); return; } set({ msgDraft: null }); self.flash('Message sent to ' + per.name + ' in MedSync'); },
+          medTitle: prescriber ? 'Prescriptions written · ' + dlab : 'Doses given · ' + dlab,
+          medCount: off2 > 1 ? '' : meds.length + (prescriber ? (meds.length === 1 ? ' prescription' : ' prescriptions') : (meds.length === 1 ? ' dose' : ' doses')) + (off2 === 1 ? ' so far' : ''),
+          hasMeds: meds.length > 0, meds: meds, noMeds: meds.length === 0, noMedsText: off2 > 1 ? 'This shift has not happened yet.' : 'Nothing recorded on this shift.',
+          canAskSwap: isPh && s.actor === x.person && !isPast(giveC) && !pendingOn[x.person + '@' + ckey(giveC)],
+          askSwap: function () { set({ slot: null, swapForm: { give: ckey(giveC), kind: 'cover', to: '', take: '', reason: '', error: '' } }); },
+          hasRest: rw2.length > 0, rest: 'Breaks a rest rule: ' + rw2.join(', ').toLowerCase() + '.', initials: av2.initials, avStyle: av2.avStyle, isAssign: false, isCard: true, title: per.name, sub: when + ' · ' + x.pname,
+          cardLine: isPh ? per.cadre + (witnessCadres.indexOf(per.cadre) >= 0 ? ', can witness controlled-drug doses on this shift.' : ', cannot witness controlled-drug doses.') + (roOf(x.pid) ? ' ' + roWhy(x.pid) : '') : per.cadre + ' at ' + x.pname + '. Ward rosters are made by the ward in-charge, so you can see and contact, not change.',
+          remove: function () { if (roOf(x.pid)) { self.flash(roWhy(x.pid)); return; } setCell(k, cur.filter(function (q) { return q !== x.person; })); set({ slot: null }); self.flash('Removed ' + per.name); },
+          swap: function () { if (roOf(x.pid)) { self.flash(roWhy(x.pid)); return; } setCell(k, cur.filter(function (q) { return q !== x.person; })); set({ slot: Object.assign({}, x, { mode: 'assign', person: '' }) }); } };
+      }
+    }
+    var pf = {};
+    if (s.personForm) {
+      var f = s.personForm;
+      var av3 = self.avatar({ name: f.name || '?', photo: f.photo }, 64);
+      pf = { initials: av3.initials, avStyle: av3.avStyle, photoLabel: f.photo ? 'Change photo' : 'Add a photo', name: f.name, cadre: f.cadre, hasError: !!f.error, error: f.error,
+        places: PLACES.filter(function (p) { return isPharmPlace(p[0]); }).map(function (p) {
+          var on = f.places.indexOf(p[0]) >= 0;
+          return { label: p[1], on: on ? 'true' : 'false', style: 'height:36px;padding:0 14px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (on ? onS : offS),
+            toggle: function () { var ps = self.state.personForm.places.slice(); var i = ps.indexOf(p[0]); if (i >= 0) ps.splice(i, 1); else ps.push(p[0]); set({ personForm: Object.assign({}, self.state.personForm, { places: ps, error: '' }) }); } };
+        }) };
+    }
+    var updPf = function (patch) { set({ personForm: Object.assign({}, self.state.personForm, patch, { error: '' }) }); };
+    var mkRule = function (key, shown, raw, applyNew) {
+      var ed = s.ruleEdit && s.ruleEdit.key === key ? s.ruleEdit : null, pd = s.pend[key];
+      var updE = function (patch) { set({ ruleEdit: Object.assign({}, self.state.ruleEdit, patch) }); };
+      return { t: shown, idle: !ed && !pd, editing: !!ed, pending: !!pd, ev: ed ? ed.v : '', er: ed ? ed.r : '', pv: pd ? pd.v : '', pr: pd ? pd.r : '',
+        changeAria: 'Change: ' + shown,
+        change: function () { set({ ruleEdit: { key: key, v: raw, r: '' } }); },
+        setV: function (ev) { updE({ v: ev.target.value }); },
+        setR: function (ev) { updE({ r: ev.target.value }); },
+        cancel: function () { set({ ruleEdit: null }); },
+        save: function () {
+          var x2 = self.state.ruleEdit;
+          if (!x2.v.trim() || x2.v.trim() === raw) { self.flash('Type the new wording first.'); return; }
+          if (!x2.r.trim()) { self.flash('Say why, so the signers can decide.'); return; }
+          var pp = Object.assign({}, self.state.pend); pp[key] = { v: x2.v.trim(), r: x2.r.trim(), a: false, b: false };
+          set({ pend: pp, ruleEdit: null }); self.flash('Sent for signing');
+        },
+        withdraw: function () { var pp = Object.assign({}, self.state.pend); delete pp[key]; set({ pend: pp }); self.flash('Proposal withdrawn'); },
+        signers: pd ? [['a', 'In-charge'], ['b', 'Second signer']].map(function (sg) {
+          var done = !!pd[sg[0]];
+          return { label: done ? sg[1] + ' signed' : 'Sign as ' + sg[1].toLowerCase(), done: done,
+            style: 'height:28px;padding:0 10px;border-radius:999px;font:600 12px Figtree,sans-serif;' + (done ? 'border:0;background:#ccfbf1;color:#1b2540' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+            sign: function () {
+              var pp = Object.assign({}, self.state.pend), q2 = Object.assign({}, pp[key]); q2[sg[0]] = true;
+              if (q2.a && q2.b) { delete pp[key]; set({ pend: pp }); applyNew(q2.v); self.flash('Both signed. The rule now reads: ' + q2.v); }
+              else { pp[key] = q2; set({ pend: pp }); self.flash('Signed. Waiting for the other signer.'); }
+            } };
+        }) : [] };
+    };
+    var wkGaps = dayStats.reduce(function (a, b) { return a + b.gaps; }, 0);
+    var noWitnessShifts = [];
+    deptPlaces.forEach(function (p) { for (var d = 0; d < 7; d++) { [0, 1].forEach(function (sh) { if (!p[3][sh]) return; var c = cellOf(d, p[0], sh); if (c.length && needsWitness(c, sh, p)) noWitnessShifts.push(p[1] + ', ' + DOW[d].charAt(0) + DOW[d].slice(1).toLowerCase() + ' ' + SHIFTS[sh][1].toLowerCase()); }); } });
+    var issues = {
+      cover: wkGaps ? { t: wkGaps + (wkGaps === 1 ? ' gap' : ' gaps'), now: [empty + ' shifts with nobody', single + ' shifts without two people who can witness'] } : null,
+      witness: noWitnessShifts.length ? { t: noWitnessShifts.length + ' unwitnessed', now: noWitnessShifts.slice(0, 4).concat(noWitnessShifts.length > 4 ? ['and ' + (noWitnessShifts.length - 4) + ' more'] : []) } : null,
+      rest: restBreaks.length ? { t: restBreaks.length + (restBreaks.length === 1 ? ' break' : ' breaks'), red: true, now: restBreaks.slice(0, 5).concat(restBreaks.length > 5 ? ['and ' + (restBreaks.length - 5) + ' more'] : []) } : null,
+      swap: (function () { var n = s.requests.filter(function (rq) { var st = effStatus(rq); return st === 'colleague' || st === 'incharge'; }).length; return n ? { t: n + ' open', now: s.requests.filter(function (rq) { var st = effStatus(rq); return st === 'colleague' || st === 'incharge'; }).map(function (rq) { return byId[rq.from].name + ' → ' + byId[rq.to].name + ': ' + slotTxt(rq.give) + (rq.take ? ' ⇄ ' + slotTxt(rq.take) : '') + (effStatus(rq) === 'colleague' ? ' · waiting for ' + byId[rq.to].name.split(' ')[0] : ' · waiting for approval'); }) } : null; })(),
+      leave: (function () { var n = s.leaves.filter(function (l) { return l.status === 'pending'; }).length; return n ? { t: n + ' to approve', now: s.leaves.filter(function (l) { return l.status === 'pending'; }).map(function (l) { return byId[l.pid].name + ': ' + l.type.toLowerCase() + ', ' + fmtD(l.from) + (l.to !== l.from ? '–' + fmtD(l.to) : ''); }) } : null; })(),
+      licence: (function () {
+        var ex = s.people.filter(function (pp) { return isPharmPerson(pp) && licState(pp) === 'expired'; }), so = s.people.filter(function (pp) { return isPharmPerson(pp) && licState(pp) === 'soon'; });
+        if (!ex.length && !so.length) return null;
+        return { t: (ex.length ? ex.length + ' expired' : '') + (ex.length && so.length ? ' · ' : '') + (so.length ? so.length + ' due' : ''), red: ex.length > 0,
+          now: ex.map(function (pp) { return pp.name + ': expired ' + fmtD(pp.lic.exp) + '. Cannot be rostered until renewed.'; }).concat(so.map(function (pp) { return pp.name + ': expires ' + fmtD(pp.lic.exp) + ' (' + daysBetween(TODAY, pp.lic.exp) + ' days)'; })) };
+      })(),
+      attend: (function () {
+        var out = [];
+        PHARM.forEach(function (plc) { [0, 1].forEach(function (sh) { (s.roster['0|1|' + plc + '|' + sh] || []).forEach(function (pid) { var a = attOf(pid, 0, 1, plc, sh); if (a && a.kind !== 'ok') out.push({ red: a.kind === 'none', t: byId[pid].name + ': ' + a.label.toLowerCase() + ' (' + SHIFTS[sh][1].toLowerCase() + ', ' + PLN[plc] + ')' }); }); }); });
+        if (!out.length || s.dept === 'wards') return null;
+        var nl = out.filter(function (o) { return !o.red; }).length, nn = out.length - nl;
+        return { t: (nl ? nl + ' late' : '') + (nl && nn ? ' · ' : '') + (nn ? nn + ' not in' : ''), red: nn > 0, now: out.map(function (o) { return o.t; }) };
+      })(),
+      pub: s.dept !== 'wards' && !locked && w >= 0 ? { t: 'Not published', now: ['This week is still a draft. Publish it so staff see it and the witness pickers use it.'] } : null
+    };
+    var ruleGroups = s.rrules.map(function (g) {
+      var rules = g.rules.map(function (t, i) { return mkRule(g.id + '|' + i, t, t, function (v) { set({ rrules: self.state.rrules.map(function (h) { return h.id !== g.id ? h : Object.assign({}, h, { rules: h.rules.map(function (u, j) { return j === i ? v : u; }) }); }) }); }); });
+      var addKey = 'add|' + g.id;
+      var adder = mkRule(addKey, 'New rule', '', function (v) { set({ rrules: self.state.rrules.map(function (h) { return h.id !== g.id ? h : Object.assign({}, h, { rules: h.rules.concat([v]) }); }) }); });
+      if (adder.editing || adder.pending) rules.push(adder);
+      var nPend = Object.keys(s.pend).filter(function (k2) { return k2.indexOf(g.id + '|') === 0 || k2 === addKey; }).length;
+      var is = issues[g.id];
+      return { id: g.id, scope: g.scope, affects: g.affects, rules: rules, n: String(g.rules.length),
+        canAdd: !adder.editing && !adder.pending, add: function () { set({ ruleEdit: { key: addKey, v: '', r: '' } }); },
+        hasIssue: !!is, issue: is ? is.t : '', issueStyle: 'display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:600;' + (is && is.red ? 'background:#fde2e1;color:#9f1d1d' : 'background:#fef3c7;color:#92400e'),
+        hasNow: !!is, now: is ? is.now : [],
+        hasPending: nPend > 0, pendingN: String(nPend),
+        badgeAria: g.scope + ' rules, ' + g.rules.length + (is ? ', ' + is.t : '') + (nPend ? ', ' + nPend + ' waiting for signatures' : ''),
+        open: function () { set({ ruleDlg: g.id, ruleEdit: null }); } };
+    });
+    var MONL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var mCells = [], mCover = '';
+    if (s.view === 'month') {
+      var BASE = Date.UTC(2026, 10, 2), first = new Date(Date.UTC(s.mYear, s.mMonth, 1)), lead = (first.getUTCDay() + 6) % 7;
+      var nDays = new Date(Date.UTC(s.mYear, s.mMonth + 1, 0)).getUTCDate(), cells = Math.ceil((lead + nDays) / 7) * 7;
+      var rDays = 0, gapsM = 0, emptyM = 0;
+      for (var i = 0; i < cells; i++) {
+        var t = Date.UTC(s.mYear, s.mMonth, 1 - lead + i), dt2 = new Date(t), inMonth = dt2.getUTCMonth() === s.mMonth;
+        var off = Math.round((t - BASE) / 864e5), wk = Math.floor(off / 7), dw = off - wk * 7;
+        var any = false, dc = 0, nc = 0, gp = 0, faces = [];
+        shown.forEach(function (p) {
+          [0, 1, 2].forEach(function (sh) {
+            if (!p[3][sh]) return;
+            var kk = wk + '|' + dw + '|' + p[0] + '|' + sh;
+            if (!(kk in s.roster)) return;
+            any = true; var c = s.roster[kk];
+            if (!c.length) gp++; else if (needsWitness(c, sh, p)) gp++;
+            if (sh === 0) dc += c.length; else if (sh === 1) nc += c.length;
+            c.forEach(function (id) { if (faces.indexOf(id) < 0) faces.push(id); });
+          });
+        });
+        var today = off === 1, lockedW = !!s.published[wk];
+        if (inMonth) { if (any) { rDays++; gapsM += gp; } else emptyM++; }
+        (function (wk, dw, any, gp, dt2) {
+          var hIso = dt2.getUTCFullYear() + '-' + p2(dt2.getUTCMonth() + 1) + '-' + p2(dt2.getUTCDate()), hName = holOn(hIso);
+          mCells.push({ hasHol: !!hName && inMonth, hol: hName, num: String(dt2.getUTCDate()), rostered: any, notRostered: !any && inMonth, locked: any && lockedW,
+            dc: String(dc), nc: String(nc), hasGaps: gp > 0, gaps: gp + (gp === 1 ? ' gap' : ' gaps'),
+            faces: faces.slice(0, 3).map(function (id, fi) { var av = self.avatar(byId[id], 22); return { initials: av.initials, avStyle: av.avStyle + (fi ? ';margin-left:-6px' : '') }; }),
+            hasMore: faces.length > 3, more: String(faces.length - 3),
+            aria: DOW[dw] + ' ' + dt2.getUTCDate() + ' ' + MONL[dt2.getUTCMonth()] + ' ' + dt2.getUTCFullYear() + (any ? ': ' + dc + ' on day, ' + nc + ' on night' + (gp ? ', ' + gp + ' gaps' : '') : ': not rostered') + '. Open week',
+            open: function () { set({ view: 'week', week: wk, dayPick: dw }); },
+            numStyle: 'font-size:13px;font-weight:' + (today ? '700' : '600') + ';font-variant-numeric:tabular-nums;' + (today ? 'display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:999px;background:#0f766e;color:#ffffff' : 'color:' + (inMonth ? '#1b2540' : '#8a93ab')),
+            dotStyle: 'width:6px;height:6px;border-radius:999px;margin:2px auto 0;background:' + (!any ? 'transparent' : gp ? '#d97706' : '#16a34a'),
+            style: 'min-height:112px;display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid ' + (today ? '#2dd4bf' : '#dde1e9') + ';border-radius:12px;text-align:left;font-family:Figtree,sans-serif;color:#1b2540;background:' + (!inMonth ? '#f6f7f9;opacity:0.55' : today ? '#f0fdfa' : '#ffffff') });
+        })(wk, dw, any, gp, dt2);
+      }
+      mCover = MONL[s.mMonth] + ' ' + s.mYear + ': ' + rDays + ' of ' + nDays + ' days rostered' + (rDays ? ' · ' + gapsM + ' shift gaps' : '') + (emptyM ? ' · ' + emptyM + ' days not rostered yet' : '') + '.';
+    }
+    var d0 = dateOf(w, 0), d6 = dateOf(w, 6);
+    return {
+      sections: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (l) {
+        return { label: l, style: base + (l === 'Set-up' ? 'background:#1b2540;color:#ffffff;font-weight:600' : 'color:#5f6987') };
+      }),
+      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) {
+        var on = t[0] === 'People and roster';
+        return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') };
+      }),
+            isWeek: s.view === 'week', isMonth: s.view === 'month',
+      viewOpts: [['week', 'Week'], ['month', 'Month']].map(function (v) {
+        var on = s.view === v[0];
+        return { label: v[1], on: on ? 'true' : 'false', pick: function () { set({ view: v[0] }); },
+          style: 'height:34px;padding:0 14px;border:0;border-radius:9px;font:600 13px Figtree,sans-serif;color:#1b2540;' + (on ? 'background:#ffffff;box-shadow:0 1px 2px rgba(27,37,64,0.12)' : 'background:transparent;color:#4a5574') };
+      }),
+      periodLabel: s.view === 'month' ? MONL[s.mMonth] + ' ' + s.mYear : d0.getDate() + ' ' + MON[d0.getMonth()] + ' – ' + d6.getDate() + ' ' + MON[d6.getMonth()] + ' ' + d6.getFullYear(),
+      prevAria: s.view === 'month' ? 'Previous month' : 'Previous week', nextAria: s.view === 'month' ? 'Next month' : 'Next week',
+      prevPeriod: function () { if (s.view === 'month') { var m = s.mMonth - 1, y = s.mYear; if (m < 0) { m = 11; y--; } set({ mMonth: m, mYear: y }); } else set({ week: w - 1, slot: null }); },
+      nextPeriod: function () { if (s.view === 'month') { var m = s.mMonth + 1, y = s.mYear; if (m > 11) { m = 0; y++; } set({ mMonth: m, mYear: y }); } else set({ week: w + 1, slot: null }); },
+      goToday: function () { set({ week: 0, dayPick: 1, mYear: 2026, mMonth: 10 }); },
+      mMonthVal: String(s.mMonth), mYearVal: String(s.mYear),
+      monthOpts: MONL.map(function (l, i) { return { v: String(i), label: l }; }),
+      setMonth: function (ev) { set({ mMonth: +ev.target.value }); },
+      setYear: function (ev) { var y = parseInt(ev.target.value, 10); if (y >= 1900 && y <= 2200) set({ mYear: y }); },
+      mDows: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'], mCells: mCells,
+      placeFilter: s.placeFilter, placeOpts: deptPlaces.map(function (p) { return { id: p[0], name: p[1] }; }),
+      isPharm: s.dept !== 'wards', isWards: s.dept === 'wards',
+      showPub: s.view === 'week' && s.dept !== 'wards', showMonthHint: s.view === 'month' && s.dept !== 'wards',
+      deptOpts: [['pharmacy', 'Pharmacy'], ['wards', 'Doctors and nurses']].map(function (v) {
+        var on = (s.dept || 'pharmacy') === v[0];
+        return { label: v[1], on: on ? 'true' : 'false', pick: function () { set({ dept: v[0], placeFilter: 'all', slot: null, drag: null }); },
+          style: 'height:34px;padding:0 14px;border:0;border-radius:9px;font:600 13px Figtree,sans-serif;color:#1b2540;' + (on ? 'background:#ffffff;box-shadow:0 1px 2px rgba(27,37,64,0.12)' : 'background:transparent;color:#4a5574') };
+      }),
+      setPlaceFilter: function (ev) { set({ placeFilter: ev.target.value }); },
+      locked: locked,
+      pubChip: locked ? 'Published · locked' : 'Draft · not published',
+      pubChipStyle: 'display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;font-size:12px;font-weight:700;' + (locked ? 'background:#dcfce7;color:#166534' : 'background:#e4e7ee;color:#4a5574'),
+      publishLabel: locked ? 'Unlock to edit' : 'Publish week',
+      pubOff: !canPublish, copyOff: locked || !canAnyEdit,
+      publishStyle: 'height:40px;padding:0 16px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (!canPublish ? 'border:1px solid #dde1e9;background:#f6f7f9;color:#5f6987' : locked ? 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540' : 'border:0;background:#2dd4bf;color:#1b2540;box-shadow:0 8px 22px -6px rgba(45,212,191,0.65)'),
+      togglePublish: function () {
+        if (!canPublish) { self.flash('Only the pharmacy in-charge, or someone handed publishing, can do this.'); return; }
+        var pb = Object.assign({}, self.state.published); pb[w] = !pb[w]; set({ published: pb });
+        self.flash(pb[w] ? 'Week published. Staff see it, and witness pickers and handover use it.' : 'Week unlocked for changes');
+      },
+      copyStyle: 'height:40px;padding:0 14px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (locked || !canAnyEdit ? 'border:1px solid #dde1e9;background:#f6f7f9;color:#5f6987' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+      copyLastWeek: function () {
+        var r = Object.assign({}, self.state.roster), n = 0;
+        Object.keys(self.state.roster).forEach(function (k2) { var parts = k2.split('|'); if (+parts[0] === w - 1 && canEditPlace(parts[2])) { r[w + '|' + parts.slice(1).join('|')] = self.state.roster[k2].slice(); n++; } });
+        if (!n) { self.flash('Last week has no roster to copy.'); return; }
+        set({ roster: r }); self.flash('Copied last week into this week');
+      },
+      coverLine: s.view === 'month' ? mCover : filled + ' of ' + open + ' shifts have someone' + (empty ? ' · ' + empty + ' with nobody' : '') + (single ? ' · ' + single + ' without a second person who can witness, so controlled doses there need a witness from elsewhere' : '') + '.',
+      legend: SHIFTS.map(function (x2) { return { label: x2[1] + ' ' + x2[2], sw: SW(x2[0]) }; }),
+      days: [0, 1, 2, 3, 4, 5, 6].map(function (d) {
+        var dt = dateOf(w, d), st = dayStats[d], today = isToday(d), picked = s.dayPick === d;
+        var hn = holOn(isoOf(dt));
+        return { hasHol: !!hn, hol: hn, dow: DOW[d], num: String(dt.getDate()), counts: st.dc + ' day · ' + st.nc + ' night', hasGaps: st.gaps > 0, gaps: st.gaps + (st.gaps === 1 ? ' gap' : ' gaps'),
+          dowStyle: 'font-size:12px;font-weight:700;letter-spacing:0.06em;color:' + (today ? '#0f766e' : '#5f6987'),
+          numStyle: 'font-size:20px;line-height:24px;font-weight:600;font-variant-numeric:tabular-nums;color:' + (today ? '#0f766e' : '#1b2540'),
+          barStyle: 'display:block;width:18px;height:3px;border-radius:999px;background:' + (today ? '#0f766e' : '#c5cbd8'),
+          pickedAttr: picked ? 'true' : 'false', pick: function () { set({ dayPick: d }); },
+          chipStyle: 'padding:6px 0;border:0;border-radius:12px;font-family:Figtree,sans-serif;color:#1b2540;' + (picked ? 'background:#ccfbf1' : today ? 'background:#f0fdfa' : 'background:transparent') };
+      }),
+      rows: rows, dayList: dayList,
+      slotOpen: !!s.slot, sl: sl, closeSlot: function () { set({ slot: null }); },
+      peopleCount: String(s.people.filter(isPharmPerson).length),
+      people: s.people.filter(isPharmPerson).map(function (p) {
+        var av = self.avatar(p, 40);
+        var isMe = p.id === s.actor, ls = licState(p), rn = s.renew && s.renew.pid === p.id ? s.renew : null;
+        var LS = { ok: ['Current', '#dcfce7', '#166534'], soon: ['Expires soon', '#fef3c7', '#92400e'], expired: ['Expired', '#fde2e1', '#9f1d1d'], missing: ['Not recorded', '#fde2e1', '#9f1d1d'] };
+        return { hasLic: ls !== 'na' && !rn, licLine: p.lic ? (p.lic.body === 'Pharmaceutical Society of Uganda' ? 'PSU' : 'AHPC') + ' · ' + p.lic.no + ' · ' + (ls === 'expired' ? 'expired ' : 'expires ') + fmtD(p.lic.exp) + ' ' + p.lic.exp.slice(0, 4) : 'Practising licence', licStat: ls !== 'na' ? LS[ls][0] : '', licStyle: ls !== 'na' ? 'display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;background:' + LS[ls][1] + ';color:' + LS[ls][2] : '',
+          canRenew: isInCharge && (ls === 'expired' || ls === 'soon' || ls === 'missing'), renewing: !!rn, renewVal: rn ? rn.val : '',
+          openRenew: function () { set({ renew: { pid: p.id, val: '' } }); },
+          setRenew: function (ev) { set({ renew: { pid: p.id, val: ev.target.value } }); },
+          cancelRenew: function () { set({ renew: null }); },
+          saveRenew: function () {
+            var v = (self.state.renew || {}).val || '';
+            if (!v || v <= TODAY) { self.flash('Pick the new expiry date, after today.'); return; }
+            set({ renew: null, people: self.state.people.map(function (q) { return q.id !== p.id ? q : Object.assign({}, q, { lic: Object.assign({}, q.lic || { body: q.cadre === 'Pharmacist' ? 'Pharmaceutical Society of Uganda' : 'Allied Health Professionals Council', no: 'Not recorded' }, { exp: v }) }); }) });
+            self.flash('Renewal recorded for ' + p.name + '. Valid to ' + fmtD(v) + ' ' + v.slice(0, 4) + '.');
+          },
+          isMe: isMe, notMe: !isMe, photoNote: p.photo ? '' : 'No photo yet', initials: av.initials, avStyle: av.avStyle, photoLabel: p.photo ? 'Change my photo' : 'Add my photo', photoAria: (p.photo ? 'Change photo for ' : 'Add photo for ') + p.name,
+          setPhoto: function (ev) { if (p.id !== self.state.actor) { self.flash('Only ' + p.name + ' can add their own photo.'); return; } self.readPhoto(ev, function (url) { set({ people: self.state.people.map(function (q) { return q.id === p.id ? Object.assign({}, q, { photo: url }) : q; }) }); self.flash('Photo updated for ' + p.name); }); },
+          name: p.name, cadre: p.cadre, where: p.places.map(function (id) { return PLACES.filter(function (x2) { return x2[0] === id; })[0][1]; }).join(', '), witness: witnessCadres.indexOf(p.cadre) >= 0 ? 'Can witness' : 'Cannot witness' };
+      }),
+      prescribers: s.prescribers.map(function (p, i) {
+        var up = function (patch) { set({ prescribers: self.state.prescribers.map(function (x2, j) { return j === i ? Object.assign({}, x2, patch) : x2; }) }); };
+        var match = self.state.people.filter(function (q) { return q.name === p.name; })[0], av = self.avatar(match || p, 36);
+        return { initials: av.initials, avStyle: av.avStyle, name: p.name, cadre: p.cadre, cd: p.cd, limit: p.limit,
+          toggleCd: function () { up({ cd: !p.cd }); self.flash(p.cd ? p.name + ' can no longer prescribe controlled drugs' : p.name + ' may prescribe controlled drugs'); },
+          setLimit: function (ev) { up({ limit: ev.target.value }); } };
+      }),
+      personOpen: !!s.personForm, pf: pf,
+      openPerson: function () { set({ personForm: { name: '', cadre: 'Pharmacist', places: [], photo: '', error: '' } }); },
+      closePerson: function () { set({ personForm: null }); },
+      setPfName: function (ev) { updPf({ name: ev.target.value }); },
+      setPfCadre: function (ev) { updPf({ cadre: ev.target.value }); },
+      savePerson: function () {
+        var f2 = self.state.personForm, n = f2.name.trim();
+        if (!n) { set({ personForm: Object.assign({}, f2, { error: 'Type their full name.' }) }); return; }
+        if (!f2.places.length) { set({ personForm: Object.assign({}, f2, { error: 'Pick at least one place they work at.' }) }); return; }
+        set({ people: self.state.people.concat([{ id: 'u' + Date.now(), name: n, cadre: f2.cadre, places: f2.places, photo: f2.photo || '' }]), personForm: null });
+        self.flash('Added ' + n + '. They can now be rostered.');
+      },
+      owner: (function () { var o = byId[s.inCharge], av = self.avatar(o, 24); return { name: o.name, initials: av.initials, avStyle: av.avStyle }; })(),
+      hasDelegs: s.delegs.some(activeDel),
+      delegs: s.delegs.filter(activeDel).map(function (dg) {
+        var per = byId[dg.to], av = self.avatar(per, 24);
+        var scope = (dg.places === 'all' ? 'All places' : dg.places.map(function (id) { return PLACES.filter(function (x2) { return x2[0] === id; })[0][1]; }).join(', ')) + (dg.until ? ' · until ' + fmtD(dg.until) : '') + (dg.publish ? ' · can publish' : '');
+        return { name: per.name, initials: av.initials, avStyle: av.avStyle, scope: scope, canRevoke: isInCharge, revokeAria: 'Take back the roster from ' + per.name,
+          revoke: function () {
+            set({ delegs: self.state.delegs.filter(function (q) { return q.id !== dg.id; }), delegLog: [fmtD(TODAY) + ' 2026 · ' + byId[self.state.inCharge].name + ' took the roster back from ' + per.name].concat(self.state.delegLog) });
+            self.flash('Taken back from ' + per.name + '. They can no longer change the roster.');
+          } };
+      }),
+      isInCharge: isInCharge,
+      hasRoNote: !canAnyEdit || (!isInCharge && myDel.length > 0),
+      roNote: !canAnyEdit ? 'View only' : 'You can change: ' + (myDel.some(function (dg) { return dg.places === 'all'; }) ? 'all places' : PLACES.filter(function (p) { return canEditPlace(p[0]); }).map(function (p) { return p[1]; }).join(', ')),
+      actor: s.actor,
+      actorOpts: [byId[s.inCharge]].concat(s.people.filter(function (p) { return p.id !== s.inCharge && isPharmPerson(p); })).map(function (p) { return { id: p.id, label: p.name + (p.id === s.inCharge ? ' (in-charge)' : '') }; }),
+      setActor: function (ev) { set({ actor: ev.target.value, slot: null, drag: null }); },
+      delegOpen: !!s.delegForm,
+      openDeleg: function () { set({ delegForm: { to: '', places: 'all', until: '', publish: true, error: '' } }); },
+      closeDeleg: function () { set({ delegForm: null }); },
+      hasDelegLog: s.delegLog.length > 0, delegLog: s.delegLog.slice(0, 5),
+      df: (function () {
+        var f3 = s.delegForm; if (!f3) return {};
+        var upd = function (patch) { set({ delegForm: Object.assign({}, self.state.delegForm, patch, { error: '' }) }); };
+        var allOn = f3.places === 'all';
+        var chip = function (on) { return 'height:36px;padding:0 14px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (on ? onS : offS); };
+        return { to: f3.to, until: f3.until, publish: f3.publish, hasError: !!f3.error, error: f3.error,
+          people: s.people.filter(function (p) { return p.id !== s.inCharge && isPharmPerson(p); }).map(function (p) { return { id: p.id, label: p.name + ' · ' + p.cadre }; }),
+          places: [{ label: 'All pharmacy places', on: allOn ? 'true' : 'false', style: chip(allOn), toggle: function () { upd({ places: allOn ? [] : 'all' }); } }].concat(PLACES.filter(function (p) { return isPharmPlace(p[0]); }).map(function (p) {
+            var on = !allOn && f3.places.indexOf(p[0]) >= 0;
+            return { label: p[1], on: on ? 'true' : 'false', style: chip(on), toggle: function () { var ps = allOn ? [] : f3.places.slice(); var i2 = ps.indexOf(p[0]); if (i2 >= 0) ps.splice(i2, 1); else ps.push(p[0]); upd({ places: ps, publish: false }); } };
+          })) };
+      })(),
+      setDfTo: function (ev) { set({ delegForm: Object.assign({}, self.state.delegForm, { to: ev.target.value, error: '' }) }); },
+      setDfUntil: function (ev) { set({ delegForm: Object.assign({}, self.state.delegForm, { until: ev.target.value, error: '' }) }); },
+      toggleDfPublish: function () { set({ delegForm: Object.assign({}, self.state.delegForm, { publish: !self.state.delegForm.publish, error: '' }) }); },
+      saveDeleg: function () {
+        var f3 = self.state.delegForm;
+        if (!f3.to) { set({ delegForm: Object.assign({}, f3, { error: 'Pick who to hand it to.' }) }); return; }
+        if (f3.places !== 'all' && !f3.places.length) { set({ delegForm: Object.assign({}, f3, { error: 'Pick at least one place, or All places.' }) }); return; }
+        if (f3.until && f3.until < TODAY) { set({ delegForm: Object.assign({}, f3, { error: 'The end date has already passed.' }) }); return; }
+        var per = byId[f3.to];
+        var what = f3.places === 'all' ? 'all places' : f3.places.map(function (id) { return PLACES.filter(function (x2) { return x2[0] === id; })[0][1]; }).join(', ');
+        var others = self.state.delegs.filter(function (q) { return q.to !== f3.to; });
+        set({ delegs: others.concat([{ id: 'd' + Date.now(), to: f3.to, places: f3.places, until: f3.until, publish: f3.publish }]), delegForm: null,
+          delegLog: [fmtD(TODAY) + ' 2026 · ' + byId[self.state.inCharge].name + ' handed ' + what + ' to ' + per.name + (f3.until ? ' until ' + fmtD(f3.until) : '') + (f3.publish ? ', with publishing' : ', without publishing')].concat(self.state.delegLog) });
+        self.flash(per.name + ' can now make the roster for ' + what + '.');
+      },
+      ruleGroups: ruleGroups,
+      // on duty now
+      nowLine: (function () { var sh = nowMin >= 480 && nowMin < 1020 ? 'Day shift 08:00–17:00' : 'Night shift 17:00–08:00, with on call'; return 'Tue 3 Nov · ' + hhmm(nowMin) + ' · ' + sh; })(),
+      nowGroups: (function () {
+        var dNow = nowMin < 480 ? 0 : 1, shs = nowMin >= 480 && nowMin < 1020 ? [0] : [1, 2];
+        return [['Pharmacy', PLACES.filter(function (p) { return isPharmPlace(p[0]); })], ['Doctors and nurses', PLACES.filter(function (p) { return !isPharmPlace(p[0]); })]].map(function (g) {
+          var list = [];
+          g[1].forEach(function (p) { shs.forEach(function (sh) { if (!p[3][sh]) return; (s.roster['0|' + dNow + '|' + p[0] + '|' + sh] || []).forEach(function (pid) {
+            var per = byId[pid], av = self.avatar(per, 28), a = attOf(pid, 0, dNow, p[0], sh), ph = self.phoneOf(pid);
+            list.push({ name: per.name, initials: av.initials, avStyle: av.avStyle, sub: per.cadre + ' · ' + p[1] + (sh === 2 ? ' · on call' : ''), hasAtt: !!a, att: a ? (a.kind === 'ok' ? 'In ' + a.t : a.kind === 'late' ? 'Late' : 'Not in') : '',
+              attStyle: a ? 'display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;background:' + ATT_ST[a.kind][0] + ';color:' + ATT_ST[a.kind][1] : '',
+              tel: 'tel:' + ph.replace(/\s/g, ''), callAria: 'Call ' + per.name + ', ' + ph });
+          }); }); });
+          return { label: g[0].toUpperCase(), people: list, none: list.length === 0 };
+        });
+      })(),
+      // fill gaps and print
+      fillGaps: function () {
+        if (locked || !canAnyEdit) return;
+        if (w < 0) { self.flash('That week is over.'); return; }
+        var R = Object.assign({}, self.state.roster), n = 0, left = 0;
+        PLACES.filter(function (p) { return isPharmPlace(p[0]) && canEditPlace(p[0]); }).forEach(function (p) {
+          for (var d = (w === 0 ? 1 : 0); d < 7; d++) { [0, 1, 2].forEach(function (sh) {
+            if (!p[3][sh]) return;
+            var kk = w + '|' + d + '|' + p[0] + '|' + sh, cap = sh === 2 ? 1 : 2;
+            while ((R[kk] || []).length < cap) {
+              var cur3 = R[kk] || [];
+              var cands = self.state.people.filter(function (q) { return q.places.indexOf(p[0]) >= 0 && cur3.indexOf(q.id) < 0; }).map(function (q) { return { q: q, j: judge(R, w, d, p[0], sh, q, cur3) }; }).filter(function (c2) { return !c2.j.block && c2.j.score < 100; });
+              cands.sort(function (a, b) { return a.j.score - b.j.score; });
+              if (!cands.length) { left++; break; }
+              R[kk] = cur3.concat([cands[0].q.id]); n++;
+            }
+          }); }
+        });
+        set({ roster: R });
+        self.flash(n ? 'Filled ' + n + (n === 1 ? ' slot' : ' slots') + ' with the best fit.' + (left ? ' ' + left + ' still open: nobody fits without breaking a rule.' : ' Check, then publish.') : 'Nothing to fill' + (left ? ': nobody fits the ' + left + ' open slots without breaking a rule.' : '.'));
+      },
+      printWeek: function () { try { window.print(); } catch (e) { self.flash('Use your browser’s print to print this week.'); } },
+      printTitle: 'Pharmacy roster · ' + d0.getDate() + ' ' + MON[d0.getMonth()] + ' – ' + d6.getDate() + ' ' + MON[d6.getMonth()] + ' ' + d6.getFullYear() + (locked ? ' · Published' : ' · Draft'),
+      // leave
+      openLeave: function () { set({ leaveForm: { type: 'Annual leave', from: '', to: '', reason: '', error: '' } }); },
+      closeLeave: function () { set({ leaveForm: null }); },
+      leaveOpen: !!s.leaveForm,
+      lf: (function () {
+        var f5 = s.leaveForm; if (!f5) return {};
+        var upd = function (patch) { set({ leaveForm: Object.assign({}, self.state.leaveForm, patch, { error: '' }) }); };
+        var to5 = f5.to || f5.from, clash = [];
+        if (f5.from) Object.keys(s.roster).forEach(function (k3) { var q = k3.split('|'); var iso = isoWD(+q[0], +q[1]); if (iso >= f5.from && iso <= to5 && s.roster[k3].indexOf(s.actor) >= 0) clash.push(slotTxt({ w: +q[0], d: +q[1], pid: q[2], sh: +q[3] })); });
+        var chip = function (on) { return 'height:36px;padding:0 14px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (on ? onS : offS); };
+        return { who: 'Asking as ' + byId[s.actor].name + '. The in-charge approves.', from: f5.from, to: f5.to, reason: f5.reason, hasError: !!f5.error, error: f5.error,
+          types: ['Annual leave', 'Day off', 'Study leave', 'Sick leave'].map(function (t) { return { label: t, on: f5.type === t ? 'true' : 'false', style: chip(f5.type === t), pick: function () { upd({ type: t }); } }; }),
+          hasClash: clash.length > 0, clash: clash.length ? 'You are rostered on ' + clash.length + (clash.length === 1 ? ' shift' : ' shifts') + ' in these days: ' + clash.join('; ') + '. Once approved, ' + (clash.length === 1 ? 'it becomes a gap' : 'they become gaps') + ' for the in-charge to fill.' : '' };
+      })(),
+      setLfFrom: function (ev) { set({ leaveForm: Object.assign({}, self.state.leaveForm, { from: ev.target.value, error: '' }) }); },
+      setLfTo: function (ev) { set({ leaveForm: Object.assign({}, self.state.leaveForm, { to: ev.target.value, error: '' }) }); },
+      setLfReason: function (ev) { set({ leaveForm: Object.assign({}, self.state.leaveForm, { reason: ev.target.value }) }); },
+      sendLeave: function () {
+        var f5 = self.state.leaveForm, err = function (m) { set({ leaveForm: Object.assign({}, f5, { error: m }) }); };
+        if (!f5.from) return err('Pick the first day.');
+        var to5 = f5.to || f5.from;
+        if (f5.from < TODAY) return err('The first day has already passed.');
+        if (to5 < f5.from) return err('The last day is before the first day.');
+        if (f5.type !== 'Sick leave' && daysBetween(TODAY, f5.from) < 7) { /* allowed, flagged */ }
+        var hm2 = hhmm(nowMin), late = f5.type !== 'Sick leave' && daysBetween(TODAY, f5.from) < 7;
+        set({ leaves: [{ id: 'l' + Date.now(), pid: self.state.actor, type: f5.type, from: f5.from, to: to5, status: 'pending', reason: f5.reason.trim(), late: late, log: ['Asked 3 Nov, ' + hm2] }].concat(self.state.leaves), leaveForm: null });
+        self.flash('Sent to the in-charge.' + (late ? ' Note: less than 7 days ahead.' : ''));
+      },
+      lvHasNeed: (isInCharge || canPublish) && s.leaves.some(function (l) { return l.status === 'pending'; }),
+      lvNeedLabel: s.leaves.filter(function (l) { return l.status === 'pending'; }).length + ' to approve',
+      lvEmpty: s.leaves.length === 0,
+      lvList: s.leaves.map(function (l) {
+        var per = byId[l.pid], av = self.avatar(per, 36), canAp = isInCharge || canPublish, stamp = '3 Nov, ' + hhmm(nowMin);
+        var LST = { pending: ['Waiting for in-charge', '#dbeafe', '#1e40af'], approved: ['Approved', '#dcfce7', '#166534'], declined: ['Declined', '#fde2e1', '#9f1d1d'], withdrawn: ['Withdrawn', '#e4e7ee', '#4a5574'] };
+        var past = l.to < TODAY, st = l.status === 'pending' && past ? 'withdrawn' : l.status;
+        var clash = [];
+        if (l.status === 'pending') Object.keys(s.roster).forEach(function (k3) { var q = k3.split('|'); var iso = isoWD(+q[0], +q[1]); if (iso >= l.from && iso <= l.to && s.roster[k3].indexOf(l.pid) >= 0) clash.push(slotTxt({ w: +q[0], d: +q[1], pid: q[2], sh: +q[3] })); });
+        var upd = function (patch, line) { set({ leaves: self.state.leaves.map(function (x6) { return x6.id !== l.id ? x6 : Object.assign({}, x6, patch, { log: x6.log.concat([line]) }); }) }); };
+        var btn = function (main) { return 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (main ? 'border:0;background:#2dd4bf;color:#1b2540' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'); };
+        var acts = [];
+        if (l.status === 'pending' && canAp) {
+          acts.push({ label: 'Approve', style: btn(true), go: function () {
+            var R = Object.assign({}, self.state.roster), freed = [];
+            Object.keys(R).forEach(function (k3) { var q = k3.split('|'); var iso = isoWD(+q[0], +q[1]); if (iso >= l.from && iso <= l.to && R[k3].indexOf(l.pid) >= 0) { R[k3] = R[k3].filter(function (id) { return id !== l.pid; }); freed.push(slotTxt({ w: +q[0], d: +q[1], pid: q[2], sh: +q[3] })); } });
+            set({ roster: R }); upd({ status: 'approved' }, byId[self.state.actor].name + ' approved ' + stamp + (freed.length ? ' · ' + freed.length + ' shift' + (freed.length === 1 ? '' : 's') + ' freed' : ''));
+            self.flash('Approved.' + (freed.length ? ' ' + freed.length + (freed.length === 1 ? ' shift is' : ' shifts are') + ' now open: ' + freed.join('; ') + '. Try Fill gaps.' : ''));
+          } });
+          acts.push({ label: 'Decline', style: btn(false), go: function () { upd({ status: 'declined' }, byId[self.state.actor].name + ' declined ' + stamp); self.flash('Declined. ' + per.name + ' is told.'); } });
+        }
+        if (l.status === 'pending' && s.actor === l.pid) acts.push({ label: 'Withdraw', style: btn(false), go: function () { upd({ status: 'withdrawn' }, per.name + ' withdrew ' + stamp); } });
+        var days = daysBetween(l.from, l.to) + 1;
+        return { name: per.name, initials: av.initials, avStyle: av.avStyle, type: l.type,
+          when: fmtD(l.from) + (l.to !== l.from ? ' – ' + fmtD(l.to) : '') + ' ' + l.to.slice(0, 4) + ' · ' + days + (days === 1 ? ' day' : ' days') + (l.late ? ' · asked less than 7 days ahead' : ''),
+          hasReason: !!l.reason, reason: l.reason, hasClash: clash.length > 0, clash: clash.length ? 'Rostered on ' + clash.join('; ') + '. Approving frees ' + (clash.length === 1 ? 'it.' : 'them.') : '',
+          trail: l.log.join(' · '), stat: LST[st][0], statStyle: 'display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background:' + LST[st][1] + ';color:' + LST[st][2],
+          hasActions: acts.length > 0, actions: acts };
+      }),
+      // load
+      loadSub: 'Pharmacy staff, 5 Oct – 8 Nov 2026 (the last 5 weeks). Flags anyone well above or below the average.',
+      loadRows: (function () {
+        var rowsL = s.people.filter(isPharmPerson).map(function (pp) {
+          var c = { day: 0, night: 0, call: 0, wkend: 0, hol: 0 };
+          Object.keys(s.roster).forEach(function (k3) { var q = k3.split('|'); var wk = +q[0], d = +q[1], sh = +q[3]; if (wk < -4 || wk > 0 || s.roster[k3].indexOf(pp.id) < 0) return; c[['day', 'night', 'call'][sh]]++; if (d >= 5) c.wkend++; if (holOn(isoWD(wk, d))) c.hol++; });
+          c.total = c.day + c.night + c.call; c.name = pp.name; return c;
+        });
+        var avg = rowsL.reduce(function (a, r) { return a + r.total; }, 0) / Math.max(1, rowsL.length), mx = Math.max.apply(null, rowsL.map(function (r) { return r.total; }).concat([1]));
+        rowsL.sort(function (a, b) { return b.total - a.total; });
+        return rowsL.map(function (r) {
+          var heavy = r.total >= avg * 1.25, light = r.total <= avg * 0.75;
+          return { name: r.name, day: String(r.day), night: String(r.night), call: String(r.call), wkend: String(r.wkend), hol: String(r.hol), total: String(r.total),
+            bar: 'display:block;height:100%;border-radius:999px;width:' + Math.round(r.total / mx * 100) + '%;background:' + (heavy ? '#d97706' : light ? '#94a3b8' : '#2dd4bf'),
+            hasFlag: heavy || light, flag: heavy ? 'Heavy' : 'Light', flagStyle: 'display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;font-size:10px;font-weight:700;' + (heavy ? 'background:#fef3c7;color:#92400e' : 'background:#e4e7ee;color:#4a5574') };
+        });
+      })(),
+      // reminders
+      reminders: [['eve', 'Evening before each shift', 'Everyone on tomorrow’s roster gets an SMS at the time below.'], ['change', 'When a published shift changes', 'Both people are told, e.g. after a swap or leave is approved.'], ['unpub', 'Next week not published by Thursday', 'Reminds the in-charge, and whoever was handed the roster.'], ['lic', '30 days before a licence expires', 'Reminds the person and the in-charge.']].map(function (r) {
+        return { label: r[1], sub: r[2], on: !!s.rem[r[0]], toggle: function () { var rm = Object.assign({}, self.state.rem); rm[r[0]] = !rm[r[0]]; set({ rem: rm }); self.flash(r[1] + (rm[r[0]] ? ': on' : ': off')); } };
+      }),
+      remTime: s.remTime, setRemTime: function (ev) { set({ remTime: ev.target.value }); },
+      remPreview: (function () { var c = (s.roster['0|2|opd|0'] || [])[0], pp = byId[c] || s.people[0]; return 'MedSync: Hello ' + pp.name.split(' ')[0] + ', you are on Day shift tomorrow, Wed 4 Nov, at OPD dispensary, 08:00–17:00.' + (s.rem.eve ? ' (sent at ' + s.remTime + ')' : ' (evening reminder is off)'); })(),
+      // swap requests
+      canAsk: s.people.some(function (q) { return q.id === s.actor; }),
+      openSwap: function () { set({ swapForm: { give: '', kind: 'cover', to: '', take: '', reason: '', error: '' } }); },
+      closeSwap: function () { set({ swapForm: null }); },
+      swapOpen: !!s.swapForm,
+      sf: (function () {
+        var f4 = s.swapForm; if (!f4) return {};
+        var me = byId[s.actor];
+        var upd = function (patch) { set({ swapForm: Object.assign({}, self.state.swapForm, patch, { error: '' }) }); };
+        var parse = function (v) { if (!v) return null; var q = v.split('|'); return { w: +q[0], d: +q[1], pid: q[2], sh: +q[3] }; };
+        var mine = [];
+        for (var wk = w; wk <= w + 1; wk++) for (var d = 0; d < 7; d++) PLACES.forEach(function (p) { [0, 1, 2].forEach(function (sh) { var c = { w: wk, d: d, pid: p[0], sh: sh }; if (p[3][sh] && inR(s.roster, c, s.actor) && !isPast(c)) mine.push(c); }); });
+        var g = parse(f4.give);
+        var onSame = function (pid, c) { return PLACES.some(function (p) { return p[3][c.sh] && inR(s.roster, { w: c.w, d: c.d, pid: p[0], sh: c.sh }, pid); }); };
+        var tos = g ? s.people.filter(function (q) { var gi = isoWD(g.w, g.d); return q.id !== s.actor && q.places.indexOf(g.pid) >= 0 && !onSame(q.id, g) && !leaveOn(q.id, gi) && licState(q, gi) !== 'expired'; }) : [];
+        var theirs = [];
+        if (g && f4.to && f4.kind === 'swap') {
+          for (var wk2 = w; wk2 <= w + 1; wk2++) for (var d2 = 0; d2 < 7; d2++) PLACES.forEach(function (p) { [0, 1, 2].forEach(function (sh) { var c = { w: wk2, d: d2, pid: p[0], sh: sh }; if (p[3][sh] && inR(s.roster, c, f4.to) && !isPast(c) && me.places.indexOf(p[0]) >= 0 && !onSame(s.actor, c)) theirs.push(c); }); });
+        }
+        var t = parse(f4.take), to = byId[f4.to];
+        var ready = g && to && (f4.kind === 'cover' || t);
+        var warn = ready ? newBreaks({ from: s.actor, to: f4.to, give: g, take: f4.kind === 'swap' ? t : null }) : [];
+        var chip = function (on) { return 'height:36px;padding:0 14px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (on ? onS : offS); };
+        return { who: 'Asking as ' + me.name + '. Your colleague accepts first, then the in-charge approves.',
+          give: f4.give, to: f4.to, take: f4.take, reason: f4.reason, isSwap: f4.kind === 'swap',
+          gives: mine.map(function (c) { return { v: ckey(c), label: slotTxt(c) }; }),
+          kinds: [['cover', 'Ask them to cover it'], ['swap', 'Swap with one of theirs']].map(function (k) { return { label: k[1], on: f4.kind === k[0] ? 'true' : 'false', style: chip(f4.kind === k[0]), pick: function () { upd({ kind: k[0], take: '' }); } }; }),
+          toHint: g ? (tos.length ? 'Pick a colleague at ' + PLN[g.pid] : 'Nobody free at ' + PLN[g.pid]) : 'Pick your shift first',
+          tos: tos.map(function (q) { return { v: q.id, label: q.name + ' · ' + q.cadre }; }),
+          takeHint: !f4.to ? 'Pick a colleague first' : theirs.length ? 'Pick one of their shifts' : 'They have no shift you can take',
+          takes: theirs.map(function (c) { return { v: ckey(c), label: slotTxt(c) }; }),
+          hasPreview: !!ready, preview: ready ? (f4.kind === 'cover' ? to.name + ' works your ' + slotTxt(g) + '.' : to.name + ' works your ' + slotTxt(g) + ', and you work their ' + slotTxt(t) + '.') : '',
+          hasWarn: warn.length > 0, warn: warn.length ? 'This would break a rest rule. ' + warn.join('; ') + '. The in-charge sees this before approving.' : '',
+          hasError: !!f4.error, error: f4.error };
+      })(),
+      setSfGive: function (ev) { set({ swapForm: Object.assign({}, self.state.swapForm, { give: ev.target.value, to: '', take: '', error: '' }) }); },
+      setSfTo: function (ev) { set({ swapForm: Object.assign({}, self.state.swapForm, { to: ev.target.value, take: '', error: '' }) }); },
+      setSfTake: function (ev) { set({ swapForm: Object.assign({}, self.state.swapForm, { take: ev.target.value, error: '' }) }); },
+      setSfReason: function (ev) { set({ swapForm: Object.assign({}, self.state.swapForm, { reason: ev.target.value }) }); },
+      sendSwap: function () {
+        var f4 = self.state.swapForm, err = function (m) { set({ swapForm: Object.assign({}, f4, { error: m }) }); };
+        if (!f4.give) return err('Pick the shift you want to give away.');
+        if (!f4.to) return err('Pick the colleague you are asking.');
+        if (f4.kind === 'swap' && !f4.take) return err('Pick which of their shifts you will take.');
+        var q = f4.give.split('|'), g = { w: +q[0], d: +q[1], pid: q[2], sh: +q[3] }, t = null;
+        if (f4.kind === 'swap') { var q2 = f4.take.split('|'); t = { w: +q2[0], d: +q2[1], pid: q2[2], sh: +q2[3] }; }
+        var now = new Date(), hm = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+        var rq = { id: 'r' + Date.now(), from: self.state.actor, to: f4.to, kind: f4.kind, give: g, take: t, reason: f4.reason.trim(), status: 'colleague', log: ['Asked 3 Nov, ' + hm] };
+        set({ requests: [rq].concat(self.state.requests), swapForm: null, rqFilter: 'open' });
+        self.flash('Request sent to ' + byId[f4.to].name + '. It shows as waiting for them.');
+      },
+      rqFilters: (function () {
+        var open = s.requests.filter(function (rq) { var st = effStatus(rq); return st === 'colleague' || st === 'incharge'; });
+        var mineN = s.requests.filter(function (rq) { var st = effStatus(rq); return (st === 'colleague' && rq.to === s.actor) || (st === 'incharge' && canApprove(rq)) || ((st === 'colleague' || st === 'incharge') && rq.from === s.actor); }).length;
+        return [['mine', 'Needs me · ' + mineN], ['open', 'Pending · ' + open.length], ['all', 'All · ' + s.requests.length]].map(function (x3) {
+          var on = s.rqFilter === x3[0];
+          return { label: x3[1], on: on ? 'true' : 'false', pick: function () { set({ rqFilter: x3[0] }); }, style: 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (on ? onS : offS) };
+        });
+      })(),
+      rqList: (function () {
+        var now = new Date(), hm = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2), stamp = '3 Nov, ' + hm;
+        var STAT = { colleague: ['#fef3c7', '#92400e'], incharge: ['#dbeafe', '#1e40af'], approved: ['#dcfce7', '#166534'], declined: ['#fde2e1', '#9f1d1d'], rejected: ['#fde2e1', '#9f1d1d'], withdrawn: ['#e4e7ee', '#4a5574'], expired: ['#e4e7ee', '#4a5574'], stale: ['#e4e7ee', '#4a5574'] };
+        var updRq = function (id, patch, line) { set({ requests: self.state.requests.map(function (r) { return r.id !== id ? r : Object.assign({}, r, patch, { log: r.log.concat(line ? [line] : []) }); }), rqAct: null }); };
+        var btn = function (kind) { return 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (kind === 'main' ? 'border:0;background:#2dd4bf;color:#1b2540' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'); };
+        return s.requests.filter(function (rq) {
+          var st = effStatus(rq), open = st === 'colleague' || st === 'incharge';
+          if (s.rqFilter === 'open') return open;
+          if (s.rqFilter === 'mine') return (st === 'colleague' && rq.to === s.actor) || (st === 'incharge' && canApprove(rq)) || (open && rq.from === s.actor);
+          return true;
+        }).map(function (rq) {
+          var st = effStatus(rq), fr = byId[rq.from], to = byId[rq.to], fa = self.avatar(fr, 32), ta = self.avatar(to, 32);
+          var label = { colleague: 'Waiting for ' + to.name.split(' ')[0], incharge: 'Waiting for in-charge', approved: 'Approved', declined: 'Declined', rejected: 'Rejected', withdrawn: 'Withdrawn', expired: 'Expired', stale: 'Roster changed' }[st];
+          var acts = [], asking = s.rqAct && s.rqAct.id === rq.id;
+          if (!asking) {
+            if (st === 'colleague' && s.actor === rq.to) {
+              acts.push({ label: 'Accept', style: btn('main'), go: function () { updRq(rq.id, { status: 'incharge' }, to.name + ' accepted ' + stamp); self.flash('Accepted. It now waits for the in-charge.'); } });
+              acts.push({ label: 'Decline', style: btn(), go: function () { set({ rqAct: { id: rq.id, kind: 'decline', text: '' } }); } });
+            }
+            if (st === 'colleague' && canApprove(rq) && s.actor !== rq.to && s.actor !== rq.from) {
+              acts.push({ label: 'Approve', off: true, tip: 'Waits for ' + to.name + ' to accept first', style: 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;border:1px solid #dde1e9;background:#f6f7f9;color:#8a93ab;cursor:not-allowed', go: function () { self.flash('You can approve once ' + to.name + ' has accepted.'); } });
+            }
+            if (st === 'incharge' && canApprove(rq)) {
+              acts.push({ label: 'Approve', style: btn('main'), go: function () {
+                var cur2 = self.state.requests.filter(function (r) { return r.id === rq.id; })[0];
+                if (!cur2 || cur2.status !== 'incharge') { self.flash('You can approve once ' + to.name + ' has accepted.'); return; }
+                var R2 = applySwap(self.state.roster, rq), pubd = !!self.state.published[rq.give.w] || (rq.take && !!self.state.published[rq.take.w]);
+                set({ roster: R2 }); updRq(rq.id, { status: 'approved' }, byId[self.state.actor].name + ' approved ' + stamp + (pubd ? ' · published week, both told by SMS' : ''));
+                self.flash('Approved. The roster now shows ' + to.name + ' on ' + slotTxt(rq.give) + '.');
+              } });
+              acts.push({ label: 'Reject', style: btn(), go: function () { set({ rqAct: { id: rq.id, kind: 'reject', text: '' } }); } });
+            }
+            if ((st === 'colleague' || st === 'incharge') && s.actor === rq.from) acts.push({ label: 'Withdraw', style: btn(), go: function () { updRq(rq.id, { status: 'withdrawn' }, fr.name + ' withdrew ' + stamp); self.flash('Request withdrawn'); } });
+          }
+          var warn = (st === 'colleague' || st === 'incharge') ? newBreaks(rq) : [];
+          var trail = rq.log.join(' · ') + (rq.note ? ' · “' + rq.note + '”' : '') + (st === 'expired' ? ' · the shift started before anyone answered' : st === 'stale' ? ' · the roster was changed, so this no longer applies' : '');
+          var stepSt = function (state) { return 'display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:600;' + (state === 'done' ? 'background:#dcfce7;color:#166534' : state === 'now' ? 'background:#fef3c7;color:#92400e' : state === 'no' ? 'background:#fde2e1;color:#9f1d1d' : 'background:#f6f7f9;color:#8a93ab'); };
+          var accepted = st === 'incharge' || st === 'approved' || st === 'rejected' || (st === 'stale' || st === 'expired') && rq.status === 'incharge';
+          var s2 = st === 'declined' ? 'no' : accepted ? 'done' : (st === 'colleague' ? 'now' : 'wait');
+          var s3 = st === 'approved' ? 'done' : st === 'rejected' ? 'no' : st === 'incharge' ? 'now' : 'wait';
+          var steps = [['done', '✓ Asked'], [s2, (s2 === 'done' ? '✓ ' : s2 === 'no' ? '✕ ' : '2 · ') + to.name.split(' ')[0] + (s2 === 'done' ? ' accepted' : s2 === 'no' ? ' declined' : ' accepts')], [s3, (s3 === 'done' ? '✓ ' : s3 === 'no' ? '✕ ' : '3 · ') + (s3 === 'done' ? 'In-charge approved' : s3 === 'no' ? 'In-charge rejected' : 'In-charge approves')]];
+          if (st === 'declined') steps = steps.slice(0, 2);
+          return { steps: steps.map(function (x4) { return { label: x4[1], style: stepSt(x4[0]) }; }),
+            hasHint: st === 'colleague' && canApprove(rq) && s.actor !== rq.to && s.actor !== rq.from, hint: 'You can approve once ' + to.name.split(' ')[0] + ' accepts.',
+            fromIni: fa.initials, fromAv: fa.avStyle, toIni: ta.initials, toAv: ta.avStyle + ';margin-left:-8px',
+            headline: rq.kind === 'cover' ? fr.name + ' asks ' + to.name + ' to cover' : fr.name + ' asks ' + to.name + ' to swap',
+            detail: rq.kind === 'cover' ? slotTxt(rq.give) : 'Gives ' + slotTxt(rq.give) + ' · takes ' + slotTxt(rq.take),
+            hasReason: !!rq.reason, reason: rq.reason, hasWarn: warn.length > 0, warn: warn.length ? 'Breaks a rest rule: ' + warn.join('; ') : '', trail: trail,
+            stat: label, statStyle: 'display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background:' + STAT[st][0] + ';color:' + STAT[st][1],
+            hasActions: acts.length > 0, actions: acts,
+            asking: !!asking, noteVal: asking ? s.rqAct.text : '', confirmLabel: asking && s.rqAct.kind === 'reject' ? 'Reject' : 'Decline',
+            setNote: function (ev) { set({ rqAct: Object.assign({}, self.state.rqAct, { text: ev.target.value }) }); },
+            cancelAsk: function () { set({ rqAct: null }); },
+            confirm: function () {
+              var a = self.state.rqAct, who = byId[self.state.actor].name;
+              updRq(rq.id, { status: a.kind === 'reject' ? 'rejected' : 'declined', note: a.text.trim() }, who + (a.kind === 'reject' ? ' rejected ' : ' declined ') + stamp);
+              self.flash(a.kind === 'reject' ? 'Rejected. Both are told.' : 'Declined. ' + fr.name + ' is told.');
+            } };
+        });
+      })(),
+      rqEmpty: s.requests.filter(rqVisible).length === 0,
+      rqEmptyText: s.rqFilter === 'mine' ? 'Nothing needs you right now.' : s.rqFilter === 'open' ? 'No pending requests.' : 'No requests yet.',
+      rqHasNeed: s.requests.filter(needsMe).length > 0, rqNeedLabel: s.requests.filter(needsMe).length + (s.requests.filter(needsMe).length === 1 ? ' needs you' : ' need you'),
+      ruleDlgOpen: !!s.ruleDlg, ruleDlgList: ruleGroups.filter(function (g) { return g.id === s.ruleDlg; }),
+      ruleDlgTitle: s.ruleDlg ? (ruleGroups.filter(function (g) { return g.id === s.ruleDlg; })[0] || {}).scope + ' rules' : '',
+      closeRuleDlg: function () { set({ ruleDlg: '', ruleEdit: null }); },
+      hasToast: !!s.toast, toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

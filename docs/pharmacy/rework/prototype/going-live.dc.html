@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Set-up › Going live</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f6f7f9}
+a{color:#0f766e}a:hover{color:#1b2540}
+button{cursor:pointer}
+button:disabled{cursor:default}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #0f766e;outline-offset:2px}
+.gl-item:hover{background:#fafbfc}
+</style>
+</helmet>
+<div style="min-height: 2300px; background: #f6f7f9; color: #1b2540; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; display: flex; flex-wrap: wrap; gap: 24px; padding: 24px 20px; box-sizing: border-box">
+  <nav aria-label="Pharmacy" style="flex: 0 0 112px; align-self: flex-start; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); padding: 12px 8px; display: flex; flex-direction: column; gap: 4px">
+    <div style="width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 14px; background: #1b2540; color: #ffffff; display: grid; place-items: center; font-size: 16px; font-weight: 700">Rx</div>
+    <sc-for list="{{sections}}" as="s" hint-placeholder-count="7"><a href="#" style="{{s.style}}">{{s.label}}</a></sc-for>
+  </nav>
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+    <h1 style="margin: 8px 0 0; font-size: 36px; line-height: 40px; font-weight: 500; letter-spacing: -0.03em">Set-up</h1>
+    <nav aria-label="Set-up" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #e4e7ee; border-radius: 999px; align-self: flex-start">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6"><a href="{{t.href}}" aria-current="{{t.current}}" style="{{t.style}}">{{t.label}}</a></sc-for>
+    </nav>
+
+    <!-- Readiness hero -->
+    <section aria-label="Readiness" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px">
+      <span style="position: relative; flex: 0 0 132px; width: 132px; height: 132px">
+        <svg aria-hidden="true" width="132" height="132" viewBox="0 0 132 132"><circle cx="66" cy="66" r="56" fill="none" stroke="#eef0f4" stroke-width="12"></circle><circle cx="66" cy="66" r="56" fill="none" stroke="{{ringColor}}" stroke-width="12" stroke-linecap="round" stroke-dasharray="{{ringDash}}" transform="rotate(-90 66 66)"></circle></svg>
+        <span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center">
+          <span style="font-size: 30px; line-height: 34px; font-weight: 700; font-variant-numeric: tabular-nums">{{pct}}</span>
+          <span style="font-size: 11px; font-weight: 600; color: #5f6987; letter-spacing: .04em">READY</span>
+        </span>
+      </span>
+      <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 8px; min-width: 0">
+        <span style="{{statusChipStyle}}">{{statusChip}}</span>
+        <p style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">{{headline}}</p>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #4a5574">{{subline}}</p>
+        <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: #4a5574">
+          <label style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600">Go-live date
+            <input type="date" value="{{target}}" min="2026-11-04" onChange="{{setTarget}}" disabled="{{isLive}}" style="height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; font: 600 13px Figtree, sans-serif; color: #1b2540"></label>
+          <span style="{{countStyle}}">{{countdown}}</span>
+        </span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-left: auto">
+        <button type="button" disabled="{{cantGo}}" onClick="{{openGo}}" style="{{goStyle}}">{{goLabel}}</button>
+        <span style="max-width: 18rem; text-align: right; font-size: 12px; line-height: 16px; color: #5f6987">{{goHint}}</span>
+      </div>
+    </section>
+
+    <!-- Phases -->
+    <section aria-label="Phases" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">How the switch happens</h2>
+      <ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px">
+        <sc-for list="{{phases}}" as="ph" hint-placeholder-count="4">
+          <li style="{{ph.style}}">
+            <span style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="{{ph.numStyle}}">{{ph.num}}</span><b style="font-size: 14px; font-weight: 600">{{ph.title}}</b></span>
+            <span style="font-size: 12px; line-height: 16px; color: #4a5574">{{ph.body}}</span>
+            <span style="{{ph.stStyle}}">{{ph.st}}</span>
+            <sc-if value="{{ph.hasAct}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{ph.act}}" style="align-self: flex-start; height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">{{ph.actLabel}}</button></sc-if>
+          </li>
+        </sc-for>
+      </ol>
+    </section>
+
+    <!-- Checklist -->
+    <section aria-label="Checklist" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 8px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+        <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Checklist <span style="font-weight: 400; color: #5f6987">· {{doneLine}}</span></h2>
+        <div role="group" aria-label="Show" style="display: flex; flex-wrap: wrap; gap: 6px">
+          <sc-for list="{{views}}" as="v" hint-placeholder-count="5"><button type="button" aria-pressed="{{v.on}}" onClick="{{v.pick}}" style="{{v.style}}">{{v.label}}</button></sc-for>
+        </div>
+      </div>
+      <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+        <div style="display: flex; flex-direction: column">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 6px">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5f6987">{{g.title}}</span>
+            <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5f6987; font-variant-numeric: tabular-nums"><span aria-hidden="true" style="width: 80px; height: 6px; border-radius: 999px; background: #eef0f4; overflow: hidden"><span style="{{g.bar}}"></span></span>{{g.count}}</span>
+          </div>
+          <ul style="list-style: none; margin: 0; padding: 0">
+            <sc-for list="{{g.items}}" as="it" hint-placeholder-count="4">
+              <li class="gl-item" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 8px; border-top: 1px solid #dde1e9; border-radius: 10px">
+                <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 14px">
+                  <span aria-hidden="true" style="{{it.tick}}">{{it.tickMark}}</span>
+                  <span style="flex: 1 1 340px; display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                    <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px"><b style="font-size: 15px; line-height: 21px; font-weight: 600">{{it.name}}</b><sc-if value="{{it.blocks}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #1b2540; color: #ffffff; font-size: 10px; font-weight: 700; letter-spacing: .04em">BLOCKS GO-LIVE</span></sc-if></span>
+                    <span style="font-size: 13px; line-height: 18px; color: #4a5574">{{it.why}}</span>
+                    <sc-if value="{{it.hasProg}}" hint-placeholder-val="{{false}}">
+                      <span style="display: flex; align-items: center; gap: 8px; margin-top: 2px; font-size: 12px; color: #4a5574; font-variant-numeric: tabular-nums"><span aria-hidden="true" style="flex: 0 1 220px; height: 6px; border-radius: 999px; background: #eef0f4; overflow: hidden"><span style="{{it.progBar}}"></span></span>{{it.prog}} <span style="color: #5f6987">· checked automatically</span></span>
+                    </sc-if>
+                    <sc-if value="{{it.hasAnswer}}" hint-placeholder-val="{{false}}"><span style="margin-top: 2px; padding: 8px 10px; border-radius: 10px; background: #f6f7f9; font-size: 13px; line-height: 18px">“{{it.answer}}”</span></sc-if>
+                    <span style="font-size: 12px; line-height: 16px; color: #5f6987">{{it.meta}}</span>
+                  </span>
+                  <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+                    <span style="{{it.stStyle}}">{{it.st}}</span>
+                    <span style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px">
+                      <sc-if value="{{it.hasLink}}" hint-placeholder-val="{{false}}"><a href="{{it.href}}" style="display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; color: #1b2540; font-size: 13px; font-weight: 600; text-decoration: none">{{it.linkLabel}}</a></sc-if>
+                      <sc-if value="{{it.canAct}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{it.act}}" style="{{it.actStyle}}">{{it.actLabel}}</button></sc-if>
+                      <button type="button" aria-label="{{it.editAria}}" onClick="{{it.editOwner}}" style="height: 32px; padding: 0 10px; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Owner and date</button>
+                    </span>
+                  </span>
+                </div>
+                <sc-if value="{{it.editing}}" hint-placeholder-val="{{false}}">
+                  <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: 34px; padding: 8px 10px; border-radius: 12px; background: #f6f7f9">
+                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #4a5574">Owner
+                      <select value="{{it.owner}}" onChange="{{it.setOwner}}" style="height: 32px; padding: 0 6px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 600 12px Figtree, sans-serif; color: #1b2540"><sc-for list="{{owners}}" as="o" hint-placeholder-count="6"><option>{{o}}</option></sc-for></select></label>
+                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #4a5574">Due
+                      <input type="date" value="{{it.due}}" onChange="{{it.setDue}}" style="height: 32px; padding: 0 6px; border: 1px solid #c5cbd8; border-radius: 8px; font: 600 12px Figtree, sans-serif; color: #1b2540"></label>
+                    <button type="button" onClick="{{it.doneEdit}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 12px Figtree, sans-serif">Done</button>
+                  </span>
+                </sc-if>
+              </li>
+            </sc-for>
+          </ul>
+        </div>
+      </sc-for>
+      <sc-if value="{{noItems}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 14px 0; border-top: 1px solid #dde1e9; font-size: 14px; color: #5f6987">{{noItemsText}}</p></sc-if>
+    </section>
+
+    <!-- Activity -->
+    <section aria-label="Activity" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 10px; display: flex; flex-direction: column; gap: 6px">
+      <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Activity</h2>
+      <ul style="list-style: none; margin: 0; padding: 0">
+        <sc-for list="{{log}}" as="lg" hint-placeholder-count="4"><li style="display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid #dde1e9; font-size: 13px; line-height: 18px"><span style="flex: 0 0 7.5rem; color: #5f6987; font-variant-numeric: tabular-nums">{{lg.when}}</span><span>{{lg.what}}</span></li></sc-for>
+      </ul>
+    </section>
+  </main>
+
+  <!-- Record answer -->
+  <sc-if value="{{dlgOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="{{dl.title}}" style="width: 580px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="padding: 20px 24px 8px; display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">{{dl.title}}</h2>
+          <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">{{dl.lead}}</p>
+        </div>
+        <div style="padding: 8px 24px 16px; display: flex; flex-direction: column; gap: 14px">
+          <sc-if value="{{dl.hasChoices}}" hint-placeholder-val="{{false}}">
+            <div role="radiogroup" aria-label="Answer" style="display: flex; flex-direction: column; gap: 6px">
+              <sc-for list="{{dl.choices}}" as="ch" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{ch.on}}" onClick="{{ch.pick}}" style="{{ch.style}}">{{ch.label}}</button></sc-for>
+            </div>
+          </sc-if>
+          <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">{{dl.textLabel}}</span><textarea rows="3" value="{{dl.text}}" onChange="{{setDlText}}" placeholder="{{dl.ph}}" style="padding: 10px 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 14px Figtree, sans-serif; color: #1b2540; resize: vertical"></textarea></label>
+          <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Decided by</span><input value="{{dl.by}}" onChange="{{setDlBy}}" placeholder="e.g. Grace Namutebi with the medical superintendent" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540"></label>
+          <sc-if value="{{dl.hasError}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #e4e7ee; font-size: 14px; font-weight: 600">{{dl.error}}</p></sc-if>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 24px; border-top: 1px solid #dde1e9">
+          <button type="button" onClick="{{closeDlg}}" style="height: 44px; padding: 0 18px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 16px Figtree, sans-serif">Cancel</button>
+          <button type="button" onClick="{{saveDlg}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px Figtree, sans-serif">Save answer</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Go live -->
+  <sc-if value="{{goOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="Go live" style="width: 580px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="padding: 20px 24px 8px; display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">Go live on {{targetLabel}}</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 20px; color: #4a5574">From then, every dispense, count and handover is recorded in MedSync. Paper registers continue beside it for the 2-week parallel run.</p>
+        </div>
+        <div style="padding: 8px 24px 16px; display: flex; flex-direction: column; gap: 10px">
+          <sc-for list="{{goChecks}}" as="gc" hint-placeholder-count="3"><span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span aria-hidden="true" style="{{gc.style}}">{{gc.mark}}</span>{{gc.label}}</span></sc-for>
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 14px; background: #f6f7f9">
+            <span style="font-size: 13px; font-weight: 600; color: #4a5574">Two signatures switch it on</span>
+            <span style="display: flex; flex-wrap: wrap; gap: 8px">
+              <sc-for list="{{signers}}" as="sg" hint-placeholder-count="2"><button type="button" disabled="{{sg.done}}" onClick="{{sg.sign}}" style="{{sg.style}}">{{sg.label}}</button></sc-for>
+            </span>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 24px; border-top: 1px solid #dde1e9">
+          <button type="button" onClick="{{closeGo}}" style="height: 44px; padding: 0 18px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 16px Figtree, sans-serif">Close</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 20; padding: 12px 20px; border-radius: 999px; background: #1b2540; color: #ffffff; font-size: 15px; font-weight: 500; box-shadow: 0 10px 24px -10px rgba(27,37,64,0.5)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    // id, group, name, why, owner, due, blocks, kind (record | mark | auto), link, linkLabel, extra
+    var I = function (id, g, name, why, owner, due, blocks, kind, link, linkLabel, x) { return Object.assign({ id: id, g: g, name: name, why: why, owner: owner, due: due, blocks: blocks, kind: kind, link: link || '', linkLabel: linkLabel || '' }, x || {}); };
+    this.ITEMS = [
+      I('q1', 0, 'Who may dispense and hand over when no pharmacist is on duty', 'Dispensing stays pharmacist-only until this is recorded.', 'In-charge', '2026-11-06', true, 'record', '', '', { choices: ['Pharmacist only', 'Pharmacist or pharmacy technician', 'Pharmacist, technician, or a named nurse at night'] }),
+      I('q24', 0, 'The controlled-drug register', 'Electronic beside paper, ward and cart registers, and how long they are kept.', 'Medical superintendent', '2026-11-06', true, 'record', '', '', { choices: ['Electronic and paper side by side', 'Electronic only, paper retired after the parallel run'] }),
+      I('wit', 0, 'Who may witness a controlled dose, by cadre', 'The witness list on wards and in the pharmacy uses this.', 'In-charge', '2026-11-02', true, 'record', 'Rules.dc.html', 'Rules'),
+      I('mfa', 0, 'Two-step sign-in on every pharmacy account', 'Witness approvals rely on it.', 'IT officer', '2026-11-10', true, 'auto', '', '', { prog: [9, 14, 'accounts'] }),
+      I('dev', 0, 'Development overrides unset', 'Production will not start with an override on.', 'MedSync support', '2026-11-04', true, 'mark', '', '', { start: 'done', doneBy: 'MedSync support', doneAt: '28 Oct' }),
+      I('demo', 0, 'Demo data kept in its own project', 'Nothing marked demo is in this hospital.', 'MedSync support', '2026-11-04', true, 'mark', '', '', { start: 'done', doneBy: 'MedSync support', doneAt: '28 Oct' }),
+      I('places', 1, 'Places, devices and handover times', 'Each place has a device and its handover times.', 'In-charge', '2026-11-04', false, 'auto', 'Places.dc.html', 'Places', { prog: [6, 6, 'places'] }),
+      I('levels', 1, 'Top-up levels for every medicine at every place', 'Without levels, Issue cannot suggest amounts.', 'Store keeper', '2026-11-10', true, 'auto', 'Main.dc.html', 'Medicines', { prog: [44, 47, 'medicines'] }),
+      I('prices', 1, 'A price for every medicine stocked', 'Losses in UGX and the order budget need it.', 'Store keeper', '2026-11-10', false, 'auto', 'Main.dc.html', 'Medicines', { prog: [41, 47, 'medicines'] }),
+      I('opening', 1, 'Opening stock counted at every place', 'The first balance in MedSync. Count blind, then sign.', 'Store keeper', '2026-11-13', true, 'auto', 'Main.dc.html', 'Medicines', { prog: [3, 6, 'places'] }),
+      I('sensor', 1, 'A sensor on every fridge, or typed readings set up', 'RF-03 EPI solar fridge has no sensor; readings are typed at 08:00 and 17:00.', 'Store keeper', '2026-11-12', false, 'auto', 'Places.dc.html', 'Places', { prog: [2, 3, 'fridges'] }),
+      I('supp', 1, 'Suppliers and the NMS cycle', 'NMS every 2 months, JMS top-ups, UNEPI vaccines.', 'In-charge', '2026-11-04', false, 'mark', 'Places.dc.html', 'Places', { start: 'done', doneBy: 'Grace Namutebi', doneAt: '30 Oct' }),
+      I('roster', 2, 'Roster published for the first two weeks', 'Witness pickers and handover only offer people on duty.', 'In-charge', '2026-11-12', true, 'auto', 'People.dc.html', 'Roster', { prog: [0, 2, 'weeks published'] }),
+      I('lic', 2, 'A current licence for every pharmacist and technician', 'Nobody can be rostered after their licence expires.', 'In-charge', '2026-11-12', true, 'auto', 'People.dc.html', 'People', { prog: [5, 6, 'people'] }),
+      I('presc', 2, 'Prescriber list, with who may prescribe controlled drugs', 'Controlled entries pick the prescriber from this list.', 'Medical superintendent', '2026-11-11', false, 'mark', 'People.dc.html', 'People'),
+      I('train', 2, 'Everyone trained on a practice day', 'Each person signs in once in practice mode and dispenses a sample prescription.', 'In-charge', '2026-11-13', true, 'auto', '', '', { prog: [7, 12, 'people trained'] }),
+      I('words', 3, 'Workspace wording signed', 'New words show as drafts until signed.', 'In-charge', '2026-11-12', false, 'mark'),
+      I('rules', 3, 'Every rule group signed', 'Prescription checks and Ordering still use prototype defaults.', 'In-charge', '2026-11-12', true, 'auto', 'Rules.dc.html', 'Rules', { prog: [8, 10, 'groups signed'] }),
+      I('lug', 3, 'Luganda SMS templates checked', 'Until then reminders go in English only.', 'A Luganda speaker', '2026-11-13', false, 'mark', 'Messages.dc.html', 'Messages'),
+      I('hmis', 3, 'HMIS 105 and NDA return columns confirmed', 'Reports stay as drafts until the columns match the paper forms.', 'Records officer', '2026-11-13', false, 'record', '', '', { choices: ['Columns match the paper forms', 'Columns need changes (say which)'] })
+    ];
+    this.GROUPS = ['Legal answers and safety switches', 'Places and stock', 'People and training', 'Rules, wording and reports'];
+    var st = {};
+    this.ITEMS.forEach(function (i) { st[i.id] = { status: i.start || 'todo', answer: '', by: i.doneBy || '', at: i.doneAt || '', owner: i.owner, due: i.due, prog: i.prog ? i.prog.slice() : null }; });
+    this.state = { items: st, view: 'all', dlg: null, editing: '', goOpen: false, sig: { a: false, b: false }, live: false, liveAt: '', practice: false, retired: false, target: '2026-11-16', toast: '',
+      log: [['30 Oct, 11:20', 'Grace Namutebi marked "Suppliers and the NMS cycle" done'], ['28 Oct, 16:05', 'MedSync support marked "Demo data kept in its own project" done'], ['28 Oct, 16:02', 'MedSync support marked "Development overrides unset" done']] };
+  }
+  flash(msg) { var self = this; this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(function () { self.setState({ toast: '' }); }, 3200); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  renderVals() {
+    var self = this, s = this.state, set = function (p) { self.setState(p); };
+    var base = 'display:block;padding:10px 8px;border-radius:14px;text-align:center;font-size:13px;line-height:17px;font-weight:500;text-decoration:none;';
+    var pill = 'display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;font-size:15px;font-weight:600;text-decoration:none;';
+    var chip = function (bg, fg, h) { return 'display:inline-flex;align-items:center;align-self:flex-start;height:' + (h || 24) + 'px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background:' + bg + ';color:' + fg; };
+    var C = { ok: ['#dcfce7', '#166534'], low: ['#fef3c7', '#92400e'], out: ['#fde2e1', '#9f1d1d'], blue: ['#dbeafe', '#1e40af'], grey: ['#e4e7ee', '#4a5574'] };
+    var onS = 'border:0;background:#ccfbf1;color:#1b2540', offS = 'border:1px solid #c5cbd8;background:#ffffff;color:#4a5574';
+    var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var TODAY = '2026-11-03';
+    var dOf = function (iso) { return new Date(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10))); };
+    var fmtD = function (iso) { var d = dOf(iso); return DOW[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()]; };
+    var days = function (a, b) { return Math.round((dOf(b) - dOf(a)) / 864e5); };
+    var now = new Date(), stamp = '3 Nov, ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    var log = function (what) { return [[stamp, what]].concat(self.state.log); };
+    var effStatus = function (it) { var x = s.items[it.id]; if (it.kind === 'auto') { var p = x.prog; return p[0] >= p[1] ? 'done' : p[0] > 0 ? 'doing' : 'todo'; } return x.status; };
+    var frac = function (it) { var x = s.items[it.id]; if (it.kind === 'auto') return Math.min(1, x.prog[0] / x.prog[1]); return x.status === 'done' ? 1 : 0; };
+    var all = this.ITEMS;
+    var doneN = all.filter(function (it) { return effStatus(it) === 'done'; }).length;
+    var blockLeft = all.filter(function (it) { return it.blocks && effStatus(it) !== 'done'; });
+    var overdue = all.filter(function (it) { return effStatus(it) !== 'done' && s.items[it.id].due < TODAY; });
+    var pctN = Math.round(all.reduce(function (a, it) { return a + frac(it); }, 0) / all.length * 100);
+    var dleft = days(TODAY, s.target), blockersLate = blockLeft.filter(function (it) { return s.items[it.id].due > s.target; });
+    var setItem = function (id, patch, line) { var it = Object.assign({}, self.state.items); it[id] = Object.assign({}, it[id], patch); set(Object.assign({ items: it }, line ? { log: log(line) } : {})); };
+    var ME = 'Grace Namutebi';
+    var groups = this.GROUPS.map(function (title, gi) {
+      var list = all.filter(function (it) { return it.g === gi; });
+      var vis = list.filter(function (it) {
+        var st = effStatus(it), x = s.items[it.id];
+        if (s.view === 'blocking') return it.blocks && st !== 'done';
+        if (s.view === 'overdue') return st !== 'done' && x.due < TODAY;
+        if (s.view === 'auto') return it.kind === 'auto';
+        if (s.view === 'done') return st === 'done';
+        return true;
+      });
+      var gd = list.filter(function (it) { return effStatus(it) === 'done'; }).length;
+      return { title: title, count: gd + ' of ' + list.length, bar: 'display:block;height:100%;border-radius:999px;width:' + Math.round(gd / list.length * 100) + '%;background:' + (gd === list.length ? '#16a34a' : '#2dd4bf'), show: vis.length > 0,
+        items: vis.map(function (it) {
+          var x = s.items[it.id], st = effStatus(it), late = st !== 'done' && x.due < TODAY, dueIn = days(TODAY, x.due);
+          var stLabel = st === 'done' ? 'Done' : st === 'doing' ? 'In progress' : late ? 'Overdue' : 'To do';
+          var stC = st === 'done' ? C.ok : st === 'doing' ? C.blue : late ? C.out : C.grey;
+          var act = null;
+          if (it.kind === 'record') act = st === 'done' ? ['Change answer', 'out'] : ['Record answer', 'main'];
+          else if (it.kind === 'mark') act = st === 'done' ? ['Undo', 'out'] : ['Mark done', 'main'];
+          else if (st !== 'done') act = ['Check again', 'out'];
+          var p = x.prog;
+          return { name: it.name, why: it.why, blocks: it.blocks,
+            tick: 'flex:0 0 24px;width:24px;height:24px;margin-top:2px;border-radius:999px;display:grid;place-items:center;font-size:13px;font-weight:700;' + (st === 'done' ? 'background:#16a34a;color:#ffffff' : st === 'doing' ? 'background:#dbeafe;color:#1e40af' : 'background:#ffffff;color:#8a93ab;box-shadow:inset 0 0 0 2px #c5cbd8'),
+            tickMark: st === 'done' ? '✓' : st === 'doing' ? Math.round(frac(it) * 100) + '' : '',
+            hasProg: it.kind === 'auto', prog: p ? p[0] + ' of ' + p[1] + ' ' + p[2] : '', progBar: p ? 'display:block;height:100%;border-radius:999px;width:' + Math.round(Math.min(1, p[0] / p[1]) * 100) + '%;background:' + (p[0] >= p[1] ? '#16a34a' : '#2dd4bf') : '',
+            hasAnswer: it.kind === 'record' && !!x.answer, answer: x.answer,
+            meta: (st === 'done' && x.by ? 'Done by ' + x.by + (x.at ? ' · ' + x.at : '') + ' · ' : '') + 'Owner: ' + x.owner + ' · ' + (st === 'done' ? 'was due ' + fmtD(x.due) : late ? 'was due ' + fmtD(x.due) + ' (' + (-dueIn) + (dueIn === -1 ? ' day' : ' days') + ' late)' : 'due ' + fmtD(x.due) + (dueIn === 0 ? ' (today)' : ' (in ' + dueIn + (dueIn === 1 ? ' day)' : ' days)'))) + (it.blocks && x.due > s.target && st !== 'done' ? ' · due after the go-live date' : ''),
+            st: stLabel, stStyle: chip(stC[0], stC[1]),
+            hasLink: !!it.link, href: it.link, linkLabel: 'Open ' + it.linkLabel,
+            canAct: !!act && !s.live, actLabel: act ? act[0] : '', actStyle: 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (act && act[1] === 'main' ? 'border:0;background:#2dd4bf;color:#1b2540' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+            act: function () {
+              if (it.kind === 'record') { set({ dlg: { id: it.id, choice: x.answerChoice || '', text: x.answerText || '', by: x.by || ME, error: '' } }); return; }
+              if (it.kind === 'mark') { if (st === 'done') { setItem(it.id, { status: 'todo', by: '', at: '' }, ME + ' reopened "' + it.name + '"'); self.flash('Reopened'); } else { setItem(it.id, { status: 'done', by: ME, at: stamp }, ME + ' marked "' + it.name + '" done'); self.flash('Marked done'); } return; }
+              var np = x.prog.slice(); if (np[0] < np[1]) np[0] = Math.min(np[1], np[0] + Math.max(1, Math.ceil((np[1] - np[0]) / 2)));
+              setItem(it.id, { prog: np }, np[0] >= np[1] ? '"' + it.name + '" now complete (checked automatically)' : null);
+              self.flash(np[0] >= np[1] ? it.name + ': complete' : it.name + ': ' + np[0] + ' of ' + np[1] + ' ' + np[2] + ' now');
+            },
+            editAria: 'Change the owner and due date of: ' + it.name, editing: s.editing === it.id,
+            editOwner: function () { set({ editing: s.editing === it.id ? '' : it.id }); },
+            owner: x.owner, due: x.due,
+            setOwner: function (ev) { setItem(it.id, { owner: ev.target.value }); },
+            setDue: function (ev) { if (ev.target.value) setItem(it.id, { due: ev.target.value }); },
+            doneEdit: function () { set({ editing: '' }); self.flash('Owner and due date saved'); } };
+        }) };
+    }).filter(function (g) { return g.show; });
+    var dl = {}, itDlg = s.dlg ? all.filter(function (i) { return i.id === s.dlg.id; })[0] : null;
+    if (s.dlg) {
+      dl = { title: itDlg.name, lead: itDlg.why + ' The answer is kept with who decided it, and shows on the Rules tab.', hasChoices: !!itDlg.choices, text: s.dlg.text, by: s.dlg.by, hasError: !!s.dlg.error, error: s.dlg.error,
+        textLabel: itDlg.choices ? 'Details (optional)' : 'The answer', ph: itDlg.choices ? 'Anything to add, e.g. which nurses' : 'e.g. Second nurse on shift, the nurse in-charge or the doctor on duty',
+        choices: (itDlg.choices || []).map(function (c) { var on = s.dlg.choice === c; return { label: c, on: on ? 'true' : 'false', pick: function () { set({ dlg: Object.assign({}, self.state.dlg, { choice: c, error: '' }) }); }, style: 'min-height:44px;padding:8px 14px;border-radius:12px;text-align:left;font:600 14px Figtree,sans-serif;' + (on ? onS : offS) }; }) };
+    }
+    var phaseIdx = s.retired ? 4 : s.live ? 2 : s.practice ? 1 : 0;
+    var PH = [['Set up', 'Work through the checklist. Nothing here affects patients.'], ['Practice day', 'Everyone signs in in practice mode and dispenses sample prescriptions. Practice data is wiped.'], ['Parallel run · 2 weeks', 'MedSync is the record. Paper registers continue beside it, and differences are checked daily.'], ['Paper retired', 'The in-charge and the medical superintendent stop the paper registers.']];
+    var canGo = blockLeft.length === 0 && !s.live;
+    var ringC = s.live ? '#16a34a' : blockLeft.length ? '#2dd4bf' : '#16a34a';
+    var circ = 2 * Math.PI * 56;
+    return {
+      sections: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (l) { return { label: l, style: base + (l === 'Set-up' ? 'background:#1b2540;color:#ffffff;font-weight:600' : 'color:#5f6987') }; }),
+      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) { var on = t[0] === 'Going live'; return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') }; }),
+      pct: (s.live ? 100 : pctN) + '%', ringColor: ringC, ringDash: (circ * (s.live ? 1 : pctN / 100)).toFixed(1) + ' ' + circ.toFixed(1),
+      statusChip: s.retired ? 'Live · paper retired' : s.live ? 'Live · parallel run' : s.practice ? 'Practice day running' : 'Preparing',
+      statusChipStyle: s.live ? chip(C.ok[0], C.ok[1]) : s.practice ? chip(C.blue[0], C.blue[1]) : chip(C.grey[0], C.grey[1]),
+      headline: s.live ? 'Live since ' + s.liveAt + '.' : blockLeft.length ? blockLeft.length + (blockLeft.length === 1 ? ' thing blocks' : ' things block') + ' going live' : 'Ready to go live',
+      subline: s.live ? 'Paper registers continue for the 2-week parallel run. Differences between paper and MedSync are checked daily.' : doneN + ' of ' + all.length + ' done' + (overdue.length ? ' · ' + overdue.length + ' overdue' : '') + (blockersLate.length ? ' · ' + blockersLate.length + ' blocker' + (blockersLate.length === 1 ? ' is' : 's are') + ' due after the go-live date' : '') + '.',
+      target: s.target, targetLabel: fmtD(s.target), isLive: s.live,
+      setTarget: function (ev) { if (ev.target.value && ev.target.value > TODAY) { set({ target: ev.target.value, log: log(ME + ' set the go-live date to ' + fmtD(ev.target.value)) }); } },
+      countdown: s.live ? 'Live' : dleft > 0 ? 'in ' + dleft + (dleft === 1 ? ' day' : ' days') : 'today', countStyle: chip(dleft <= 3 && blockLeft.length ? C.out[0] : C.blue[0], dleft <= 3 && blockLeft.length ? C.out[1] : C.blue[1], 22),
+      cantGo: !canGo, goLabel: s.live ? 'Live' : 'Go live',
+      goStyle: 'height:48px;padding:0 24px;border-radius:999px;font:600 16px Figtree,sans-serif;' + (canGo ? 'border:0;background:#2dd4bf;color:#1b2540;box-shadow:0 8px 22px -6px rgba(45,212,191,0.65)' : 'border:1px solid #dde1e9;background:#f6f7f9;color:#8a93ab;cursor:not-allowed'),
+      goHint: s.live ? 'Switched on by the in-charge and the medical superintendent.' : canGo ? 'Needs two signatures: the in-charge and the medical superintendent.' : 'Opens when nothing blocks. Left: ' + blockLeft.slice(0, 3).map(function (it) { return it.name.split(',')[0].toLowerCase(); }).join('; ') + (blockLeft.length > 3 ? '; and ' + (blockLeft.length - 3) + ' more' : '') + '.',
+      openGo: function () { if (canGo) set({ goOpen: true }); },
+      closeGo: function () { set({ goOpen: false }); },
+      goChecks: [['Nothing blocks', blockLeft.length === 0], ['Practice day done', s.practice || s.items.train.prog[0] >= s.items.train.prog[1]], [all.length - doneN ? (all.length - doneN) + ' non-blocking items left, to finish during the parallel run' : 'Every item done', all.length === doneN]].map(function (c) { return { label: c[0], mark: c[1] ? '✓' : '!', style: 'flex:0 0 22px;width:22px;height:22px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:700;' + (c[1] ? 'background:#16a34a;color:#ffffff' : 'background:#fef3c7;color:#92400e') }; }),
+      signers: [['a', 'In-charge'], ['b', 'Medical superintendent']].map(function (sg) {
+        var done = s.sig[sg[0]];
+        return { label: done ? sg[1] + ' signed' : 'Sign as ' + sg[1].toLowerCase(), done: done, style: 'height:40px;padding:0 16px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (done ? 'border:0;background:#ccfbf1;color:#1b2540' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+          sign: function () {
+            var sg2 = Object.assign({}, self.state.sig); sg2[sg[0]] = true;
+            if (sg2.a && sg2.b) { var at = fmtD(TODAY) + ', ' + stamp.slice(-5); set({ sig: sg2, live: true, liveAt: at, goOpen: false, log: log('Went live: signed by the in-charge and the medical superintendent') }); self.flash('MedSync is live. The parallel run has started.'); }
+            else { set({ sig: sg2, log: log(sg[1] + ' signed to go live') }); self.flash('Signed. Waiting for the other signature.'); }
+          } };
+      }),
+      phases: PH.map(function (p, i) {
+        var done = i < phaseIdx || (i === 3 && s.retired), cur = i === phaseIdx;
+        var act = null;
+        if (i === 1 && !s.live) act = s.practice ? ['End practice day', function () { set({ practice: false, log: log('Practice day ended; practice data wiped') }); self.flash('Practice day ended. Practice data was wiped.'); }] : ['Start practice day', function () { set({ practice: true, log: log(ME + ' started a practice day') }); self.flash('Practice mode is on for everyone. Sample patients only.'); }];
+        if (i === 3 && s.live && !s.retired) act = ['Retire paper', function () { set({ retired: true, log: log('Paper registers retired') }); self.flash('Paper registers retired. MedSync is the only record.'); }];
+        return { num: done ? '✓' : String(i + 1), title: p[0], body: p[1], st: done ? 'Done' : cur ? 'Now' : 'Next', stStyle: done ? chip(C.ok[0], C.ok[1], 22) : cur ? chip(C.blue[0], C.blue[1], 22) : chip(C.grey[0], C.grey[1], 22),
+          style: 'display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;' + (cur ? 'background:#f0fdfa;box-shadow:inset 0 0 0 1.5px #2dd4bf' : 'background:#f6f7f9'),
+          numStyle: 'flex:0 0 24px;width:24px;height:24px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:700;' + (done ? 'background:#16a34a;color:#ffffff' : cur ? 'background:#0f766e;color:#ffffff' : 'background:#ffffff;color:#4a5574;box-shadow:inset 0 0 0 1.5px #c5cbd8'),
+          hasAct: !!act, actLabel: act ? act[0] : '', act: act ? act[1] : null };
+      }),
+      doneLine: doneN + ' of ' + all.length + ' done',
+      views: [['all', 'All · ' + all.length], ['blocking', 'Blocking · ' + blockLeft.length], ['overdue', 'Overdue · ' + overdue.length], ['auto', 'Checked automatically'], ['done', 'Done · ' + doneN]].map(function (v) { var on = s.view === v[0]; return { label: v[1], on: on ? 'true' : 'false', pick: function () { set({ view: v[0] }); }, style: 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (on ? onS : offS) }; }),
+      groups: groups, noItems: groups.length === 0, noItemsText: s.view === 'blocking' ? 'Nothing blocks going live.' : s.view === 'overdue' ? 'Nothing is overdue.' : 'Nothing here.',
+      owners: ['In-charge', 'Medical superintendent', 'Store keeper', 'IT officer', 'Records officer', 'MedSync support', 'A Luganda speaker', 'Ward in-charges'],
+      log: s.log.slice(0, 8).map(function (l) { return { when: l[0], what: l[1] }; }),
+      dlgOpen: !!s.dlg, dl: dl,
+      setDlText: function (ev) { set({ dlg: Object.assign({}, self.state.dlg, { text: ev.target.value, error: '' }) }); },
+      setDlBy: function (ev) { set({ dlg: Object.assign({}, self.state.dlg, { by: ev.target.value, error: '' }) }); },
+      closeDlg: function () { set({ dlg: null }); },
+      saveDlg: function () {
+        var d = self.state.dlg, it = all.filter(function (i) { return i.id === d.id; })[0], err = function (m) { set({ dlg: Object.assign({}, d, { error: m }) }); };
+        if (it.choices && !d.choice) return err('Pick an answer.');
+        if (!it.choices && !d.text.trim()) return err('Type the answer.');
+        if (!d.by.trim()) return err('Say who decided.');
+        var ans = (d.choice ? d.choice + (d.text.trim() ? '. ' + d.text.trim() : '') : d.text.trim());
+        var items = Object.assign({}, self.state.items); items[d.id] = Object.assign({}, items[d.id], { status: 'done', answer: ans, answerChoice: d.choice, answerText: d.text, by: d.by.trim(), at: stamp });
+        set({ items: items, dlg: null, log: log(d.by.trim() + ' recorded the answer to "' + it.name + '"') });
+        self.flash('Answer recorded');
+      },
+      hasToast: !!s.toast, toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

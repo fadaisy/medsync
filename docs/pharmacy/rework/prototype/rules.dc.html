@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Set-up › Rules</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f6f7f9}
+a{color:#0f766e}a:hover{color:#1b2540}
+button{cursor:pointer}
+button:disabled{cursor:default}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #0f766e;outline-offset:2px}
+.ru-row:hover{background:#fafbfc}
+.ru-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width: 900px){.ru-grid{grid-template-columns:1fr}}
+</style>
+</helmet>
+<div style="min-height: 2300px; background: #f6f7f9; color: #1b2540; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; display: flex; flex-wrap: wrap; gap: 24px; padding: 24px 20px; box-sizing: border-box">
+  <nav aria-label="Pharmacy" style="flex: 0 0 112px; align-self: flex-start; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); padding: 12px 8px; display: flex; flex-direction: column; gap: 4px">
+    <div style="width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 14px; background: #1b2540; color: #ffffff; display: grid; place-items: center; font-size: 16px; font-weight: 700">Rx</div>
+    <sc-for list="{{sections}}" as="s" hint-placeholder-count="7"><a href="#" style="{{s.style}}">{{s.label}}</a></sc-for>
+  </nav>
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+    <h1 style="margin: 8px 0 0; font-size: 36px; line-height: 40px; font-weight: 500; letter-spacing: -0.03em">Set-up</h1>
+    <nav aria-label="Set-up" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #e4e7ee; border-radius: 999px; align-self: flex-start">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6"><a href="{{t.href}}" aria-current="{{t.current}}" style="{{t.style}}">{{t.label}}</a></sc-for>
+    </nav>
+
+    <!-- Header -->
+    <section style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px; max-width: 64ch">
+          <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Every rule MedSync enforces <span style="font-weight: 400; color: #5f6987">· {{ruleCount}}</span></h2>
+          <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">The same rules show as badges on Medicines, Places and People. A change applies once the in-charge and a second signer have both signed, and the checks use the new value from then on.</p>
+        </div>
+        <label style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5f6987" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input aria-label="Search rules" placeholder="Search rules, e.g. witness" value="{{q}}" onChange="{{setQ}}" style="width: 14rem; height: 36px; border: 0; background: transparent; font: 400 14px Figtree, sans-serif; color: #1b2540">
+        </label>
+      </div>
+      <div role="group" aria-label="Summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px">
+        <sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+          <button type="button" aria-pressed="{{k.on}}" onClick="{{k.pick}}" style="{{k.style}}">
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: #4a5574"><span aria-hidden="true" style="{{k.dot}}"></span>{{k.label}}</span>
+            <span style="font-size: 22px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">{{k.value}}</span>
+            <span style="font-size: 11px; line-height: 14px; color: #5f6987">{{k.sub}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- Waiting for signatures -->
+    <sc-if value="{{hasPending}}" hint-placeholder-val="{{true}}">
+      <section aria-label="Waiting for signatures" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 8px; display: flex; flex-direction: column">
+        <h2 style="margin: 0 0 8px; display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 24px; font-weight: 600">Waiting for signatures <span style="display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 12px; font-weight: 700">{{pendingN}}</span></h2>
+        <sc-for list="{{pending}}" as="pp" hint-placeholder-count="2">
+          <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px 16px; padding: 12px 0; border-top: 1px solid #dde1e9">
+            <span style="flex: 1 1 380px; display: flex; flex-direction: column; gap: 6px; min-width: 0">
+              <span style="font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #5f6987">{{pp.group}} · {{pp.rule}}</span>
+              <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; line-height: 20px">
+                <span style="padding: 2px 8px; border-radius: 8px; background: #fde2e1; color: #9f1d1d; text-decoration: line-through">{{pp.from}}</span>
+                <span aria-hidden="true" style="color: #8a93ab; font-weight: 700">→</span>
+                <span style="padding: 2px 8px; border-radius: 8px; background: #dcfce7; color: #166534; font-weight: 600">{{pp.to}}</span>
+              </span>
+              <span style="font-size: 13px; line-height: 18px; color: #4a5574">Why: {{pp.reason}}</span>
+              <span style="font-size: 12px; color: #5f6987">{{pp.meta}}</span>
+            </span>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+              <span style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px">
+                <sc-for list="{{pp.signers}}" as="sg" hint-placeholder-count="2"><button type="button" disabled="{{sg.done}}" title="{{sg.tip}}" onClick="{{sg.sign}}" style="{{sg.style}}">{{sg.label}}</button></sc-for>
+              </span>
+              <sc-if value="{{pp.rejecting}}" hint-placeholder-val="{{false}}">
+                <span style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px">
+                  <input aria-label="Why reject" placeholder="Why (shown to the proposer)" value="{{pp.noteVal}}" onChange="{{pp.setNote}}" style="width: 14rem; height: 32px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; font: 400 13px Figtree, sans-serif; color: #1b2540">
+                  <button type="button" onClick="{{pp.confirmReject}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #1b2540; color: #ffffff; font: 600 13px Figtree, sans-serif">Reject</button>
+                  <button type="button" onClick="{{pp.cancelReject}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Cancel</button>
+                </span>
+              </sc-if>
+              <sc-if value="{{pp.notRejecting}}" hint-placeholder-val="{{true}}">
+                <span style="display: flex; gap: 10px">
+                  <button type="button" onClick="{{pp.reject}}" style="height: 28px; padding: 0; border: 0; background: transparent; color: #9f1d1d; font: 600 12px Figtree, sans-serif; text-decoration: underline">Reject</button>
+                  <button type="button" onClick="{{pp.withdraw}}" style="height: 28px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Withdraw</button>
+                </span>
+              </sc-if>
+            </span>
+          </div>
+        </sc-for>
+      </section>
+    </sc-if>
+
+    <!-- Groups + detail -->
+    <div class="ru-grid">
+      <nav aria-label="Rule groups" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 10px; display: flex; flex-direction: column; gap: 2px">
+        <sc-for list="{{groupNav}}" as="gn" hint-placeholder-count="10">
+          <button type="button" aria-current="{{gn.current}}" onClick="{{gn.pick}}" style="{{gn.style}}">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0; text-align: left">
+              <span style="font-size: 14px; line-height: 19px; font-weight: 600">{{gn.title}}</span>
+              <span style="font-size: 11px; line-height: 14px; color: #5f6987">{{gn.where}}</span>
+            </span>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 3px">
+              <span style="font-size: 12px; color: #5f6987; font-variant-numeric: tabular-nums">{{gn.n}}</span>
+              <sc-if value="{{gn.hasFlag}}" hint-placeholder-val="{{false}}"><span style="{{gn.flagStyle}}">{{gn.flag}}</span></sc-if>
+            </span>
+          </button>
+        </sc-for>
+      </nav>
+
+      <section aria-label="{{cur.title}}" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 10px; display: flex; flex-direction: column; gap: 10px; min-width: 0">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 12px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <h2 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 600">{{cur.title}}</h2>
+            <span style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: #5f6987">Shows on
+              <sc-for list="{{cur.where}}" as="wh" hint-placeholder-count="2"><a href="{{wh.href}}" style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; background: #f6f7f9; color: #0f766e; font-size: 12px; font-weight: 600; text-decoration: none">{{wh.label}}</a></sc-for>
+            </span>
+          </div>
+          <span style="{{cur.sigStyle}}">{{cur.sigLabel}}</span>
+        </div>
+        <sc-if value="{{cur.unsigned}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 12px 14px; border-radius: 14px; background: #fef3c7; color: #92400e">
+            <span style="font-size: 13px; line-height: 18px; font-weight: 600">Not signed yet. The checks use these prototype defaults until the in-charge and a second signer sign the group.</span>
+            <span style="display: flex; gap: 6px"><sc-for list="{{cur.groupSigners}}" as="sg" hint-placeholder-count="2"><button type="button" disabled="{{sg.done}}" onClick="{{sg.sign}}" style="{{sg.style}}">{{sg.label}}</button></sc-for></span>
+          </div>
+        </sc-if>
+        <div style="overflow-x: auto">
+          <div style="min-width: 560px">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 0.9fr) 5.5rem; gap: 0 12px; padding: 0 8px">
+              <sc-for list="{{cols}}" as="c" hint-placeholder-count="4"><span style="padding: 8px 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6987">{{c}}</span></sc-for>
+            </div>
+            <sc-for list="{{cur.rules}}" as="r" hint-placeholder-count="5">
+              <div style="border-top: 1px solid #dde1e9">
+                <div class="ru-row" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 0.9fr) 5.5rem; gap: 4px 12px; align-items: center; padding: 10px 8px; border-radius: 10px">
+                  <span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 14px; line-height: 19px; font-weight: 600">{{r.k}}</b><span style="font-size: 11px; color: #5f6987">{{r.changed}}</span></span>
+                  <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; line-height: 19px"><span>{{r.v}}</span><sc-if value="{{r.hasParam}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; background: #ccfbf1; color: #0f766e; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums">{{r.param}}</span></sc-if><sc-if value="{{r.isPending}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 700">Change waiting</span></sc-if></span>
+                  <span style="font-size: 12px; line-height: 16px; color: #4a5574">{{r.applies}}</span>
+                  <span style="text-align: right"><sc-if value="{{r.canChange}}" hint-placeholder-val="{{true}}"><button type="button" aria-label="{{r.changeAria}}" onClick="{{r.change}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Change</button></sc-if></span>
+                </div>
+                <sc-if value="{{r.editing}}" hint-placeholder-val="{{false}}">
+                  <div style="margin: 0 8px 12px; padding: 12px 14px; border-radius: 14px; background: #f6f7f9; display: flex; flex-direction: column; gap: 10px">
+                    <sc-if value="{{r.hasParam}}" hint-placeholder-val="{{false}}">
+                      <label style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #4a5574">New value
+                        <span style="display: inline-flex; align-items: center; height: 40px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; overflow: hidden">
+                          <button type="button" aria-label="Less" onClick="{{r.dec}}" style="width: 36px; height: 38px; border: 0; background: #ffffff; font: 700 16px Figtree, sans-serif; color: #1b2540">−</button>
+                          <input inputmode="decimal" aria-label="{{r.k}}" value="{{r.ev}}" onChange="{{r.setV}}" style="width: 4.5rem; height: 38px; border: 0; border-left: 1px solid #dde1e9; border-right: 1px solid #dde1e9; text-align: center; font: 600 15px Figtree, sans-serif; color: #1b2540">
+                          <button type="button" aria-label="More" onClick="{{r.inc}}" style="width: 36px; height: 38px; border: 0; background: #ffffff; font: 700 16px Figtree, sans-serif; color: #1b2540">+</button>
+                        </span>
+                        <span style="font-weight: 500">{{r.unit}} · allowed {{r.range}}</span>
+                      </label>
+                    </sc-if>
+                    <sc-if value="{{r.isText}}" hint-placeholder-val="{{true}}">
+                      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a5574">New wording<input value="{{r.ev}}" onChange="{{r.setV}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"></label>
+                    </sc-if>
+                    <span style="font-size: 13px; line-height: 18px"><b style="font-weight: 600">Will read:</b> {{r.preview}}</span>
+                    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a5574">Why the change<input value="{{r.er}}" onChange="{{r.setR}}" placeholder="So the signers can decide" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"></label>
+                    <span style="font-size: 12px; color: #5f6987">{{r.impact}}</span>
+                    <sc-if value="{{r.hasError}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; font-weight: 600; color: #9f1d1d">{{r.error}}</span></sc-if>
+                    <span style="display: flex; gap: 8px">
+                      <button type="button" onClick="{{r.save}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 13px Figtree, sans-serif">Send for signing</button>
+                      <button type="button" onClick="{{r.cancel}}" style="height: 36px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Cancel</button>
+                    </span>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{cur.noRules}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 12px 8px; border-top: 1px solid #dde1e9; font-size: 14px; color: #5f6987">No rules match “{{q}}” here.</p></sc-if>
+        <sc-if value="{{cur.canAdd}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{cur.add}}" style="align-self: flex-start; height: 32px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 13px Figtree, sans-serif; text-decoration: underline">+ Add a rule to this group</button></sc-if>
+        <sc-if value="{{adding}}" hint-placeholder-val="{{false}}">
+          <div style="padding: 12px 14px; border-radius: 14px; background: #f6f7f9; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px">
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a5574">Rule<input value="{{nw.k}}" onChange="{{setNwK}}" placeholder="e.g. Second check for insulin" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"></label>
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a5574">What it says<input value="{{nw.v}}" onChange="{{setNwV}}" placeholder="e.g. A second nurse checks every insulin dose" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"></label>
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a5574">Why<input value="{{nw.r}}" onChange="{{setNwR}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"></label>
+            <sc-if value="{{nw.hasError}}" hint-placeholder-val="{{false}}"><span role="alert" style="grid-column: 1 / -1; font-size: 13px; font-weight: 600; color: #9f1d1d">{{nw.error}}</span></sc-if>
+            <span style="grid-column: 1 / -1; display: flex; gap: 8px">
+              <button type="button" onClick="{{saveNew}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 13px Figtree, sans-serif">Send for signing</button>
+              <button type="button" onClick="{{cancelNew}}" style="height: 36px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Cancel</button>
+            </span>
+          </div>
+        </sc-if>
+      </section>
+    </div>
+
+    <!-- History -->
+    <section aria-label="History" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 10px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+        <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">History</h2>
+        <div role="group" aria-label="History filter" style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{histFilters}}" as="hf" hint-placeholder-count="2"><button type="button" aria-pressed="{{hf.on}}" onClick="{{hf.pick}}" style="{{hf.style}}">{{hf.label}}</button></sc-for></div>
+      </div>
+      <ul style="list-style: none; margin: 0; padding: 0">
+        <sc-for list="{{history}}" as="h" hint-placeholder-count="4">
+          <li style="display: grid; grid-template-columns: 7rem minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; padding: 10px 0; border-top: 1px solid #dde1e9">
+            <span style="font-size: 12px; color: #5f6987; font-variant-numeric: tabular-nums">{{h.when}}</span>
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <span style="font-size: 13px; line-height: 18px"><b style="font-weight: 600">{{h.group}} · {{h.rule}}</b></span>
+              <sc-if value="{{h.hasDiff}}" hint-placeholder-val="{{true}}"><span style="font-size: 13px; line-height: 18px; color: #4a5574"><span style="text-decoration: line-through; color: #9f1d1d">{{h.from}}</span> → <span style="color: #166534; font-weight: 600">{{h.to}}</span></span></sc-if>
+              <span style="font-size: 12px; color: #5f6987">{{h.by}}</span>
+            </span>
+            <span style="{{h.style}}">{{h.kind}}</span>
+          </li>
+        </sc-for>
+      </ul>
+    </section>
+  </main>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 20; padding: 12px 20px; border-radius: 999px; background: #1b2540; color: #ffffff; font-size: 15px; font-weight: 500; box-shadow: 0 10px 24px -10px rgba(27,37,64,0.5)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    // rule: [name, text with {n}, applies to, param?: [n, unit, min, max, step]]
+    var G = function (id, title, where, signed, rules) { return { id: id, title: title, where: where, signed: signed, sig: { a: signed, b: signed }, rules: rules.map(function (r) { return { k: r[0], v: r[1], applies: r[2], p: r[3] ? { n: r[3][0], unit: r[3][1], min: r[3][2], max: r[3][3], step: r[3][4] || 1 } : null, changed: r[4] || 'Signed 12 Oct · Grace Namutebi and Brian Okello' }; }) }; };
+    this.state = {
+      groups: [
+        G('cd', 'Controlled drugs', ['Medicines', 'Dispense', 'Controls'], true, [
+          ['Witness on a ward', 'Second nurse on shift, nurse in-charge or doctor on duty', 'Controlled medicines on wards'],
+          ['Witness in the pharmacy', 'Pharmacy technician, second pharmacist or in-charge', 'Controlled medicines in the pharmacy'],
+          ['Minimum gap between doses', 'Morphine inj 4 h · pethidine 3 h · oral morphine 4 h', 'Morphine, pethidine'],
+          ['Balance check', 'Wards and dispensary daily · store weekly', 'Every controlled line'],
+          ['Residue', 'Discarded in front of the witness, amount recorded', 'Part-used ampoules'],
+          ['Offline entries', 'Must reach the server within {n}', 'Every device', [12, 'hours', 1, 48]]
+        ]),
+        G('ho', 'Shift handover', ['Places', 'Controls'], true, [
+          ['Handover times', 'Set per place (08:00 and 17:00 by default)', 'Every place'],
+          ['Missed', 'A handover not started {n} after its time is marked missed', 'Every place', [30, 'minutes', 10, 120, 5]],
+          ['Counted blind', 'Controlled and high-risk medicines at every handover', 'Controlled, high-risk'],
+          ['Who hands over', 'Only the place you are working at', 'Everyone']
+        ]),
+        G('inv', 'Investigations', ['Controls'], true, [
+          ['Opened from', 'Controlled, high-risk or "Other" count differences', 'Counts and handovers'],
+          ['Deadline, high', 'Closed within {n}', 'High-severity cases', [24, 'hours', 4, 72]],
+          ['Deadline, medium', 'Closed within {n}', 'Medium cases', [48, 'hours', 12, 120]],
+          ['Past deadline', 'Escalated to the in-charge', 'Every case'],
+          ['Closed by', 'In-charge sign-off with the finding', 'Every case']
+        ]),
+        G('rx', 'Prescription checks', ['Dispense', 'Medicines'], false, [
+          ['Children, mg/kg a dose', 'Paracetamol 10–15 · amoxicillin 12–30 · metronidazole 7.5–10 · cotrimoxazole 12–24', '4 medicines', null, 'Prototype default'],
+          ['Kidney: metformin', 'Stop below eGFR 30 · max 1 g a day at 30–45', 'Metformin', null, 'Prototype default'],
+          ['Allergy', 'Penicillin allergy blocks amoxicillin', 'Penicillins', null, 'Prototype default'],
+          ['Pregnancy', 'Metronidazole: caution in the first trimester', 'Metronidazole', null, 'Prototype default']
+        ]),
+        G('cold', 'Stock and cold chain', ['Medicines', 'Places'], true, [
+          ['Expiry warning', 'Warn {n} before expiry', 'Every batch', [90, 'days', 30, 365, 15]],
+          ['Fridge range', 'Kept at 2–8 °C', 'Every fridge'],
+          ['Near the limit', 'Within {n} of 2 or 8 °C shows as near the limit', 'Every fridge', [0.5, '°C', 0.1, 2, 0.1]],
+          ['Excursion', '{n} or more outside 2–8 °C opens an excursion', 'Every fridge', [30, 'minutes', 5, 120, 5]],
+          ['Open vials', 'BCG, MR 6 h · bOPV, IPV, Penta, Td 28 days', 'Vaccines'],
+          ['Count reasons', 'Damaged · expired · found · miscount · Other (opens a case)', 'Every count']
+        ]),
+        G('ord', 'Ordering', ['Stock', 'Places'], false, [
+          ['Order covers', 'The cycle plus a {n} buffer', 'NMS orders', [1, 'month', 0, 3], 'Prototype default'],
+          ['Stock-outs', 'Use adjusted for days out of stock', 'Every line', null, 'Prototype default'],
+          ['Over budget', 'Trim N lines first, then E · never V', 'Every order', null, 'Prototype default'],
+          ['Order due', '{n} before the cycle date', 'Every supplier with a cycle', [7, 'days', 1, 30], 'Prototype default']
+        ]),
+        G('price', 'Prices and billing', ['Medicines', 'Places'], true, [
+          ['Price rule', 'Received cost + {n}, rounded to UGX 50', 'Lines without a typed price', [25, '%', 0, 100]],
+          ['Free point', 'Every line at a free dispensing point is billed as free', 'Free dispensing points'],
+          ['Pay before collecting', 'Never holds an emergency or an admitted patient', 'Pay-first dispensing points']
+        ]),
+        G('roster', 'Roster and people', ['People'], true, [
+          ['People per shift', 'Day and night shifts have {n} people who can witness', 'Wards and pharmacy', [2, 'people', 1, 4]],
+          ['Shifts a week', 'At most {n} day or night shifts a week per person', 'Everyone rostered', [6, 'shifts', 3, 7]],
+          ['Rest', 'No day shift the morning after a night shift', 'Everyone rostered'],
+          ['Late', 'Signing in more than {n} after the start is late', 'Pharmacy shifts', [10, 'minutes', 0, 60, 5]],
+          ['Not signed in', 'The in-charge is alerted {n} after the start', 'Pharmacy shifts', [15, 'minutes', 5, 60, 5]],
+          ['Leave notice', 'Ask {n} ahead, except sick leave', 'Pharmacy staff', [7, 'days', 0, 30]],
+          ['Licence warning', 'Warn {n} before a licence expires', 'Pharmacists, technicians', [30, 'days', 7, 90]]
+        ]),
+        G('swap', 'Swaps and who makes the roster', ['People'], true, [
+          ['Swaps', 'The colleague accepts first; only then can the in-charge approve', 'Pharmacy staff'],
+          ['Unanswered', 'A request not answered before the shift starts expires', 'Pharmacy staff'],
+          ['Roster maker', 'The pharmacy in-charge, or someone handed the duty, with an end date', 'Pharmacy roster']
+        ]),
+        G('msg', 'Messages', ['Messages'], true, [
+          ['Consent', 'Only patients who agreed at registration get SMS', 'Every patient SMS'],
+          ['Quiet hours', 'No SMS between 20:00 and 07:00; held until 07:00', 'Every SMS'],
+          ['Per patient', 'At most {n} reminders a week per patient', 'Patient reminders', [3, 'SMS', 1, 7]],
+          ['Monthly cap', 'Stop sending at {n} of the monthly SMS budget', 'Every SMS', [100, '%', 50, 100, 5]]
+        ])
+      ],
+      sel: 'cd', q: '', tile: '', edit: null, adding: null, rej: null, histF: 'all',
+      props: [
+        { id: 'p1', gid: 'cold', idx: 0, kind: 'change', to: 120, reason: 'NMS often delivers short-dated stock; we need longer notice to redistribute it', by: 'Esther Achieng', at: '2 Nov, 15:40', a: false, b: true },
+        { id: 'p2', gid: 'cd', idx: 2, kind: 'change', to: 'Morphine inj 4 h · pethidine 3 h · oral morphine 4 h · tramadol inj 6 h', reason: 'Tramadol injection is now stocked on Ward 3', by: 'Sarah Akello', at: '3 Nov, 09:12', a: false, b: false }
+      ],
+      history: [
+        { when: '28 Oct', gid: 'roster', rule: 'Shifts a week', from: 'At most 5', to: 'At most 6', by: 'Proposed by Grace Namutebi · signed by Grace Namutebi and Brian Okello', kind: 'Changed' },
+        { when: '20 Oct', gid: 'msg', rule: 'Quiet hours', from: '21:00–07:00', to: '20:00–07:00', by: 'Proposed by Brian Okello · signed by Grace Namutebi and Esther Achieng', kind: 'Changed' },
+        { when: '15 Oct', gid: 'cd', rule: 'Offline entries', from: 'Within 24 hours', to: 'Within 12 hours', by: 'Proposed by Grace Namutebi · rejected by the second signer: "Wards lose network for a full day at times"', kind: 'Rejected' },
+        { when: '12 Oct', gid: 'cd', rule: 'Group', from: '', to: '', by: 'Signed by Grace Namutebi and Brian Okello', kind: 'Group signed' }
+      ],
+      toast: ''
+    };
+  }
+  flash(msg) { var self = this; this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(function () { self.setState({ toast: '' }); }, 3200); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  renderVals() {
+    var self = this, s = this.state, set = function (p) { self.setState(p); };
+    var base = 'display:block;padding:10px 8px;border-radius:14px;text-align:center;font-size:13px;line-height:17px;font-weight:500;text-decoration:none;';
+    var pill = 'display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;font-size:15px;font-weight:600;text-decoration:none;';
+    var chip = function (bg, fg) { return 'display:inline-flex;align-items:center;align-self:flex-start;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;background:' + bg + ';color:' + fg; };
+    var C = { ok: ['#dcfce7', '#166534'], low: ['#fef3c7', '#92400e'], out: ['#fde2e1', '#9f1d1d'], grey: ['#e4e7ee', '#4a5574'] };
+    var onS = 'border:0;background:#ccfbf1;color:#1b2540', offS = 'border:1px solid #c5cbd8;background:#ffffff;color:#4a5574';
+    var HREF = { Medicines: 'Main.dc.html', Places: 'Places.dc.html', People: 'People.dc.html', Messages: 'Messages.dc.html', Dispense: '#', Controls: '#', Stock: '#' };
+    var ME = 'Grace Namutebi', SECOND = 'Brian Okello';
+    var now = new Date(), stamp = '3 Nov, ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    var fmtN = function (n, p) { var d = String(p.step).indexOf('.') >= 0 ? String(p.step).split('.')[1].length : 0; return (+n).toFixed(d); };
+    var unitFor = function (n, p) { return +n === 1 && /s$/.test(p.unit) && p.unit !== '%' ? p.unit.slice(0, -1) : p.unit; };
+    var textOf = function (r, n) { if (!r.p) return r.v; var nn = n === undefined ? r.p.n : n; return r.v.replace('{n}', fmtN(nn, r.p) + (r.p.unit === '%' ? '' : ' ') + unitFor(nn, r.p)); };
+    var gById = {}; s.groups.forEach(function (g) { gById[g.id] = g; });
+    var pendingFor = function (gid, idx) { return s.props.filter(function (p) { return p.gid === gid && p.idx === idx && p.kind === 'change'; })[0] || null; };
+    var totalRules = s.groups.reduce(function (a, g) { return a + g.rules.length; }, 0);
+    var unsignedGroups = s.groups.filter(function (g) { return !g.signed; });
+    var matches = function (g, r) { if (!s.q) return true; var q = s.q.toLowerCase(); return (r.k + ' ' + textOf(r) + ' ' + r.applies + ' ' + g.title).toLowerCase().indexOf(q) >= 0; };
+    var hist = function (h) { return [h].concat(self.state.history); };
+    var applyProp = function (pp) {
+      var g = gById[pp.gid];
+      var groups = self.state.groups.map(function (x) {
+        if (x.id !== pp.gid) return x;
+        if (pp.kind === 'new') return Object.assign({}, x, { rules: x.rules.concat([{ k: pp.k, v: pp.v, applies: 'As written', p: null, changed: 'Added ' + stamp + ' · signed by ' + ME + ' and ' + SECOND }]) });
+        return Object.assign({}, x, { rules: x.rules.map(function (r, i) { if (i !== pp.idx) return r; var nr = Object.assign({}, r, { changed: 'Changed ' + stamp + ' · signed by ' + ME + ' and ' + SECOND }); if (r.p) nr.p = Object.assign({}, r.p, { n: +pp.to }); else nr.v = pp.to; return nr; }) });
+      });
+      var r = pp.kind === 'new' ? null : g.rules[pp.idx];
+      set({ groups: groups, props: self.state.props.filter(function (x) { return x.id !== pp.id; }),
+        history: hist({ when: stamp.slice(0, 5).trim(), gid: pp.gid, rule: pp.kind === 'new' ? pp.k : r.k, from: pp.kind === 'new' ? '(new rule)' : textOf(r), to: pp.kind === 'new' ? pp.v : (r.p ? textOf(r, pp.to) : pp.to), by: 'Proposed by ' + pp.by + ' · signed by ' + ME + ' and ' + SECOND, kind: pp.kind === 'new' ? 'Added' : 'Changed' }) });
+      self.flash('Both signed. The checks use the new value from now.');
+    };
+    var signBtn = function (done, label, tip, fn, disabled) { return { label: done ? label + ' signed' : 'Sign as ' + label.toLowerCase(), done: done || !!disabled, tip: tip || '', sign: fn, style: 'height:32px;padding:0 12px;border-radius:999px;font:600 12px Figtree,sans-serif;' + (done ? 'border:0;background:#ccfbf1;color:#1b2540' : disabled ? 'border:1px solid #dde1e9;background:#f6f7f9;color:#8a93ab;cursor:not-allowed' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540') }; };
+    var navGroups = s.groups.filter(function (g) {
+      if (s.tile === 'unsigned' && g.signed) return false;
+      if (s.tile === 'pending' && !s.props.some(function (p) { return p.gid === g.id; })) return false;
+      if (s.q && !g.rules.some(function (r) { return matches(g, r); })) return false;
+      return true;
+    });
+    var cg = gById[s.sel];
+    if (navGroups.length && !navGroups.some(function (g) { return g.id === s.sel; })) cg = navGroups[0];
+    var curRules = cg.rules.map(function (r, i) {
+      var ed = s.edit && s.edit.gid === cg.id && s.edit.idx === i ? s.edit : null, pd = pendingFor(cg.id, i);
+      var upd = function (patch) { set({ edit: Object.assign({}, self.state.edit, patch, { error: '' }) }); };
+      var evN = ed && r.p ? parseFloat(String(ed.v).replace(',', '.')) : NaN;
+      return { k: r.k, v: r.p ? textOf(r) : r.v, applies: r.applies, changed: r.changed, hasParam: !!r.p, param: r.p ? fmtN(r.p.n, r.p) + ' ' + unitFor(r.p.n, r.p) : '', isText: !r.p,
+        isPending: !!pd, canChange: !pd && !ed, show: matches(cg, r), editing: !!ed, ev: ed ? ed.v : '', er: ed ? ed.r : '', hasError: !!(ed && ed.error), error: ed ? ed.error : '',
+        unit: r.p ? r.p.unit : '', range: r.p ? fmtN(r.p.min, r.p) + '–' + fmtN(r.p.max, r.p) : '',
+        preview: ed ? (r.p ? (isNaN(evN) ? '…' : textOf(r, evN)) : (ed.v || '…')) : '',
+        impact: 'Applies to: ' + r.applies + '. Shows on ' + cg.where.join(', ') + '.',
+        changeAria: 'Change ' + r.k,
+        change: function () { set({ edit: { gid: cg.id, idx: i, v: r.p ? fmtN(r.p.n, r.p) : r.v, r: '', error: '' }, adding: null }); },
+        setV: function (ev) { upd({ v: ev.target.value }); }, setR: function (ev) { upd({ r: ev.target.value }); },
+        dec: function () { var n = parseFloat(self.state.edit.v) || r.p.n; upd({ v: fmtN(Math.max(r.p.min, n - r.p.step), r.p) }); },
+        inc: function () { var n = parseFloat(self.state.edit.v) || r.p.n; upd({ v: fmtN(Math.min(r.p.max, n + r.p.step), r.p) }); },
+        cancel: function () { set({ edit: null }); },
+        save: function () {
+          var e = self.state.edit, err = function (m) { set({ edit: Object.assign({}, e, { error: m }) }); }, to;
+          if (r.p) { to = parseFloat(String(e.v).replace(',', '.')); if (isNaN(to)) return err('Type a number.'); if (to < r.p.min || to > r.p.max) return err('Keep it between ' + fmtN(r.p.min, r.p) + ' and ' + fmtN(r.p.max, r.p) + ' ' + r.p.unit + '.'); if (to === r.p.n) return err('That is the current value.'); }
+          else { to = (e.v || '').trim(); if (!to) return err('Type the new wording.'); if (to === r.v) return err('That is the current wording.'); }
+          if (!(e.r || '').trim()) return err('Say why, so the signers can decide.');
+          set({ props: self.state.props.concat([{ id: 'p' + Date.now(), gid: cg.id, idx: i, kind: 'change', to: to, reason: e.r.trim(), by: ME, at: stamp, a: false, b: false }]), edit: null });
+          self.flash('Sent for signing. It applies once both have signed.');
+        } };
+    }).filter(function (r) { return r.show; });
+    var ad = s.adding && s.adding.gid === cg.id ? s.adding : null;
+    var tileDef = function (id, label, value, sub, dot) { var on = s.tile === id; return { label: label, value: value, sub: sub, on: on ? 'true' : 'false', dot: dot ? 'flex:0 0 8px;width:8px;height:8px;border-radius:999px;background:' + dot : 'display:none', pick: function () { set({ tile: on ? '' : id }); if (id === 'unsigned' && !on && unsignedGroups.length) set({ sel: unsignedGroups[0].id }); }, style: 'display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;text-align:left;font-family:Figtree,sans-serif;color:#1b2540;' + (on ? 'border:1px solid #2dd4bf;background:#ccfbf1' : 'border:1px solid #dde1e9;background:#ffffff') }; };
+    var histShown = s.history.filter(function (h) { return s.histF === 'all' || h.gid === s.sel; });
+    return {
+      sections: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (l) { return { label: l, style: base + (l === 'Set-up' ? 'background:#1b2540;color:#ffffff;font-weight:600' : 'color:#5f6987') }; }),
+      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) { var on = t[0] === 'Rules'; return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') }; }),
+      ruleCount: totalRules + ' rules in ' + s.groups.length + ' groups',
+      q: s.q, setQ: function (ev) { set({ q: ev.target.value }); },
+      kpis: [
+        tileDef('', 'Rules in force', String(totalRules), s.groups.length + ' groups', ''),
+        tileDef('pending', 'Waiting for signatures', String(s.props.length), s.props.length ? s.props.filter(function (p) { return p.a || p.b; }).length + ' with one signature' : 'nothing waiting', s.props.length ? '#d97706' : '#16a34a'),
+        tileDef('unsigned', 'Groups not signed', String(unsignedGroups.length), unsignedGroups.length ? unsignedGroups.map(function (g) { return g.title; }).join(', ') : 'all signed', unsignedGroups.length ? '#d97706' : '#16a34a'),
+        tileDef('', 'Last change', s.history.length ? s.history[0].when : '–', s.history.length ? s.history[0].rule + ' · ' + s.history[0].kind.toLowerCase() : '', '')
+      ],
+      hasPending: s.props.length > 0, pendingN: String(s.props.length),
+      pending: s.props.map(function (pp) {
+        var g = gById[pp.gid], r = pp.kind === 'new' ? null : g.rules[pp.idx], rj = s.rej && s.rej.id === pp.id ? s.rej : null;
+        var signA = function () { var p2 = Object.assign({}, pp, { a: true }); if (p2.b) { applyProp(p2); return; } set({ props: self.state.props.map(function (x) { return x.id === pp.id ? p2 : x; }) }); self.flash('Signed as in-charge. Waiting for the second signer.'); };
+        var signB = function () { var p2 = Object.assign({}, pp, { b: true }); if (p2.a) { applyProp(p2); return; } set({ props: self.state.props.map(function (x) { return x.id === pp.id ? p2 : x; }) }); self.flash('Signed as second signer. Waiting for the in-charge.'); };
+        var sameAsProposer = pp.by === SECOND;
+        return { group: g.title, rule: r ? r.k : pp.k + ' (new)', from: r ? textOf(r) : '(none)', to: r ? (r.p ? textOf(r, pp.to) : pp.to) : pp.v, reason: pp.reason,
+          meta: 'Proposed by ' + pp.by + ' · ' + pp.at + ' · applies to ' + (r ? r.applies.toLowerCase() : 'what it says') + ' · ' + (pp.a && pp.b ? 'both signed' : pp.a || pp.b ? '1 of 2 signatures' : '0 of 2 signatures'),
+          signers: [signBtn(pp.a, 'In-charge', '', signA), signBtn(pp.b, 'Second signer', sameAsProposer ? 'The person who proposed it cannot be the second signer' : '', signB, sameAsProposer)],
+          rejecting: !!rj, notRejecting: !rj, noteVal: rj ? rj.note : '',
+          reject: function () { set({ rej: { id: pp.id, note: '' } }); }, cancelReject: function () { set({ rej: null }); },
+          setNote: function (ev) { set({ rej: { id: pp.id, note: ev.target.value } }); },
+          confirmReject: function () {
+            var note = (self.state.rej.note || '').trim(); if (!note) { self.flash('Say why, so the proposer knows.'); return; }
+            set({ props: self.state.props.filter(function (x) { return x.id !== pp.id; }), rej: null, history: hist({ when: '3 Nov', gid: pp.gid, rule: r ? r.k : pp.k, from: r ? textOf(r) : '(none)', to: r ? (r.p ? textOf(r, pp.to) : pp.to) : pp.v, by: 'Proposed by ' + pp.by + ' · rejected by ' + ME + ': "' + note + '"', kind: 'Rejected' }) });
+            self.flash('Rejected. ' + pp.by + ' is told why.');
+          },
+          withdraw: function () { set({ props: self.state.props.filter(function (x) { return x.id !== pp.id; }) }); self.flash('Proposal withdrawn'); } };
+      }),
+      groupNav: navGroups.map(function (g) {
+        var on = g.id === cg.id, np = s.props.filter(function (p) { return p.gid === g.id; }).length;
+        return { title: g.title, where: g.where.join(' · '), n: String(g.rules.length), current: on ? 'true' : 'false', hasFlag: !g.signed || np > 0, flag: !g.signed ? 'Not signed' : np + ' waiting', flagStyle: chip(C.low[0], C.low[1]),
+          pick: function () { set({ sel: g.id, edit: null, adding: null }); },
+          style: 'display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:10px 12px;border:0;border-radius:14px;font-family:Figtree,sans-serif;color:#1b2540;' + (on ? 'background:#ccfbf1' : 'background:transparent') };
+      }),
+      cur: { title: cg.title, where: cg.where.map(function (w) { return { label: w, href: HREF[w] || '#' }; }), unsigned: !cg.signed,
+        sigLabel: cg.signed ? 'Signed' : 'Not signed', sigStyle: cg.signed ? chip(C.ok[0], C.ok[1]) : chip(C.low[0], C.low[1]),
+        groupSigners: [signBtn(cg.sig.a, 'In-charge', '', function () { var gs = self.state.groups.map(function (x) { if (x.id !== cg.id) return x; var sg = Object.assign({}, x.sig, { a: true }); return Object.assign({}, x, { sig: sg, signed: sg.a && sg.b }); }); set({ groups: gs }); var ng = gs.filter(function (x) { return x.id === cg.id; })[0]; if (ng.signed) { set({ history: hist({ when: '3 Nov', gid: cg.id, rule: 'Group', from: '', to: '', by: 'Signed by ' + ME + ' and ' + SECOND, kind: 'Group signed' }) }); self.flash(cg.title + ' signed. The checks now use these values.'); } else self.flash('Signed. Waiting for the second signer.'); }),
+          signBtn(cg.sig.b, 'Second signer', '', function () { var gs = self.state.groups.map(function (x) { if (x.id !== cg.id) return x; var sg = Object.assign({}, x.sig, { b: true }); return Object.assign({}, x, { sig: sg, signed: sg.a && sg.b }); }); set({ groups: gs }); var ng = gs.filter(function (x) { return x.id === cg.id; })[0]; if (ng.signed) { set({ history: hist({ when: '3 Nov', gid: cg.id, rule: 'Group', from: '', to: '', by: 'Signed by ' + ME + ' and ' + SECOND, kind: 'Group signed' }) }); self.flash(cg.title + ' signed. The checks now use these values.'); } else self.flash('Signed. Waiting for the in-charge.'); })],
+        rules: curRules, noRules: curRules.length === 0, canAdd: !ad && !s.q,
+        add: function () { set({ adding: { gid: cg.id, k: '', v: '', r: '', error: '' }, edit: null }); } },
+      cols: ['Rule', 'What it says', 'Applies to', ''],
+      adding: !!ad, nw: { k: ad ? ad.k : '', v: ad ? ad.v : '', r: ad ? ad.r : '', hasError: !!(ad && ad.error), error: ad ? ad.error : '' },
+      setNwK: function (ev) { set({ adding: Object.assign({}, self.state.adding, { k: ev.target.value, error: '' }) }); },
+      setNwV: function (ev) { set({ adding: Object.assign({}, self.state.adding, { v: ev.target.value, error: '' }) }); },
+      setNwR: function (ev) { set({ adding: Object.assign({}, self.state.adding, { r: ev.target.value, error: '' }) }); },
+      cancelNew: function () { set({ adding: null }); },
+      saveNew: function () {
+        var a = self.state.adding, err = function (m) { set({ adding: Object.assign({}, a, { error: m }) }); };
+        if (!a.k.trim() || !a.v.trim()) return err('Name the rule and say what it says.');
+        if (!a.r.trim()) return err('Say why, so the signers can decide.');
+        set({ props: self.state.props.concat([{ id: 'p' + Date.now(), gid: a.gid, idx: -1, kind: 'new', k: a.k.trim(), v: a.v.trim(), reason: a.r.trim(), by: ME, at: stamp, a: false, b: false }]), adding: null });
+        self.flash('New rule sent for signing');
+      },
+      histFilters: [['all', 'All groups'], ['this', 'This group only']].map(function (h) { var on = (s.histF === 'all') === (h[0] === 'all'); return { label: h[1], on: on ? 'true' : 'false', pick: function () { set({ histF: h[0] }); }, style: 'height:30px;padding:0 12px;border-radius:999px;font:600 12px Figtree,sans-serif;' + (on ? onS : offS) }; }),
+      history: histShown.slice(0, 10).map(function (h) { var c = h.kind === 'Rejected' ? C.out : h.kind === 'Group signed' ? C.grey : C.ok; return { when: h.when, group: (gById[h.gid] || {}).title || '', rule: h.rule, hasDiff: !!(h.from || h.to), from: h.from, to: h.to, by: h.by, kind: h.kind, style: chip(c[0], c[1]) }; }),
+      hasToast: !!s.toast, toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

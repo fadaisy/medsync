@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Set-up › Messages</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f6f7f9}
+a{color:#0f766e}a:hover{color:#1b2540}
+button{cursor:pointer}
+button:disabled{cursor:default}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #0f766e;outline-offset:2px}
+.ms-row:hover{background:#fafbfc}
+</style>
+</helmet>
+<div style="min-height: 2700px; background: #f6f7f9; color: #1b2540; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; display: flex; flex-wrap: wrap; gap: 24px; padding: 24px 20px; box-sizing: border-box">
+  <nav aria-label="Pharmacy" style="flex: 0 0 112px; align-self: flex-start; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); padding: 12px 8px; display: flex; flex-direction: column; gap: 4px">
+    <div style="width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 14px; background: #1b2540; color: #ffffff; display: grid; place-items: center; font-size: 16px; font-weight: 700">Rx</div>
+    <sc-for list="{{sections}}" as="s" hint-placeholder-count="7"><a href="#" style="{{s.style}}">{{s.label}}</a></sc-for>
+  </nav>
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+    <h1 style="margin: 8px 0 0; font-size: 36px; line-height: 40px; font-weight: 500; letter-spacing: -0.03em">Set-up</h1>
+    <nav aria-label="Set-up" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #e4e7ee; border-radius: 999px; align-self: flex-start">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6"><a href="{{t.href}}" aria-current="{{t.current}}" style="{{t.style}}">{{t.label}}</a></sc-for>
+    </nav>
+
+    <!-- Overview -->
+    <section aria-label="This month" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px; max-width: 64ch">
+          <h2 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 24px; font-weight: 600">SMS this month <span style="{{connStyle}}">{{connLabel}}</span></h2>
+          <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">Reminders to patients who agreed at registration, and shift messages to staff. Quiet hours and caps come from <a href="Rules.dc.html" style="font-weight: 600">Rules</a>.</p>
+        </div>
+        <span style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ruleChips}}" as="rc" hint-placeholder-count="3"><span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: #f6f7f9; color: #4a5574; font-size: 12px; font-weight: 600">{{rc}}</span></sc-for></span>
+      </div>
+      <div role="group" aria-label="This month" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px">
+        <sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+          <button type="button" aria-pressed="{{k.on}}" onClick="{{k.pick}}" style="{{k.style}}">
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: #4a5574"><span aria-hidden="true" style="{{k.dot}}"></span>{{k.label}}</span>
+            <span style="font-size: 22px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">{{k.value}}</span>
+            <span style="font-size: 11px; line-height: 14px; color: #5f6987">{{k.sub}}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 13px; color: #4a5574">
+        <span style="flex: 1 1 260px; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="flex: 1 1 auto; height: 8px; border-radius: 999px; background: #eef0f4; overflow: hidden"><span style="{{budgetBar}}"></span></span><span style="white-space: nowrap; font-variant-numeric: tabular-nums">{{budgetLine}}</span></span>
+        <label style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600">Monthly budget UGX <input inputmode="numeric" value="{{budgetVal}}" onChange="{{setBudget}}" style="width: 7rem; height: 32px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; font: 600 13px Figtree, sans-serif; color: #1b2540; font-variant-numeric: tabular-nums"></label>
+      </div>
+    </section>
+
+    <!-- Provider -->
+    <section aria-label="SMS provider" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+        <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">SMS provider</h2>
+        <span style="font-size: 13px; color: #5f6987">{{provLine}}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Provider</span><input value="{{pv.name}}" onChange="{{setPvName}}" disabled="{{pv.locked}}" placeholder="The company that sends your SMS" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540"></label>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Sender ID (up to 11 letters)</span><input value="{{pv.sender}}" onChange="{{setPvSender}}" disabled="{{pv.locked}}" placeholder="e.g. MEDSYNC" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 600 15px Figtree, sans-serif; color: #1b2540; text-transform: uppercase"></label>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">API key</span><input type="password" value="{{pv.key}}" onChange="{{setPvKey}}" disabled="{{pv.locked}}" placeholder="From the provider’s dashboard" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540"></label>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Cost per SMS (UGX)</span><input inputmode="numeric" value="{{pv.cost}}" onChange="{{setPvCost}}" disabled="{{pv.locked}}" placeholder="e.g. 35" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540"></label>
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Facility name in SMS</span><input value="{{pv.facility}}" onChange="{{setPvFacility}}" placeholder="e.g. City Hospital" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540"></label>
+      </div>
+      <sc-if value="{{pv.hasError}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; padding: 10px 14px; border-radius: 14px; background: #e4e7ee; font-size: 14px; font-weight: 600">{{pv.error}}</p></sc-if>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px">
+        <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <input type="tel" aria-label="Phone for a test SMS" value="{{testTo}}" onChange="{{setTestTo}}" placeholder="+256 7xx xxx xxx" style="width: 12rem; height: 40px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; font: 400 14px Figtree, sans-serif; color: #1b2540">
+          <button type="button" onClick="{{sendTest}}" style="height: 40px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 14px Figtree, sans-serif">Send a test SMS</button>
+        </span>
+        <button type="button" onClick="{{toggleConn}}" style="{{connBtnStyle}}">{{connBtn}}</button>
+      </div>
+    </section>
+
+    <!-- Messages (templates) -->
+    <section aria-label="What gets sent" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 8px; display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+        <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">What gets sent</h2>
+        <div role="group" aria-label="Audience" style="display: flex; gap: 6px"><sc-for list="{{audChips}}" as="ac" hint-placeholder-count="3"><button type="button" aria-pressed="{{ac.on}}" onClick="{{ac.pick}}" style="{{ac.style}}">{{ac.label}}</button></sc-for></div>
+      </div>
+      <sc-for list="{{tplGroups}}" as="tg" hint-placeholder-count="2">
+        <span style="padding: 10px 0 4px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5f6987">{{tg.title}}</span>
+        <sc-for list="{{tg.items}}" as="t" hint-placeholder-count="4">
+          <div style="border-top: 1px solid #dde1e9">
+            <div class="ms-row" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 8px; border-radius: 10px">
+              <label style="position: relative; display: inline-flex; flex: 0 0 auto; cursor: pointer" title="{{t.toggleTip}}">
+                <input type="checkbox" role="switch" aria-label="{{t.toggleAria}}" checked="{{t.on}}" onChange="{{t.toggle}}" style="position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer">
+                <span aria-hidden="true" style="{{t.track}}"><span style="{{t.knob}}"></span></span>
+              </label>
+              <button type="button" aria-expanded="{{t.openAttr}}" onClick="{{t.toggleOpen}}" style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px; padding: 0; border: 0; background: transparent; text-align: left; font-family: Figtree, sans-serif; color: #1b2540; min-width: 0">
+                <span style="font-size: 15px; line-height: 20px; font-weight: 600">{{t.name}}</span>
+                <span style="font-size: 12px; line-height: 16px; color: #5f6987">{{t.when}}</span>
+              </button>
+              <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+                <sc-for list="{{t.langs}}" as="lg" hint-placeholder-count="2"><span style="{{lg.style}}">{{lg.label}}</span></sc-for>
+                <span style="font-size: 12px; color: #5f6987; font-variant-numeric: tabular-nums; min-width: 4.5rem; text-align: right">{{t.sent}}</span>
+                <button type="button" onClick="{{t.toggleOpen}}" style="height: 30px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">{{t.editLabel}}</button>
+              </span>
+            </div>
+            <sc-if value="{{t.isOpen}}" hint-placeholder-val="{{false}}">
+              <div style="margin: 0 8px 12px 56px; padding: 14px 16px; border-radius: 16px; background: #f6f7f9; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 14px 20px">
+                <div style="display: flex; flex-direction: column; gap: 10px">
+                  <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #4a5574">{{t.timingLabel}}</span><input value="{{t.days}}" onChange="{{t.setDays}}" placeholder="{{t.timingHint}}" style="height: 38px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"></label>
+                  <div role="tablist" aria-label="Language" style="display: flex; gap: 4px; padding: 3px; border-radius: 10px; background: #e4e7ee; align-self: flex-start">
+                    <sc-for list="{{t.langTabs}}" as="lt" hint-placeholder-count="2"><button type="button" role="tab" aria-selected="{{lt.on}}" onClick="{{lt.pick}}" style="{{lt.style}}">{{lt.label}}</button></sc-for>
+                  </div>
+                  <textarea rows="4" aria-label="{{t.textAria}}" value="{{t.text}}" onChange="{{t.setText}}" placeholder="{{t.textPh}}" style="padding: 10px 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 14px/20px Figtree, sans-serif; color: #1b2540; resize: vertical"></textarea>
+                  <span style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center"><span style="font-size: 12px; color: #5f6987; margin-right: 2px">Insert</span><sc-for list="{{t.holes}}" as="h" hint-placeholder-count="4"><button type="button" onClick="{{h.add}}" style="height: 26px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #0f766e; font: 600 12px Figtree, sans-serif">{{h.label}}</button></sc-for></span>
+                  <span style="{{t.countStyle}}">{{t.count}}</span>
+                  <sc-if value="{{t.isLg}}" hint-placeholder-val="{{false}}">
+                    <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer"><input type="checkbox" checked="{{t.lgChecked}}" onChange="{{t.toggleLgChecked}}" style="width: 18px; height: 18px; margin: 0; accent-color: #0f766e"><span>Checked by a native Luganda speaker. Until then this message goes in English only.</span></label>
+                  </sc-if>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px">
+                  <span style="font-size: 12px; font-weight: 600; color: #4a5574">Preview, with sample details</span>
+                  <div style="align-self: flex-start; max-width: 300px; padding: 10px 14px; border-radius: 18px 18px 18px 6px; background: #ffffff; box-shadow: 0 1px 2px rgba(27,37,64,0.08); font-size: 14px; line-height: 20px">{{t.preview}}</div>
+                  <span style="font-size: 12px; color: #5f6987">From {{senderShown}} · {{t.sendAt}}</span>
+                  <sc-if value="{{t.hasWarn}}" hint-placeholder-val="{{false}}"><span style="padding: 8px 10px; border-radius: 10px; background: #fef3c7; color: #92400e; font-size: 12px; line-height: 16px; font-weight: 600">{{t.warn}}</span></sc-if>
+                  <span style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto">
+                    <button type="button" onClick="{{t.test}}" style="height: 36px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif">Send this to the test number</button>
+                    <button type="button" onClick="{{t.reset}}" style="height: 36px; padding: 0 6px; border: 0; background: transparent; color: #0f766e; font: 600 13px Figtree, sans-serif; text-decoration: underline">Reset wording</button>
+                  </span>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </sc-for>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 16px; align-items: start">
+      <!-- Outbox -->
+      <section aria-label="Recent messages" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 10px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+          <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Recent messages</h2>
+          <div role="group" aria-label="Status" style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{logFilters}}" as="lf" hint-placeholder-count="4"><button type="button" aria-pressed="{{lf.on}}" onClick="{{lf.pick}}" style="{{lf.style}}">{{lf.label}}</button></sc-for></div>
+        </div>
+        <ul style="list-style: none; margin: 0; padding: 0">
+          <sc-for list="{{outbox}}" as="m" hint-placeholder-count="6">
+            <li style="display: grid; grid-template-columns: 3.4rem minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 9px 0; border-top: 1px solid #dde1e9">
+              <span style="font-size: 12px; color: #5f6987; font-variant-numeric: tabular-nums">{{m.at}}</span>
+              <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{m.type}} · <span style="font-weight: 400; color: #4a5574; font-variant-numeric: tabular-nums">{{m.to}}</span></span><span style="font-size: 12px; color: #5f6987">{{m.sub}}</span></span>
+              <span style="display: flex; align-items: center; gap: 6px"><span style="{{m.style}}">{{m.st}}</span><sc-if value="{{m.canRetry}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{m.retry}}" style="height: 28px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Retry</button></sc-if></span>
+            </li>
+          </sc-for>
+        </ul>
+        <sc-if value="{{noOutbox}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 10px 0; border-top: 1px solid #dde1e9; font-size: 14px; color: #5f6987">Nothing here.</p></sc-if>
+      </section>
+
+      <!-- Consent and opt-outs -->
+      <section aria-label="Consent and opt-outs" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 10px; display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Consent and opt-outs</h2>
+        <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4a5574"><span aria-hidden="true" style="flex: 1 1 auto; height: 8px; border-radius: 999px; background: #eef0f4; overflow: hidden"><span style="{{consentBar}}"></span></span><span style="white-space: nowrap; font-variant-numeric: tabular-nums">{{consentLine}}</span></span>
+        <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">Patients are asked at registration. Replying STOP opts them out at once. Opting back in is done at the desk, with the patient present.</p>
+        <span style="display: flex; flex-wrap: wrap; gap: 8px">
+          <input type="tel" aria-label="Phone to opt out" value="{{optPhone}}" onChange="{{setOptPhone}}" placeholder="+256 7xx xxx xxx" style="flex: 1 1 160px; height: 40px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; font: 400 14px Figtree, sans-serif; color: #1b2540">
+          <select aria-label="Why" value="{{optWhy}}" onChange="{{setOptWhy}}" style="height: 40px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; font: 600 13px Figtree, sans-serif; color: #1b2540"><option>Asked at the desk</option><option>Wrong number</option><option>Patient has died</option><option>Shared phone, privacy</option></select>
+          <button type="button" onClick="{{addOpt}}" style="height: 40px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 14px Figtree, sans-serif">Opt out</button>
+        </span>
+        <ul style="list-style: none; margin: 0; padding: 0">
+          <sc-for list="{{optOuts}}" as="o" hint-placeholder-count="4">
+            <li style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid #dde1e9">
+              <span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums">{{o.phone}}</span><span style="font-size: 12px; color: #5f6987">{{o.sub}}</span></span>
+              <button type="button" onClick="{{o.remove}}" style="height: 30px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Opt back in</button>
+            </li>
+          </sc-for>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 20; padding: 12px 20px; border-radius: 999px; background: #1b2540; color: #ffffff; font-size: 15px; font-weight: 500; box-shadow: 0 10px 24px -10px rgba(27,37,64,0.5)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2700}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    // id, audience, name, timing label, timing hint, days, english, sent this month
+    var T = function (id, aud, name, tl, th, days, en, sent, on) { return { id: id, aud: aud, name: name, tl: tl, th: th, days: days, on: on, en: en, enDefault: en, lg: '', lgChecked: false, sent: sent }; };
+    this.TEMPLATES = [
+      T('refill', 'patients', 'Refill due', 'Days before the refill date', 'e.g. 3', '3', 'MedSync {facility}: {first name}, your medicine refill is due on {date}. Please come to the OPD pharmacy. Reply STOP to stop.', 412, true),
+      T('missed', 'patients', 'Missed refill', 'Days after the missed date', 'comma-separated, e.g. 1, 7', '1, 7', 'MedSync {facility}: {first name}, we missed you on {date}. Please come for your medicine refill soon. Reply STOP to stop.', 96, true),
+      T('course', 'patients', 'Antibiotic course', 'Day of the course to remind', 'e.g. 3', '3', 'MedSync {facility}: {first name}, keep taking {medicine} until the course is finished, even if you feel better. Reply STOP to stop.', 58, true),
+      T('epi', 'patients', 'Immunisation visit tomorrow', 'Days before the visit', 'e.g. 1', '1', 'MedSync {facility}: {child name} is due for immunisation on {date}. Please bring the child health card. Reply STOP to stop.', 233, true),
+      T('def', 'patients', 'Missed immunisation', 'Days after the missed visit', 'comma-separated, e.g. 3, 14', '3, 14', 'MedSync {facility}: {child name} missed an immunisation on {date}. Please come to the EPI clinic this week. Reply STOP to stop.', 41, false),
+      T('shift', 'staff', 'Shift tomorrow', 'Time to send, the evening before', 'e.g. 18:00', '18:00', 'MedSync: Hello {first name}, you are on {shift} shift tomorrow, {date}, at {place}, {time}.', 168, true),
+      T('change', 'staff', 'Shift changed', 'Sent when a published shift changes', 'at once', 'at once', 'MedSync: {first name}, your {date} shift changed. You are now on {shift} at {place}, {time}.', 12, true),
+      T('unpub', 'staff', 'Next week not published', 'Day to remind the in-charge', 'e.g. Thursday 16:00', 'Thursday 16:00', 'MedSync: next week\'s pharmacy roster is not published yet. Please publish it today.', 3, true),
+      T('lic', 'staff', 'Licence expiring', 'Days before the licence expires', 'e.g. 30', '30', 'MedSync: {first name}, your practising licence expires on {date}. Please renew it and bring the new licence to the in-charge.', 1, true)
+    ];
+    this.state = {
+      prov: { name: 'Sample SMS provider', sender: 'MEDSYNC', key: '••••••••••••', cost: '35', facility: 'City Hospital', connected: true, error: '' },
+      templates: this.TEMPLATES.map(function (t) { return Object.assign({}, t); }),
+      open: '', lang: {}, aud: 'all', logF: 'all', testTo: '', optPhone: '', optWhy: 'Asked at the desk', budget: 60000,
+      outbox: [
+        ['14:52', 'Refill due', '+256 772 418 093', 'English', 'delivered'], ['14:52', 'Refill due', '+256 701 552 210', 'English', 'delivered'],
+        ['14:51', 'Refill due', '+256 788 904 117', 'English', 'failed', 'Phone switched off'], ['13:30', 'Shift changed', '+256 754 234 855', 'English', 'delivered'],
+        ['11:05', 'Antibiotic course', '+256 703 116 482', 'English', 'sent'], ['09:00', 'Immunisation visit tomorrow', '+256 776 330 914', 'English', 'delivered'],
+        ['07:00', 'Missed refill', '+256 752 008 361', 'English', 'delivered', 'Held overnight by quiet hours'], ['20:15', 'Refill due', '+256 781 447 029', 'English', 'queued', 'Quiet hours: goes at 07:00']
+      ],
+      optOuts: [['+256 772 300 118', 'Replied STOP · 1 Nov'], ['+256 704 921 650', 'Wrong number · 29 Oct · at the desk'], ['+256 785 112 904', 'Replied STOP · 20 Oct']],
+      consent: [3412, 4020],
+      toast: ''
+    };
+  }
+  flash(msg) { var self = this; this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(function () { self.setState({ toast: '' }); }, 3200); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  renderVals() {
+    var self = this, s = this.state, set = function (p) { self.setState(p); };
+    var base = 'display:block;padding:10px 8px;border-radius:14px;text-align:center;font-size:13px;line-height:17px;font-weight:500;text-decoration:none;';
+    var pill = 'display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;font-size:15px;font-weight:600;text-decoration:none;';
+    var chip = function (bg, fg) { return 'display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;background:' + bg + ';color:' + fg; };
+    var C = { ok: ['#dcfce7', '#166534'], low: ['#fef3c7', '#92400e'], out: ['#fde2e1', '#9f1d1d'], blue: ['#dbeafe', '#1e40af'], grey: ['#e4e7ee', '#4a5574'] };
+    var onS = 'border:0;background:#ccfbf1;color:#1b2540', offS = 'border:1px solid #c5cbd8;background:#ffffff;color:#4a5574';
+    var P = s.prov, cost = parseInt(P.cost, 10) || 0;
+    var now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes(), hm = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    var quiet = nowMin >= 1200 || nowMin < 420;
+    var mask = function (ph) { var d = ph.replace(/\D/g, ''); return d.length < 9 ? ph : '+256 7•• ••• ' + d.slice(-3); };
+    var SAMPLE = { facility: P.facility || 'your hospital', 'first name': 'Sarah', date: 'Fri 6 Nov', medicine: 'amoxicillin', 'child name': 'Baby Amani', shift: 'Day', place: 'OPD dispensary', time: '08:00-17:00' };
+    var HOLES = { patients: ['facility', 'first name', 'date', 'medicine', 'child name'], staff: ['first name', 'date', 'shift', 'place', 'time'] };
+    var fill = function (t) { return t.replace(/\{([^}]+)\}/g, function (m, k) { return SAMPLE[k] !== undefined ? SAMPLE[k] : m; }); };
+    var gsm = /^[A-Za-z0-9 \r\n@£$¥èéùìòÇØøÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ!"#¤%&'()*+,\-.\/:;<=>?¡ÄÖÑÜ§¿äöñüà^{}\\\[~\]|€]*$/;
+    var parts = function (txt) { var g = gsm.test(txt), n = txt.length, one = g ? 160 : 70, multi = g ? 153 : 67; return { n: n, gsm: g, parts: n <= one ? 1 : Math.ceil(n / multi), one: one }; };
+    var month = s.templates.reduce(function (a, t) { return a + t.sent; }, 0);
+    var spent = month * cost, budget = s.budget || 0, pctB = budget ? Math.min(100, Math.round(spent / budget * 100)) : 0;
+    var delivered = Math.round(month * 0.94), failed = Math.round(month * 0.03);
+    var tile = function (id, label, value, sub, dot) { var on = s.logF === id && id !== 'all'; return { label: label, value: value, sub: sub, on: on ? 'true' : 'false', dot: dot ? 'flex:0 0 8px;width:8px;height:8px;border-radius:999px;background:' + dot : 'display:none', pick: function () { if (id) set({ logF: on ? 'all' : id }); }, style: 'display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;text-align:left;font-family:Figtree,sans-serif;color:#1b2540;' + (on ? 'border:1px solid #2dd4bf;background:#ccfbf1' : 'border:1px solid #dde1e9;background:#ffffff') }; };
+    var updT = function (id, patch) { set({ templates: self.state.templates.map(function (t) { return t.id === id ? Object.assign({}, t, patch) : t; }) }); };
+    var pushOut = function (row) { set({ outbox: [row].concat(self.state.outbox) }); };
+    var validPhone = function (v) { return /^\+?256\s?7\d{2}\s?\d{3}\s?\d{3}$/.test((v || '').trim()) || /^07\d{8}$/.test((v || '').replace(/\s/g, '')); };
+    var normPhone = function (v) { var d = v.replace(/\D/g, ''); if (d.indexOf('0') === 0) d = '256' + d.slice(1); return '+' + d.slice(0, 3) + ' ' + d.slice(3, 6) + ' ' + d.slice(6, 9) + ' ' + d.slice(9); };
+    var groups = [['patients', 'Patients'], ['staff', 'Staff']].filter(function (g) { return s.aud === 'all' || s.aud === g[0]; }).map(function (g) {
+      return { title: g[1], items: s.templates.filter(function (t) { return t.aud === g[0]; }).map(function (t) {
+        var lang = s.lang[t.id] || 'en', isOpen = s.open === t.id, txt = lang === 'en' ? t.en : t.lg, pr = parts(fill(txt || '')), ofill = fill(txt || '');
+        var warn = [];
+        if (txt && pr.parts > 2) warn.push('Long: ' + pr.parts + ' SMS parts each time. Shorten it to save money.');
+        if (txt && !pr.gsm) warn.push('Has characters that halve the length of one SMS (70 instead of 160).');
+        if (t.aud === 'patients' && txt && !/STOP/.test(txt)) warn.push('Patient messages must say how to stop: add "Reply STOP to stop."');
+        if (lang === 'lg' && !txt) warn.push('No Luganda version yet. Patients who chose Luganda get the English one.');
+        var sendAt = t.aud === 'staff' && t.id === 'shift' ? 'sent at ' + t.days + ' the evening before' : quiet ? 'quiet hours now: held until 07:00' : 'sent between 07:00 and 20:00';
+        return { name: t.name, on: t.on, toggleAria: (t.on ? 'Turn off: ' : 'Turn on: ') + t.name, toggleTip: t.on ? 'On' : 'Off',
+          track: 'display:inline-flex;align-items:center;width:40px;height:24px;padding:2px;border-radius:999px;box-sizing:border-box;transition:background .15s;background:' + (t.on ? '#0f766e' : '#c5cbd8'),
+          knob: 'display:block;width:20px;height:20px;border-radius:999px;background:#ffffff;box-shadow:0 1px 2px rgba(27,37,64,0.25);transition:transform .15s;transform:translateX(' + (t.on ? '16px' : '0') + ')',
+          toggle: function () { if (!t.on && !P.connected) { self.flash('Connect the SMS provider first.'); return; } updT(t.id, { on: !t.on }); self.flash(t.name + (t.on ? ': off' : ': on')); },
+          when: (t.on ? '' : 'Off · ') + t.tl + ': ' + t.days,
+          langs: [{ label: 'English', style: chip(C.ok[0], C.ok[1]) }, t.lg ? (t.lgChecked ? { label: 'Luganda', style: chip(C.ok[0], C.ok[1]) } : { label: 'Luganda · not checked', style: chip(C.low[0], C.low[1]) }) : { label: 'No Luganda', style: chip(C.grey[0], C.grey[1]) }],
+          sent: t.sent + ' this month', editLabel: isOpen ? 'Close' : 'Edit', isOpen: isOpen, openAttr: isOpen ? 'true' : 'false',
+          toggleOpen: function () { set({ open: isOpen ? '' : t.id }); },
+          timingLabel: t.tl, timingHint: t.th, days: t.days, setDays: function (ev) { updT(t.id, { days: ev.target.value }); },
+          langTabs: [['en', 'English'], ['lg', 'Luganda']].map(function (l) { var on = lang === l[0]; return { label: l[1], on: on ? 'true' : 'false', pick: function () { var lg = Object.assign({}, self.state.lang); lg[t.id] = l[0]; set({ lang: lg }); }, style: 'height:30px;padding:0 12px;border:0;border-radius:8px;font:600 12px Figtree,sans-serif;color:#1b2540;' + (on ? 'background:#ffffff;box-shadow:0 1px 2px rgba(27,37,64,0.12)' : 'background:transparent;color:#4a5574') }; }),
+          text: txt, textAria: t.name + ' message in ' + (lang === 'en' ? 'English' : 'Luganda'), textPh: lang === 'lg' ? 'Type the Luganda message. A native speaker should check it.' : 'Type the message',
+          setText: function (ev) { var p = {}; p[lang === 'en' ? 'en' : 'lg'] = ev.target.value; if (lang === 'lg') p.lgChecked = false; updT(t.id, p); },
+          holes: HOLES[t.aud].map(function (h) { return { label: '{' + h + '}', add: function () { var cur = (lang === 'en' ? t.en : t.lg) || ''; var p = {}; p[lang === 'en' ? 'en' : 'lg'] = (cur ? cur.replace(/\s*$/, ' ') : '') + '{' + h + '}'; updT(t.id, p); } }; }),
+          count: txt ? ofill.length + ' characters with sample details · ' + pr.parts + (pr.parts === 1 ? ' SMS' : ' SMS parts') + (cost ? ' · about UGX ' + (pr.parts * cost) + ' each' : '') : 'Empty',
+          countStyle: 'font-size:12px;font-weight:600;color:' + (pr.parts > 2 ? '#92400e' : '#5f6987'),
+          isLg: lang === 'lg' && !!t.lg, lgChecked: t.lgChecked, toggleLgChecked: function () { updT(t.id, { lgChecked: !t.lgChecked }); self.flash(t.lgChecked ? 'Luganda marked as not checked' : 'Luganda checked. Patients who chose Luganda now get it.'); },
+          preview: txt ? ofill : (lang === 'lg' ? '(No Luganda yet: the English message is sent)' : '(Empty)'),
+          sendAt: sendAt, hasWarn: warn.length > 0, warn: warn.join(' '),
+          test: function () {
+            if (!P.connected) { self.flash('Connect the SMS provider first.'); return; }
+            if (!validPhone(self.state.testTo)) { self.flash('Type a test number first, under SMS provider.'); return; }
+            pushOut([hm, t.name + ' (test)', normPhone(self.state.testTo), lang === 'en' ? 'English' : 'Luganda', 'sent', 'Test']); self.flash('Test sent to ' + normPhone(self.state.testTo));
+          },
+          reset: function () { updT(t.id, { en: t.enDefault }); self.flash('English wording reset'); } };
+      }) };
+    });
+    var shownOut = s.outbox.map(function (m, i) { return { m: m, i: i }; }).filter(function (x) { return s.logF === 'all' || x.m[4] === s.logF; });
+    var ST = { delivered: ['Delivered', C.ok], sent: ['Sent', C.blue], failed: ['Failed', C.out], queued: ['Queued', C.low] };
+    return {
+      sections: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (l) { return { label: l, style: base + (l === 'Set-up' ? 'background:#1b2540;color:#ffffff;font-weight:600' : 'color:#5f6987') }; }),
+      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) { var on = t[0] === 'Messages'; return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') }; }),
+      connLabel: P.connected ? 'Connected' : 'Not connected', connStyle: P.connected ? chip(C.ok[0], C.ok[1]) : chip(C.out[0], C.out[1]),
+      ruleChips: ['Quiet 20:00–07:00', 'At most 3 a week per patient', 'Stops at 100% of budget'],
+      kpis: [
+        tile('all', 'Sent', String(month), 'this month', ''),
+        tile('delivered', 'Delivered', Math.round(delivered / Math.max(1, month) * 100) + '%', delivered + ' messages', '#16a34a'),
+        tile('failed', 'Failed', String(failed), 'retried once automatically', failed ? '#dc2626' : '#16a34a'),
+        tile('queued', 'Queued', String(s.outbox.filter(function (m) { return m[4] === 'queued'; }).length), 'held by quiet hours', '#d97706'),
+        tile('', 'Opted out', String(s.optOuts.length), 'of ' + s.consent[0].toLocaleString('en-GB') + ' who agreed', '')
+      ],
+      budgetLine: 'UGX ' + spent.toLocaleString('en-GB') + ' of ' + budget.toLocaleString('en-GB') + ' · ' + pctB + '%' + (pctB >= 100 ? ' · sending stopped' : ''),
+      budgetBar: 'display:block;height:100%;border-radius:999px;width:' + pctB + '%;background:' + (pctB >= 100 ? '#dc2626' : pctB >= 80 ? '#d97706' : '#2dd4bf'),
+      budgetVal: String(s.budget), setBudget: function (ev) { var n = parseInt(String(ev.target.value).replace(/\D/g, ''), 10); set({ budget: isNaN(n) ? 0 : n }); },
+      provLine: P.connected ? 'Sending as ' + (P.sender || 'MEDSYNC') + ' · UGX ' + (cost || '?') + ' per SMS' : 'Fill these in from the provider’s dashboard, then connect.',
+      pv: { name: P.name, sender: P.sender, key: P.key, cost: P.cost, facility: P.facility, locked: P.connected, hasError: !!P.error, error: P.error },
+      setPvName: function (ev) { set({ prov: Object.assign({}, self.state.prov, { name: ev.target.value, error: '' }) }); },
+      setPvSender: function (ev) { set({ prov: Object.assign({}, self.state.prov, { sender: ev.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, '').slice(0, 11), error: '' }) }); },
+      setPvKey: function (ev) { set({ prov: Object.assign({}, self.state.prov, { key: ev.target.value, error: '' }) }); },
+      setPvCost: function (ev) { set({ prov: Object.assign({}, self.state.prov, { cost: ev.target.value.replace(/\D/g, ''), error: '' }) }); },
+      setPvFacility: function (ev) { set({ prov: Object.assign({}, self.state.prov, { facility: ev.target.value }) }); },
+      connBtn: P.connected ? 'Disconnect' : 'Connect', connBtnStyle: 'height:40px;padding:0 18px;border-radius:999px;font:600 14px Figtree,sans-serif;' + (P.connected ? 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540' : 'border:0;background:#2dd4bf;color:#1b2540'),
+      toggleConn: function () {
+        var p = self.state.prov;
+        if (p.connected) { set({ prov: Object.assign({}, p, { connected: false }), templates: self.state.templates.map(function (t) { return Object.assign({}, t, { on: false }); }) }); self.flash('Disconnected. Every message is off until you connect again.'); return; }
+        if (!p.name.trim() || !p.sender.trim() || !p.key.trim()) { set({ prov: Object.assign({}, p, { error: 'Fill in the provider, sender ID and API key.' }) }); return; }
+        if (!(parseInt(p.cost, 10) > 0)) { set({ prov: Object.assign({}, p, { error: 'Type the cost per SMS, so the budget works.' }) }); return; }
+        set({ prov: Object.assign({}, p, { connected: true, error: '' }) }); self.flash('Connected. Send a test SMS, then turn the messages back on below.');
+      },
+      testTo: s.testTo, setTestTo: function (ev) { set({ testTo: ev.target.value }); },
+      sendTest: function () {
+        if (!P.connected) { self.flash('Connect the SMS provider first.'); return; }
+        if (!validPhone(self.state.testTo)) { self.flash('Type a Ugandan mobile number, e.g. +256 772 000 000.'); return; }
+        pushOut([hm, 'Test', normPhone(self.state.testTo), 'English', 'sent', 'Test from Set-up']); self.flash('Test sent. It shows under Recent messages.');
+      },
+      senderShown: P.sender || 'MEDSYNC',
+      audChips: [['all', 'All'], ['patients', 'Patients'], ['staff', 'Staff']].map(function (a) { var on = s.aud === a[0]; return { label: a[1], on: on ? 'true' : 'false', pick: function () { set({ aud: a[0] }); }, style: 'height:30px;padding:0 12px;border-radius:999px;font:600 12px Figtree,sans-serif;' + (on ? onS : offS) }; }),
+      tplGroups: groups,
+      logFilters: [['all', 'All'], ['failed', 'Failed'], ['queued', 'Queued'], ['delivered', 'Delivered']].map(function (f) { var on = s.logF === f[0]; var n = f[0] === 'all' ? s.outbox.length : s.outbox.filter(function (m) { return m[4] === f[0]; }).length; return { label: f[1] + ' · ' + n, on: on ? 'true' : 'false', pick: function () { set({ logF: f[0] }); }, style: 'height:30px;padding:0 12px;border-radius:999px;font:600 12px Figtree,sans-serif;' + (on ? onS : offS) }; }),
+      outbox: shownOut.slice(0, 10).map(function (x) {
+        var m = x.m, st = ST[m[4]];
+        return { at: m[0], type: m[1], to: mask(m[2]), sub: m[3] + (m[5] ? ' · ' + m[5] : ''), st: st[0], style: chip(st[1][0], st[1][1]), canRetry: m[4] === 'failed',
+          retry: function () { set({ outbox: self.state.outbox.map(function (y, j) { return j === x.i ? [y[0], y[1], y[2], y[3], 'sent', 'Retried at ' + hm] : y; }) }); self.flash('Sent again'); } };
+      }),
+      noOutbox: shownOut.length === 0,
+      consentLine: s.consent[0].toLocaleString('en-GB') + ' of ' + s.consent[1].toLocaleString('en-GB') + ' patients agreed · ' + Math.round(s.consent[0] / s.consent[1] * 100) + '%',
+      consentBar: 'display:block;height:100%;border-radius:999px;width:' + Math.round(s.consent[0] / s.consent[1] * 100) + '%;background:#2dd4bf',
+      optPhone: s.optPhone, setOptPhone: function (ev) { set({ optPhone: ev.target.value }); },
+      optWhy: s.optWhy, setOptWhy: function (ev) { set({ optWhy: ev.target.value }); },
+      addOpt: function () {
+        var v = self.state.optPhone;
+        if (!validPhone(v)) { self.flash('Type a Ugandan mobile number, e.g. +256 772 000 000.'); return; }
+        var n = normPhone(v);
+        if (self.state.optOuts.some(function (o) { return o[0] === n; })) { self.flash('That number has already opted out.'); return; }
+        set({ optOuts: [[n, self.state.optWhy + ' · 3 Nov' + (/desk/.test(self.state.optWhy) ? '' : ' · at the desk')]].concat(self.state.optOuts), optPhone: '' }); self.flash(mask(n) + ' gets no more SMS');
+      },
+      optOuts: s.optOuts.map(function (o, i) { return { phone: mask(o[0]), sub: o[1], remove: function () { set({ optOuts: self.state.optOuts.filter(function (x, j) { return j !== i; }) }); self.flash('Opted back in. Note it in the patient’s record.'); } }; }),
+      hasToast: !!s.toast, toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>
