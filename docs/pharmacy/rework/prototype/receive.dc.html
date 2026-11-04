@@ -1,0 +1,2172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Receive a delivery</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Geist+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f6f7f9}
+a{color:#0f766e}a:hover{color:#1b2540}
+*{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:default}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid #0d9488;outline-offset:2px}
+.app{min-height:100vh;background:#f6f7f9;color:#1b2540;font:400 14px/20px Figtree,ui-sans-serif,system-ui,sans-serif}
+.mono{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-weight:500;font-size:13px}
+.protobar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 20px;background:#eef0f4;font-size:13px;color:#4a5574}
+.protobar b{color:#1b2540;font-weight:600}
+.shell{display:flex;flex-wrap:wrap;gap:24px;padding:24px 20px;align-items:flex-start}
+.rail{flex:0 0 112px;align-self:flex-start;background:#fff;border-radius:28px;box-shadow:0 2px 6px rgba(27,37,64,.08),0 16px 36px -12px rgba(27,37,64,.32);padding:12px 8px;display:flex;flex-direction:column;gap:4px}
+.rx{width:44px;height:44px;margin:0 auto 8px;border-radius:14px;background:#1b2540;color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px}
+.railitem{display:block;width:100%;padding:10px 8px;border:0;background:none;border-radius:14px;text-align:center;font-size:13px;line-height:17px;font-weight:500;color:#5f6987}
+.railitem:hover{background:#f6f7f9}
+.railitem.on,.railitem.on:hover{background:#1b2540;color:#fff;font-weight:600}
+.dot{display:none}
+
+.page{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.grow{flex:1 1 auto}
+.startwrap{position:relative}
+.menu{position:absolute;top:44px;left:0;z-index:20;width:300px;background:#fff;border-radius:18px;box-shadow:0 2px 6px rgba(27,37,64,.08),0 16px 36px -12px rgba(27,37,64,.32);padding:6px;display:flex;flex-direction:column}
+.menuitem{border:0;background:none;text-align:left;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:1px}
+.menuitem:hover:not(:disabled){background:#f6f7f9}
+.menuitem b{font-weight:600}
+.menuitem span{font-size:13px;color:#4a5574}
+.menuitem:disabled b{color:#5f6987;font-weight:500}
+.placepick{display:flex;align-items:center;gap:8px;font-size:13px;color:#4a5574}
+.placepick select{height:36px;padding:0 10px;border:1px solid #c5cbd8;border-radius:999px;background:#fff;font-weight:600;color:#1b2540}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 14px;border:1px solid #c5cbd8;border-radius:999px;background:#fff;font-weight:600;color:#1b2540;white-space:nowrap}
+.btn:hover:not(:disabled){background:#eef0f4}
+.btn.primary{background:#2dd4bf;border-color:transparent;color:#1b2540}
+.btn.lg{min-height:40px;padding:0 18px;font-size:14px}
+.btn.glow{box-shadow:0 8px 22px -6px rgba(45,212,191,.65)}
+.btn.primary:hover:not(:disabled){background:#14b8a6}
+.btn.primary:disabled{background:#e4e7ee;color:#4a5574}
+.btn.text{border-color:transparent;background:transparent;color:#0f766e;padding:0 8px}
+.btn.text:hover:not(:disabled){background:#eef0f4}
+.btn.sm{min-height:30px;padding:0 11px;font-size:13px}
+.btn.emergency{background:#dc2626;border-color:transparent;color:#fff}
+.btn.emergency:hover:not(:disabled){background:#b91c1c}
+.pills{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;background:#e4e7ee;border-radius:999px;align-self:flex-start}
+.title{margin:8px 0 0;font-size:36px;line-height:40px;font-weight:500;letter-spacing:-.03em}
+.titlerow{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 12px}
+.pill{min-height:40px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:#4a5574;font-size:15px;font-weight:600}
+.pill:hover{color:#1b2540}
+.pill.on{background:#2dd4bf;color:#1b2540;font-weight:600}
+.head{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px 16px;justify-content:space-between;background:#fff;border-radius:22px;box-shadow:0 1px 2px rgba(27,37,64,.06),0 10px 24px -14px rgba(27,37,64,.22);padding:16px 20px}
+.headcol{flex-direction:column;align-items:stretch;gap:2px}
+.h1{margin:0;font-size:22px;line-height:28px;font-weight:600;letter-spacing:-.01em}
+.h1 .soft{font-weight:400;color:#5f6987}
+.lead{margin:4px 0 0;font-size:13px;line-height:18px;color:#5f6987;max-width:70ch}
+.back{border:0;background:none;padding:0;min-height:28px;color:#0f766e;font-weight:500;display:inline-flex;align-items:center;gap:4px}
+.back:hover{color:#1b2540}
+.card{background:#fff;border-radius:22px;box-shadow:0 1px 2px rgba(27,37,64,.06),0 10px 24px -14px rgba(27,37,64,.22);overflow:hidden}
+.cardhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:16px 20px 8px}
+.h2{margin:0;font-size:18px;line-height:24px;font-weight:600}
+.cnt{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 8px;border-radius:999px;background:#e4e7ee;color:#4a5574;font-size:11px;font-weight:700}
+.cnt.info{background:#dbeafe;color:#1e40af}.cnt.warn{background:#fef3c7;color:#92400e}.cnt.bad{background:#fde2e1;color:#9f1d1d}.cnt.ok{background:#dcfce7;color:#166534}
+.count{font-size:13px;color:#4a5574}
+.cardnote{margin:0;padding:0 20px 10px;color:#5f6987;font-size:13px;line-height:18px;max-width:80ch}
+.rows{list-style:none;margin:0;padding:0}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;min-height:56px;padding:10px 20px;border-top:1px solid #dde1e9}
+.row:hover{background:#fafbfc}
+.rowmain{flex:1 1 240px;min-width:0;display:flex;flex-direction:column;gap:1px}
+.rowtitle{font-weight:600;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.rowsub{font-size:12px;line-height:16px;color:#5f6987}
+.rowend{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;background:#e4e7ee;color:#4a5574;font-size:11px;font-weight:700;white-space:nowrap}
+.tag.info,.tag[data-s="Sent"],.tag[data-s="On the way"]{background:#dbeafe;color:#1e40af}
+.tag[data-s="Partly delivered"],.tag.warn{background:#fef3c7;color:#92400e}
+.tag[data-s="Received"],.tag[data-s="Closed"]{background:#dcfce7;color:#166534}
+.tag.teal{background:#ccfbf1;color:#0f766e}
+.tag.bad{background:#fde2e1;color:#9f1d1d}.tag.ok{background:#dcfce7;color:#166534}
+.offline{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 16px;border-radius:16px;background:#fef3c7;color:#92400e;font-size:13px;font-weight:600}
+.coldtimer{margin:0 20px 12px;padding:10px 14px;border-radius:14px;font-size:13px;font-weight:600;background:#dbeafe;color:#1e40af}
+.coldtimer.warn{background:#fef3c7;color:#92400e}.coldtimer.bad{background:#fde2e1;color:#9f1d1d}
+.photos{display:flex;flex-wrap:wrap;gap:8px}
+.upl{position:relative;overflow:hidden}
+.upl input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.thumb{margin:0;display:flex;flex-direction:column;gap:2px;width:84px}
+.thumb img{width:84px;height:64px;object-fit:cover;border-radius:10px;border:1px solid #dde1e9;background:#f6f7f9}
+.thumb figcaption{font-size:11px;color:#5f6987}
+.match{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.match .ok{color:#166534;font-weight:600}.match .warn{color:#92400e;font-weight:600}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px}
+.fig{display:flex;flex-direction:column;gap:2px;min-width:0;padding:12px 14px;border:1px solid #dde1e9;border-radius:16px;background:#fff}
+.ogrid{display:grid;grid-template-columns:minmax(0,1.7fr) repeat(5,minmax(0,6.2rem)) 2.2rem;gap:0 10px;font-size:13px;align-items:stretch;overflow-x:auto}
+.ogrid>span{display:flex;align-items:center;min-height:46px;border-top:1px solid #dde1e9}
+.ogrid .hd{min-height:30px;border-top:0;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5f6987}
+.ogrid .r{justify-content:flex-end;text-align:right;font-variant-numeric:tabular-nums}
+.ogrid .ok{color:#166534;font-weight:600}
+.ogrid .input{height:34px;text-align:right}
+.oname{flex-direction:column;align-items:flex-start !important;justify-content:center;gap:1px}
+.oname b{font-weight:600}.oname small{font-size:11px;color:#5f6987}
+.otot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid #dde1e9;font-weight:600}
+.oadd{display:grid;grid-template-columns:minmax(0,1fr) 7rem 8rem auto;gap:8px;align-items:end}
+@media (max-width:760px){.ogrid{grid-template-columns:minmax(10rem,1.7fr) repeat(5,minmax(4.5rem,1fr)) 2.2rem}.oadd{grid-template-columns:1fr 1fr}}
+.fighead{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
+.mini{display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 6px;margin-top:8px}
+.miniy{display:flex;flex-direction:column;justify-content:space-between;height:72px;font-size:10px;line-height:12px;color:#5f6987;text-align:right;font-variant-numeric:tabular-nums}
+.miniplot{position:relative;height:72px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #8a93ab}
+.minicol{position:relative;flex:1 1 0;height:100%;display:flex;align-items:flex-end;justify-content:center;border-radius:4px;outline:none;cursor:default}
+.minicol:hover,.minicol:focus-visible{background:rgba(27,37,64,.05)}
+.minicol:focus-visible{box-shadow:inset 0 0 0 2px #0f766e}
+.minibar{display:block;width:min(16px,80%);border-radius:4px 4px 0 0}
+.minitip{display:none;position:absolute;bottom:calc(100% + 6px);z-index:8;white-space:nowrap;padding:6px 10px;border-radius:10px;background:#fff;border:1px solid #dde1e9;box-shadow:0 8px 20px -8px rgba(27,37,64,.35);color:#1b2540;font-size:12px;font-weight:600;pointer-events:none}
+.minicol:hover .minitip,.minicol:focus .minitip{display:block}
+.miniref{position:absolute;left:0;right:0;height:0;border-top:1px solid #4a5574;z-index:1;pointer-events:none}
+.miniref span{position:absolute;right:0;bottom:2px;padding:0 4px;white-space:nowrap;background:#fff;font-size:10px;font-weight:700;color:#4a5574;border-radius:3px}
+.minix{grid-column:2;display:flex;justify-content:space-between;margin-top:3px;font-size:10px;color:#5f6987}
+.splitrow{display:grid;grid-template-columns:minmax(0,5.5rem) minmax(0,1fr);align-items:center;gap:8px;font-size:12px}
+.splitrow b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.figact{margin-top:auto;padding-top:8px}
+.spark{position:relative;display:block;width:100%;height:22px;margin:4px 0 2px}
+.spark svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.supgrid{display:grid;grid-template-columns:minmax(0,10rem) minmax(0,1fr) minmax(0,11rem) minmax(0,6rem) minmax(0,7rem);gap:0 14px;padding:0 20px 14px;font-size:13px;align-items:stretch}
+.supgrid>span{display:flex;align-items:center;min-height:44px;padding:0;border-top:1px solid #dde1e9}
+.supgrid .hd{padding:6px 0;border-top:0;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5f6987}
+.track{position:relative;min-height:24px}
+.track .bar{position:absolute;left:0;top:50%;margin-top:-6px;height:12px;border-radius:0 4px 4px 0;background:#0d9488}
+.track .val{position:absolute;top:50%;transform:translateY(-50%);font-weight:600;font-variant-numeric:tabular-nums;background:#fff;padding:0 3px;border-radius:4px}
+.labelsheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.label{display:flex;flex-direction:column;gap:3px;padding:12px;border:1px dashed #8a93ab;border-radius:10px;background:#fff;color:#000;break-inside:avoid}
+.label b{font-size:13px;line-height:17px}
+.label .meta{font-size:12px}
+.label .bin{font-size:20px;font-weight:700;letter-spacing:.02em}
+.barcode{display:flex;height:44px;margin-top:4px}
+.barcode span{display:block;height:100%}
+.digits{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.12em}
+textarea.input{height:auto;min-height:180px;padding:10px;line-height:20px;resize:vertical;font-family:inherit}
+@media (max-width:760px){.supgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);row-gap:0}.supgrid .hd:nth-child(n+3){display:none}}
+.word{display:inline-flex;align-items:center;gap:4px;min-height:22px;font-size:13px;font-weight:500;color:#4a5574}
+.word.caution{padding:0 8px;border-radius:999px;background:#fef3c7;color:#92400e}
+.empty{margin:0;padding:6px 20px 16px;color:#5f6987;font-size:14px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start}
+.flow{display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));gap:12px;align-items:stretch}
+.stage{display:flex;flex-direction:column;gap:8px;min-width:0;padding:14px 12px 12px;border-radius:22px;background:#eceef3}
+.stagehead{display:flex;align-items:center;gap:8px;padding:0 4px}
+.stageno{display:grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:999px;background:#fff;color:#4a5574;font-size:12px;font-weight:700}
+.stagetitle{margin:0;flex:1 1 auto;font-size:15px;line-height:20px;font-weight:600}
+.stagenote{margin:0 0 2px;padding:0 4px;font-size:12px;line-height:16px;color:#5f6987}
+.dcard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px 14px;border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(27,37,64,.06),0 6px 16px -10px rgba(27,37,64,.25)}
+.dtop:empty{display:none}
+.dtop{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;color:#4a5574}
+.dtitle{font-size:14px;line-height:19px;font-weight:600}
+.dsub{font-size:12px;line-height:16px;color:#5f6987}
+.dcard .btn{margin-top:6px;align-self:stretch}
+.stageempty{margin:0;padding:18px 12px;border:1px dashed #c5cbd8;border-radius:16px;text-align:center;font-size:13px;color:#5f6987}
+@media (max-width:1100px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.flow{grid-template-columns:minmax(0,1fr)}.pills{flex-wrap:nowrap;max-width:100%;overflow-x:auto}.pill{flex:0 0 auto;font-size:14px;padding:0 14px}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:8px}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;padding:12px 14px;border:1px solid #dde1e9;border-radius:16px;background:#fff;text-align:left;color:#1b2540}
+.tile:hover{border-color:#c5cbd8}
+.tile[aria-pressed="true"]{border-color:#2dd4bf;background:#ccfbf1}
+.tlabel{font-size:12px;line-height:16px;font-weight:500;color:#4a5574}
+.tvalue{font-size:24px;line-height:30px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.tsub{font-size:12px;line-height:16px;color:#5f6987}
+.tsub.warn{color:#92400e;font-weight:600}.tsub.info{color:#1e40af;font-weight:600}.tsub.ok{color:#166534;font-weight:600}
+.filterline{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:#4a5574}
+.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+.band{margin:0 20px 12px;padding:14px 16px;border-radius:16px;background:#ccfbf1;color:#1b2540;display:flex;flex-direction:column;gap:10px}
+.bandtitle{font-weight:600;font-size:15px}
+.bandhint{color:#0f766e;font-size:12px;line-height:16px}
+.scanrow{display:flex;flex-wrap:wrap;gap:8px}
+.scanbox{flex:1 1 240px;min-width:0;height:44px;padding:0 14px;border:1px solid #99f6e4;border-radius:12px;background:#fff;color:#1b2540;font-size:15px}
+.try{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 20px 12px;font-size:13px;color:#4a5574}
+.chip{min-height:28px;padding:0 10px;border:1px solid #c5cbd8;border-radius:999px;background:#fff;font-size:13px;font-weight:500}
+.chip:hover{background:#eef0f4}
+.chip.on{background:#ccfbf1;border-color:#0d9488;color:#0f766e;font-weight:600}
+.scannote{margin:0 20px 12px;padding:10px 14px;border-radius:14px;background:#f6f7f9;color:#1b2540;display:flex;flex-direction:column;gap:8px}
+.line{border-top:1px solid #dde1e9;padding:12px 20px;display:flex;flex-direction:column;gap:8px}
+.line.fresh{background:#f0fdfa}
+.linehead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.no{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#1b2540;color:#fff;font-size:12px;font-weight:600}
+.no.pending{background:#e4e7ee;color:#4a5574}
+.linename{font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:#4a5574}
+.facts b{font-weight:600;color:#1b2540}
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.edit{background:#f6f7f9;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field>span,.lab{font-size:13px;font-weight:600;color:#1b2540}
+.field>span small{font-weight:500;color:#5f6987}
+.input{width:100%;height:44px;padding:0 12px;border:1px solid #c5cbd8;border-radius:12px;background:#fff;font-size:15px;color:#1b2540;transition:border-color .15s,box-shadow .15s}
+.input:hover:not(:disabled){border-color:#8a93ab}
+.input:focus,.input:focus-visible{outline:none;border-color:#0d9488;box-shadow:0 0 0 3px rgba(45,212,191,.35)}
+.input::placeholder{color:#8a93ab}
+.input[aria-invalid="true"]{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.14)}
+select.input{appearance:none;-webkit-appearance:none;padding-right:36px;background-image:linear-gradient(45deg,transparent 50%,#4a5574 50%),linear-gradient(135deg,#4a5574 50%,transparent 50%);background-position:calc(100% - 19px) 50%,calc(100% - 14px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.hint,.field>span.hint{font-size:12px;line-height:16px;font-weight:500;color:#5f6987}
+.ferr,.field>span.ferr{font-size:12px;line-height:16px;font-weight:600;color:#9f1d1d}
+.fsec{display:flex;flex-direction:column;gap:10px;padding-bottom:16px;border-bottom:1px solid #eef0f4}
+.fsec:last-of-type{border-bottom:0;padding-bottom:0}
+.fsech{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;line-height:20px;font-weight:600}
+.fsech .stageno{background:#eef0f4}
+.opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.opts.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;padding:12px;border:1px solid #c5cbd8;border-radius:14px;background:#fff;text-align:left;color:#1b2540}
+.opt:hover:not(:disabled){border-color:#8a93ab}
+.opt[aria-checked="true"]{border-color:#0d9488;background:#f0fdfa;box-shadow:inset 0 0 0 1px #0d9488}
+.opt:disabled{opacity:.55;cursor:not-allowed}
+.opt b{font-size:14px;line-height:18px;font-weight:600}
+.opt small{font-size:12px;line-height:16px;color:#5f6987}
+.opt .ic{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#eef0f4;color:#4a5574}
+.opt[aria-checked="true"] .ic{background:#ccfbf1;color:#0f766e}
+.optrow{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
+.two-in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.switch{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid #dde1e9;border-radius:14px;background:#f6f7f9;cursor:pointer}
+.switch b{display:block;font-size:14px;font-weight:600}
+.sw{appearance:none;-webkit-appearance:none;flex:0 0 40px;width:40px;height:24px;margin:0;border-radius:999px;background:#c5cbd8;position:relative;cursor:pointer;transition:background .15s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(27,37,64,.3);transition:left .15s}
+.sw:checked{background:#0d9488}.sw:checked::after{left:19px}
+.sw:focus-visible{outline:2px solid #0f766e;outline-offset:2px}
+.nowchip{display:inline-flex;align-items:center;height:28px;padding:0 10px;border:1px solid #c5cbd8;border-radius:999px;background:#fff;font-size:12px;font-weight:600;color:#0f766e;cursor:pointer}
+@media (max-width:760px){.opts,.opts.three{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.two-in{grid-template-columns:minmax(0,1fr)}.input{font-size:16px}}
+.input:disabled{background:#eef0f4;color:#4a5574}
+.editnote{margin:0;font-size:13px;color:#1b2540;max-width:80ch}
+.editnote.caution{color:#92400e;font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sub{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid #dde1e9}
+.check{display:flex;align-items:center;gap:8px;font-weight:500;min-height:28px}
+.check input{width:16px;height:16px;accent-color:#0f766e}
+.dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;padding:0 20px 14px;margin:0}
+.dl dt{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5f6987}
+.dl dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.finish{border-top:1px solid #dde1e9;padding:14px 20px 16px;display:flex;flex-direction:column;gap:10px}
+.sum{font-weight:600}
+.todo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.todo button{border:0;background:none;padding:4px 0;text-align:left;color:#92400e;font-weight:500;font-size:13px}
+.todo button:hover{text-decoration:underline}
+.reason{margin:0;font-size:13px;color:#4a5574}
+.linkrow{display:flex;flex-wrap:wrap;gap:4px 8px;margin-left:-8px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5f6987;padding:8px 20px;border-top:1px solid #dde1e9;white-space:nowrap}
+td{padding:10px 20px;border-top:1px solid #dde1e9;vertical-align:middle}
+.num{font-variant-numeric:tabular-nums}
+.overlay{position:fixed;inset:0;z-index:40;background:rgba(27,37,64,.42);display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px 16px;overflow-y:auto}
+.dlg{width:900px;max-width:100%;background:#fff;border-radius:22px;box-shadow:0 2px 6px rgba(27,37,64,.08),0 16px 36px -12px rgba(27,37,64,.32);display:flex;flex-direction:column}
+.dlg.m{width:640px}
+.dlghead{padding:16px 20px 12px;border-bottom:1px solid #dde1e9}
+.dlgtitle{margin:0;font-size:18px;line-height:24px;font-weight:600}
+.dlgbody{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.dlgcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.dlgfoot{padding:12px 20px 16px;border-top:1px solid #dde1e9;display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px}
+.choice{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #c5cbd8;border-radius:12px;cursor:pointer}
+.choice.on{border-color:#0d9488;background:#f0fdfa}
+.choice input{margin-top:3px;accent-color:#0f766e}
+.choicewords{display:flex;flex-direction:column;gap:1px;min-width:0}
+.choicewords b{font-weight:600}
+.choicewords span{font-size:13px;color:#4a5574}
+.err{margin:0;color:#92400e;font-weight:500}
+.picklist{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;padding:2px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);padding:10px 16px;border-radius:14px;background:#1b2540;color:#fff;box-shadow:0 2px 6px rgba(27,37,64,.08),0 16px 36px -12px rgba(27,37,64,.32)}
+.paper{display:flex;flex-direction:column;gap:12px}
+.papergrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 16px;font-size:13px}
+.signs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:22px;font-size:13px}
+.signs span{display:block;border-top:1px solid #1b2540;padding-top:4px;margin-top:26px;font-size:12px;color:#4a5574}
+@media (max-width:980px){.two{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){
+.shell{padding:12px;gap:12px}
+.rail{flex:1 1 100%;flex-direction:row;flex-wrap:wrap;justify-content:center;border-radius:22px;padding:6px}
+.rx{margin:0 4px 0 0;width:40px;height:40px;align-self:center}
+.railitem{width:auto;min-width:58px}
+.title{font-size:30px;line-height:36px}
+.head{padding:14px 16px}
+.dlgcols{grid-template-columns:minmax(0,1fr)}
+.overlay{padding:12px}
+.btn{min-height:44px}.btn.sm{min-height:40px}.chip{min-height:40px}.pill{min-height:40px}
+.protobar{padding:8px 12px}
+}
+@media print{body *{visibility:hidden !important}.print-area,.print-area *{visibility:visible !important}.print-area{position:absolute;left:0;top:0;width:100%}.overlay{position:static;background:none}}
+</style>
+</helmet>
+<div class="app">
+
+  <div class="protobar">
+    <span><b>Prototype.</b> Sample medicines, suppliers and rules. Nothing here reaches MedSync.</span>
+    <span class="grow"></span>
+    <button type="button" class="btn sm" onClick="{{toggleNet}}">{{netLabel}}</button>
+    <button type="button" class="btn sm" onClick="{{reset}}">Start over</button>
+  </div>
+
+  <div class="shell">
+    <nav class="rail" aria-label="Pharmacy">
+      <div class="rx">Rx</div>
+      <sc-for list="{{rail}}" as="r" hint-placeholder-count="6">
+        <button type="button" class="{{r.cls}}" aria-current="{{r.current}}" onClick="{{r.go}}">{{r.label}}<span class="dot"></span></button>
+      </sc-for>
+    </nav>
+
+    <main class="page">
+      <div class="titlerow">
+        <h1 class="title">Stock</h1>
+        <span class="grow"></span>
+        <label class="placepick">Working at
+          <select value="{{place.id}}" onChange="{{setPlace}}">
+            <sc-for list="{{placeOptions}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+          </select>
+        </label>
+        <div class="startwrap">
+          <button type="button" class="btn primary" aria-expanded="{{menuOpen}}" onClick="{{toggleMenu}}">+ Start</button>
+          <sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+            <div class="menu" style="left: auto; right: 0">
+              <button type="button" class="menuitem" disabled="{{noReceiveHere}}" onClick="{{menuReceive}}"><b>Receive a delivery</b><span>{{menuReceiveSub}}</span></button>
+              <button type="button" class="menuitem" disabled="{{yes}}"><b>Hand over a prescription</b><span>Not in this prototype</span></button>
+              <button type="button" class="menuitem" disabled="{{yes}}"><b>Issue to a ward</b><span>Not in this prototype</span></button>
+              <button type="button" class="menuitem" disabled="{{yes}}"><b>Count a shelf</b><span>Not in this prototype</span></button>
+            </div>
+          </sc-if>
+        </div>
+        <button type="button" class="btn emergency" onClick="{{emergency}}">Emergency</button>
+      </div>
+
+      <nav class="pills" aria-label="Stock">
+        <button type="button" class="{{tabMain}}" aria-current="{{tabMainCur}}" onClick="{{goMainStore}}">Main store</button>
+        <button type="button" class="{{tabReceive}}" aria-current="{{tabReceiveCur}}" onClick="{{goReceive}}">Receive a delivery{{receiveBadge}}</button>
+        <button type="button" class="{{pillMedicines}}" aria-current="{{pillMedicinesCur}}" onClick="{{goMedicines}}">Medicines</button>
+      </nav>
+
+      <sc-if value="{{offline}}" hint-placeholder-val="{{false}}"><div class="offline" role="status"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l20 20"></path><path d="M8.5 16.5a5 5 0 0 1 7 0"></path><path d="M5 12.9a10 10 0 0 1 5.2-2.8"></path><path d="M19 12.9a10 10 0 0 0-2.3-1.6"></path><path d="M12 20h.01"></path></svg>{{offlineText}}</div></sc-if>
+
+      <!-- RECEIVE: everything arriving here, one list, ordered by what to do next -->
+      <sc-if value="{{isReceive}}" hint-placeholder-val="{{true}}">
+        <div class="stack">
+          <div class="head">
+            <div>
+              <h1 class="h1">Receive <span class="soft">· {{place.name}} · {{recvLine}}</span></h1>
+              <p class="lead">{{homeLead}}</p>
+            </div>
+            <sc-if value="{{canReceive}}" hint-placeholder-val="{{true}}">
+              <button type="button" class="btn primary lg glow" onClick="{{openStartBlank}}">Receive a delivery</button>
+            </sc-if>
+          </div>
+
+          <div class="flow" style="{{flowStyle}}" role="list" aria-label="Deliveries, stage by stage">
+            <sc-for list="{{stages}}" as="st" hint-placeholder-count="4">
+              <section class="stage" role="listitem" aria-label="{{st.title}}">
+                <div class="stagehead">
+                  <span class="stageno" aria-hidden="true">{{st.no}}</span>
+                  <h2 class="stagetitle">{{st.title}}</h2>
+                  <span class="{{st.cntCls}}">{{st.n}}</span>
+                </div>
+                <p class="stagenote">{{st.note}}</p>
+                <sc-for list="{{st.items}}" as="it" hint-placeholder-count="2">
+                  <article class="dcard">
+                    <div class="dtop"><span class="mono">{{it.ref}}</span><sc-if value="{{it.hasTag}}" hint-placeholder-val="{{true}}"><span class="{{it.tagCls}}">{{it.tag}}</span></sc-if></div>
+                    <b class="dtitle">{{it.title}}</b>
+                    <span class="dsub">{{it.sub}}</span>
+                    <sc-if value="{{it.hasLink}}" hint-placeholder-val="{{false}}"><button type="button" class="btn text sm" style="margin-left: -8px; min-height: 28px" onClick="{{it.goLink}}">{{it.link}}</button></sc-if>
+                    <sc-if value="{{it.hasAct}}" hint-placeholder-val="{{true}}"><button type="button" class="{{it.btnCls}}" onClick="{{it.go}}">{{it.act}}</button></sc-if>
+                    <sc-if value="{{it.hasAct2}}" hint-placeholder-val="{{false}}"><button type="button" class="btn sm" onClick="{{it.go2}}">{{it.act2}}</button></sc-if>
+                  </article>
+                </sc-for>
+                <sc-if value="{{st.empty}}" hint-placeholder-val="{{false}}"><p class="stageempty">{{st.emptyText}}</p></sc-if>
+              </section>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{hasClaims}}" hint-placeholder-val="{{true}}">
+            <section class="card" aria-label="Claims to suppliers">
+              <div class="cardhead"><h2 class="h2">Claims to suppliers</h2><span class="cnt warn">{{claims.length}}</span></div>
+              <p class="cardnote">Made automatically when a delivery is short, damaged, rejected or charged above the order price. Followed until the credit note arrives.</p>
+              <ul class="rows">
+                <sc-for list="{{claims}}" as="c" hint-placeholder-count="2">
+                  <li class="row">
+                    <div class="rowmain"><span class="rowtitle"><span class="mono">{{c.id}}</span> · {{c.sup}} <span class="{{c.stCls}}">{{c.st}}</span></span><span class="rowsub">{{c.sub}}</span></div>
+                    <div class="rowend"><b class="num">{{c.total}}</b><sc-if value="{{c.hasAct}}" hint-placeholder-val="{{true}}"><button type="button" class="btn sm" onClick="{{c.go}}">{{c.act}}</button></sc-if></div>
+                  </li>
+                </sc-for>
+              </ul>
+            </section>
+          </sc-if>
+
+          <sc-if value="{{showFigs}}" hint-placeholder-val="{{true}}">
+            <h2 class="h2" style="margin: 4px 0 -4px">Receiving figures</h2>
+            <div class="figs" role="group" aria-label="Receiving figures">
+              <sc-for list="{{figs}}" as="k" hint-placeholder-count="4">
+                <div class="fig">
+                  <div class="fighead"><span class="tlabel">{{k.label}}</span><sc-if value="{{k.hasSt}}" hint-placeholder-val="{{true}}"><span class="{{k.stCls}}">{{k.st}}</span></sc-if></div>
+                  <span class="tvalue">{{k.value}}</span>
+                  <span class="{{k.subCls}}">{{k.sub}}</span>
+                  <sc-if value="{{k.hasBars}}" hint-placeholder-val="{{true}}">
+                    <div class="mini">
+                      <div class="miniy" aria-hidden="true"><span>{{k.yMax}}</span><span>0</span></div>
+                      <div class="miniplot">
+                        <sc-if value="{{k.hasRef}}" hint-placeholder-val="{{true}}"><span class="miniref" style="{{k.refStyle}}"><span>{{k.refLabel}}</span></span></sc-if>
+                        <sc-for list="{{k.bars}}" as="b" hint-placeholder-count="7"><span class="minicol" tabindex="0" role="img" aria-label="{{b.tip}}"><span class="minibar" style="{{b.style}}"></span><span class="minitip" style="{{b.tipStyle}}">{{b.tip}}</span></span></sc-for>
+                      </div>
+                      <div class="minix" aria-hidden="true"><span>{{k.xFirst}}</span><span>Latest</span></div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{k.hasSplit}}" hint-placeholder-val="{{false}}">
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px">
+                      <sc-for list="{{k.split}}" as="r" hint-placeholder-count="2"><div class="splitrow"><b>{{r.name}}</b><span class="track"><span class="bar" style="{{r.bar}}"></span><span class="val" style="{{r.valStyle}}">{{r.val}}</span></span></div></sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{k.hasAct}}" hint-placeholder-val="{{false}}"><div class="figact"><button type="button" class="btn text sm" style="margin-left: -8px" onClick="{{k.go}}">{{k.act}}</button></div></sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <section class="card" aria-label="Suppliers">
+              <div class="cardhead"><h2 class="h2">Suppliers</h2></div>
+              <p class="cardnote">Last 6 months. Fill rate is the share of ordered lines delivered in full.</p>
+              <div class="supgrid">
+                <span class="hd">Supplier</span><span class="hd">Fill rate</span><span class="hd">Lead time</span><span class="hd">On time</span><span class="hd">Differences</span>
+                <sc-for list="{{suppRows}}" as="r" hint-placeholder-count="3">
+                  <span style="font-weight: 600">{{r.name}}</span>
+                  <span class="track"><span class="bar" style="{{r.bar}}"></span><span class="val" style="{{r.valStyle}}">{{r.fill}}</span></span>
+                  <span style="{{r.leadCls}}">{{r.lead}}</span>
+                  <span class="num">{{r.onTime}}</span>
+                  <span class="num">{{r.diffs}}</span>
+                </sc-for>
+              </div>
+            </section>
+          </sc-if>
+
+          <sc-if value="{{hasNoReg}}" hint-placeholder-val="{{false}}">
+            <section class="card" aria-label="Received without a current registration">
+              <div class="cardhead"><h2 class="h2">Received without a current registration</h2><span class="cnt warn">{{noReg.length}}</span></div>
+              <p class="cardnote">For the in-charge. Nothing here blocks a recall or quarantine.</p>
+              <ul class="rows">
+                <sc-for list="{{noReg}}" as="r" hint-placeholder-count="1">
+                  <li class="row"><div class="rowmain"><span class="rowtitle">{{r.name}}</span><span class="rowsub">{{r.sub}}</span></div></li>
+                </sc-for>
+              </ul>
+            </section>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- COUNT: one delivery -->
+      <sc-if value="{{isCount}}" hint-placeholder-val="{{false}}">
+        <div class="stack">
+          <div class="head headcol">
+            <button type="button" class="back" style="align-self: flex-start" onClick="{{goReceive}}">‹ Receive</button>
+            <h1 class="h1">Counting <span class="mono" style="font-size: 20px">{{d.note}}</span> · {{d.supplier}} <sc-if value="{{d.blind}}" hint-placeholder-val="{{false}}"><span class="tag teal" style="vertical-align: middle">Blind count</span></sc-if></h1>
+            <p class="lead">Nothing is in stock until you add it. Everything here saves as you go.</p>
+          </div>
+          <div class="two">
+            <section class="card" aria-label="Lines">
+              <div class="cardhead"><h2 class="h2">Lines</h2><span class="count">{{d.counted}} counted{{d.pendingText}}</span></div>
+              <sc-if value="{{d.hasCold}}" hint-placeholder-val="{{false}}"><p class="{{d.coldCls}}" role="status">{{d.coldText}}</p></sc-if>
+              <div class="band">
+                <label class="bandtitle" for="scan-box">Scan the next pack, or type a name</label>
+                <div class="scanrow">
+                  <input id="scan-box" class="scanbox" autocomplete="off" value="{{scan}}" onChange="{{setScan}}" onKeyDown="{{scanKey}}">
+                  <button type="button" class="btn" onClick="{{readScan}}">Read</button>
+                  <button type="button" class="btn" onClick="{{openPicker}}">Pick from the catalogue (Ctrl K)</button>
+                </div>
+                <span class="bandhint">A scanner types here and presses Enter. A 2D code fills the batch and expiry too. Scanning the same pack again counts one more.</span>
+              </div>
+              <div class="try">
+                <span>Prototype only, try a scan:</span>
+                <sc-for list="{{samples}}" as="x" hint-placeholder-count="7"><button type="button" class="chip" onClick="{{x.scan}}">{{x.label}}</button></sc-for>
+              </div>
+              <sc-if value="{{hasScanNote}}" hint-placeholder-val="{{false}}">
+                <div class="scannote" role="status">
+                  <span>{{scanNoteText}}</span>
+                  <sc-if value="{{scanUnknown}}" hint-placeholder-val="{{false}}">
+                    <div class="scanrow">
+                      <select class="input" style="flex: 1 1 220px" aria-label="Which medicine this barcode is" value="{{unknownPick}}" onChange="{{setUnknownPick}}">
+                        <option value="">Choose the medicine on the pack</option>
+                        <sc-for list="{{medOptions}}" as="o" hint-placeholder-count="6"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+                      </select>
+                      <button type="button" class="btn" onClick="{{linkUnknown}}">Link it and add the line</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{noLines}}" hint-placeholder-val="{{false}}"><p class="empty">No line yet. Scan the first pack.</p></sc-if>
+              <sc-for list="{{lines}}" as="l" hint-placeholder-count="3">
+                <div class="{{l.cls}}">
+                  <div class="linehead">
+                    <span class="{{l.noCls}}"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Line </span>{{l.no}}</span>
+                    <span class="linename">{{l.name}}</span>
+                    <sc-for list="{{l.tags}}" as="t" hint-placeholder-count="1"><span class="tag">{{t.label}}</span></sc-for>
+                    <span class="grow"></span>
+                    <span class="count">{{l.source}}</span>
+                    <button type="button" class="btn sm" aria-expanded="{{l.isOpen}}" onClick="{{l.toggle}}">{{l.toggleLabel}}</button>
+                    <sc-if value="{{l.canRemove}}" hint-placeholder-val="{{true}}"><button type="button" class="btn text sm" onClick="{{l.remove}}">Remove</button></sc-if>
+                  </div>
+                  <div class="facts">
+                    <sc-for list="{{l.facts}}" as="f" hint-placeholder-count="3"><span>{{f.k}} <b>{{f.v}}</b></span></sc-for>
+                  </div>
+                  <sc-if value="{{l.hasWords}}" hint-placeholder-val="{{true}}">
+                    <div class="words">
+                      <sc-for list="{{l.words}}" as="w" hint-placeholder-count="1">
+                        <span class="{{w.cls}}">
+                          <sc-if value="{{w.caution}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></sc-if>
+                          <sc-if value="{{w.ok}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+                          {{w.word}}
+                        </span>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{l.isOpen}}" hint-placeholder-val="{{false}}">
+                    <div class="edit">
+                      <div class="fields">
+                        <label class="field"><span>Batch</span><input class="input mono" data-line-focus="1" value="{{l.batch}}" onChange="{{l.setBatch}}"></label>
+                        <label class="field"><span>Expiry</span><input class="input" placeholder="2028-06 or 2028-06-30" value="{{l.exp}}" onChange="{{l.setExp}}"></label>
+                        <label class="field"><span>Packs counted</span><input class="input num" inputmode="numeric" value="{{l.packs}}" onChange="{{l.setPacks}}"></label>
+                        <label class="field"><span>{{l.perLabel}}</span><input class="input num" inputmode="numeric" value="{{l.per}}" onChange="{{l.setPer}}"></label>
+                        <sc-if value="{{l.showNote}}" hint-placeholder-val="{{true}}"><label class="field"><span>On the note (packs)</span><input class="input num" inputmode="numeric" placeholder="{{l.notePh}}" value="{{l.notePacks}}" onChange="{{l.setNote}}"></label></sc-if>
+                        <label class="field"><span>Cost per pack, UGX</span><input class="input num" inputmode="numeric" value="{{l.cost}}" onChange="{{l.setCost}}"></label>
+                      </div>
+                      <sc-if value="{{l.canAllExpected}}" hint-placeholder-val="{{false}}">
+                        <div class="chips"><button type="button" class="chip" onClick="{{l.allExpected}}">All {{l.expectedPacks}} packs arrived</button></div>
+                      </sc-if>
+                      <sc-for list="{{l.notes}}" as="n" hint-placeholder-count="1"><p class="{{n.cls}}">{{n.text}}</p></sc-for>
+
+                      <sc-if value="{{l.isCold}}" hint-placeholder-val="{{false}}">
+                        <div class="sub">
+                          <label class="field" style="max-width: 220px"><span>Temperature on arrival, °C (read from the cool box)</span><input class="input num" inputmode="decimal" value="{{l.temp}}" onChange="{{l.setTemp}}"></label>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{l.isVaccine}}" hint-placeholder-val="{{false}}">
+                        <div class="sub">
+                          <label class="field" style="max-width: 220px"><span>Temperature on arrival, °C (read from the cool box)</span><input class="input num" inputmode="decimal" value="{{l.temp}}" onChange="{{l.setTemp}}"></label>
+                          <span class="lab">Vaccine vial monitor (VVM) on the vials</span>
+                          <div class="chips"><sc-for list="{{l.vvms}}" as="o" hint-placeholder-count="4"><button type="button" class="{{o.cls}}" aria-pressed="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div>
+                          <span class="lab">Freeze indicator in the box</span>
+                          <div class="chips"><sc-for list="{{l.freezes}}" as="o" hint-placeholder-count="2"><button type="button" class="{{o.cls}}" aria-pressed="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{l.needsDecision}}" hint-placeholder-val="{{false}}">
+                        <div class="sub">
+                          <span class="lab">Short-dated: decide</span>
+                          <div class="chips">
+                            <sc-for list="{{l.decisions}}" as="o" hint-placeholder-count="3"><button type="button" class="{{o.cls}}" aria-pressed="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+                          </div>
+                          <sc-if value="{{l.needsApproval}}" hint-placeholder-val="{{false}}">
+                            <label class="field" style="max-width: 320px"><span>Accepting needs the in-charge (Rules › Receiving)</span>
+                              <select class="input" value="{{l.approvedBy}}" onChange="{{l.setApproved}}"><option value="">Waiting for approval</option><sc-for list="{{approverOptions}}" as="o" hint-placeholder-count="1"><option value="{{o.v}}">Approved by the {{o.label}}</option></sc-for></select>
+                            </label>
+                          </sc-if>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{l.needsReg}}" hint-placeholder-val="{{false}}">
+                        <div class="sub">
+                          <p class="editnote caution">Registration lapsed. Say why it is received; it is listed for the in-charge.</p>
+                          <div class="fields">
+                            <label class="field"><span>Why it is received</span>
+                              <select class="input" value="{{l.regReason}}" onChange="{{l.setReg}}">
+                                <option value="">Choose</option>
+                                <sc-for list="{{regOptions}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+                              </select>
+                            </label>
+                            <sc-if value="{{l.regOther}}" hint-placeholder-val="{{false}}">
+                              <label class="field"><span>What happened</span><input class="input" value="{{l.regNote}}" onChange="{{l.setRegNote}}"></label>
+                            </sc-if>
+                          </div>
+                        </div>
+                      </sc-if>
+
+                      <div class="sub">
+                        <label class="check"><input type="checkbox" checked="{{l.rejOn}}" onChange="{{l.toggleRej}}">Some are not accepted</label>
+                        <sc-if value="{{l.rejOn}}" hint-placeholder-val="{{false}}">
+                          <div class="fields">
+                            <label class="field"><span>Packs not accepted</span><input class="input num" inputmode="numeric" value="{{l.rejPacks}}" onChange="{{l.setRejPacks}}"></label>
+                            <label class="field"><span>Why</span>
+                              <select class="input" value="{{l.rejWhy}}" onChange="{{l.setRejWhy}}">
+                                <option value="">Choose</option>
+                                <sc-for list="{{whyOptions}}" as="o" hint-placeholder-count="5"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+                              </select>
+                            </label>
+                            <div class="field">
+                              <span>Where they go</span>
+                              <div class="chips">
+                                <sc-for list="{{l.fates}}" as="o" hint-placeholder-count="2"><button type="button" class="{{o.cls}}" aria-pressed="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+                              </div>
+                            </div>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{l.canRejectAll}}" hint-placeholder-val="{{false}}">
+                          <div class="chips"><button type="button" class="chip" onClick="{{l.rejectAll}}">Reject all of it</button></div>
+                        </sc-if>
+                      </div>
+                      <div class="chips"><button type="button" class="btn sm" onClick="{{l.toggle}}">Done with this line</button></div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <div class="line"><div class="chips"><button type="button" class="btn sm" onClick="{{openPicker}}">+ Add a line</button></div></div>
+            </section>
+
+            <div class="stack">
+              <section class="card" aria-label="The delivery">
+                <div class="cardhead"><h2 class="h2">The delivery</h2><span class="grow"></span><button type="button" class="btn text sm" onClick="{{openEdit}}">Change</button></div>
+                <dl class="dl">
+                  <div><dt>Into</dt><dd>{{d.place}}</dd></div>
+                  <div><dt>Arrived</dt><dd>{{d.arrived}}</dd></div>
+                  <sc-if value="{{d.isSupplier}}" hint-placeholder-val="{{true}}"><div><dt>Order</dt><dd>{{d.order}}</dd></div></sc-if>
+                  <div><dt>Kind</dt><dd>{{d.kindText}}</dd></div>
+                  <div><dt>Brought by</dt><dd>{{d.people}}</dd></div>
+                </dl>
+                <sc-if value="{{d.isSupplier}}" hint-placeholder-val="{{true}}">
+                  <div class="finish" style="padding-top: 12px">
+                    <span class="lab">Invoice</span>
+                    <div class="fields">
+                      <label class="field"><span>Invoice number</span><input class="input mono" value="{{d.invoice}}" onChange="{{d.setInvoice}}"></label>
+                      <label class="field"><span>Invoice total, UGX</span><input class="input num" inputmode="numeric" value="{{d.invoiceTotal}}" onChange="{{d.setInvoiceTotal}}"></label>
+                    </div>
+                    <div class="match"><sc-for list="{{d.matchRows}}" as="m" hint-placeholder-count="3"><span class="{{m.cls}}">{{m.text}}</span></sc-for></div>
+                  </div>
+                </sc-if>
+                <div class="finish" style="padding-top: 12px">
+                  <span class="lab">Photos</span>
+                  <div class="photos"><sc-for list="{{d.photoKinds}}" as="pk" hint-placeholder-count="3"><label class="btn sm upl">{{pk.label}}<input type="file" accept="image/*" capture="environment" onChange="{{pk.add}}"></label></sc-for></div>
+                  <sc-if value="{{d.hasPhotos}}" hint-placeholder-val="{{false}}"><div class="photos"><sc-for list="{{d.photos}}" as="ph" hint-placeholder-count="2"><figure class="thumb"><img src="{{ph.url}}" alt="{{ph.alt}}"><figcaption>{{ph.kind}}</figcaption></figure></sc-for></div></sc-if>
+                  <p class="reason">For claims and audits. In this prototype, photos stay on this device until you reload.</p>
+                </div>
+                <div class="finish">
+                  <span class="sum">{{d.summary}}</span>
+                  <sc-if value="{{d.hasProblems}}" hint-placeholder-val="{{false}}">
+                    <ul class="todo" aria-label="Still to finish">
+                      <sc-for list="{{d.problems}}" as="p" hint-placeholder-count="2"><li><button type="button" onClick="{{p.go}}">{{p.text}}</button></li></sc-for>
+                    </ul>
+                  </sc-if>
+                  <sc-if value="{{d.hasControlled}}" hint-placeholder-val="{{false}}"><p class="reason">A witness on duty confirms each controlled line when you add it. The paper register still applies.</p></sc-if>
+                  <sc-if value="{{d.hasKept}}" hint-placeholder-val="{{false}}"><p class="reason">Rejected and kept goes to quarantine.</p></sc-if>
+                  <button type="button" class="btn primary lg" disabled="{{d.blocked}}" onClick="{{addToStock}}">{{d.addLabel}}</button>
+                  <sc-if value="{{d.blocked}}" hint-placeholder-val="{{false}}"><p class="reason">{{d.blockedReason}}</p></sc-if>
+                  <div class="linkrow">
+                    <button type="button" class="btn text sm" onClick="{{goReceive}}">Finish later</button>
+                    <button type="button" class="btn text sm" onClick="{{openAbandon}}">Abandon this delivery</button>
+                  </div>
+                </div>
+              </section>
+              <sc-if value="{{d.hasOrder}}" hint-placeholder-val="{{true}}">
+                <section class="card" aria-label="Still owed on the order">
+                  <div class="cardhead"><h2 class="h2">Still owed on the order</h2></div>
+                  <sc-if value="{{d.nothingOwed}}" hint-placeholder-val="{{false}}"><p class="empty">Nothing is still owed on this order.</p></sc-if>
+                  <ul class="rows">
+                    <sc-for list="{{d.owed}}" as="o" hint-placeholder-count="2"><li class="row" style="min-height: 40px"><span class="rowmain">{{o.name}}</span><span class="num">{{o.text}}</span></li></sc-for>
+                  </ul>
+                </section>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- AFTER: the same delivery once it is closed: put away, papers, what moved -->
+      <sc-if value="{{isAfter}}" hint-placeholder-val="{{false}}">
+        <div class="stack">
+          <div class="head headcol">
+            <button type="button" class="back" style="align-self: flex-start" onClick="{{goReceive}}">‹ Receive</button>
+            <h1 class="h1">{{a.title}}</h1>
+            <p class="lead">{{a.sub}}</p>
+          </div>
+          <div class="two">
+            <div class="stack">
+              <sc-if value="{{a.showPut}}" hint-placeholder-val="{{true}}">
+                <section class="card" aria-label="Put away">
+                  <div class="cardhead"><h2 class="h2">Put away</h2><span class="cnt info">{{a.putLeft}}</span><span class="grow"></span><button type="button" class="btn sm" onClick="{{a.openLabels}}">Print shelf labels</button></div>
+                  <p class="cardnote">Each batch goes to the shelf where its medicine already is. Cold-chain lines first.</p>
+                  <ul class="rows">
+                    <sc-for list="{{a.put}}" as="p" hint-placeholder-count="2">
+                      <li class="row">
+                        <div class="rowmain">
+                          <span class="rowtitle">{{p.name}} <sc-for list="{{p.tags}}" as="t" hint-placeholder-count="1"><span class="tag">{{t.label}}</span></sc-for></span>
+                          <span class="rowsub"><span class="mono">{{p.batch}}</span> · exp {{p.exp}} · {{p.qty}}</span>
+                          <span class="rowsub">{{p.hint}}</span>
+                        </div>
+                        <div class="rowend">
+                          <sc-if value="{{p.waiting}}" hint-placeholder-val="{{true}}">
+                            <span class="rowend">
+                              <input class="input mono" style="width: 92px; text-transform: uppercase" aria-label="{{p.aria}}" value="{{p.shelf}}" onChange="{{p.setShelf}}">
+                              <button type="button" class="btn sm" onClick="{{p.mark}}">Mark put away</button>
+                              <sc-if value="{{p.canSend}}" hint-placeholder-val="{{false}}"><button type="button" class="btn text sm" onClick="{{p.send}}">{{p.sendLabel}}</button></sc-if>
+                            </span>
+                          </sc-if>
+                          <sc-if value="{{p.isDone}}" hint-placeholder-val="{{false}}">
+                            <span class="rowend"><span class="word">{{p.doneText}}</span><sc-if value="{{p.canUndo}}" hint-placeholder-val="{{true}}"><button type="button" class="btn text sm" onClick="{{p.undo}}">Undo</button></sc-if></span>
+                          </sc-if>
+                        </div>
+                      </li>
+                    </sc-for>
+                  </ul>
+                </section>
+              </sc-if>
+              <sc-if value="{{a.isReceived}}" hint-placeholder-val="{{true}}">
+                <section class="card" aria-label="What moved">
+                  <div class="cardhead"><h2 class="h2">What moved</h2></div>
+                  <div class="tablewrap"><table>
+                    <thead><tr><th scope="col">Medicine</th><th scope="col">Batch</th><th scope="col">Into stock</th><th scope="col">Not accepted</th><th scope="col">Result</th></tr></thead>
+                    <tbody>
+                      <sc-for list="{{a.moved}}" as="m" hint-placeholder-count="2">
+                        <tr><td>{{m.name}}</td><td class="mono">{{m.batch}}</td><td class="num">{{m.units}}</td><td>{{m.rej}}</td><td>{{m.result}}</td></tr>
+                      </sc-for>
+                    </tbody>
+                  </table></div>
+                </section>
+              </sc-if>
+            </div>
+            <div class="stack">
+              <sc-if value="{{a.isReceived}}" hint-placeholder-val="{{true}}">
+                <section class="card" aria-label="Papers">
+                  <div class="cardhead"><h2 class="h2">Papers</h2></div>
+                  <div class="finish" style="border-top: 0; padding-top: 0">
+                    <button type="button" class="btn" onClick="{{openGrn}}">Goods received note</button>
+                    <sc-if value="{{a.hasDiff}}" hint-placeholder-val="{{false}}"><button type="button" class="btn" onClick="{{openReport}}">Discrepancy report (HMIS 087)</button></sc-if>
+                    <sc-if value="{{a.noDiff}}" hint-placeholder-val="{{true}}"><p class="reason">Every line matched the note, so there is no discrepancy report.</p></sc-if>
+                    <sc-if value="{{a.hasClaim}}" hint-placeholder-val="{{false}}"><button type="button" class="btn" onClick="{{a.openClaim}}">{{a.claimLabel}}</button></sc-if>
+                    <sc-if value="{{a.hasSecond}}" hint-placeholder-val="{{false}}"><p class="reason">{{a.secondText}}.</p></sc-if>
+                    <sc-if value="{{a.hasPhotos}}" hint-placeholder-val="{{false}}"><div class="photos"><sc-for list="{{a.photos}}" as="ph" hint-placeholder-count="2"><figure class="thumb"><img src="{{ph.url}}" alt="{{ph.alt}}"><figcaption>{{ph.kind}}</figcaption></figure></sc-for></div></sc-if>
+                  </div>
+                </section>
+              </sc-if>
+              <sc-if value="{{a.hasOrder}}" hint-placeholder-val="{{false}}">
+                <section class="card" aria-label="The order">
+                  <div class="cardhead"><h2 class="h2">{{a.orderRef}}</h2><span class="tag" data-s="{{a.orderState}}">{{a.orderState}}</span></div>
+                  <sc-if value="{{a.nothingOwed}}" hint-placeholder-val="{{false}}"><p class="empty">Nothing is still owed on this order.</p></sc-if>
+                  <ul class="rows">
+                    <sc-for list="{{a.owed}}" as="o" hint-placeholder-count="1"><li class="row" style="min-height: 40px"><span class="rowmain">{{o.name}}</span><span class="num">{{o.text}}</span></li></sc-for>
+                  </ul>
+                  <sc-if value="{{a.canRest}}" hint-placeholder-val="{{false}}"><div class="finish"><button type="button" class="btn" onClick="{{a.recordRest}}">Record the rest</button></div></sc-if>
+                </section>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- MEDICINES: a door, not a second receive form -->
+      <sc-if value="{{isMedicines}}" hint-placeholder-val="{{false}}">
+        <div class="stack">
+          <div class="head">
+            <div>
+              <h1 class="h1">Medicines <span class="soft">· {{place.name}}</span></h1>
+              <p class="lead">{{medsLead}}</p>
+            </div>
+            <sc-if value="{{canReceive}}" hint-placeholder-val="{{true}}"><button type="button" class="btn primary lg glow" onClick="{{openStartBlank}}">Receive a delivery</button></sc-if>
+          </div>
+          <section class="card" aria-label="Medicines">
+            <div class="tablewrap"><table>
+              <thead><tr><th scope="col">Medicine</th><th scope="col">On hand here</th><th scope="col">Usual shelf</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Action</span></th></tr></thead>
+              <tbody>
+                <sc-for list="{{meds}}" as="m" hint-placeholder-count="6">
+                  <tr>
+                    <td><span class="rowtitle">{{m.name}} <sc-for list="{{m.tags}}" as="t" hint-placeholder-count="1"><span class="tag">{{t.label}}</span></sc-for></span></td>
+                    <td class="num">{{m.onHand}}</td>
+                    <td class="mono">{{m.shelf}}</td>
+                    <td><sc-if value="{{canReceive}}" hint-placeholder-val="{{true}}"><button type="button" class="btn text sm" onClick="{{m.receive}}">Receive</button></sc-if></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table></div>
+          </section>
+        </div>
+      </sc-if>
+
+      <!-- MAIN STORE: doors in, and where the results land -->
+      <sc-if value="{{isMainStore}}" hint-placeholder-val="{{false}}">
+        <div class="stack">
+          <div class="head">
+            <div>
+              <h1 class="h1">Main store</h1>
+              <p class="lead">Only the parts that touch receiving are shown in this prototype.</p>
+            </div>
+            <button type="button" class="btn primary lg glow" onClick="{{goReceive}}">Receive a delivery</button>
+          </div>
+          <section class="card" aria-label="Orders">
+            <div class="cardhead"><h2 class="h2">Orders</h2></div>
+            <ul class="rows">
+              <sc-for list="{{allOrders}}" as="r" hint-placeholder-count="2">
+                <li class="row">
+                  <div class="rowmain">
+                    <span class="rowtitle">{{r.ref}} <span class="tag" data-s="{{r.state}}">{{r.state}}</span></span>
+                    <span class="rowsub">{{r.sub}}</span>
+                  </div>
+                  <sc-if value="{{r.canReceive}}" hint-placeholder-val="{{true}}"><div class="rowend"><button type="button" class="btn sm" onClick="{{r.receive}}">{{r.action}}</button></div></sc-if>
+                </li>
+              </sc-for>
+            </ul>
+          </section>
+          <section class="card" aria-label="Quarantine">
+            <div class="cardhead"><h2 class="h2">Quarantine</h2><span class="cnt">{{quarantine.length}}</span></div>
+            <sc-if value="{{noQuarantine}}" hint-placeholder-val="{{true}}"><p class="empty">Nothing is kept apart. Rejected and kept stock lands here.</p></sc-if>
+            <ul class="rows">
+              <sc-for list="{{quarantine}}" as="q" hint-placeholder-count="1"><li class="row"><div class="rowmain"><span class="rowtitle">{{q.name}}</span><span class="rowsub">{{q.sub}}</span></div></li></sc-for>
+            </ul>
+          </section>
+        </div>
+      </sc-if>
+    </main>
+  </div>
+
+  <!-- ONE DIALOG TO START: every door opens this -->
+  <sc-if value="{{dlgStart}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg" style="width: 780px" role="dialog" aria-modal="true" aria-labelledby="start-title">
+        <div class="dlghead">
+          <h2 class="dlgtitle" id="start-title">{{st.title}}</h2>
+          <p class="lead" style="margin: 2px 0 0">Into {{place.name}}. Nothing moves until you finish counting.</p>
+        </div>
+        <div class="dlgbody" style="gap: 16px">
+          <sc-if value="{{st.showBlind}}" hint-placeholder-val="{{true}}">
+            <section class="fsec" aria-labelledby="sec-what">
+              <h3 class="fsech" id="sec-what"><span class="stageno">1</span>What arrived</h3>
+              <div class="opts" role="radiogroup" aria-labelledby="sec-what">
+                <sc-for list="{{st.kinds}}" as="k" hint-placeholder-count="4">
+                  <button type="button" class="opt" role="radio" aria-checked="{{k.on}}" onClick="{{k.pick}}">
+                    <span class="ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{k.icon}}"></path></svg></span>
+                    <b>{{k.label}}</b><small>{{k.hint}}</small>
+                  </button>
+                </sc-for>
+              </div>
+            </section>
+          </sc-if>
+
+          <section class="fsec" aria-labelledby="sec-from">
+            <h3 class="fsech" id="sec-from"><span class="stageno">{{st.n2}}</span>{{st.fromTitle}}</h3>
+            <sc-if value="{{st.isSupplier}}" hint-placeholder-val="{{true}}">
+              <div class="opts three" role="radiogroup" aria-label="Supplier" aria-invalid="{{st.supInvalid}}">
+                <sc-for list="{{st.suppliers}}" as="o" hint-placeholder-count="3">
+                  <button type="button" class="opt" role="radio" aria-checked="{{o.on}}" disabled="{{o.off}}" onClick="{{o.pick}}"><span class="optrow"><b>{{o.label}}</b><sc-if value="{{o.hasCount}}" hint-placeholder-val="{{false}}"><span class="tag info">{{o.count}}</span></sc-if></span><small>{{o.sub}}</small></button>
+                </sc-for>
+              </div>
+              <sc-if value="{{st.supErr}}" hint-placeholder-val="{{false}}"><span class="ferr" role="alert">{{st.err}}</span></sc-if>
+              <sc-if value="{{st.showOrders}}" hint-placeholder-val="{{false}}">
+                <span class="lab" style="margin-top: 4px">Against which order?</span>
+                <div class="opts" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr))" role="radiogroup" aria-label="Order">
+                  <sc-for list="{{st.orders}}" as="o" hint-placeholder-count="2">
+                    <button type="button" class="opt" role="radio" aria-checked="{{o.on}}" disabled="{{st.locked}}" onClick="{{o.pick}}"><span class="optrow"><b>{{o.ref}}</b><span class="{{o.dueCls}}">{{o.due}}</span></span><small>{{o.sub}}</small></button>
+                  </sc-for>
+                  <button type="button" class="opt" role="radio" aria-checked="{{st.noOrderOn}}" disabled="{{st.locked}}" onClick="{{st.pickNoOrder}}"><b>No order</b><small>It came without one. Every line is typed or scanned.</small></button>
+                </div>
+              </sc-if>
+            </sc-if>
+            <sc-if value="{{st.notSupplier}}" hint-placeholder-val="{{false}}">
+              <p class="hint" style="margin: 0">{{st.kindLead}}</p>
+              <sc-if value="{{st.isFreeFrom}}" hint-placeholder-val="{{false}}">
+                <label class="field"><span>{{st.fromLabel}}</span><input class="input" data-focus="1" placeholder="{{st.fromPh}}" aria-invalid="{{st.fromInvalid}}" value="{{st.from}}" onChange="{{st.setFrom}}"><sc-if value="{{st.fromErr}}" hint-placeholder-val="{{false}}"><span class="ferr" role="alert">{{st.err}}</span></sc-if></label>
+              </sc-if>
+              <sc-if value="{{st.isWard}}" hint-placeholder-val="{{false}}">
+                <label class="field"><span>Ward or unit</span><select class="input" data-focus="1" aria-invalid="{{st.fromInvalid}}" value="{{st.from}}" onChange="{{st.setFrom}}"><option value="">Choose the ward or unit</option><sc-for list="{{st.wardOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.v}}">{{o.label}}</option></sc-for></select><sc-if value="{{st.fromErr}}" hint-placeholder-val="{{false}}"><span class="ferr" role="alert">{{st.err}}</span></sc-if></label>
+              </sc-if>
+            </sc-if>
+          </section>
+
+          <section class="fsec" aria-labelledby="sec-paper">
+            <h3 class="fsech" id="sec-paper"><span class="stageno">{{st.n3}}</span>Paperwork</h3>
+            <div class="two-in">
+              <label class="field"><span>{{st.noteLabel}}</span><input class="input mono" data-focus="1" autocomplete="off" placeholder="{{st.notePh}}" aria-invalid="{{st.noteInvalid}}" value="{{st.note}}" onChange="{{st.setNote}}"><sc-if value="{{st.noteErr}}" hint-placeholder-val="{{false}}"><span class="ferr" role="alert">{{st.err}}</span></sc-if><sc-if value="{{st.noteOk}}" hint-placeholder-val="{{true}}"><span class="hint">{{st.noteHint}}</span></sc-if></label>
+              <div class="field">
+                <span>Arrived</span>
+                <div class="two-in" style="grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 8px">
+                  <input class="input" type="date" aria-label="Arrival date" aria-invalid="{{st.atInvalid}}" value="{{st.date}}" onChange="{{st.setDate}}">
+                  <input class="input" type="time" aria-label="Arrival time" aria-invalid="{{st.atInvalid}}" value="{{st.time}}" onChange="{{st.setTime}}">
+                </div>
+                <sc-if value="{{st.atErr}}" hint-placeholder-val="{{false}}"><span class="ferr" role="alert">{{st.err}}</span></sc-if>
+                <sc-if value="{{st.atOk}}" hint-placeholder-val="{{true}}"><span class="hint">{{st.atHint}} <button type="button" class="nowchip" onClick="{{st.setNow}}">Now</button></span></sc-if>
+              </div>
+            </div>
+          </section>
+
+          <section class="fsec" aria-labelledby="sec-who">
+            <h3 class="fsech" id="sec-who"><span class="stageno">{{st.n4}}</span>Who brought it <span class="hint" style="font-weight: 500">optional</span></h3>
+            <div class="two-in">
+              <label class="field"><span>Deliverer's name</span><input class="input" autocomplete="off" placeholder="As on their ID" value="{{st.deliverer}}" onChange="{{st.setDeliverer}}"></label>
+              <label class="field"><span>Vehicle number plate</span><input class="input mono" autocomplete="off" placeholder="UBK 123X" style="text-transform: uppercase" value="{{st.vehicle}}" onChange="{{st.setVehicle}}"></label>
+            </div>
+          </section>
+
+          <sc-if value="{{st.showBlind}}" hint-placeholder-val="{{true}}">
+            <label class="switch"><input type="checkbox" role="switch" class="sw" checked="{{st.blindOn}}" onChange="{{st.toggleBlind}}"><span><b>Count blind</b><span class="hint">The note and order quantities stay hidden until each line is counted, so the count is what is in the boxes.</span></span></label>
+          </sc-if>
+          <sc-if value="{{st.otherErr}}" hint-placeholder-val="{{false}}"><p class="err" role="alert">{{st.err}}</p></sc-if>
+          <sc-if value="{{st.hasDup}}" hint-placeholder-val="{{false}}"><div class="chips"><button type="button" class="btn sm" onClick="{{st.openDup}}">Open that delivery</button></div></sc-if>
+        </div>
+        <div class="dlgfoot">
+          <span class="hint" style="margin-right: auto">{{st.footHint}}</span>
+          <button type="button" class="btn" onClick="{{closeDialog}}">Cancel</button>
+          <button type="button" class="btn primary" onClick="{{st.submit}}">{{st.action}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CATALOGUE PICKER -->
+  <sc-if value="{{dlgPicker}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg m" role="dialog" aria-modal="true" aria-labelledby="pick-title">
+        <div class="dlghead"><h2 class="dlgtitle" id="pick-title">Pick from the catalogue</h2></div>
+        <div class="dlgbody">
+          <label class="field"><span>Find a medicine</span><input class="input" data-focus="1" value="{{pk.q}}" onChange="{{pk.setQ}}"></label>
+          <div class="picklist">
+            <sc-for list="{{pk.items}}" as="m" hint-placeholder-count="5">
+              <label class="{{m.cls}}"><input type="checkbox" checked="{{m.on}}" onChange="{{m.tick}}"><span class="choicewords"><b>{{m.name}}</b><span>{{m.sub}}</span></span></label>
+            </sc-for>
+            <sc-if value="{{pk.none}}" hint-placeholder-val="{{false}}"><p class="reason">Nothing by that name in your medicines.</p></sc-if>
+          </div>
+          <sc-if value="{{pk.showAdd}}" hint-placeholder-val="{{true}}"><div class="chips"><button type="button" class="btn text sm" onClick="{{pk.openLocal}}">Not stocked yet? Add it</button></div></sc-if>
+          <sc-if value="{{pk.local}}" hint-placeholder-val="{{false}}">
+            <div class="edit">
+              <div class="fields">
+                <label class="field"><span>Generic name</span><input class="input" value="{{pk.lf.generic}}" onChange="{{pk.setGeneric}}"></label>
+                <label class="field"><span>Strength</span><input class="input" value="{{pk.lf.strength}}" onChange="{{pk.setStrength}}"></label>
+                <label class="field"><span>Counted per</span>
+                  <select class="input" value="{{pk.lf.unit}}" onChange="{{pk.setUnit}}">
+                    <sc-for list="{{unitOptions}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+                  </select>
+                </label>
+              </div>
+              <sc-if value="{{pk.hasErr}}" hint-placeholder-val="{{false}}"><p class="err" role="alert">{{pk.err}}</p></sc-if>
+              <p class="reason">It joins Set-up › Medicines as a local line. The in-charge reviews why it is stocked.</p>
+              <div class="chips"><button type="button" class="btn sm" onClick="{{pk.addLocal}}">Add to medicines</button></div>
+            </div>
+          </sc-if>
+        </div>
+        <div class="dlgfoot">
+          <span class="count">↑↓ with Tab · Space ticks · Esc closes</span>
+          <span class="grow"></span>
+          <button type="button" class="btn" onClick="{{closeDialog}}">Cancel</button>
+          <button type="button" class="btn primary" disabled="{{pk.noTicks}}" onClick="{{pk.add}}">{{pk.addLabel}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- WITNESS -->
+  <sc-if value="{{dlgWitness}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg m" role="dialog" aria-modal="true" aria-labelledby="wit-title">
+        <div class="dlghead"><h2 class="dlgtitle" id="wit-title">{{wit.title}}</h2><p class="lead" style="margin: 2px 0 0">{{wit.lead}}</p></div>
+        <div class="dlgbody">
+          <sc-if value="{{wit.needSecond}}" hint-placeholder-val="{{false}}">
+            <label class="field"><span>Count checked by</span>
+              <select class="input" data-focus="1" value="{{wit.second}}" onChange="{{wit.setSecond}}"><option value="">Choose who checked it</option><sc-for list="{{witnessOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.v}}">{{o.label}}</option></sc-for></select>
+            </label>
+          </sc-if>
+          <sc-for list="{{wit.lines}}" as="l" hint-placeholder-count="1">
+            <label class="field"><span>{{l.label}}</span>
+              <select class="input" data-focus="1" value="{{l.value}}" onChange="{{l.set}}">
+                <option value="">Choose who is witnessing</option>
+                <sc-for list="{{witnessOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+              </select>
+            </label>
+          </sc-for>
+          <sc-if value="{{wit.hasErr}}" hint-placeholder-val="{{false}}"><p class="err" role="alert">{{wit.err}}</p></sc-if>
+        </div>
+        <div class="dlgfoot">
+          <button type="button" class="btn" onClick="{{closeDialog}}">Cancel</button>
+          <button type="button" class="btn primary" onClick="{{wit.submit}}">{{wit.action}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ABANDON -->
+  <sc-if value="{{dlgAbandon}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg m" role="dialog" aria-modal="true" aria-labelledby="ab-title">
+        <div class="dlghead"><h2 class="dlgtitle" id="ab-title">Abandon this delivery</h2></div>
+        <div class="dlgbody">
+          <label class="field"><span>Why it is abandoned</span><input class="input" data-focus="1" value="{{ab.reason}}" onChange="{{ab.setReason}}"></label>
+          <sc-if value="{{ab.hasErr}}" hint-placeholder-val="{{false}}"><p class="err" role="alert">{{ab.err}}</p></sc-if>
+        </div>
+        <div class="dlgfoot">
+          <button type="button" class="btn" onClick="{{closeDialog}}">Keep counting</button>
+          <button type="button" class="btn" onClick="{{ab.submit}}">Abandon it</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CONFIRM A DISPATCH -->
+  <sc-if value="{{dlgConfirm}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg m" role="dialog" aria-modal="true" aria-labelledby="cf-title">
+        <div class="dlghead"><h2 class="dlgtitle" id="cf-title">Confirm what arrived · <span class="mono">{{cf.voucher}}</span></h2><p class="lead" style="margin: 2px 0 0">{{cf.sub}}</p></div>
+        <div class="dlgbody">
+          <ul class="rows" style="margin: 0 -20px">
+            <sc-for list="{{cf.lines}}" as="l" hint-placeholder-count="2"><li class="row"><div class="rowmain"><span class="rowtitle">{{l.name}}</span><span class="rowsub"><span class="mono">{{l.batch}}</span></span></div><span class="num">{{l.qty}}</span></li></sc-for>
+          </ul>
+          <label class="field"><span>Difference, if any</span><input class="input" data-focus="1" value="{{cf.note}}" onChange="{{cf.setNote}}"></label>
+          <p class="reason">A difference is kept with the voucher and opens a case for the in-charge.</p>
+        </div>
+        <div class="dlgfoot">
+          <button type="button" class="btn" onClick="{{closeDialog}}">Cancel</button>
+          <button type="button" class="btn primary" onClick="{{cf.submit}}">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- PAPER -->
+  <sc-if value="{{dlgPaper}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="pp-title">
+        <div class="dlgbody print-area">
+          <div class="paper">
+            <h2 class="dlgtitle" id="pp-title">{{pp.title}}</h2>
+            <sc-if value="{{pp.isReport}}" hint-placeholder-val="{{false}}"><p class="reason">The columns of the national form are not confirmed yet. MedSync does not send this report.</p></sc-if>
+            <div class="papergrid">
+              <sc-for list="{{pp.head}}" as="h" hint-placeholder-count="6"><span>{{h.k}}: <b>{{h.v}}</b></span></sc-for>
+            </div>
+            <div class="tablewrap"><table>
+              <thead><tr><sc-for list="{{pp.cols}}" as="c" hint-placeholder-count="5"><th scope="col" style="padding: 6px 8px">{{c.label}}</th></sc-for></tr></thead>
+              <tbody>
+                <sc-for list="{{pp.rows}}" as="r" hint-placeholder-count="2">
+                  <tr><sc-for list="{{r.cells}}" as="c" hint-placeholder-count="5"><td style="padding: 6px 8px">{{c.v}}</td></sc-for></tr>
+                </sc-for>
+              </tbody>
+            </table></div>
+            <div class="signs">
+              <div>Received by<span>Name, signature and date</span></div>
+              <div>Witnessed by<span>Name, signature and date</span></div>
+              <div>Delivered by<span>Name, signature and date</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="dlgfoot">
+          <button type="button" class="btn" data-focus="1" onClick="{{closeDialog}}">Close</button>
+          <button type="button" class="btn primary" onClick="{{printPaper}}">Print</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ORDER IN DETAIL -->
+  <sc-if value="{{dlgOrder}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="od-title">
+        <div class="dlghead"><h2 class="dlgtitle" id="od-title">{{od.title}}</h2><p class="lead" style="margin: 2px 0 0">{{od.lead}}</p></div>
+        <div class="dlgbody">
+          <div class="ogrid">
+            <span class="hd">Medicine</span><span class="hd r">Ordered (packs)</span><span class="hd r">Arrived</span><span class="hd r">Still to come</span><span class="hd r">Price a pack, UGX</span><span class="hd r">Value, UGX</span><span class="hd"></span>
+            <sc-for list="{{od.rows}}" as="r" hint-placeholder-count="5">
+              <span class="oname"><b>{{r.name}}</b><small>{{r.sub}}</small></span>
+              <span class="r"><sc-if value="{{od.viewing}}" hint-placeholder-val="{{true}}">{{r.packs}}</sc-if><sc-if value="{{od.editing}}" hint-placeholder-val="{{false}}"><input class="input num" inputmode="numeric" aria-label="Packs ordered of {{r.aria}}" value="{{r.packs}}" onChange="{{r.setPacks}}"></sc-if></span>
+              <span class="r">{{r.received}}</span>
+              <span class="r"><span class="{{r.leftCls}}">{{r.left}}</span></span>
+              <span class="r"><sc-if value="{{od.viewing}}" hint-placeholder-val="{{true}}">{{r.price}}</sc-if><sc-if value="{{od.editing}}" hint-placeholder-val="{{false}}"><input class="input num" inputmode="numeric" aria-label="Price a pack of {{r.aria}}" value="{{r.price}}" onChange="{{r.setPrice}}"></sc-if></span>
+              <span class="r">{{r.value}}</span>
+              <span class="r"><sc-if value="{{r.canRemove}}" hint-placeholder-val="{{false}}"><button type="button" class="btn text sm" aria-label="Remove {{r.aria}}" onClick="{{r.remove}}">✕</button></sc-if></span>
+            </sc-for>
+          </div>
+          <div class="otot"><span>Order value</span><span class="num">{{od.total}}</span></div>
+          <sc-if value="{{od.editing}}" hint-placeholder-val="{{false}}">
+            <div class="edit">
+              <span class="lab">Add a line</span>
+              <div class="oadd">
+                <label class="field"><span>Medicine</span><select class="input" value="{{od.addMed}}" onChange="{{od.setAddMed}}"><option value="">Choose</option><sc-for list="{{od.addOptions}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for></select></label>
+                <label class="field"><span>Packs</span><input class="input num" inputmode="numeric" value="{{od.addPacks}}" onChange="{{od.setAddPacks}}"></label>
+                <label class="field"><span>Price a pack</span><input class="input num" inputmode="numeric" value="{{od.addPrice}}" onChange="{{od.setAddPrice}}"></label>
+                <button type="button" class="btn" onClick="{{od.addLine}}">Add</button>
+              </div>
+              <p class="reason">Lines that have already arrived can't go below what came. The supplier is not told automatically.</p>
+            </div>
+          </sc-if>
+          <sc-if value="{{od.hasErr}}" hint-placeholder-val="{{false}}"><p class="err" role="alert">{{od.err}}</p></sc-if>
+        </div>
+        <div class="dlgfoot">
+          <sc-if value="{{od.viewing}}" hint-placeholder-val="{{true}}">
+            <button type="button" class="btn" data-focus="1" onClick="{{closeDialog}}">Close</button>
+            <sc-if value="{{od.canEdit}}" hint-placeholder-val="{{true}}"><button type="button" class="btn" onClick="{{od.startEdit}}">Edit the order</button><button type="button" class="btn primary" onClick="{{od.receive}}">Receive against it</button></sc-if>
+          </sc-if>
+          <sc-if value="{{od.editing}}" hint-placeholder-val="{{false}}">
+            <button type="button" class="btn" onClick="{{od.cancelEdit}}">Cancel the changes</button>
+            <button type="button" class="btn primary" onClick="{{od.save}}">Save the order</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CHASE A LATE ORDER -->
+  <sc-if value="{{dlgChase}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg m" role="dialog" aria-modal="true" aria-labelledby="ch-title">
+        <div class="dlghead"><h2 class="dlgtitle" id="ch-title">{{ch.title}}</h2><p class="lead" style="margin: 2px 0 0">Ready to send by email or SMS. Change anything before you copy it.</p></div>
+        <div class="dlgbody"><label class="field"><span>Message</span><textarea class="input" data-focus="1" rows="9" value="{{ch.text}}" onChange="{{ch.setText}}"></textarea></label></div>
+        <div class="dlgfoot"><button type="button" class="btn" onClick="{{closeDialog}}">Cancel</button><button type="button" class="btn" onClick="{{ch.copy}}">Copy the message</button><button type="button" class="btn primary" onClick="{{ch.mark}}">Mark as chased</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CLAIM -->
+  <sc-if value="{{dlgClaim}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg m" role="dialog" aria-modal="true" aria-labelledby="cl-title">
+        <div class="dlghead"><h2 class="dlgtitle" id="cl-title">{{clm.title}}</h2><p class="lead" style="margin: 2px 0 0">Total {{clm.total}}</p></div>
+        <div class="dlgbody">
+          <ul class="rows" style="margin: 0 -20px">
+            <sc-for list="{{clm.lines}}" as="x" hint-placeholder-count="2"><li class="row" style="min-height: 44px"><div class="rowmain"><span class="rowtitle">{{x.name}}</span><span class="rowsub">{{x.kind}} · {{x.packs}}</span></div><b class="num">{{x.value}}</b></li></sc-for>
+          </ul>
+          <sc-if value="{{clm.isDraft}}" hint-placeholder-val="{{true}}"><label class="field"><span>Message to the supplier</span><textarea class="input" data-focus="1" rows="8" value="{{clm.text}}" onChange="{{clm.setText}}"></textarea></label></sc-if>
+          <sc-if value="{{clm.isSent}}" hint-placeholder-val="{{false}}"><label class="field" style="max-width: 280px"><span>Credit note number</span><input class="input mono" data-focus="1" value="{{clm.credit}}" onChange="{{clm.setCredit}}"></label></sc-if>
+          <sc-if value="{{clm.hasErr}}" hint-placeholder-val="{{false}}"><p class="err" role="alert">{{clm.err}}</p></sc-if>
+        </div>
+        <div class="dlgfoot">
+          <button type="button" class="btn" onClick="{{closeDialog}}">Close</button>
+          <sc-if value="{{clm.isDraft}}" hint-placeholder-val="{{true}}"><button type="button" class="btn" onClick="{{clm.copy}}">Copy the message</button><button type="button" class="btn primary" onClick="{{clm.send}}">Mark as sent</button></sc-if>
+          <sc-if value="{{clm.isSent}}" hint-placeholder-val="{{false}}"><button type="button" class="btn primary" onClick="{{clm.receive}}">Credit received</button></sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- SHELF LABELS -->
+  <sc-if value="{{dlgLabels}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onKeyDown="{{dialogKey}}">
+      <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="lb-title">
+        <div class="dlghead"><h2 class="dlgtitle" id="lb-title">{{lb.title}}</h2><p class="lead" style="margin: 2px 0 0">One per batch. Stick it on the shelf edge or the box; the barcode scans like the pack.</p></div>
+        <div class="dlgbody print-area">
+          <div class="labelsheet">
+            <sc-for list="{{lb.labels}}" as="x" hint-placeholder-count="3">
+              <div class="label">
+                <span class="bin">{{x.bin}}</span>
+                <b>{{x.name}}</b>
+                <span class="meta">{{x.meta}}</span>
+                <div class="barcode" aria-hidden="true"><sc-for list="{{x.bars}}" as="br" hint-placeholder-count="30"><span style="{{br.style}}"></span></sc-for></div>
+                <span class="digits">{{x.digits}}</span>
+                <sc-if value="{{x.own}}" hint-placeholder-val="{{false}}"><span class="meta">In-house code: this medicine had no barcode</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div class="dlgfoot"><button type="button" class="btn" data-focus="1" onClick="{{closeDialog}}">Close</button><button type="button" class="btn primary" onClick="{{printPaper}}">Print</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}"><div class="toast" role="status">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.KEY = 'medsync-receive-prototype-v2';
+    var saved = null;
+    try { var raw = window.localStorage.getItem(this.KEY); if (raw) saved = JSON.parse(raw); } catch (e) { saved = null; }
+    this.state = { w: saved && saved.v === 2 ? saved : this.seed(), view: 'receive', place: 'main', did: null, openLine: null, freshLine: null, dialog: null, scan: '', scanNote: null, toast: '', menu: false, rtile: '', offline: false, photos: {}, tick: 0 };
+  }
+
+  /* ---------- dates and words ---------- */
+  pad(n) { return (n < 10 ? '0' : '') + n; }
+  iso(d) { return d.getFullYear() + '-' + this.pad(d.getMonth() + 1) + '-' + this.pad(d.getDate()); }
+  plusDays(n) { var d = new Date(); d.setDate(d.getDate() + n); return this.iso(d); }
+  daysTo(isoDate) { var p = String(isoDate).slice(0, 10).split('-'), a = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])), t = new Date(); t.setHours(0, 0, 0, 0); return Math.round((a - t) / 86400000); }
+  minsSince(at) { var m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(at || ''); if (!m) return null; return Math.max(0, Math.round((Date.now() - new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5])).getTime()) / 60000)); }
+  minsBetween(a, b) { var f = function (x) { var m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(x || ''); return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5])).getTime() : null; }; var x = f(a), y = f(b); return x === null || y === null ? null : Math.max(0, Math.round((y - x) / 60000)); }
+  hm(mins) { var h = Math.floor(mins / 60), m = mins % 60; return h ? h + ' h' + (m ? ' ' + m + ' min' : '') : m + ' min'; }
+  supName(d, w) { return !d.kind || d.kind === 'supplier' ? w.suppliers[d.supplierId] : d.from; }
+  KINDS() { return { supplier: 'Supplier delivery', donation: 'Donation', facility: 'From another facility', ward: 'Return from a ward' }; }
+  plusMonths(n) { var d = new Date(); d.setDate(15); d.setMonth(d.getMonth() + n); return this.iso(d); }
+  nowText() { var d = new Date(); return this.iso(d) + ' ' + this.pad(d.getHours()) + ':' + this.pad(d.getMinutes()); }
+  gs1(gtin, exp, batch, serial) { return '(01)' + gtin + '(17)' + exp.slice(2, 4) + exp.slice(5, 7) + exp.slice(8, 10) + '(10)' + batch + (serial ? '(21)' + serial : ''); }
+  n(x) { return Number(x).toLocaleString('en-GB'); }
+  plural(n, one, many) { return this.n(n) + ' ' + (n === 1 ? one : many || one + 's'); }
+  monthName(m) { return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1]; }
+  atText(s) { var m = /^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}:\d{2}))?/.exec(s || ''); if (!m) return s || '—'; return Number(m[3]) + ' ' + this.monthName(Number(m[2])) + ' ' + m[1] + (m[4] ? ', ' + m[4] : ''); }
+  normExp(v) {
+    v = String(v || '').trim();
+    var m;
+    if ((m = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(v))) return Number(m[2]) >= 1 && Number(m[2]) <= 12 ? v : null;
+    if ((m = /^(\d{2})\/(\d{4})$/.exec(v))) return Number(m[1]) >= 1 && Number(m[1]) <= 12 ? m[2] + '-' + m[1] : null;
+    if ((m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v))) return m[3] + '-' + m[2] + '-' + m[1];
+    return null;
+  }
+  expText(v) { var e = this.normExp(v); if (!e) return v || '—'; var p = e.split('-'); return (p[2] ? Number(p[2]) + ' ' : '') + this.monthName(Number(p[1])) + ' ' + p[0]; }
+  daysLeft(v) {
+    var e = this.normExp(v); if (!e) return null;
+    var p = e.split('-'), end = p[2] ? new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])) : new Date(Number(p[0]), Number(p[1]), 0);
+    var t = new Date(); t.setHours(0, 0, 0, 0);
+    return Math.round((end - t) / 86400000);
+  }
+
+  /* ---------- sample world ---------- */
+  seed() {
+    var s = this, mo = function (n) { return s.plusMonths(n); };
+    var M = function (id, name, unit, per, cost, price, shelf, gtin, hand, x) { return Object.assign({ id: id, name: name, unit: unit, per: per, cost: cost, price: price, shelf: shelf, gtin: gtin, hand: hand, cold: false, controlled: false, regLapsed: false, local: false, short: null }, x || {}); };
+    var meds = {
+      amox: M('amox', 'Amoxicillin 250 mg capsule', 'capsule', 100, 18000, 300, 'A-03', '08901234500017', { main: 1250, ae: 120, opd: 300, alvin: 80 }, { short: { place: 'alvin', n: 200 } }),
+      para: M('para', 'Paracetamol 500 mg tablet', 'tablet', 1000, 32000, 50, 'A-05', '08901234500024', { main: 8000, ae: 500, opd: 900, alvin: 400 }),
+      ors: M('ors', 'Oral rehydration salts sachet', 'sachet', 100, 45000, 600, 'B-02', '08901234500031', { main: 600, ae: 90, opd: 60, alvin: 50 }, { short: { place: 'opd', n: 100 } }),
+      art: M('art', 'Artemether + lumefantrine 20/120 mg tablet', 'tablet', 30, 12000, 500, 'B-04', '08901234500048', { main: 900, ae: 60, opd: 180, alvin: 60 }),
+      ceft: M('ceft', 'Ceftriaxone 1 g powder for injection', 'vial', 50, 60000, 1800, 'C-01', '08901234500055', { main: 300, ae: 40, opd: 0, alvin: 30 }, { regLapsed: true }),
+      oxy: M('oxy', 'Oxytocin 10 IU/mL injection', 'ampoule', 10, 9000, 1500, 'CR-01', '08901234500062', { main: 80, ae: 10, opd: 0, alvin: 10 }, { cold: true }),
+      ins: M('ins', 'Insulin (soluble) 100 IU/mL injection', 'vial', 10, 120000, 11000, 'CR-01', '08901234500079', { main: 30, ae: 4, opd: 0, alvin: 2 }, { cold: true }),
+      morph: M('morph', 'Morphine 10 mg/mL injection', 'ampoule', 10, 25000, 3500, 'CD-1', '08901234500086', { main: 40, ae: 10, opd: 0, alvin: 0 }, { controlled: true }),
+      metf: M('metf', 'Metformin 500 mg tablet', 'tablet', 100, 15000, 250, 'A-08', '', { main: 400, ae: 0, opd: 200, alvin: 0 }),
+      mr: M('mr', 'Measles-rubella vaccine, 10-dose vial', 'vial', 10, 0, 0, 'CR-02', '08901234500093', { main: 40, ae: 0, opd: 0, alvin: 0 }, { cold: true, vaccine: true })
+    };
+    var L = function (no, o) { return Object.assign({ id: 'seedl' + no + (o.batch || ''), no: no, medId: '', source: 'typed', orderLineId: null, batch: '', exp: '', packs: '', per: '', notePacks: '', cost: '', temp: '', decision: '', regReason: '', regNote: '', rejOn: false, rejPacks: '', rejWhy: '', rejFate: 'driver', vvm: '', freeze: '', approvedBy: '', rank: no }, o); };
+    var d2lines = [
+      L(1, { medId: 'oxy', source: 'scan', batch: 'OXY540', exp: mo(16), packs: '5', per: '10', notePacks: '5', cost: '9000', temp: '5.1' }),
+      L(2, { medId: 'amox', source: 'scan', batch: 'AMX2299', exp: mo(22), packs: '20', per: '100', notePacks: '20', cost: '18000' }),
+      L(3, { medId: 'para', source: 'typed', batch: 'PCM0071', exp: mo(30), packs: '8', per: '1000', notePacks: '10', cost: '32000' })
+    ];
+    return {
+      v: 2,
+      seq: { grn: 147, riv: 233, id: 1000, clm: 11, own: 1 },
+      rules: { look: 180, priceTol: 5, coldMins: 30, secondCheck: 2000000, lead: { nms: 23, jms: 7, local: 2 } },
+      places: {
+        main: { id: 'main', name: 'Main store', kind: 'store', direct: true },
+        ae: { id: 'ae', name: 'Accidents and Emergency', kind: 'point', direct: true },
+        opd: { id: 'opd', name: 'OPD', kind: 'point', direct: false },
+        alvin: { id: 'alvin', name: 'ALVIN Ward', kind: 'ward', direct: false }
+      },
+      placeOrder: ['main', 'ae', 'opd', 'alvin'],
+      suppliers: { nms: 'NMS', jms: 'JMS', local: 'A local wholesaler' },
+      staff: ['Dispensing pharmacist, day shift', 'Pharmacy technician, day shift', 'Nurse in charge, on duty'],
+      approvers: ['Pharmacy in-charge'],
+      recalls: [{ medId: 'amox', batch: 'AMX2301', notice: 'NDA recall 14/2026', why: 'failed dissolution testing' }],
+      serials: {},
+      claims: [{ id: 'CLM-0011', note: 'DN-19977', grn: 'GRN-0146', supplierId: 'nms', made: mo(-1).slice(0, 8) + '10', lines: [{ medId: 'para', kind: 'Short on the note', packs: 2, value: 64000 }], total: 64000, state: 'sent', sentOn: mo(-1).slice(0, 8) + '11', credit: '' }],
+      hist: { toStock: [95, 120, 70, 140, 88, 105, 77], toShelf: [40, 65, 30, 90, 55, 45, 60], matched: [92, 88, 95, 90, 86, 94, 67],
+        supp: { nms: { fill: 86, lead: 23, promised: 21, onTime: 70, diffs: 3 }, jms: { fill: 67, lead: 9, promised: 7, onTime: 50, diffs: 2 }, local: { fill: 100, lead: 1, promised: 2, onTime: 100, diffs: 0 } } },
+      meds: meds,
+      medOrder: ['amox', 'para', 'ors', 'art', 'ceft', 'oxy', 'ins', 'morph', 'metf', 'mr'],
+      orders: [
+        { id: 'o-nms', ref: 'NMS · November cycle', supplierId: 'nms', place: 'main', state: 'sent', sentOn: s.plusDays(-20), lines: [
+          { id: 'ol1', medId: 'amox', packs: 50, received: 0, price: 18000 }, { id: 'ol2', medId: 'para', packs: 20, received: 0, price: 32000 }, { id: 'ol3', medId: 'ors', packs: 30, received: 0, price: 45000 }, { id: 'ol4', medId: 'oxy', packs: 10, received: 0, price: 9000 }, { id: 'ol5', medId: 'morph', packs: 5, received: 0, price: 25000 }
+        ] },
+        { id: 'o-jms', ref: 'JMS · top-up', supplierId: 'jms', place: 'main', state: 'part', sentOn: s.plusDays(-10), lines: [
+          { id: 'ol6', medId: 'art', packs: 40, received: 25, price: 12000 }, { id: 'ol7', medId: 'ceft', packs: 20, received: 20, price: 60000 }
+        ] }
+      ],
+      deliveries: [
+        { id: 'd-open', kind: 'supplier', blind: false, invoice: '', invoiceTotal: '', state: 'counting', orderId: null, supplierId: 'local', note: 'DN-20418', place: 'main', arrived: this.nowText(), deliverer: '', vehicle: '', witnesses: {}, put: {}, lines: [
+          L(1, { id: 'seed-metf', medId: 'metf', source: 'typed', batch: 'MTF88', exp: mo(20), packs: '12', per: '100', notePacks: '12', cost: '15000' })
+        ] },
+        { id: 'd-old', kind: 'supplier', claim: 'CLM-0011', state: 'received', orderId: null, supplierId: 'nms', note: 'DN-19977', place: 'main', arrived: mo(-1).slice(0, 8) + '10 14:03', finished: mo(-1).slice(0, 8) + '10 15:20', grn: 'GRN-0146', deliverer: 'Sample driver', vehicle: 'UBK 000X', witnesses: {}, lines: d2lines, put: {} },
+        { id: 'd-ab', kind: 'supplier', state: 'abandoned', orderId: null, supplierId: 'jms', note: 'DN-19802', place: 'main', arrived: mo(-1).slice(0, 8) + '02 09:12', deliverer: '', vehicle: '', abandonReason: 'The driver took it back: the wrong consignment.', witnesses: {}, put: {}, lines: [] }
+      ].map(function (d) {
+        if (d.id === 'd-old') {
+          d.put[d.lines[0].id] = { shelf: 'CR-01', done: false, qty: 50, sent: 0 };
+          d.put[d.lines[1].id] = { shelf: 'A-03', done: false, qty: 2000, sent: 0 };
+          d.put[d.lines[2].id] = { shelf: 'A-05', done: true, qty: 8000, sent: 0 };
+        }
+        return d;
+      }),
+      dispatches: [
+        { id: 'RIV-0231', to: 'opd', state: 'transit', sentAt: this.nowText(), kind: 'Requisition', note: '', lines: [{ medId: 'amox', qty: 200, batch: 'AMX2299' }, { medId: 'ors', qty: 100, batch: 'ORS310' }] },
+        { id: 'RIV-0232', to: 'alvin', state: 'transit', sentAt: this.nowText(), kind: 'Top-up run', note: '', lines: [{ medId: 'para', qty: 500, batch: 'PCM0071' }] }
+      ],
+      quarantine: []
+    };
+  }
+
+  /* ---------- state helpers ---------- */
+  mut(fn, extra) {
+    var w = JSON.parse(JSON.stringify(this.state.w));
+    fn(w);
+    try { window.localStorage.setItem(this.KEY, JSON.stringify(w)); } catch (e) { /* the prototype still works without it */ }
+    this.setState(Object.assign({ w: w }, extra || {}));
+  }
+  say(text) {
+    var self = this;
+    this.setState({ toast: text });
+    clearTimeout(this._t);
+    this._t = setTimeout(function () { self.setState({ toast: '' }); }, 4500);
+  }
+  dlg(patch) { this.setState({ dialog: Object.assign({}, this.state.dialog, patch) }); }
+  did(w) { var id = this.state.did; return w.deliveries.filter(function (d) { return d.id === id; })[0] || null; }
+  nextId(w, prefix) { w.seq.id += 1; return prefix + w.seq.id; }
+  componentDidUpdate(prevProps, prevState) {
+    var s = this.state, opened = s.dialog && (!prevState.dialog || prevState.dialog.kind !== s.dialog.kind);
+    try {
+      if (s.view !== prevState.view) window.scrollTo(0, 0);
+      if (opened) { var f = document.querySelector('[data-focus]:not(:disabled)'); if (f) f.focus(); }
+      else if (this._focusScan && !s.dialog) { this._focusScan = false; var b = document.getElementById('scan-box'); if (b) b.focus(); }
+      else if (s.view === 'count' && prevState.view !== 'count' && !s.dialog) { var c = document.getElementById('scan-box'); if (c) c.focus(); }
+    } catch (e) { /* focus is a nicety */ }
+  }
+  componentDidMount() { var self = this; this._tick = setInterval(function () { self.setState({ tick: (self.state.tick || 0) + 1 }); }, 30000); }
+  componentWillUnmount() { clearTimeout(this._t); clearInterval(this._tick); }
+
+  /* ---------- one line, worked out ---------- */
+  info(l, d, w) {
+    var self = this, m = w.meds[l.medId];
+    var packs = Number(l.packs) || 0, per = Number(l.per) || 0, counted = packs > 0;
+    var dec = l.decision;
+    var rej = l.rejOn ? Number(l.rejPacks) || 0 : 0;
+    var why = l.rejOn ? l.rejWhy : '';
+    var fate = l.rejFate;
+    if (dec === 'reject') { rej = packs; why = 'short_dated'; fate = 'driver'; }
+    var acc = Math.max(0, packs - rej);
+    var days = l.exp ? this.daysLeft(l.exp) : null;
+    var badExp = !!l.exp && days === null;
+    var expired = days !== null && days < 0;
+    var short = days !== null && days >= 0 && days < w.rules.look;
+    var temp = String(l.temp).trim() === '' ? null : Number(l.temp);
+    var tempBad = m.cold && temp !== null && (isNaN(temp) || temp < 2 || temp > 8);
+    var rc = (w.recalls || []).filter(function (r) { return r.medId === l.medId && l.batch && r.batch.toUpperCase() === String(l.batch).trim().toUpperCase(); })[0] || null;
+    var owed = 0, ol = null;
+    if (l.orderLineId) { (w.orders.filter(function (o) { return o.id === d.orderId; })[0] || { lines: [] }).lines.forEach(function (x) { if (x.id === l.orderLineId) { ol = x; owed = x.packs - x.received; } }); }
+    if (l.owedFrozen !== undefined) owed = l.owedFrozen;
+    var olAcc = l.orderLineId ? d.lines.filter(function (x) { return x.orderLineId === l.orderLineId; }).reduce(function (a, x) { var p = Number(x.packs) || 0, r = x.decision === 'reject' ? p : (x.rejOn ? Number(x.rejPacks) || 0 : 0); return a + Math.max(0, p - r); }, 0) : acc;
+    var priceRef = ol && ol.price ? ol.price : ((!d.kind || d.kind === 'supplier') && m.cost ? m.cost : null), priceDiff = null;
+    if (priceRef && l.cost !== '' && Number(l.cost) > 0) { var pct = Math.round((Number(l.cost) - priceRef) / priceRef * 100); if (Math.abs(pct) > w.rules.priceTol) priceDiff = { pct: pct, ref: priceRef, fromOrder: !!(ol && ol.price) }; }
+    var vvmBad = m.vaccine && (l.vvm === '3' || l.vvm === '4'), frozen = m.vaccine && l.freeze === 'tripped';
+    var words = [], problems = [], no = l.no;
+    if (counted) {
+      if (l.notePacks !== '' && Number(l.notePacks) !== packs) {
+        var diff = packs - Number(l.notePacks);
+        words.push({ word: this.plural(Math.abs(diff), 'pack') + (diff < 0 ? ' fewer than the note' : ' more than the note'), caution: true });
+      } else if (l.notePacks === '' && ol && olAcc < owed) {
+        if (d.state === 'counting') words.push({ word: this.plural(owed - olAcc, 'pack') + ' left on the order', caution: false, plain: true });
+        else words.push({ word: this.plural(owed - olAcc, 'pack') + ' short of the order', caution: true });
+      }
+      if (d.orderId && !l.orderLineId) words.push({ word: 'Not on the order', caution: true });
+      if (expired) words.push({ word: 'Expired', caution: true });
+      else if (short) words.push({ word: 'Expires in under ' + w.rules.look + ' days', caution: true });
+      if (why === 'damaged') words.push({ word: 'Damaged', caution: true });
+      if (why === 'wrong_product') words.push({ word: 'Wrong product', caution: true });
+      if (tempBad) words.push({ word: 'Cold chain broken', caution: true });
+      if (rc) words.push({ word: 'Batch on recall', caution: true });
+      if (priceDiff) words.push({ word: 'Price ' + Math.abs(priceDiff.pct) + '% ' + (priceDiff.pct > 0 ? 'above' : 'below') + (priceDiff.fromOrder ? ' the order' : ' the usual price'), caution: true });
+      if (vvmBad) words.push({ word: 'VVM stage ' + l.vvm + ': do not use', caution: true });
+      if (frozen) words.push({ word: 'Freeze indicator tripped', caution: true });
+      if (!words.length) words.push({ word: 'Matches', caution: false });
+      if (per <= 0) problems.push('Line ' + no + ': give how many ' + m.unit + 's in each pack.');
+      if (acc > 0 || (rej > 0 && fate === 'quarantine')) {
+        if (!String(l.batch).trim()) problems.push('Line ' + no + ': give the batch number from the pack, or scan it.');
+        if (!l.exp) problems.push('Line ' + no + ': give the expiry from the pack (2028-06 or 2028-06-30), or scan it.');
+        else if (badExp) problems.push('Line ' + no + ': write the expiry as 2028-06 or 2028-06-30.');
+      }
+      if (expired && acc > 0) problems.push('Line ' + no + ' has expired. It cannot go into stock: reject it.');
+      if (m.cold && acc > 0 && temp === null) problems.push('Line ' + no + ': give the temperature on arrival.');
+      if (tempBad && acc > 0) problems.push('Line ' + no + ': the cold chain was broken. Reject it, or keep it apart until the supplier answers.');
+      if (short && !expired && !dec && acc > 0) problems.push('Line ' + no + ': short-dated. Decide.');
+      if (short && !expired && (dec === 'accept' || dec === 'accept_tell') && acc > 0 && !l.approvedBy) problems.push('Line ' + no + ': accepting a short-dated batch needs the in-charge\'s approval.');
+      if (rc && acc > 0) problems.push('Line ' + no + ': batch ' + l.batch + ' is on recall (' + rc.notice + '). Reject it into quarantine.');
+      if (m.vaccine && acc > 0) {
+        if (!l.vvm) problems.push('Line ' + no + ': record the vaccine vial monitor (VVM) stage.');
+        else if (vvmBad) problems.push('Line ' + no + ': the VVM is at the discard point. Reject it.');
+        if (!l.freeze) problems.push('Line ' + no + ': check the freeze indicator.');
+        else if (frozen) problems.push('Line ' + no + ': the freeze indicator tripped. Reject it, or keep it apart for a shake test.');
+      }
+      if (m.regLapsed && acc > 0) {
+        if (!l.regReason) problems.push('Line ' + no + ': registration lapsed. Say why it is received.');
+        else if (l.regReason === 'other' && !String(l.regNote).trim()) problems.push('Line ' + no + ': say what happened, in a few words.');
+      }
+      if (l.rejOn && rej > packs) problems.push('Line ' + no + ': more are rejected than were counted.');
+      if (l.rejOn && rej > 0 && !why) problems.push('Line ' + no + ': say why it was rejected.');
+    } else if (!l.orderLineId) {
+      problems.push('Line ' + no + ': give how many packs.');
+    }
+    return { rc: rc, priceDiff: priceDiff, vvmBad: vvmBad, frozen: frozen, m: m, packs: packs, per: per, counted: counted, rej: rej, why: why, fate: fate, acc: acc, accUnits: acc * per, rejUnits: rej * per, days: days, expired: expired, short: short, temp: temp, tempBad: tempBad, owed: owed, ol: ol, words: words, problems: problems, unitsText: per > 1 ? self.n(acc) + ' × ' + self.n(per) + ' = ' + self.plural(acc * per, m.unit) : self.plural(acc, m.unit), value: l.cost === '' ? null : acc * Number(l.cost) };
+  }
+
+  /* ---------- doors: every door opens this one dialog ---------- */
+  openStart(opts) {
+    var o = opts || {}, order = o.orderId ? this.state.w.orders.filter(function (x) { return x.id === o.orderId; })[0] : null;
+    this.setState({ menu: false, dialog: { kind: 'start', mode: 'new', rkind: 'supplier', from: '', blind: false, lockOrder: !!o.orderId, errField: '', orderId: o.orderId || '', supplierId: order ? order.supplierId : '', note: '', arrived: this.nowText(), changeArrived: false, deliverer: '', vehicle: '', seedMed: o.seedMed || null, err: '', dupId: null } });
+  }
+  submitStart() {
+    var self = this, s = this.state, f = s.dialog, w = s.w;
+    var note = f.note.trim(), rk = f.rkind || 'supplier', from = String(f.from || '').trim();
+    if (rk === 'supplier' && !f.supplierId) return this.dlg({ err: 'Choose the supplier.', errField: 'supplier', dupId: null });
+    if (rk !== 'supplier' && !from) return this.dlg({ err: rk === 'donation' ? 'Give the donor.' : rk === 'facility' ? 'Give the facility it came from.' : 'Choose the ward or unit.', errField: 'from', dupId: null });
+    if (!note) return this.dlg({ err: rk === 'supplier' ? 'Type the delivery note number.' : 'Type the reference on the paperwork.', errField: 'note', dupId: null });
+    var at = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(f.arrived.trim());
+    if (!at) return this.dlg({ err: 'Give the date and time it arrived.', errField: 'arrived', dupId: null });
+    if (this.minsSince(f.arrived.trim()) === 0 && new Date(f.arrived.trim().replace(' ', 'T')).getTime() > Date.now() + 60000) return this.dlg({ err: 'The arrival time is in the future.', errField: 'arrived', dupId: null });
+    var editingId = f.mode === 'edit' ? s.did : null;
+    var dup = w.deliveries.filter(function (d) { return d.id !== editingId && d.state !== 'abandoned' && (rk === 'supplier' ? d.supplierId === f.supplierId : d.from === from) && d.note.toLowerCase() === note.toLowerCase(); })[0];
+    if (dup) return this.dlg({ err: 'This delivery note is already recorded for this supplier, so the stock cannot come in twice.', errField: 'note', dupId: dup.id });
+    if (f.mode === 'edit') {
+      return this.mut(function (x) { var d = self.did(x); d.supplierId = rk === 'supplier' ? f.supplierId : ''; d.from = from; d.note = note; d.arrived = f.arrived.trim(); d.deliverer = f.deliverer.trim(); d.vehicle = f.vehicle.trim(); }, { dialog: null });
+    }
+    var newId = null, open = null;
+    this.mut(function (x) {
+      newId = self.nextId(x, 'd');
+      var order = f.orderId ? x.orders.filter(function (o) { return o.id === f.orderId; })[0] : null;
+      var d = { id: newId, kind: rk, from: from, blind: !!f.blind, invoice: '', invoiceTotal: '', state: 'counting', orderId: rk === 'supplier' ? f.orderId || null : null, supplierId: rk === 'supplier' ? f.supplierId : '', note: note, place: s.place, arrived: f.arrived.trim(), deliverer: f.deliverer.trim(), vehicle: f.vehicle.trim(), witnesses: {}, put: {}, lines: [] };
+      if (order) order.lines.forEach(function (ol) { if (ol.packs - ol.received > 0) d.lines.push(self.blankLine(x, d, ol.medId, 'order', { orderLineId: ol.id, expected: ol.packs - ol.received })); });
+      if (f.seedMed) {
+        var match = d.lines.filter(function (l) { return l.medId === f.seedMed; })[0];
+        if (match) open = match.id;
+        else { var n = self.blankLine(x, d, f.seedMed, 'typed', {}); d.lines.push(n); open = n.id; }
+      }
+      x.deliveries.unshift(d);
+    }, { dialog: null, view: 'count', did: null, scan: '', scanNote: null });
+    this.setState({ did: newId, openLine: open, freshLine: open });
+  }
+  blankLine(w, d, medId, source, x) {
+    var m = w.meds[medId], no = d.lines.reduce(function (a, l) { return Math.max(a, l.no); }, 0) + 1;
+    w.seq.id += 1;
+    return Object.assign({ id: 'l' + w.seq.id, no: no, medId: medId, source: source, orderLineId: null, expected: null, batch: '', exp: '', packs: '', per: String(m.per), notePacks: '', cost: String(m.cost), temp: '', decision: '', regReason: '', regNote: '', rejOn: false, rejPacks: '', rejWhy: '', rejFate: 'driver', vvm: '', freeze: '', approvedBy: '', rank: source === 'order' ? 0 : w.seq.id }, x || {});
+  }
+  setLine(id, patch) {
+    var self = this;
+    this.mut(function (w) { var d = self.did(w); d.lines.forEach(function (l) { if (l.id === id) { Object.assign(l, patch); } }); });
+  }
+  removeLine(id) {
+    var self = this;
+    this.mut(function (w) {
+      var d = self.did(w), l = d.lines.filter(function (x) { return x.id === id; })[0];
+      var others = d.lines.filter(function (x) { return x.id !== id && x.orderLineId && x.orderLineId === l.orderLineId; });
+      if (l.orderLineId && !others.length) {
+        var fresh = self.blankLine(w, d, l.medId, 'order', { orderLineId: l.orderLineId, expected: l.expected, no: l.no, id: l.id });
+        d.lines = d.lines.map(function (x) { return x.id === id ? fresh : x; });
+      } else d.lines = d.lines.filter(function (x) { return x.id !== id; });
+    }, { openLine: null, freshLine: null });
+  }
+
+  /* ---------- scanning ---------- */
+  parseCode(raw) {
+    var v = raw.trim();
+    if (v.charAt(0) === '(') { var ai = {}, re = /\((\d{2})\)([^(]*)/g, mm; while ((mm = re.exec(v))) ai[mm[1]] = mm[2]; if (ai['01']) { var e = ai['17'] || ''; return { gtin: ai['01'], exp: e ? '20' + e.slice(0, 2) + '-' + e.slice(2, 4) + (e.slice(4, 6) === '00' ? '' : '-' + e.slice(4, 6)) : '', batch: ai['10'] || '', serial: ai['21'] || '' }; } }
+    var m = /^\(?01\)?(\d{14})(?:\(?17\)?(\d{6}))?(?:\(?10\)?(.+))?$/.exec(v);
+    if (m) {
+      var exp = '';
+      if (m[2]) exp = '20' + m[2].slice(0, 2) + '-' + m[2].slice(2, 4) + (m[2].slice(4, 6) === '00' ? '' : '-' + m[2].slice(4, 6));
+      return { gtin: m[1], exp: exp, batch: m[3] || '' };
+    }
+    if (/^\d{8,14}$/.test(v)) { var g = v; while (g.length < 14) g = '0' + g; return { gtin: g, exp: '', batch: '' }; }
+    return null;
+  }
+  scanRaw(raw) {
+    var self = this, code = this.parseCode(raw);
+    if (!raw.trim()) return;
+    if (!code) { this.setState({ scan: '', dialog: this.pickerState(raw.trim()) }); return; }
+    var w = this.state.w, ids = w.medOrder.filter(function (id) { return w.meds[id].gtin === code.gtin; });
+    this._focusScan = true;
+    if (!ids.length) {
+      this.setState({ scan: '', scanNote: { kind: 'unknown', text: 'This barcode is new here. Which medicine is on the pack? It is linked for this hospital only, nothing is guessed.', code: code, pick: '' } });
+      return;
+    }
+    this.countPack(ids[0], code);
+  }
+  countPack(medId, code) {
+    var self = this, note = '', open = null, fresh = null, w0 = this.state.w;
+    if (code.serial && w0.serials[code.gtin + '|' + code.serial]) { this._focusScan = true; this.setState({ scan: '', scanNote: { kind: 'warn', text: 'This pack was already scanned (serial ' + code.serial + ', on ' + w0.serials[code.gtin + '|' + code.serial] + '). The same serial twice can mean a copied pack: set it aside and tell the in-charge. It was not counted.' } }); return; }
+    var recall = (w0.recalls || []).filter(function (r) { return r.medId === medId && code.batch && r.batch.toUpperCase() === code.batch.toUpperCase(); })[0];
+    this.mut(function (w) {
+      var d = self.did(w), m = w.meds[medId];
+      var same = d.lines.filter(function (l) { return l.medId === medId && l.batch === code.batch && Number(l.packs) > 0 && code.batch; })[0];
+      if (same) {
+        same.packs = String(Number(same.packs) + 1);
+        w.seq.id += 1; same.rank = w.seq.id;
+        note = 'One more pack on line ' + same.no + ' (' + same.packs + ' packs).';
+        fresh = same.id;
+      } else {
+        var pending = d.lines.filter(function (l) { return l.medId === medId && !(Number(l.packs) > 0); })[0];
+        var line = pending || self.blankLine(w, d, medId, 'scan', {});
+        if (!pending) {
+          var order = d.orderId ? w.orders.filter(function (o) { return o.id === d.orderId; })[0] : null;
+          var ol = order ? order.lines.filter(function (x) { return x.medId === medId; })[0] : null;
+          if (ol) line.orderLineId = ol.id;
+          d.lines.push(line);
+        }
+        line.source = 'scan'; line.batch = code.batch; line.exp = code.exp; line.packs = '1';
+        w.seq.id += 1; line.rank = w.seq.id;
+        note = 'Line ' + line.no + ' added from the scan.';
+        fresh = line.id;
+        var days = code.exp ? self.daysLeft(code.exp) : null;
+        if (m.cold || m.regLapsed || m.vaccine || recall || !code.exp || !code.batch || (days !== null && days < w.rules.look)) open = line.id;
+      }
+      if (code.serial) w.serials[code.gtin + '|' + code.serial] = d.note;
+      if (recall) note += ' Batch ' + code.batch + ' is on recall (' + recall.notice + ', ' + recall.why + '): it cannot go into stock.';
+    }, { scan: '', scanNote: null });
+    this._focusScan = !open;
+    this.setState({ scanNote: { kind: 'ok', text: note }, freshLine: fresh, openLine: open || this.state.openLine });
+  }
+
+  /* ---------- picker ---------- */
+  pickerState(q) { return { kind: 'picker', q: q || '', ticks: {}, local: false, lf: { generic: '', strength: '', unit: 'tablet' }, err: '' }; }
+  addPicked() {
+    var self = this, ticks = this.state.dialog.ticks, first = null;
+    this.mut(function (w) {
+      var d = self.did(w);
+      Object.keys(ticks).filter(function (k) { return ticks[k]; }).forEach(function (medId) {
+        var pending = d.lines.filter(function (l) { return l.medId === medId && !(Number(l.packs) > 0); })[0];
+        if (pending) { if (!first) first = pending.id; return; }
+        var order = d.orderId ? w.orders.filter(function (o) { return o.id === d.orderId; })[0] : null;
+        var ol = order ? order.lines.filter(function (x) { return x.medId === medId; })[0] : null;
+        var line = self.blankLine(w, d, medId, 'catalogue', { orderLineId: ol ? ol.id : null });
+        d.lines.push(line);
+        if (!first) first = line.id;
+      });
+    }, { dialog: null });
+    this.setState({ openLine: first, freshLine: first });
+  }
+  addLocal() {
+    var self = this, lf = this.state.dialog.lf, generic = lf.generic.trim(), strength = lf.strength.trim();
+    if (!generic || !strength) return this.dlg({ err: 'Give the generic name and the strength.' });
+    var id = null, ticks = this.state.dialog.ticks;
+    this.mut(function (w) {
+      id = self.nextId(w, 'loc');
+      w.meds[id] = { id: id, name: generic + ' ' + strength + ' ' + lf.unit, unit: lf.unit, per: 1, cost: 0, price: 0, shelf: '', gtin: '', hand: { main: 0, ae: 0, opd: 0, alvin: 0 }, cold: false, controlled: false, regLapsed: false, local: true, short: null };
+      w.medOrder.push(id);
+    });
+    var next = Object.assign({}, ticks); next[id] = true;
+    this.dlg({ local: false, err: '', ticks: next, q: generic });
+  }
+
+  /* ---------- adding to stock: the one transaction ---------- */
+  askFinish() {
+    var w = this.state.w, d = this.did(w), self = this;
+    var infos = d.lines.map(function (l) { return self.info(l, d, w); });
+    var ctrl = d.lines.filter(function (l, k) { var i = infos[k]; return i.counted && i.acc > 0 && i.m.controlled; });
+    var value = infos.reduce(function (a, i) { return a + (i.value || 0); }, 0);
+    var needSecond = value > w.rules.secondCheck;
+    if (ctrl.length || needSecond) { this.setState({ dialog: { kind: 'witness', picks: {}, second: '', needSecond: needSecond, value: value, err: '' } }); return; }
+    this.finish({}, '');
+  }
+  finish(witnesses, second) {
+    var self = this, did = this.state.did;
+    if (this.state.offline) {
+      this.mut(function (w) { var d = w.deliveries.filter(function (x) { return x.id === did; })[0]; d.state = 'queued'; d.queuedWith = { witnesses: witnesses, second: second }; }, { dialog: null, view: 'receive', did: null, openLine: null, freshLine: null, scanNote: null });
+      this.say('Saved on this device. It is added to stock as soon as the connection is back.');
+      return;
+    }
+    this.commit(witnesses, second);
+  }
+  applyCommit(w, did, witnesses, second) {
+    var self = this, d = w.deliveries.filter(function (x) { return x.id === did; })[0], grn = '', claim = null;
+    w.seq.grn += 1; grn = 'GRN-' + ('000' + w.seq.grn).slice(-4);
+    var isStore = w.places[d.place].kind === 'store';
+    var order = d.orderId ? w.orders.filter(function (o) { return o.id === d.orderId; })[0] : null;
+    d.lines = d.lines.filter(function (l) { return Number(l.packs) > 0; });
+    d.lines.forEach(function (l) { l.owedFrozen = self.info(l, d, w).owed; });
+    var cl = [];
+    d.lines.forEach(function (l) {
+      var i = self.info(l, d, w), cost = Number(l.cost) || 0;
+      if (l.notePacks !== '' && i.packs < Number(l.notePacks)) cl.push({ medId: l.medId, kind: 'Short on the note', packs: Number(l.notePacks) - i.packs, value: (Number(l.notePacks) - i.packs) * cost });
+      if (i.rej > 0 && i.why && i.why !== 'short_dated') cl.push({ medId: l.medId, kind: self.WHY()[i.why] || i.why, packs: i.rej, value: i.rej * cost });
+      if (i.priceDiff && i.priceDiff.pct > 0 && i.acc > 0) cl.push({ medId: l.medId, kind: 'Charged above the order price', packs: i.acc, value: Math.round(i.acc * (cost - i.priceDiff.ref)) });
+      i.m.hand[d.place] = (i.m.hand[d.place] || 0) + i.accUnits;
+      if (i.accUnits > 0 && isStore) d.put[l.id] = { shelf: i.m.shelf || '', done: false, qty: i.accUnits, sent: 0 };
+      if (i.rej > 0 && i.fate === 'quarantine') w.quarantine.push({ medId: l.medId, batch: l.batch, units: i.rejUnits, why: i.why, grn: grn });
+      if (order && l.orderLineId) order.lines.forEach(function (ol) { if (ol.id === l.orderLineId) ol.received += i.acc; });
+      if (i.m.controlled && witnesses[l.id]) d.witnesses[l.id] = witnesses[l.id];
+    });
+    if (order) order.state = order.lines.every(function (ol) { return ol.received >= ol.packs; }) ? 'closed' : 'part';
+    if (cl.length && (!d.kind || d.kind === 'supplier')) {
+      w.seq.clm += 1; var cid = 'CLM-' + ('000' + w.seq.clm).slice(-4), tot = cl.reduce(function (a, x) { return a + x.value; }, 0);
+      w.claims.unshift({ id: cid, note: d.note, grn: grn, supplierId: d.supplierId, made: self.nowText(), lines: cl, total: tot, state: 'draft', credit: '' });
+      d.claim = cid; claim = { id: cid, total: tot };
+    }
+    d.state = 'received'; d.grn = grn; d.finished = self.nowText(); d.secondCheck = second || ''; d.live = true; delete d.queuedWith;
+    return { grn: grn, claim: claim, place: d.place };
+  }
+  commit(witnesses, second) {
+    var self = this, did = this.state.did, res = null;
+    this.mut(function (w) { res = self.applyCommit(w, did, witnesses || {}, second); }, { dialog: null, view: 'after', openLine: null, freshLine: null, scanNote: null });
+    var w = this.state.w, pl = w.places[res.place];
+    this.say('Added to ' + pl.name + '.' + (pl.kind === 'store' ? ' Put each batch on its shelf next.' : '') + (res.claim ? ' A claim to ' + w.suppliers[w.deliveries.filter(function (x) { return x.id === did; })[0].supplierId] + ' is drafted for UGX ' + self.n(res.claim.total) + '.' : ''));
+  }
+  goOnline() {
+    var self = this, done = 0;
+    this.mut(function (w) { w.deliveries.filter(function (d) { return d.state === 'queued'; }).forEach(function (d) { var q = d.queuedWith || {}; self.applyCommit(w, d.id, q.witnesses || {}, q.second || ''); done++; }); });
+    this.setState({ offline: false });
+    this.say(done ? 'Back online. ' + self.plural(done, 'delivery', 'deliveries') + ' saved on this device ' + (done === 1 ? 'was' : 'were') + ' added to stock.' : 'Back online.');
+  }
+
+  /* ---------- put away ---------- */
+  markPut(d, line) {
+    var self = this, w = this.state.w, i = this.info(line, d, w), row = d.put[line.id];
+    var coldWaiting = d.lines.filter(function (l) { var p = d.put[l.id]; return p && !p.done && w.meds[l.medId].cold; })[0];
+    if (coldWaiting && !i.m.cold) {
+      var cm = w.meds[coldWaiting.medId], bin = d.put[coldWaiting.id].shelf;
+      return this.say('Cold-chain first: put the ' + cm.name.split(' ')[0].toLowerCase() + (bin ? ' in ' + bin : ' away') + '.');
+    }
+    if (!String(row.shelf).trim()) return this.say('Give the shelf code first.');
+    var did = d.id, id = line.id;
+    this.mut(function (x) { var dd = x.deliveries.filter(function (q) { return q.id === did; })[0]; dd.put[id].done = true; dd.put[id].shelf = dd.put[id].shelf.toUpperCase(); if (Object.keys(dd.put).every(function (k) { return dd.put[k].done; })) dd.shelvedAt = self.nowText(); if (!x.meds[dd.lines.filter(function (l) { return l.id === id; })[0].medId].shelf) x.meds[dd.lines.filter(function (l) { return l.id === id; })[0].medId].shelf = dd.put[id].shelf; });
+    this.say(i.m.name + ' put away on ' + String(row.shelf).toUpperCase() + '.');
+  }
+  sendStraight(d, line) {
+    var self = this, did = d.id, id = line.id, voucher = '', pname = '', amount = 0;
+    this.mut(function (x) {
+      var dd = x.deliveries.filter(function (q) { return q.id === did; })[0], l = dd.lines.filter(function (q) { return q.id === id; })[0], m = x.meds[l.medId], p = dd.put[id];
+      amount = Math.min(m.short.n, p.qty);
+      x.seq.riv += 1; voucher = 'RIV-' + ('000' + x.seq.riv).slice(-4);
+      p.qty -= amount; p.sent += amount;
+      if (p.qty === 0) p.done = true;
+      m.hand[dd.place] -= amount;
+      pname = x.places[m.short.place].name;
+      x.dispatches.unshift({ id: voucher, to: m.short.place, state: 'transit', sentAt: self.nowText(), kind: 'Straight from delivery', note: '', lines: [{ medId: l.medId, qty: amount, batch: l.batch }] });
+    });
+    this.say('Sent ' + this.n(amount) + ' straight to ' + pname + ' on ' + voucher + '. It joins their stock when they confirm it.');
+  }
+
+  /* ---------- chase, claims, labels ---------- */
+  openChase(orderId) {
+    var w = this.state.w, self = this, o = w.orders.filter(function (x) { return x.id === orderId; })[0], sup = w.suppliers[o.supplierId];
+    var lead = (w.rules.lead || {})[o.supplierId] || 14, p = String(o.sentOn).slice(0, 10).split('-'), due = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])); due.setDate(due.getDate() + lead);
+    var owed = o.lines.filter(function (l) { return l.packs - l.received > 0; });
+    var text = 'Dear ' + sup + ',\n\nOur order ' + o.ref + ', sent on ' + this.atText(o.sentOn) + ', was due on ' + this.atText(this.iso(due)) + ' and has not been fully delivered. Still outstanding:\n' + owed.map(function (l) { return '- ' + w.meds[l.medId].name + ': ' + self.plural(l.packs - l.received, 'pack'); }).join('\n') + '\n\nPlease confirm when it will be delivered.\n\nPharmacy, ' + w.places[o.place].name;
+    this.setState({ dialog: { kind: 'chase', orderId: orderId, supplier: sup, ref: o.ref, text: text } });
+  }
+  openOrder(id) {
+    var o = this.state.w.orders.filter(function (x) { return x.id === id; })[0];
+    this.setState({ dialog: { kind: 'order', id: id, edit: false, draft: JSON.parse(JSON.stringify(o.lines)), addMed: '', addPacks: '', addPrice: '', err: '' } });
+  }
+  openClaim(id) {
+    var w = this.state.w, self = this, c = w.claims.filter(function (x) { return x.id === id; })[0], sup = w.suppliers[c.supplierId];
+    var text = 'Dear ' + sup + ',\n\nClaim ' + c.id + ' for delivery note ' + c.note + ' (our ' + c.grn + '):\n' + c.lines.map(function (x) { return '- ' + w.meds[x.medId].name + ': ' + x.kind.toLowerCase() + ', ' + self.plural(x.packs, 'pack') + ', UGX ' + self.n(x.value); }).join('\n') + '\n\nTotal: UGX ' + this.n(c.total) + '. Please issue a credit note or replace the items.\n\nPharmacy, Main store';
+    this.setState({ dialog: { kind: 'claim', id: id, text: text, credit: '', err: '' } });
+  }
+  openLabels(did) {
+    var self = this, given = [];
+    this.mut(function (w) {
+      var d = w.deliveries.filter(function (x) { return x.id === did; })[0];
+      d.lines.forEach(function (l) { var m = w.meds[l.medId]; if (d.put[l.id] && !m.gtin) { w.seq.own = (w.seq.own || 1) + 1; var d12 = '200' + ('000000000' + w.seq.own).slice(-9), code = d12 + self.checkDigit(d12); m.gtin = '0' + code; m.ownCode = true; given.push(m.name.split(' ')[0] + ' ' + code); } });
+    }, { dialog: { kind: 'labels', did: did } });
+    if (given.length) this.say('No barcode on ' + given.join(', ') + ': it now has an in-house code. Scanning the label counts it next time.');
+  }
+
+  /* ---------- the page ---------- */
+  renderVals() {
+    var self = this, s = this.state, w = s.w, place = w.places[s.place];
+    var canReceive = place.direct;
+    var opt = function (obj) { return Object.keys(obj).map(function (k) { return { v: k, label: obj[k] }; }); };
+    var view = s.view;
+    var inStore = view === 'receive' || view === 'count' || view === 'after' || view === 'main';
+    var setView = function (v) { return function () { self.setState({ view: v, menu: false, openLine: null, freshLine: null }); }; };
+
+    var deliveriesHere = w.deliveries.filter(function (d) { return d.place === s.place; });
+    var dSub = function (d) { var n = d.lines.filter(function (l) { return Number(l.packs) > 0; }).length; return 'Arrived ' + self.atText(d.arrived) + ' · ' + self.plural(n, 'line') + ' counted'; };
+    var openD = function (d, v) { return function () { self.setState({ did: d.id, view: v, openLine: null, freshLine: null, scanNote: null, scan: '', menu: false }); }; };
+
+    var onWay = w.dispatches.filter(function (x) { return x.to === s.place && x.state === 'transit'; }).map(function (x) {
+      return { voucher: x.id, sub: x.kind + ' · sent ' + self.atText(x.sentAt) + ' · ' + self.plural(x.lines.length, 'line'), open: function () { self.setState({ dialog: { kind: 'confirm', id: x.id, note: '' } }); } };
+    });
+    var counting = deliveriesHere.filter(function (d) { return d.state === 'counting' || d.state === 'queued'; }).map(function (d) { var q = d.state === 'queued'; return { note: d.note, supplier: self.supName(d, w), kindText: d.kind && d.kind !== 'supplier' ? self.KINDS()[d.kind] : '', queued: q, sub: q ? 'Saved on this device · added to stock when the connection is back' : dSub(d), open: openD(d, 'count') }; });
+    var toPut = deliveriesHere.filter(function (d) { return d.state === 'received' && Object.keys(d.put).some(function (k) { return !d.put[k].done; }); }).map(function (d) {
+      var left = Object.keys(d.put).filter(function (k) { return !d.put[k].done; }).length;
+      return { note: d.note, supplier: self.supName(d, w), sub: self.plural(left, 'batch', 'batches') + ' waiting for a shelf', open: openD(d, 'after') };
+    });
+    var orderRow = function (o) {
+      var owed = o.lines.filter(function (l) { return l.packs - l.received > 0; });
+      var isOpen = o.state !== 'closed';
+      var lead = (w.rules.lead || {})[o.supplierId] || 14, dueIso = (function () { var p = String(o.sentOn).slice(0, 10).split('-'), dd = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])); dd.setDate(dd.getDate() + lead); return self.iso(dd); })(), dleft = self.daysTo(dueIso);
+      var due = !isOpen ? '' : dleft < 0 ? self.plural(-dleft, 'day') + ' late' : dleft === 0 ? 'Due today' : 'Due in ' + self.plural(dleft, 'day'), dueCls = dleft < 0 ? 'tag bad' : dleft === 0 ? 'tag warn' : 'tag info';
+      return { due: due, dueCls: dueCls, dueIso: dueIso, late: isOpen && dleft <= 0, chased: o.chasedOn ? 'chased ' + self.atText(o.chasedOn) : '', chase: function () { self.openChase(o.id); }, ref: o.ref, state: o.state === 'sent' ? 'Sent' : o.state === 'part' ? 'Partly delivered' : 'Closed', sub: isOpen ? self.plural(owed.length, 'line') + ' still expected: ' + owed.map(function (l) { return l.medId === 'ors' ? 'ORS' : w.meds[l.medId].name.split(' ')[0]; }).join(', ') : 'Everything on it arrived', action: o.state === 'part' ? 'Record the rest' : 'Receive', canReceive: isOpen, receive: function () { self.openStart({ orderId: o.id }); } };
+    };
+    var expected = w.orders.filter(function (o) { return o.place === s.place && o.state !== 'closed'; }).map(orderRow);
+    var done = deliveriesHere.filter(function (d) { return d.state !== 'counting'; }).map(function (d) {
+      var diffs = d.state === 'received' ? d.lines.filter(function (l) { return self.info(l, d, w).words.some(function (x) { return x.caution; }); }).length : 0;
+      return { note: d.note, supplier: self.supName(d, w), state: d.state === 'received' ? 'Received' : 'Abandoned', sub: (d.kind && d.kind !== 'supplier' ? self.KINDS()[d.kind] + ' · ' : '') + (d.state === 'received' ? (d.grn + ' · ' + self.atText(d.finished) + (diffs ? ' · ' + self.plural(diffs, 'difference') : ' · every line matched')) : 'Abandoned: ' + d.abandonReason), canOpen: d.state === 'received', open: openD(d, 'after') };
+    });
+    w.dispatches.filter(function (x) { return x.to === s.place && x.state !== 'transit'; }).forEach(function (x) {
+      done.push({ note: x.id, supplier: 'Main store', state: x.state === 'diff' ? 'Received with a difference' : 'Received', sub: x.state === 'diff' ? x.note : 'Confirmed ' + self.atText(x.confirmedAt), canOpen: false, open: function () {} });
+    });
+    var noReg = [];
+    deliveriesHere.forEach(function (d) { if (d.state === 'received') d.lines.forEach(function (l) { if (l.regReason && Number(l.packs) > 0) noReg.push({ name: w.meds[l.medId].name, sub: d.note + ' · batch ' + l.batch + ' · ' + self.REGS()[l.regReason] + (l.regNote ? ': ' + l.regNote : '') }); }); });
+    var anything = onWay.length + counting.length + toPut.length + expected.length + done.length > 0;
+
+    /* ---------- the count screen ---------- */
+    var dv = {}, lines = [];
+    var current = s.did ? w.deliveries.filter(function (x) { return x.id === s.did; })[0] : null;
+    if (view === 'count' && current) {
+      var d = current, order = d.orderId ? w.orders.filter(function (o) { return o.id === d.orderId; })[0] : null;
+      var infos = d.lines.map(function (l) { return { l: l, i: self.info(l, d, w) }; });
+      var sorted = infos.slice().sort(function (a, b) { return (b.l.rank || 0) - (a.l.rank || 0) || a.l.no - b.l.no; });
+      lines = sorted.map(function (x) {
+        var l = x.l, i = x.i, m = i.m, id = l.id, isOpen = s.openLine === id;
+        var field = function (k) { return function (e) { var p = {}; p[k] = e.target.value; self.setLine(id, p); }; };
+        var tags = [];
+        if (m.cold) tags.push({ label: '2–8 °C' });
+        if (m.controlled) tags.push({ label: 'Controlled' });
+        if (m.regLapsed) tags.push({ label: 'Registration lapsed' });
+        if (m.local) tags.push({ label: 'Local line' });
+        if (m.vaccine) tags.push({ label: 'Vaccine · VVM' });
+        var blindNow = !!d.blind && !i.counted;
+        var facts = [];
+        if (i.counted) {
+          facts.push({ k: 'Into stock', v: i.unitsText });
+          if (l.batch) facts.push({ k: 'Batch', v: l.batch });
+          if (l.exp) facts.push({ k: 'Exp', v: self.expText(l.exp) });
+          if (i.rej > 0) facts.push({ k: 'Not accepted', v: self.plural(i.rej, 'pack') });
+          if (l.temp !== '') facts.push({ k: 'Arrived at', v: l.temp + ' °C' });
+        } else if (l.orderLineId) {
+          facts.push(blindNow ? { k: '', v: 'On the order · count it first, the quantity stays hidden' } : { k: 'On the order', v: self.plural(i.owed, 'pack') + ', not counted yet' });
+        } else {
+          facts.push({ k: '', v: 'Not counted yet' });
+        }
+        var notes = [];
+        if (i.counted && m.cold && i.temp !== null) notes.push(i.tempBad ? { cls: 'editnote caution', text: 'Arrived at ' + l.temp + ' °C, outside 2–8 °C. Keep it apart in the fridge, call the supplier, and reject it or receive it after their answer.' } : { cls: 'editnote', text: 'Arrived at ' + l.temp + ' °C, inside 2–8 °C. It goes straight into the fridge.' });
+        if (i.expired) notes.push({ cls: 'editnote caution', text: 'Expired ' + self.expText(l.exp) + '. It cannot go into stock: keep it apart and return it.' });
+        if (i.short) notes.push({ cls: 'editnote caution', text: 'Short expiry: ' + Math.max(0, Math.floor(i.days / 30)) + ' months left (' + self.expText(l.exp) + '). Receive it only if it will be used by then, or reject it.' });
+        if (i.per > 0 && i.per !== m.per && m.per > 1) notes.push({ cls: 'editnote', text: 'Packs of ' + i.per + ' this time; the usual pack is ' + m.per + '.' });
+        if (i.rc) notes.push({ cls: 'editnote caution', text: 'Batch ' + l.batch + ' is on recall: ' + i.rc.notice + ', ' + i.rc.why + '. It cannot go into stock. Reject it into quarantine and keep it for the supplier.' });
+        if (i.priceDiff) notes.push({ cls: 'editnote caution', text: 'UGX ' + self.n(Number(l.cost)) + ' a pack; ' + (i.priceDiff.fromOrder ? 'the order says' : 'the usual price is') + ' UGX ' + self.n(i.priceDiff.ref) + ' (' + (i.priceDiff.pct > 0 ? '+' : '') + i.priceDiff.pct + '%). ' + (i.priceDiff.pct > 0 ? 'The difference goes on the claim unless the invoice is corrected.' : 'Check the invoice uses the same price.') });
+        if (m.vaccine && i.counted && (i.vvmBad || i.frozen)) notes.push({ cls: 'editnote caution', text: i.vvmBad ? 'The vial monitor has reached the discard point. Do not use; reject it.' : 'The freeze indicator tripped. Freezing destroys this vaccine. Keep it apart for a shake test, or reject it.' });
+        if (!i.priceDiff && l.cost !== '' && i.per > 0 && m.price > 0 && Number(l.cost) / i.per > m.price) notes.push({ cls: 'editnote', text: 'Costs ' + self.n(Math.round(Number(l.cost) / i.per)) + ' per ' + m.unit + ', above its price of ' + self.n(m.price) + '. Review the price in Set-up › Medicines.' });
+        var expectedPacks = l.notePacks !== '' ? Number(l.notePacks) : i.owed;
+        return {
+          id: id, no: l.no, name: m.name, tags: tags, facts: facts, notes: notes, isOpen: isOpen,
+          cls: 'line' + (s.freshLine === id ? ' fresh' : ''), noCls: i.counted ? 'no' : 'no pending',
+          source: i.counted ? ({ scan: 'Scanned', catalogue: 'Picked', typed: 'Typed', order: 'Typed' })[l.source] : 'From the order',
+          toggleLabel: isOpen ? 'Close' : (i.counted ? 'Change' : 'Count'),
+          toggle: function () { self.setState({ openLine: isOpen ? null : id, freshLine: id }); },
+          canRemove: i.counted || !l.orderLineId,
+          remove: function () { self.removeLine(id); },
+          words: i.counted ? i.words.map(function (x) { return { word: x.word, caution: x.caution, ok: !x.caution && !x.plain, cls: x.caution ? 'word caution' : 'word' }; }) : [],
+          hasWords: i.counted,
+          batch: l.batch, exp: l.exp, packs: l.packs, per: l.per, notePacks: l.notePacks, cost: l.cost, temp: l.temp,
+          notePh: i.ol && !d.blind ? self.n(i.owed) + ' on the order' : '', showNote: !d.blind || i.counted,
+          perLabel: 'Per pack (' + m.unit + 's)',
+          setBatch: field('batch'), setExp: field('exp'), setPacks: field('packs'), setPer: field('per'), setNote: field('notePacks'), setCost: field('cost'), setTemp: field('temp'),
+          canAllExpected: !d.blind && expectedPacks > 0 && Number(l.packs) !== expectedPacks, expectedPacks: self.n(expectedPacks),
+          allExpected: function () { self.setLine(id, { packs: String(expectedPacks) }); },
+          isCold: m.cold && !m.vaccine, isVaccine: !!m.vaccine,
+          vvms: ['1', '2', '3', '4'].map(function (v) { var on = l.vvm === v; return { label: 'Stage ' + v + (v === '1' || v === '2' ? ' · use' : ' · discard'), on: on, cls: on ? 'chip on' : 'chip', pick: function () { self.setLine(id, { vvm: v }); } }; }),
+          freezes: [['ok', 'Fine, not frozen'], ['tripped', 'Tripped']].map(function (o) { var on = l.freeze === o[0]; return { label: o[1], on: on, cls: on ? 'chip on' : 'chip', pick: function () { self.setLine(id, { freeze: o[0] }); } }; }),
+          needsApproval: i.short && !i.expired && (l.decision === 'accept' || l.decision === 'accept_tell'), approvedBy: l.approvedBy, setApproved: field('approvedBy'),
+          needsDecision: i.short && !i.expired && i.packs > 0,
+          decisions: [['accept', 'Accept'], ['accept_tell', 'Accept and tell the supplier'], ['reject', 'Reject']].map(function (o) { var on = l.decision === o[0]; return { label: o[1], on: on, cls: on ? 'chip on' : 'chip', pick: function () { self.setLine(id, { decision: o[0] }); } }; }),
+          needsReg: m.regLapsed && i.acc > 0,
+          regReason: l.regReason, setReg: field('regReason'), regOther: l.regReason === 'other', regNote: l.regNote, setRegNote: field('regNote'),
+          rejOn: !!l.rejOn, toggleRej: function (e) { self.setLine(id, { rejOn: e.target.checked }); },
+          rejPacks: l.rejPacks, setRejPacks: field('rejPacks'), rejWhy: l.rejWhy, setRejWhy: field('rejWhy'),
+          fates: [['driver', 'Back with the driver'], ['quarantine', 'Keep in quarantine']].map(function (o) { var on = l.rejFate === o[0]; return { label: o[1], on: on, cls: on ? 'chip on' : 'chip', pick: function () { self.setLine(id, { rejFate: o[0] }); } }; }),
+          canRejectAll: (i.expired || i.tempBad || !!i.rc || i.vvmBad || i.frozen) && i.acc > 0,
+          rejectAll: function () { self.setLine(id, { rejOn: true, rejPacks: String(i.packs), rejWhy: i.expired ? 'expired' : i.rc ? 'recalled' : (i.tempBad || i.vvmBad || i.frozen) ? 'cold' : 'other', rejFate: 'quarantine' }); }
+        };
+      });
+      var counted = infos.filter(function (x) { return x.i.counted; });
+      var pending = infos.length - counted.length;
+      var problems = [];
+      infos.forEach(function (x) { x.i.problems.forEach(function (p) { problems.push({ text: p, go: function () { self.setState({ openLine: x.l.id, freshLine: x.l.id }); } }); }); });
+      var units = counted.reduce(function (a, x) { return a + x.i.accUnits; }, 0);
+      var value = counted.reduce(function (a, x) { return a + (x.i.value || 0); }, 0);
+      var blocked = problems.length > 0 || counted.length === 0;
+      var owed = [];
+      if (order) order.lines.forEach(function (ol) {
+        var now = counted.filter(function (x) { return x.l.orderLineId === ol.id; }).reduce(function (a, x) { return a + x.i.acc; }, 0);
+        var left = ol.packs - ol.received - now;
+        if (left > 0) owed.push({ name: w.meds[ol.medId].name, text: self.plural(left, 'pack') });
+      });
+      dv = {
+        note: d.note, supplier: self.supName(d, w), place: w.places[d.place].name, arrived: self.atText(d.arrived),
+        order: order ? order.ref : 'No order', people: [d.deliverer, d.vehicle].filter(Boolean).join(' · ') || 'Not given',
+        counted: counted.length, pendingText: pending ? ' · ' + pending + ' still to count' : '',
+        summary: self.plural(counted.length, 'line') + ' · ' + self.n(units) + ' units' + (value ? ' · UGX ' + self.n(value) : ''),
+        problems: problems, hasProblems: problems.length > 0,
+        hasControlled: counted.some(function (x) { return x.i.m.controlled && x.i.acc > 0; }),
+        hasKept: counted.some(function (x) { return x.i.rej > 0 && x.i.fate === 'quarantine'; }),
+        blocked: blocked,
+        blockedReason: counted.length === 0 ? 'Count at least one line first.' : self.plural(problems.length, 'thing') + ' to finish before it is added.',
+        addLabel: 'Add ' + self.plural(counted.length, 'line') + ' to stock',
+        hasOrder: !!order && !d.blind, owed: owed, nothingOwed: !!order && owed.length === 0,
+        blind: !!d.blind, kindText: self.KINDS()[d.kind || 'supplier'], isSupplier: !d.kind || d.kind === 'supplier', fromLabel: !d.kind || d.kind === 'supplier' ? 'Order' : 'Kind',
+        invoice: d.invoice || '', invoiceTotal: d.invoiceTotal || '',
+        setInvoice: function (e) { var v = e.target.value; self.mut(function (x) { self.did(x).invoice = v; }); },
+        setInvoiceTotal: function (e) { var v = e.target.value.replace(/[^0-9]/g, ''); self.mut(function (x) { self.did(x).invoiceTotal = v; }); },
+        matchRows: (function () {
+          var out = [], prices = counted.filter(function (x) { return x.i.priceDiff; }).length;
+          if (order) out.push(prices ? { cls: 'warn', text: self.plural(prices, 'line') + (prices === 1 ? ' is' : ' are') + ' priced differently from the order' } : { cls: 'ok', text: 'Prices match the order' });
+          var notes = counted.filter(function (x) { return x.l.notePacks !== '' && Number(x.l.notePacks) !== x.i.packs; }).length;
+          out.push(notes ? { cls: 'warn', text: self.plural(notes, 'line') + (notes === 1 ? ' differs' : ' differ') + ' from the delivery note' } : { cls: 'ok', text: 'Counts match the delivery note' });
+          if (d.invoiceTotal) { var gap = Number(d.invoiceTotal) - value; out.push(Math.abs(gap) <= Math.max(1000, value * 0.01) ? { cls: 'ok', text: 'Invoice matches the count (UGX ' + self.n(Number(d.invoiceTotal)) + ')' } : { cls: 'warn', text: 'Invoice is UGX ' + self.n(Math.abs(gap)) + (gap > 0 ? ' more' : ' less') + ' than what was counted' }); }
+          else out.push({ cls: '', text: 'No invoice entered yet' });
+          return out;
+        })(),
+        photos: (s.photos[d.id] || []).map(function (ph, k) { return { url: ph.url, kind: ph.kind, alt: ph.kind + ' photo ' + (k + 1) }; }),
+        hasPhotos: (s.photos[d.id] || []).length > 0,
+        photoKinds: ['Delivery note', 'Invoice', 'Damage'].map(function (kd) { return { label: '+ ' + kd, add: function (e) { var file = e.target.files && e.target.files[0]; if (!file) return; var url = ''; try { url = URL.createObjectURL(file); } catch (er) { url = ''; } var ph = Object.assign({}, self.state.photos); ph[d.id] = (ph[d.id] || []).concat([{ kind: kd, url: url }]); self.setState({ photos: ph }); self.say(kd + ' photo added to ' + d.note + '.'); } }; }),
+        hasCold: counted.some(function (x) { return x.i.m.cold && x.i.acc > 0; }) || infos.some(function (x) { return x.i.m.cold; }),
+        coldText: (function () { var mins = self.minsSince(d.arrived) || 0, lim = w.rules.coldMins; return mins > lim ? 'Cold lines arrived ' + self.hm(mins) + ' ago, over the ' + lim + ' min limit. Put them in the fridge now, then finish counting.' : 'Cold lines arrived ' + self.hm(mins) + ' ago. Into the fridge within ' + lim + ' min (Rules › Cold chain).'; })(),
+        coldCls: (function () { var mins = self.minsSince(d.arrived) || 0, lim = w.rules.coldMins; return 'coldtimer' + (mins > lim ? ' bad' : mins > lim * 2 / 3 ? ' warn' : ''); })()
+      };
+      if (s.offline) dv.addLabel = 'Save on this device';
+    }
+
+    /* ---------- after: put away, papers, what moved ---------- */
+    var av = {};
+    if (view === 'after' && current) {
+      var ad = current, aorder = ad.orderId ? w.orders.filter(function (o) { return o.id === ad.orderId; })[0] : null;
+      var keys = ad.lines.filter(function (l) { return ad.put[l.id]; });
+      keys.sort(function (a, b) { return Number(w.meds[b.medId].cold) - Number(w.meds[a.medId].cold); });
+      var put = keys.map(function (l) {
+        var p = ad.put[l.id], m = w.meds[l.medId], tags = [], sent = p.sent > 0;
+        if (m.cold) tags.push({ label: '2–8 °C · first' });
+        if (m.controlled) tags.push({ label: 'Controlled' });
+        var sh = m.short, target = sh ? w.places[sh.place] : null, canSend = !!(sh && !m.controlled && !sent && p.qty >= 1 && !p.done);
+        var edit = function (e) { var v = e.target.value.toUpperCase(), did = ad.id, id = l.id; self.mut(function (x) { x.deliveries.filter(function (q) { return q.id === did; })[0].put[id].shelf = v; }); };
+        return {
+          name: m.name, tags: tags, batch: l.batch, exp: self.expText(l.exp), qty: self.plural(p.qty, m.unit) + (sent ? ' (' + self.n(p.sent) + ' sent on)' : ''),
+          hint: !p.done ? (m.shelf && p.shelf === m.shelf ? 'Already on ' + m.shelf : 'New on this shelf') : '',
+          aria: 'Shelf for ' + m.name, shelf: p.shelf, setShelf: edit,
+          waiting: !p.done, isDone: p.done,
+          doneText: p.qty === 0 ? 'All sent on ✓' : 'On ' + p.shelf + ' ✓', canUndo: p.qty > 0,
+          mark: function () { self.markPut(ad, l); },
+          undo: function () { var did = ad.id, id = l.id; self.mut(function (x) { x.deliveries.filter(function (q) { return q.id === did; })[0].put[id].done = false; }); self.say(m.name + ' is back to put away.'); },
+          canSend: canSend, sendLabel: canSend ? 'Send ' + self.n(Math.min(sh.n, p.qty)) + ' straight to ' + target.name : '',
+          send: function () { self.sendStraight(ad, l); }
+        };
+      });
+      var left = keys.filter(function (l) { return !ad.put[l.id].done; }).length;
+      var moved = ad.lines.map(function (l) {
+        var i = self.info(l, ad, w);
+        return { name: i.m.name, batch: l.batch || '—', units: self.plural(i.accUnits, i.m.unit), rej: i.rej ? self.plural(i.rej, 'pack') + ' · ' + (i.fate === 'quarantine' ? 'in quarantine' : 'back with the driver') : '—', result: i.words.map(function (x) { return x.word; }).join('; ') };
+      });
+      var aowed = aorder ? aorder.lines.filter(function (x) { return x.packs - x.received > 0; }).map(function (x) { return { name: w.meds[x.medId].name, text: self.plural(x.packs - x.received, 'pack') }; }) : [];
+      av = {
+        title: 'Added to ' + w.places[ad.place].name,
+        sub: ad.grn + ' · note ' + ad.note + ' · ' + self.supName(ad, w) + ' · ' + self.atText(ad.finished),
+        isReceived: ad.state === 'received', showPut: put.length > 0, put: put,
+        putLeft: left ? left + ' left' : 'all done',
+        moved: moved,
+        hasDiff: moved.some(function (x) { return x.result !== 'Matches'; }), noDiff: !moved.some(function (x) { return x.result !== 'Matches'; }),
+        hasOrder: !!aorder, orderRef: aorder ? aorder.ref : '', orderState: aorder ? (aorder.state === 'closed' ? 'Closed' : 'Partly delivered') : '',
+        owed: aowed, nothingOwed: !!aorder && aowed.length === 0, canRest: aowed.length > 0,
+        recordRest: function () { self.openStart({ orderId: aorder.id }); },
+        hasClaim: !!ad.claim, claimLabel: ad.claim ? 'Claim ' + ad.claim : '', openClaim: function () { self.openClaim(ad.claim); },
+        secondText: ad.secondCheck ? 'Count checked by ' + ad.secondCheck : '', hasSecond: !!ad.secondCheck,
+        openLabels: function () { self.openLabels(ad.id); },
+        hasPhotos: (s.photos[ad.id] || []).length > 0, photos: (s.photos[ad.id] || []).map(function (ph, k) { return { url: ph.url, kind: ph.kind, alt: ph.kind + ' photo ' + (k + 1) }; })
+      };
+    }
+
+    /* ---------- dialogs ---------- */
+    var f = s.dialog || {}, st = {}, pk = {}, wit = {}, ab = {}, cf = {}, pp = {};
+    var patch = function (k) { return function (e) { var p = {}; p[k] = e.target.value; p.err = ''; p.errField = ''; p.dupId = null; self.dlg(p); }; };
+    if (f.kind === 'start') {
+      var editing = f.mode === 'edit';
+      var openOrders = w.orders.filter(function (o) { return o.place === s.place && o.state !== 'closed'; });
+      var rk = f.rkind || 'supplier', st0lock = !!f.lockOrder;
+      st = {
+        kinds: Object.keys(self.KINDS()).map(function (k) { var on = rk === k; return { label: self.KINDS()[k], hint: ({ supplier: 'NMS, JMS or a wholesaler, with a delivery note', donation: 'From a partner or programme', facility: 'Lent or sent by another hospital', ward: 'Stock a ward or unit sends back' })[k], icon: ({ supplier: 'M3 7h11v9H3zM14 10h4l3 3v3h-7zM5.5 17.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0M15.5 17.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0', donation: 'M4 11h16v9H4zM3 7h18v4H3zM12 7v13M12 7c-2-4-6-3-5 0M12 7c2-4 6-3 5 0', facility: 'M4 21V5l8-3 8 3v16M9 21v-5h6v5M9 9h.01M15 9h.01M9 13h.01M15 13h.01', ward: 'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3' })[k], on: on ? 'true' : 'false', cls: on ? 'chip on' : 'chip', pick: function () { if (editing) return; self.dlg({ rkind: k, err: '', errField: '', dupId: null, orderId: k === 'supplier' ? f.orderId : '' }); } }; }),
+        n2: editing ? '1' : '2', n3: editing ? '2' : '3', n4: editing ? '3' : '4',
+        fromTitle: rk === 'supplier' ? 'Supplier and order' : rk === 'donation' ? 'Donor' : rk === 'facility' ? 'Facility' : 'Ward or unit',
+        fromPh: rk === 'donation' ? 'e.g. MSF Uganda, Global Fund via NMS' : 'e.g. Kiruddu National Referral Hospital',
+        suppliers: Object.keys(w.suppliers).map(function (k) { var on = f.supplierId === k, n = openOrders.filter(function (o) { return o.supplierId === k; }).length; return { label: w.suppliers[k], on: on ? 'true' : 'false', off: !!f.orderId && !on && !!st0lock, hasCount: n > 0, count: n === 1 ? '1 order open' : n + ' orders open', sub: n ? 'Pick the order below' : 'No order open', pick: function () { if (f.orderId && st0lock) return; self.dlg({ supplierId: k, orderId: (openOrders.filter(function (o) { return o.supplierId === k; })[0] || {}).id || '', err: '', errField: '', dupId: null }); } }; }),
+        showOrders: !!f.supplierId && openOrders.some(function (o) { return o.supplierId === f.supplierId; }), noOrderOn: !f.orderId ? 'true' : 'false',
+        supErr: f.errField === 'supplier', supInvalid: f.errField === 'supplier' ? 'true' : 'false',
+        fromErr: f.errField === 'from', fromInvalid: f.errField === 'from' ? 'true' : 'false',
+        noteErr: f.errField === 'note', noteOk: f.errField !== 'note', noteInvalid: f.errField === 'note' ? 'true' : 'false',
+        notePh: rk === 'supplier' ? 'e.g. DN-20418' : rk === 'donation' ? 'e.g. DON/2026/014' : rk === 'facility' ? 'e.g. TRF-0381' : 'e.g. RET-0042',
+        noteHint: rk === 'supplier' ? 'As printed on the note. A note already recorded is refused, so stock never comes in twice.' : 'As written on their paperwork.',
+        date: String(f.arrived || '').slice(0, 10), time: String(f.arrived || '').slice(11, 16),
+        setDate: function (e) { self.dlg({ arrived: e.target.value + ' ' + (String(f.arrived || '').slice(11, 16) || '00:00'), err: '', errField: '' }); },
+        setTime: function (e) { self.dlg({ arrived: String(f.arrived || '').slice(0, 10) + ' ' + e.target.value, err: '', errField: '' }); },
+        setNow: function () { self.dlg({ arrived: self.nowText(), err: '', errField: '' }); },
+        atErr: f.errField === 'arrived', atOk: f.errField !== 'arrived', atInvalid: f.errField === 'arrived' ? 'true' : 'false',
+        atHint: (function () { var m = self.minsSince(f.arrived); return m === null ? '' : m < 2 ? 'Just now.' : self.hm(m) + ' ago.'; })(),
+        otherErr: !!f.err && ['supplier', 'from', 'note', 'arrived'].indexOf(f.errField) < 0,
+        footHint: editing ? '' : rk === 'supplier' && f.orderId ? 'The order\'s lines will be ready to count.' : 'You add lines by scanning or typing.',
+        isSupplier: rk === 'supplier', notSupplier: rk !== 'supplier', isWard: rk === 'ward', isFreeFrom: rk === 'donation' || rk === 'facility',
+        fromLabel: rk === 'donation' ? 'Donor (organisation or programme)' : 'Facility it came from', from: f.from || '', setFrom: patch('from'),
+        wardOptions: w.placeOrder.filter(function (pid) { return pid !== s.place; }).map(function (pid) { return { v: w.places[pid].name, label: w.places[pid].name }; }),
+        kindLead: ({ donation: 'Donated stock is received like any other: counted, checked and given a GRN. It is valued at the usual price and no claim is made.', facility: 'Stock lent or sent by another facility. Record their transfer voucher so the two books match.', ward: 'Stock a ward or unit sends back. It is checked like a delivery before it goes back on the shelves.' })[rk] || '',
+        noteLabel: rk === 'supplier' ? 'Delivery note number' : rk === 'donation' ? 'Donation letter or reference' : rk === 'facility' ? 'Their transfer voucher number' : 'Return slip number',
+        blind: f.blind ? 'true' : 'false', blindOn: !!f.blind, toggleBlind: function (e) { self.dlg({ blind: e.target.checked }); }, showBlind: !editing,
+        title: editing ? 'Change the delivery details' : 'Receive a delivery', action: editing ? 'Save' : 'Start counting',
+        locked: editing, supplierLocked: !!f.orderId,
+        orders: openOrders.filter(function (o) { return !f.supplierId || o.supplierId === f.supplierId; }).map(function (o) { var on = f.orderId === o.id, r = orderRow(o); return { ref: o.ref, sub: r.state + ' · ' + r.sub, due: r.due, dueCls: r.dueCls, on: on ? 'true' : 'false', cls: on ? 'choice on' : 'choice', pick: function () { self.dlg({ orderId: o.id, supplierId: o.supplierId, err: '', errField: '', dupId: null }); } }; }),
+        noOrder: !f.orderId, noOrderCls: !f.orderId ? 'choice on' : 'choice',
+        pickNoOrder: function () { self.dlg({ orderId: '', err: '', errField: '', dupId: null }); },
+        supplierId: f.supplierId, setSupplier: patch('supplierId'), note: f.note, setNote: patch('note'),
+        arrived: f.arrived, setArrived: patch('arrived'), changeArrived: !!f.changeArrived, arrivedNow: !f.changeArrived, arrivedText: editing ? self.atText(f.arrived) : 'Now, ' + self.atText(f.arrived),
+        showArrived: function () { self.dlg({ changeArrived: true }); },
+        deliverer: f.deliverer, setDeliverer: patch('deliverer'), vehicle: f.vehicle, setVehicle: patch('vehicle'),
+        err: f.err, hasErr: !!f.err, hasDup: !!f.dupId,
+        openDup: function () { var dup = w.deliveries.filter(function (q) { return q.id === f.dupId; })[0]; self.setState({ dialog: null, did: f.dupId, view: dup.state === 'counting' ? 'count' : 'after', openLine: null, freshLine: null }); },
+        submit: function () { self.submitStart(); }
+      };
+    }
+    if (f.kind === 'picker') {
+      var q = f.q.trim().toLowerCase();
+      var ticks = f.ticks || {};
+      var items = w.medOrder.filter(function (id) { return !q || w.meds[id].name.toLowerCase().indexOf(q) >= 0; }).map(function (id) {
+        var m = w.meds[id], on = !!ticks[id];
+        return { name: m.name, sub: 'Pack of ' + m.per + ' · ' + self.plural(m.hand[s.place] || 0, m.unit) + ' here' + (m.controlled ? ' · Controlled' : '') + (m.cold ? ' · 2–8 °C' : ''), on: on, cls: on ? 'choice on' : 'choice', tick: function () { var t = Object.assign({}, f.ticks); t[id] = !on; self.dlg({ ticks: t }); } };
+      });
+      var nTicks = Object.keys(ticks).filter(function (k) { return ticks[k]; }).length;
+      var lfSet = function (k) { return function (e) { var lf = Object.assign({}, f.lf); lf[k] = e.target.value; self.dlg({ lf: lf, err: '' }); }; };
+      pk = {
+        q: f.q, setQ: function (e) { self.dlg({ q: e.target.value }); }, items: items, none: !items.length,
+        showAdd: !f.local, local: !!f.local, openLocal: function () { self.dlg({ local: true, lf: Object.assign({}, f.lf, { generic: f.q }) }); },
+        lf: f.lf, setGeneric: lfSet('generic'), setStrength: lfSet('strength'), setUnit: lfSet('unit'), err: f.err, hasErr: !!f.err, addLocal: function () { self.addLocal(); },
+        noTicks: nTicks === 0, addLabel: nTicks === 1 ? 'Add 1 line' : 'Add ' + nTicks + ' lines', add: function () { self.addPicked(); }
+      };
+    }
+    if (f.kind === 'witness' && current) {
+      var ctrl = current.lines.filter(function (l) { var i = self.info(l, current, w); return i.counted && i.acc > 0 && i.m.controlled; });
+      wit = {
+        title: f.needSecond && ctrl.length ? 'Witness and second check' : f.needSecond ? 'A second person checks the count' : 'A witness confirms the controlled lines',
+        lead: f.needSecond ? 'This delivery is worth UGX ' + self.n(f.value) + ', above the UGX ' + self.n(w.rules.secondCheck) + ' limit (Rules › Receiving), so someone else checks the count before it goes into stock.' : 'Someone on duty who watched the count, not you. The paper register still applies.',
+        needSecond: !!f.needSecond, second: f.second || '', setSecond: function (e) { self.dlg({ second: e.target.value, err: '' }); },
+        hasLines: ctrl.length > 0,
+        lines: ctrl.map(function (l) { return { label: 'Line ' + l.no + ' · ' + w.meds[l.medId].name + ' · ' + l.batch, value: (f.picks || {})[l.id] || '', set: function (e) { var p = Object.assign({}, f.picks); p[l.id] = e.target.value; self.dlg({ picks: p, err: '' }); } }; }),
+        err: f.err, hasErr: !!f.err, action: s.offline ? 'Save on this device' : f.needSecond && !ctrl.length ? 'Checked, add to stock' : 'Witnessed, add to stock',
+        submit: function () { if (ctrl.some(function (l) { return !(f.picks || {})[l.id]; })) return self.dlg({ err: 'Each controlled line needs its witness.' }); if (f.needSecond && !f.second) return self.dlg({ err: 'Choose who checked the count.' }); self.finish(f.picks || {}, f.second || ''); }
+      };
+    }
+    var ch = {}, clm = {}, lb = {};
+    if (f.kind === 'chase') {
+      ch = { text: f.text, setText: function (e) { self.dlg({ text: e.target.value }); }, title: 'Chase ' + f.ref,
+        copy: function () { try { navigator.clipboard.writeText(f.text); self.say('Copied. Paste it into an email or SMS to ' + f.supplier + '.'); } catch (e) { self.say('Copy is blocked here: select the text and copy it.'); } },
+        mark: function () { var id = f.orderId; self.mut(function (x) { x.orders.filter(function (o) { return o.id === id; })[0].chasedOn = self.nowText(); }, { dialog: null }); self.say('Marked as chased today.'); } };
+    }
+    if (f.kind === 'claim') {
+      var cc = w.claims.filter(function (c) { return c.id === f.id; })[0];
+      clm = { title: cc.id + ' · ' + w.suppliers[cc.supplierId], isDraft: cc.state === 'draft', isSent: cc.state === 'sent', text: f.text, setText: function (e) { self.dlg({ text: e.target.value }); },
+        lines: cc.lines.map(function (x) { return { name: w.meds[x.medId].name, kind: x.kind, packs: self.plural(x.packs, 'pack'), value: 'UGX ' + self.n(x.value) }; }), total: 'UGX ' + self.n(cc.total),
+        credit: f.credit || '', setCredit: function (e) { self.dlg({ credit: e.target.value, err: '' }); }, err: f.err || '', hasErr: !!f.err,
+        copy: function () { try { navigator.clipboard.writeText(f.text); self.say('Copied.'); } catch (e) { self.say('Copy is blocked here: select the text and copy it.'); } },
+        send: function () { var id = cc.id; self.mut(function (x) { var c = x.claims.filter(function (q) { return q.id === id; })[0]; c.state = 'sent'; c.sentOn = self.nowText(); }, { dialog: null }); self.say(cc.id + ' marked as sent to ' + w.suppliers[cc.supplierId] + '.'); },
+        receive: function () { var cn = String(f.credit || '').trim(); if (!cn) return self.dlg({ err: 'Type the credit note number.' }); var id = cc.id; self.mut(function (x) { var c = x.claims.filter(function (q) { return q.id === id; })[0]; c.state = 'credit'; c.credit = cn; }, { dialog: null }); self.say('Credit note ' + cn + ' recorded. ' + cc.id + ' is closed.'); } };
+    }
+    var od = {};
+    if (f.kind === 'order') {
+      var oo = w.orders.filter(function (x) { return x.id === f.id; })[0], orow = orderRow(oo), lines0 = f.edit ? f.draft : oo.lines;
+      var upd = function (lid, patch) { self.dlg({ err: '', draft: f.draft.map(function (x) { return x.id === lid ? Object.assign({}, x, patch) : x; }) }); };
+      var tot = lines0.reduce(function (a, l) { return a + (Number(l.packs) || 0) * (Number(l.price) || 0); }, 0);
+      var onOrder = lines0.map(function (l) { return l.medId; });
+      od = { title: oo.ref, lead: 'Sent ' + self.atText(oo.sentOn) + ' · due ' + self.atText(orow.dueIso) + (orow.due ? ' (' + orow.due.toLowerCase() + ')' : '') + ' · ' + orow.state + (oo.editedOn ? ' · changed ' + self.atText(oo.editedOn) : ''),
+        editing: !!f.edit, viewing: !f.edit, canEdit: oo.state !== 'closed', total: 'UGX ' + self.n(tot),
+        rows: lines0.map(function (l) { var m = w.meds[l.medId], left = Math.max(0, (Number(l.packs) || 0) - l.received), val = (Number(l.packs) || 0) * (Number(l.price) || 0);
+          return { name: m.name, sub: 'Pack of ' + m.per + ' ' + m.unit + 's' + (m.cold ? ' · 2–8 °C' : '') + (m.controlled ? ' · controlled' : ''), packs: String(l.packs), received: self.n(l.received), left: left ? self.plural(left, 'pack') : 'All in', leftCls: left ? 'num' : 'num ok', price: self.n(Number(l.price) || 0), value: self.n(val),
+            setPacks: function (e) { upd(l.id, { packs: e.target.value.replace(/[^0-9]/g, '') }); }, setPrice: function (e) { upd(l.id, { price: e.target.value.replace(/[^0-9]/g, '') }); },
+            canRemove: !!f.edit && l.received === 0, remove: function () { self.dlg({ draft: f.draft.filter(function (x) { return x.id !== l.id; }), err: '' }); }, aria: m.name }; }),
+        addOptions: w.medOrder.filter(function (mid) { return onOrder.indexOf(mid) < 0; }).map(function (mid) { return { v: mid, label: w.meds[mid].name }; }),
+        addMed: f.addMed || '', addPacks: f.addPacks || '', addPrice: f.addPrice || '',
+        setAddMed: function (e) { var mid = e.target.value; self.dlg({ addMed: mid, addPrice: mid ? String(w.meds[mid].cost || '') : '', err: '' }); },
+        setAddPacks: function (e) { self.dlg({ addPacks: e.target.value.replace(/[^0-9]/g, ''), err: '' }); }, setAddPrice: function (e) { self.dlg({ addPrice: e.target.value.replace(/[^0-9]/g, ''), err: '' }); },
+        addLine: function () { if (!f.addMed) return self.dlg({ err: 'Choose the medicine to add.' }); if (!(Number(f.addPacks) > 0)) return self.dlg({ err: 'Type how many packs.' }); self.dlg({ draft: f.draft.concat([{ id: 'ol' + Date.now(), medId: f.addMed, packs: Number(f.addPacks), received: 0, price: Number(f.addPrice) || 0 }]), addMed: '', addPacks: '', addPrice: '', err: '' }); },
+        err: f.err || '', hasErr: !!f.err,
+        startEdit: function () { self.dlg({ edit: true, draft: JSON.parse(JSON.stringify(oo.lines)), err: '' }); },
+        cancelEdit: function () { self.dlg({ edit: false, err: '' }); },
+        receive: function () { self.openStart({ orderId: oo.id }); },
+        save: function () {
+          var bad = f.draft.filter(function (l) { return !(Number(l.packs) > 0) || Number(l.packs) < l.received; })[0];
+          if (bad) return self.dlg({ err: w.meds[bad.medId].name + ': ordered can\'t be ' + (Number(bad.packs) > 0 ? 'less than the ' + bad.received + ' packs that already arrived' : 'empty') + '.' });
+          if (!f.draft.length) return self.dlg({ err: 'An order needs at least one line.' });
+          var id = oo.id;
+          self.mut(function (x) { var o2 = x.orders.filter(function (q) { return q.id === id; })[0]; o2.lines = f.draft.map(function (l) { return Object.assign({}, l, { packs: Number(l.packs), price: Number(l.price) || 0 }); }); o2.editedOn = self.nowText(); o2.state = o2.lines.every(function (l) { return l.received >= l.packs; }) ? 'closed' : o2.lines.some(function (l) { return l.received > 0; }) ? 'part' : 'sent'; }, { dialog: { kind: 'order', id: id, edit: false, draft: [], addMed: '', addPacks: '', addPrice: '', err: '' } });
+          self.say('Order changed. Send the change to ' + w.suppliers[oo.supplierId] + ' too: they are not told automatically.');
+        } };
+    }
+    if (f.kind === 'labels') {
+      var ld = w.deliveries.filter(function (x) { return x.id === f.did; })[0];
+      lb = { title: 'Shelf labels · ' + ld.grn, labels: ld.lines.filter(function (l) { return ld.put[l.id]; }).map(function (l) { var m = w.meds[l.medId], code = (m.gtin || '').length === 14 ? m.gtin.slice(1) : m.gtin; return { name: m.name, meta: 'Batch ' + l.batch + ' · exp ' + self.expText(l.exp) + ' · ' + self.plural(ld.put[l.id].qty + ld.put[l.id].sent, m.unit), bin: ld.put[l.id].shelf || m.shelf || '—', bars: code && code.length === 13 ? self.ean13(code) : [], digits: code || 'no code', own: !!m.ownCode }; }) };
+    }
+    if (f.kind === 'abandon') {
+      ab = { reason: f.reason, setReason: function (e) { self.dlg({ reason: e.target.value, err: '' }); }, err: f.err, hasErr: !!f.err, submit: function () {
+        var r = (f.reason || '').trim();
+        if (!r) return self.dlg({ err: 'Say why it is abandoned.' });
+        self.mut(function (x) { var dd = self.did(x); dd.state = 'abandoned'; dd.abandonReason = r; }, { dialog: null, view: 'receive', did: null, openLine: null });
+      } };
+    }
+    if (f.kind === 'confirm') {
+      var dx = w.dispatches.filter(function (x) { return x.id === f.id; })[0];
+      cf = { voucher: dx.id, sub: dx.kind + ' from Main store to ' + w.places[dx.to].name, lines: dx.lines.map(function (l) { return { name: w.meds[l.medId].name, batch: l.batch, qty: self.plural(l.qty, w.meds[l.medId].unit) }; }), note: f.note, setNote: function (e) { self.dlg({ note: e.target.value }); }, submit: function () {
+        var note = (f.note || '').trim(), id = f.id;
+        self.mut(function (x) { var dd = x.dispatches.filter(function (q) { return q.id === id; })[0]; dd.state = note ? 'diff' : 'received'; dd.note = note; dd.confirmedAt = self.nowText(); dd.lines.forEach(function (l) { x.meds[l.medId].hand[dd.to] = (x.meds[l.medId].hand[dd.to] || 0) + l.qty; }); }, { dialog: null });
+        self.say(note ? 'Confirmed with a difference. A case is open for the in-charge.' : 'Confirmed. It is in ' + place.name + "'s stock.");
+      } };
+    }
+    if (f.kind === 'paper' && current) {
+      var head = [{ k: 'Facility', v: 'Sample hospital' }, { k: 'Supplier', v: self.supName(current, w) }, { k: 'Delivery note', v: current.note }, { k: 'Arrived', v: self.atText(current.arrived) }, { k: 'Received at', v: w.places[current.place].name }, { k: 'Deliverer', v: current.deliverer || '—' }, { k: 'Vehicle', v: current.vehicle || '—' }, { k: 'Goods received note', v: current.grn }];
+      var isReport = f.which === 'report';
+      var plines = current.lines.map(function (l) { return { l: l, i: self.info(l, current, w) }; });
+      if (isReport) plines = plines.filter(function (x) { return x.i.words.some(function (y) { return y.caution; }); });
+      pp = {
+        isReport: isReport, title: isReport ? 'Discrepancy report (HMIS 087)' : 'Goods received note', head: head,
+        cols: (isReport ? ['Line', 'Product', 'Batch', 'Expiry', 'On the note', 'Counted', 'Accepted', 'Rejected', 'Discrepancy', 'Decision'] : ['Line', 'Product', 'Batch', 'Expiry', 'Accepted', 'Cost per pack, UGX', 'Witness']).map(function (c) { return { label: c }; }),
+        rows: plines.map(function (x) {
+          var l = x.l, i = x.i;
+          var cells = isReport
+            ? [l.no, i.m.name, l.batch || '—', self.expText(l.exp), l.notePacks === '' ? '—' : self.plural(Number(l.notePacks), 'pack'), self.plural(i.packs, 'pack'), self.plural(i.acc, 'pack'), self.plural(i.rej, 'pack'), i.words.filter(function (y) { return y.caution; }).map(function (y) { return y.word; }).join('; '), ({ accept: 'Accept', accept_tell: 'Accept and tell the supplier', reject: 'Reject' })[l.decision] || '']
+            : [l.no, i.m.name, l.batch || '—', self.expText(l.exp), self.plural(i.accUnits, i.m.unit), l.cost === '' ? 'No cost given' : self.n(Number(l.cost)), current.witnesses[l.id] || (i.m.controlled ? 'Not recorded' : '—')];
+          return { cells: cells.map(function (v) { return { v: v }; }) };
+        })
+      };
+    }
+
+    /* ---------- medicines and main store ---------- */
+    var meds = w.medOrder.map(function (id) {
+      var m = w.meds[id], tags = [];
+      if (m.cold) tags.push({ label: '2–8 °C' });
+      if (m.controlled) tags.push({ label: 'Controlled' });
+      if (m.local) tags.push({ label: 'Local line' });
+      return { name: m.name, tags: tags, onHand: self.plural(m.hand[s.place] || 0, m.unit), shelf: m.shelf || '—', receive: function () { self.openStart({ seedMed: id }); } };
+    });
+    var quarantine = w.quarantine.map(function (q) { return { name: w.meds[q.medId].name, sub: 'Batch ' + q.batch + ' · ' + self.plural(q.units, w.meds[q.medId].unit) + ' · ' + q.grn + ' · ' + (self.WHY()[q.why] || q.why) }; });
+    var waiting = toPut.length + counting.length + onWay.length;
+    var showT = function (k) { return !s.rtile || s.rtile === k; };
+    var putBatches = deliveriesHere.filter(function (d) { return d.state === 'received'; }).reduce(function (a, d) { return a + Object.keys(d.put).filter(function (k) { return !d.put[k].done; }).length; }, 0);
+    var recvd = deliveriesHere.filter(function (d) { return d.state === 'received'; });
+    var withDiff = recvd.filter(function (d) { return d.lines.some(function (l) { return self.info(l, d, w).words.some(function (x) { return x.caution; }); }); }).length;
+    var owedLines = w.orders.filter(function (o) { return o.place === s.place && o.state !== 'closed'; }).reduce(function (a, o) { return a + o.lines.filter(function (l) { return l.packs - l.received > 0; }).length; }, 0);
+    var tile = function (key, label, value, sub, subCls) { var on = s.rtile === key; return { label: label, value: String(value), sub: sub, subCls: 'tsub' + (subCls ? ' ' + subCls : ''), on: on ? 'true' : 'false', pick: function () { self.setState({ rtile: on ? '' : key }); } }; };
+    var rtiles = (canReceive ? [tile('expected', 'Expected', expected.length, expected.length ? self.plural(owedLines, 'line') + ' still owed' : 'no order waiting', '')] : []).concat([
+      tile('onway', 'On the way from Main store', onWay.length, onWay.length ? 'confirm when it arrives' : 'nothing in transit', onWay.length ? 'info' : ''),
+    ]).concat(canReceive ? [
+      tile('counting', 'Still counting', counting.length, counting.length ? 'no stock has moved yet' : 'none open', counting.length ? 'warn' : ''),
+      tile('put', 'To put away', putBatches, putBatches ? self.plural(putBatches, 'batch', 'batches') + ' need a shelf' : 'all shelved', putBatches ? 'info' : 'ok')
+    ] : []).concat([tile('done', 'Received', recvd.length, recvd.length ? (withDiff ? self.plural(withDiff, 'delivery', 'deliveries') + ' with a difference' : 'every line matched') : 'none yet', withDiff ? 'warn' : '')]);
+    var it = function (ref, tag, title, sub, act, go, main, x) { x = x || {}; return { ref: ref || '', tag: tag || '', hasTag: !!tag, tagCls: x.tagCls || 'tag', title: title, sub: sub, hasAct: !!act, act: act || '', go: go || function () {}, btnCls: 'btn sm' + (main ? ' primary' : ''), hasAct2: !!x.act2, act2: x.act2 || '', go2: x.go2 || function () {}, hasLink: !!x.link, link: x.link || '', goLink: x.goLink || function () {} }; };
+    var expItems = w.orders.filter(function (o) { return o.place === s.place && o.state !== 'closed'; }).map(function (o) { var r = orderRow(o); return it('', r.due, r.ref, r.state + ' · ' + r.sub + (r.chased ? ' · ' + r.chased : ''), r.action, r.receive, false, { tagCls: r.dueCls, act2: r.late ? 'Chase the supplier' : '', go2: r.chase, link: 'See the order in detail · edit', goLink: function () { self.openOrder(o.id); } }); });
+    var cntItems = counting.map(function (r) { return r.queued ? it(r.note, 'Waiting for the network', r.supplier, r.sub, '', null, false, { tagCls: 'tag warn' }) : it(r.note, r.kindText || 'Counting', r.supplier, r.sub, 'Carry on counting', r.open, true, { tagCls: r.kindText ? 'tag teal' : 'tag warn' }); });
+    var putItems = toPut.map(function (r) { return it(r.note, '', r.supplier, r.sub, 'Put away', r.open, true); });
+    var wayItems = onWay.map(function (r) { return it(r.voucher, 'On the way', 'From Main store', r.sub, 'Confirm what arrived', r.open, true); });
+    var doneItems = done.map(function (r) { return it(r.note, r.state, r.supplier, r.sub, r.canOpen ? 'Open' : '', r.open, false, { tagCls: r.state === 'Abandoned' ? 'tag' : /difference/.test(r.state) ? 'tag bad' : 'tag ok' }); });
+    var stage = function (title, items, note, emptyText, cls) { return { title: title, items: items, n: String(items.length), cntCls: 'cnt' + (items.length && cls ? ' ' + cls : ''), note: note, empty: !items.length, emptyText: emptyText }; };
+    var stages = (canReceive ? [
+      stage('Expected', expItems, 'Orders that were sent. Start from one and its lines are already there to count.', 'No order is waiting.', ''),
+      stage('Counting', cntItems, 'Saved as you go. No stock has moved yet.', 'Nothing being counted.', 'warn'),
+      stage('To put away', putItems, 'In stock. Each batch still needs its shelf.', 'Everything is shelved.', 'info'),
+      stage('Received', doneItems, 'Closed deliveries, newest first.', 'Nothing received yet.', '')
+    ] : [
+      stage('On the way', wayItems, 'From Main store. It joins this place’s stock when you confirm it arrived.', 'Nothing is on the way.', 'info'),
+      stage('Received', doneItems, 'Confirmed, newest first.', 'Nothing received yet.', '')
+    ]);
+    if (canReceive && wayItems.length) stages.unshift(stage('On the way', wayItems, 'From Main store.', '', 'info'));
+    stages.forEach(function (x, i) { x.no = String(i + 1); });
+    var CST = { draft: ['Draft', 'tag warn'], sent: ['Sent', 'tag info'], credit: ['Credit received', 'tag ok'] };
+    var claims = canReceive ? w.claims.map(function (c) { return { id: c.id, sup: w.suppliers[c.supplierId], st: CST[c.state][0], stCls: CST[c.state][1], sub: c.note + ' · ' + c.lines.map(function (x) { return (w.meds[x.medId].name.split(' ')[0]) + ': ' + x.kind.toLowerCase() + ' (' + self.plural(x.packs, 'pack') + ')'; }).join('; ') + (c.credit ? ' · credit note ' + c.credit : ''), total: 'UGX ' + self.n(c.total), hasAct: c.state !== 'credit', act: c.state === 'draft' ? 'Send the claim' : 'Credit received', go: function () { self.openClaim(c.id); } }; }) : [];
+    var openClaims = w.claims.filter(function (c) { return c.state !== 'credit'; });
+    var med = function (a) { var b = a.filter(function (x) { return x !== null && x !== undefined; }).slice().sort(function (x, y) { return x - y; }); return b.length ? b[Math.floor((b.length - 1) / 2)] : 0; };
+    var liveD = w.deliveries.filter(function (d) { return d.live && d.state === 'received'; }).reverse();
+    var toStock = w.hist.toStock.concat(liveD.map(function (d) { return self.minsBetween(d.arrived, d.finished); }));
+    var toShelf = w.hist.toShelf.concat(liveD.filter(function (d) { return d.shelvedAt; }).map(function (d) { return self.minsBetween(d.finished, d.shelvedAt); }));
+    var matched = w.hist.matched.concat(liveD.map(function (d) { var n = d.lines.length || 1, ok = d.lines.filter(function (l) { return !self.info(l, d, w).words.some(function (x) { return x.caution; }); }).length; return Math.round(ok / n * 100); }));
+    var notesOf = function (n, live) { var base = (w.hist.notes || ['DN-19310', 'DN-19402', 'DN-19455', 'DN-19512', 'DN-19603', 'DN-19790', 'DN-19977']).slice(0, n); return base.concat(live); };
+    var stockNotes = notesOf(w.hist.toStock.length, liveD.map(function (d) { return d.note; }));
+    var shelfNotes = notesOf(w.hist.toShelf.length, liveD.filter(function (d) { return d.shelvedAt; }).map(function (d) { return d.note; }));
+    var TG = Object.assign({ toStock: 120, toShelf: 60, matched: 95 }, w.rules.targets || {});
+    var miniBars = function (vals, notes, o) {
+      var v = vals.slice(-8), nt = notes.slice(-8), top = Math.max.apply(null, v.concat([o.target * 1.15])), n = v.length;
+      top = o.pct ? 100 : Math.ceil(top / 30) * 30;
+      return { yMax: o.pct ? '100%' : self.hm(top), hasRef: true, refStyle: 'bottom:' + (o.target / top * 100).toFixed(1) + '%', refLabel: 'Target ' + (o.pct ? o.target + '%' : self.hm(o.target)), xFirst: n + ' deliveries ago',
+        bars: v.map(function (x, i) { var good = o.lowerBetter ? x <= o.target : x >= o.target, last = i === n - 1; return { style: 'height:' + Math.max(2, x / top * 100).toFixed(1) + '%;background:' + (good ? '#0d9488' : '#fab219') + (last ? '' : ';opacity:.55'), tip: (nt[i] || 'Delivery') + ': ' + (o.pct ? x + '%' : self.hm(x)) + (good ? ' · on target' : ' · missed the target'), tipStyle: i < n / 3 ? 'left:0' : i >= n * 2 / 3 ? 'right:0' : 'left:50%;transform:translateX(-50%)' }; }) };
+    };
+    var stTag = function (ok) { return { st: ok ? 'On target' : 'Off target', stCls: ok ? 'tag ok' : 'tag warn' }; };
+    var lastDiff = function (a, better) { var x = a[a.length - 1], y = a[a.length - 2]; if (y === undefined) return ['', '']; var dd = x - y; if (!dd) return ['Same as the delivery before', '']; return [(dd > 0 ? 'Up ' : 'Down ') + (better === 'pct' ? Math.abs(dd) + ' points' : self.hm(Math.abs(dd))) + ' on the delivery before', (better === 'down' ? dd < 0 : dd > 0) ? 'ok' : 'warn']; };
+    var f1 = lastDiff(toStock, 'down'), f2 = lastDiff(toShelf, 'down'), f3 = lastDiff(matched, 'pct');
+    var m1 = med(toStock), m2 = med(toShelf), lastM = matched[matched.length - 1];
+    var openBy = {}; openClaims.forEach(function (c) { openBy[c.supplierId] = (openBy[c.supplierId] || 0) + c.total; });
+    var openTot = openClaims.reduce(function (a, c) { return a + c.total; }, 0), maxBy = Math.max.apply(null, Object.keys(openBy).map(function (k) { return openBy[k]; }).concat([1]));
+    var figBase = { hasBars: false, hasSplit: false, split: [], bars: [], hasRef: false, hasAct: false, act: '', go: function () {}, hasSt: true };
+    var figs = [
+      Object.assign({}, figBase, { label: 'Arrival to in stock', value: self.hm(m1), sub: 'Median · ' + (f1[0] || 'last ' + toStock.length + ' deliveries'), subCls: 'tsub' + (f1[1] ? ' ' + f1[1] : ''), hasBars: true }, stTag(m1 <= TG.toStock), miniBars(toStock, stockNotes, { target: TG.toStock, lowerBetter: true })),
+      Object.assign({}, figBase, { label: 'In stock to shelved', value: self.hm(m2), sub: 'Median · ' + (f2[0] || 'last ' + toShelf.length + ' deliveries'), subCls: 'tsub' + (f2[1] ? ' ' + f2[1] : ''), hasBars: true }, stTag(m2 <= TG.toShelf), miniBars(toShelf, shelfNotes, { target: TG.toShelf, lowerBetter: true })),
+      Object.assign({}, figBase, { label: 'Lines that matched the note', value: lastM + '%', sub: 'Last delivery · ' + (f3[0] || ''), subCls: 'tsub' + (f3[1] ? ' ' + f3[1] : ''), hasBars: true }, stTag(lastM >= TG.matched), miniBars(matched, stockNotes, { target: TG.matched, pct: true })),
+      Object.assign({}, figBase, { label: 'Claims open', value: 'UGX ' + self.n(openTot), sub: self.plural(openClaims.length, 'claim') + ' waiting for credit', subCls: 'tsub' + (openClaims.length ? ' warn' : ' ok'), hasSt: false,
+        hasSplit: openClaims.length > 0, split: Object.keys(openBy).map(function (k) { var f = openBy[k] / maxBy; return { name: w.suppliers[k], bar: 'width:calc((100% - 78px) * ' + f.toFixed(3) + ')', valStyle: 'left:calc((100% - 78px) * ' + f.toFixed(3) + ' + 6px);font-size:12px', val: 'UGX ' + (openBy[k] >= 1e6 ? (Math.round(openBy[k] / 1e5) / 10) + ' m' : Math.round(openBy[k] / 1000) + 'k') }; }),
+        hasAct: openClaims.length > 0, act: 'Open the oldest claim →', go: function () { self.openClaim(openClaims[openClaims.length - 1].id); } })
+    ];
+    var suppRows = Object.keys(w.hist.supp).map(function (k) { var x = w.hist.supp[k]; return { name: w.suppliers[k], bar: 'width:calc((100% - 56px) * ' + (x.fill / 100).toFixed(3) + ')', valStyle: 'left:calc((100% - 56px) * ' + (x.fill / 100).toFixed(3) + ' + 6px)', fill: x.fill + '%', lead: self.plural(x.lead, 'day') + (x.lead > x.promised ? ' (promised ' + x.promised + ')' : ''), leadCls: x.lead > x.promised ? 'color:#92400e;font-weight:600' : '', onTime: x.onTime + '%', diffs: String(x.diffs + w.claims.filter(function (c) { return c.supplierId === k && c.made >= self.plusDays(-1); }).length) }; });
+    var queuedN = w.deliveries.filter(function (d) { return d.state === 'queued'; }).length;
+    var recvLine = canReceive ? self.plural(expected.length, 'order') + ' expected · ' + self.plural(waiting, 'thing') + ' to do' : self.plural(onWay.length, 'dispatch', 'dispatches') + ' to confirm';
+
+    var sample = function (label, gtin, months, batch) { return { label: label, scan: function () { self.scanRaw(self.gs1(gtin, self.plusMonths(months), batch)); } }; };
+
+    return {
+      yes: true,
+      reset: function () { var seed = self.seed(); try { window.localStorage.removeItem(self.KEY); } catch (e) { /* fine */ } self.setState({ w: seed, view: 'receive', place: 'main', did: null, openLine: null, freshLine: null, dialog: null, scan: '', scanNote: null, menu: false }); self.say('Back to the start.'); },
+      rail: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (x) { var on = x === 'Stock'; return { label: x, cls: on ? 'railitem on' : 'railitem', current: on ? 'page' : undefined, go: on ? setView('receive') : function () { self.say(x + ' is not in this prototype.'); } }; }),
+      menuOpen: !!s.menu, toggleMenu: function () { self.setState({ menu: !s.menu }); },
+      noReceiveHere: !canReceive, menuReceiveSub: canReceive ? 'Check the boxes against the note' : place.name + ' gets its stock from Main store',
+      menuReceive: function () { self.openStart({}); },
+      place: place, placeOptions: w.placeOrder.map(function (id) { return { v: id, label: w.places[id].name }; }),
+      setPlace: function (e) { var keep = s.view === 'medicines' ? 'medicines' : 'receive'; self.setState({ place: e.target.value, view: keep, did: null, openLine: null, freshLine: null, scanNote: null, menu: false }); },
+      emergency: function () { self.say('Emergency is not in this prototype.'); },
+      pillMedicines: view === 'medicines' ? 'pill on' : 'pill', pillStore: inStore ? 'pill on' : 'pill',
+      goMedicines: setView('medicines'), goStorePage: setView(s.place === 'main' ? 'main' : 'receive'),
+      isStoreArea: inStore, tabMain: view === 'main' ? 'pill on' : 'pill', tabReceive: inStore && view !== 'main' ? 'pill on' : 'pill', tabMainCur: view === 'main' ? 'page' : 'false', tabReceiveCur: inStore && view !== 'main' ? 'page' : 'false', pillMedicinesCur: view === 'medicines' ? 'page' : 'false',
+      goMainStore: function () { self.setState({ view: 'main', place: 'main', did: null, openLine: null, freshLine: null, menu: false }); }, goReceive: setView('receive'),
+      receiveBadge: waiting ? ' · ' + waiting : '',
+
+      isReceive: view === 'receive', isCount: view === 'count' && !!current, isAfter: view === 'after' && !!current, isMedicines: view === 'medicines', isMainStore: view === 'main',
+      canReceive: canReceive,
+      homeLead: canReceive ? 'Everything arriving here, in one list. Stock moves only when you finish a delivery.' : place.name + ' gets its stock from Main store, so there is no delivery note here: confirm what arrives. A supplier delivery goes through the store.',
+      openStartBlank: function () { self.openStart({}); },
+      onWay: onWay, hasOnWay: onWay.length > 0 && showT('onway'), counting: counting, hasCounting: counting.length > 0 && showT('counting'), toPut: toPut, hasToPut: toPut.length > 0 && showT('put'), expected: expected, hasExpected: expected.length > 0 && showT('expected'),
+      done: done, hasDone: done.length > 0 && showT('done'), noReg: noReg, hasNoReg: noReg.length > 0 && showT('done'),
+      claims: claims, hasClaims: claims.length > 0, figs: figs, suppRows: suppRows, showFigs: canReceive && s.place === 'main',
+      offline: !!s.offline, offlineText: 'Offline. Scans and counts are saved on this device' + (queuedN ? '; ' + self.plural(queuedN, 'delivery', 'deliveries') + ' will be added to stock when the connection is back.' : '.'), netLabel: s.offline ? 'Back online' : 'Go offline (try it)', toggleNet: function () { if (s.offline) self.goOnline(); else { self.setState({ offline: true }); self.say('Offline. You can keep scanning and counting.'); } },
+      stages: stages, flowStyle: '--cols:' + stages.length, rtiles: rtiles, hasRtile: !!s.rtile, rtileName: ({ expected: 'what is expected', onway: 'what is on the way', counting: 'what is still being counted', put: 'what is waiting to be put away', done: 'what was received' })[s.rtile] || '', clearRtile: function () { self.setState({ rtile: '' }); }, recvLine: recvLine,
+      hasNothing: !anything, nothingText: canReceive ? 'Nothing is expected here. When a supplier arrives, press Receive a delivery.' : 'Nothing is on the way. When Main store sends something, it shows here to confirm.',
+
+      d: dv, lines: lines, noLines: lines.length === 0,
+      scan: s.scan, setScan: function (e) { self.setState({ scan: e.target.value }); },
+      scanKey: function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); self.scanRaw(e.target.value); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); self.setState({ dialog: self.pickerState(e.target.value) }); }
+      },
+      readScan: function () { self.scanRaw(s.scan); },
+      openPicker: function () { self.setState({ dialog: self.pickerState('') }); },
+      samples: [
+        sample('Amoxicillin pack', '08901234500017', 24, 'AMX2411'),
+        sample('Short-dated paracetamol', '08901234500024', 4, 'PCM0099'),
+        sample('Oxytocin, cold', '08901234500062', 18, 'OXY551'),
+        sample('Morphine, controlled', '08901234500086', 24, 'MOR118'),
+        sample('Ceftriaxone, registration lapsed', '08901234500055', 20, 'CFT702'),
+        sample('Expired ORS', '08901234500031', -2, 'ORS330'),
+        sample('A new barcode', '08901234599990', 24, 'NEW77'),
+        sample('Recalled amoxicillin batch', '08901234500017', 20, 'AMX2301'),
+        sample('Vaccine, measles-rubella', '08901234500093', 14, 'MR4471'),
+        { label: 'Same pack twice (serial)', scan: function () { self.scanRaw(self.gs1('08901234500024', self.plusMonths(26), 'PCM2207', 'SN88412')); } }
+      ],
+      hasScanNote: !!s.scanNote, scanNoteText: s.scanNote ? s.scanNote.text : '', scanUnknown: !!(s.scanNote && s.scanNote.kind === 'unknown'), unknownPick: s.scanNote ? s.scanNote.pick : '',
+      setUnknownPick: function (e) { self.setState({ scanNote: Object.assign({}, s.scanNote, { pick: e.target.value }) }); },
+      linkUnknown: function () {
+        var n = s.scanNote, medId = n.pick;
+        if (!medId) return self.setState({ scanNote: Object.assign({}, n, { text: 'Choose the medicine on the pack first. Nothing is guessed.' }) });
+        var w2 = JSON.parse(JSON.stringify(s.w)); w2.meds[medId].gtin = n.code.gtin;
+        self.state.w = w2;
+        self.countPack(medId, n.code);
+      },
+      medOptions: w.medOrder.map(function (id) { return { v: id, label: w.meds[id].name }; }),
+      regOptions: opt(self.REGS()), whyOptions: opt(self.WHY()), supplierOptions: opt(w.suppliers),
+      unitOptions: ['tablet', 'capsule', 'vial', 'ampoule', 'bottle', 'sachet', 'tube'].map(function (u) { return { v: u, label: u }; }),
+      witnessOptions: w.staff.map(function (u) { return { v: u, label: u }; }),
+      addToStock: function () { self.askFinish(); },
+      openEdit: function () { self.setState({ dialog: { kind: 'start', mode: 'edit', rkind: current.kind || 'supplier', from: current.from || '', orderId: current.orderId || '', supplierId: current.supplierId, note: current.note, arrived: current.arrived, changeArrived: true, deliverer: current.deliverer, vehicle: current.vehicle, err: '', dupId: null } }); },
+      openAbandon: function () { self.setState({ dialog: { kind: 'abandon', reason: '', err: '' } }); },
+
+      a: av,
+      openGrn: function () { self.setState({ dialog: { kind: 'paper', which: 'grn' } }); },
+      openReport: function () { self.setState({ dialog: { kind: 'paper', which: 'report' } }); },
+      printPaper: function () { try { window.print(); } catch (e) { self.say('Printing is blocked in this view.'); } },
+
+      medsLead: canReceive ? 'Receive here opens the same delivery as everywhere else, with that medicine already on it.' : place.name + ' gets its stock from Main store. Confirm arrivals under Store › Receive.',
+      meds: meds,
+      allOrders: w.orders.filter(function () { return true; }).map(orderRow),
+      quarantine: quarantine, noQuarantine: quarantine.length === 0,
+
+      dlgOrder: f.kind === 'order', od: od,
+      dlgChase: f.kind === 'chase', dlgClaim: f.kind === 'claim', dlgLabels: f.kind === 'labels', ch: ch, clm: clm, lb: lb, approverOptions: w.approvers.map(function (u) { return { v: u, label: u }; }),
+      dlgStart: f.kind === 'start', dlgPicker: f.kind === 'picker', dlgWitness: f.kind === 'witness', dlgAbandon: f.kind === 'abandon', dlgConfirm: f.kind === 'confirm', dlgPaper: f.kind === 'paper',
+      st: st, pk: pk, wit: wit, ab: ab, cf: cf, pp: pp,
+      closeDialog: function () { self._focusScan = view === 'count'; self.setState({ dialog: null }); },
+      dialogKey: function (e) { if (e.key === 'Escape') { self._focusScan = view === 'count'; self.setState({ dialog: null }); } },
+      toast: s.toast, hasToast: !!s.toast
+    };
+  }
+  REGS() { return { donation: 'Donated stock', no_registered_alternative: 'No registered alternative could be had', renewal_pending: 'Registration renewal pending (supplier\'s letter)', other: 'Other (with text)' }; }
+  WHY() { return { damaged: 'Damaged', wrong_product: 'Wrong product', expired: 'Expired', short_dated: 'Rejected as short-dated', recalled: 'Batch on recall', cold: 'Cold chain broken', other: 'Other' }; }
+  ean13(code) {
+    var L = ['0001101', '0011001', '0010011', '0111101', '0100011', '0110001', '0101111', '0111011', '0110111', '0001011'], G = ['0100111', '0110011', '0011011', '0100001', '0011101', '0111001', '0000101', '0010001', '0001001', '0010111'], R = ['1110010', '1100110', '1101100', '1000010', '1011100', '1001110', '1010000', '1000100', '1001000', '1110100'];
+    var par = ['LLLLLL', 'LLGLGG', 'LLGGLG', 'LLGGGL', 'LGLLGG', 'LGGLLG', 'LGGGLL', 'LGLGLG', 'LGLGGL', 'LGGLGL'][Number(code[0])], bits = '101';
+    for (var i = 1; i <= 6; i++) bits += (par[i - 1] === 'L' ? L : G)[Number(code[i])];
+    bits += '01010';
+    for (var j = 7; j <= 12; j++) bits += R[Number(code[j])];
+    bits += '101';
+    var runs = [], k = 0;
+    while (k < bits.length) { var c = bits[k], n = 0; while (k < bits.length && bits[k] === c) { n++; k++; } runs.push({ style: 'width:' + (n * 2) + 'px;background:' + (c === '1' ? '#000' : 'transparent') }); }
+    return runs;
+  }
+  checkDigit(d12) { var t = 0; for (var i = 0; i < 12; i++) t += Number(d12[i]) * (i % 2 ? 3 : 1); return String((10 - t % 10) % 10); }
+}
+</script>
+</body>
+</html>
