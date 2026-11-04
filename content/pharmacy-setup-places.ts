@@ -182,6 +182,7 @@ export const PL = {
   add: {
     title: "Add a place",
     namePh: "e.g. Ward 5 · Surgical",
+    mainStore: "Main store",
     unit: "Hospital unit",
     ward: "Ward on the hospital hub",
     pickUnit: "Pick the hospital unit this store belongs to.",

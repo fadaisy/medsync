@@ -56,7 +56,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
     body = (
       <>
         <SetupLive hospitalId={actor.hospitalId} />
-        <PlacesTab view={view} rules={rules} />
+        <PlacesTab view={view} rules={rules} addStore={sp.add === "store"} />
         <PlaceExtras actor={actor} manages={manages} />
       </>
     );

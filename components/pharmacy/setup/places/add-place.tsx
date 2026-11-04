@@ -19,12 +19,15 @@ const A = PL.add;
 export function AddPlaceDialog({
   view: v,
   open,
+  startStore = false,
   toast,
   onClose,
   onAdded,
 }: {
   view: PlacesView;
   open: boolean;
+  /** Starts on a store named Main store, supplied direct: the hospital has no store yet. */
+  startStore?: boolean;
   toast: (m: string) => void;
   onClose: () => void;
   onAdded: (id: string) => void;
@@ -34,13 +37,14 @@ export function AddPlaceDialog({
   const storeSups = [
     ...new Set(v.places.filter((p) => p.kind === "store").flatMap((p) => p.supplierIds)),
   ];
+  const startKind = startStore ? "store" : v.hub.wards.length ? "ward" : "clinic";
   const blank = () => ({
-    name: "",
-    kind: (v.hub.wards.length ? "ward" : "clinic") as PlaceKind,
+    name: startStore ? A.mainStore : "",
+    kind: startKind as PlaceKind,
     hours: "24h" as Hours,
-    from: firstStore,
+    from: startStore ? DIRECT : firstStore,
     sups: [] as string[],
-    device: DEFAULT_DEVICE[v.hub.wards.length ? "ward" : "clinic"] as string,
+    device: DEFAULT_DEVICE[startKind] as string,
     unit: "",
     ward: "",
   });

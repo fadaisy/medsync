@@ -17,23 +17,42 @@ import { fridgesAt, slotsOf } from "./shared";
 import { Suppliers } from "./suppliers";
 
 /** Set-up › Places (SETUP-TABS.md §B). `view` null: the 0274 database update is not applied here yet. */
-export function PlacesTab({ view, rules }: { view: PlacesView | null; rules: RulesView | null }) {
+export function PlacesTab({
+  view,
+  rules,
+  addStore = false,
+}: {
+  view: PlacesView | null;
+  rules: RulesView | null;
+  /** Arrived from Main store's empty state: open Add a place on a store, while the hospital has none. */
+  addStore?: boolean;
+}) {
   if (!view)
     return (
       <Panel title={PL.title}>
         <EmptyState compact title={PL.needsDb} />
       </Panel>
     );
-  return <Places view={view} rules={rules} />;
+  return <Places view={view} rules={rules} addStore={addStore} />;
 }
 
-function Places({ view: v, rules }: { view: PlacesView; rules: RulesView | null }) {
+function Places({
+  view: v,
+  rules,
+  addStore,
+}: {
+  view: PlacesView;
+  rules: RulesView | null;
+  addStore: boolean;
+}) {
   const [toastNode, toast] = useToast();
   const [tile, setTile] = useState<TileId>("");
   const [kind, setKind] = useState<KindFilter>("all");
   const [q, setQ] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
+  const startStore =
+    addStore && v.can.manage && v.hub.units.length > 0 && !v.places.some((p) => p.kind === "store");
+  const [adding, setAdding] = useState(startStore);
   const open = v.places.filter((p) => !p.closed);
   const closed = v.places.length - open.length;
   const needle = q.trim().toLowerCase();
@@ -84,6 +103,7 @@ function Places({ view: v, rules }: { view: PlacesView; rules: RulesView | null 
       <AddPlaceDialog
         view={v}
         open={adding}
+        startStore={startStore}
         toast={toast}
         onClose={() => setAdding(false)}
         onAdded={(id) => (clear(), setOpenId(id))}

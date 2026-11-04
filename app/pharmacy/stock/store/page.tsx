@@ -2,10 +2,12 @@ import type { StoreSection } from "@/content/pharmacy-store";
 
 import { MainStore } from "@/components/pharmacy/store/shell";
 import { EmptyState } from "@/components/tide/work/kit";
+import { PrimaryLink } from "@/components/tide/work/space";
 import { SECTION_LABEL, ST } from "@/content/pharmacy-store";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { appDb } from "@/lib/pharmacy/audit/read";
-import { tabOf } from "@/lib/pharmacy/ia";
+import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
+import { SETUP_HREF, tabOf } from "@/lib/pharmacy/ia";
 import { loadStoreWorld } from "@/lib/pharmacy/store/read";
 import { PageTabs } from "../../_components/page-tabs";
 import DeliveryPage from "../../store/deliveries/[id]/page";
@@ -58,8 +60,22 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
     });
     body = world ? (
       <MainStore world={world} section={section} shelfId={one(sp.shelf)} />
+    ) : (await managesPharmacy(actor.userId, actor.hospitalId)) ? (
+      <EmptyState
+        title={ST.shell.notReady}
+        why={ST.shell.notReadyWhy}
+        action={
+          <PrimaryLink href={`${SETUP_HREF}?tab=places&add=store`}>
+            {ST.shell.notReadyAdd}
+          </PrimaryLink>
+        }
+      />
     ) : (
-      <EmptyState title={ST.shell.notReady} />
+      <EmptyState
+        title={ST.shell.notReady}
+        why={ST.shell.notReadyWhy}
+        next={ST.shell.notReadyAsk}
+      />
     );
   }
   return (
