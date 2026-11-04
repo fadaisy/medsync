@@ -212,6 +212,8 @@ export interface SupplierStat {
   leadDays: number[];
   promisedDays: number;
   openOrder: boolean;
+  /** Claims not yet credited (Receive §E). */
+  openClaims: number;
 }
 
 export interface Shelf {

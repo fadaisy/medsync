@@ -112,7 +112,10 @@ function supplierLine(s: SupplierStat) {
   return [
     rate === null ? O.noFill : fill(s.openOrder ? O.fillsSoFar : O.fills, { n: rate }),
     lead === null ? fill(O.promised, { n: s.promisedDays }) : fill(O.average, { n: lead }),
-  ].join(" · ");
+    s.openClaims ? fill(s.openClaims === 1 ? O.claimOne : O.claims, { n: s.openClaims }) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 function OrdersList({ w, chosen }: { w: StoreWorld; chosen: string | undefined }) {

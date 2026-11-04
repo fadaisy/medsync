@@ -34,6 +34,8 @@ export const STB = {
     fillsSoFar: "fills {n}% so far",
     noFill: "no deliveries yet",
     average: "{n} days on average",
+    claimOne: "1 claim open",
+    claims: "{n} claims open",
     promised: "promised {n} days",
   },
   plan: {

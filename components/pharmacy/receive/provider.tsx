@@ -4,7 +4,16 @@ import type { DeviceDelivery } from "@/lib/pharmacy/receive/offline";
 import type { ReceiveDelivery, ReceiveLine, ReceiveWorld } from "@/lib/pharmacy/derive/receive";
 import type { ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { finishDeliveryAction, syncCountingAction } from "@/app/pharmacy/stock/store/receive-actions";
 import { useStockLive } from "@/components/pharmacy/medicines/use-stock-live";
@@ -84,25 +93,45 @@ export function ReceiveProvider({
 }) {
   const router = useRouter();
   const { busy, toast, say, run } = useStoreAct();
-  const [online, setOnline] = useState(true);
+  const online = useSyncExternalStore(
+    (on) => {
+      window.addEventListener("online", on);
+      window.addEventListener("offline", on);
+      return () => {
+        window.removeEventListener("online", on);
+        window.removeEventListener("offline", on);
+      };
+    },
+    () => navigator.onLine,
+    () => true,
+  );
   const [device, setDevice] = useState<DeviceDelivery[]>([]);
   const [dialog, open] = useState<ReceiveDialog>(null);
   const [deliveryId, setDeliveryId] = useState(initial);
   useStockLive(world.hospitalId, live && online);
-  useEffect(() => setDeliveryId(initial), [initial]);
+  const [seenInitial, setSeenInitial] = useState(initial);
+  if (seenInitial !== initial) {
+    setSeenInitial(initial);
+    setDeliveryId(initial);
+  }
 
   // Every door elsewhere links here with ?start=1 (and &order= or &med=), and opens the one start dialog.
   const params = useSearchParams();
   const startDoor = params.get("start");
   const orderDoor = params.get("order");
   const medDoor = params.get("med");
+  const door = startDoor ? params.toString() : null;
+  const [seenDoor, setSeenDoor] = useState<string | null>(null);
+  if (seenDoor !== door) {
+    setSeenDoor(door);
+    if (door) open({ kind: "start", orderId: orderDoor ?? undefined, seedMedId: medDoor ?? undefined });
+  }
   useEffect(() => {
-    if (!startDoor) return;
-    open({ kind: "start", orderId: orderDoor ?? undefined, seedMedId: medDoor ?? undefined });
+    if (!door) return;
     const u = new URL(location.href);
     for (const k of ["start", "order", "med"]) u.searchParams.delete(k);
     history.replaceState(null, "", u);
-  }, [startDoor, orderDoor, medDoor]);
+  }, [door]);
 
   const reload = useCallback(async () => setDevice(await allDevice().catch(() => [])), []);
   const syncing = useRef(false);
@@ -153,19 +182,11 @@ export function ReceiveProvider({
   }, [reload, router, say]);
 
   useEffect(() => {
-    const on = () => {
-      setOnline(true);
-      void sync();
-    };
-    const off = () => setOnline(false);
-    setOnline(navigator.onLine);
+    const on = () => void sync();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the device's IndexedDB once.
     void reload().then(() => (navigator.onLine ? sync() : undefined));
     window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
-    };
+    return () => window.removeEventListener("online", on);
   }, [reload, sync]);
 
   const keep = useCallback(

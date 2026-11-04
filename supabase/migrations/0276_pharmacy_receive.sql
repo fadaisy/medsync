@@ -357,3 +357,25 @@ END $$;
 DROP TRIGGER IF EXISTS pharmacy_stock_broadcast ON public.pharmacy_deliveries;
 CREATE TRIGGER pharmacy_stock_broadcast AFTER INSERT OR UPDATE ON public.pharmacy_deliveries
   FOR EACH ROW EXECUTE FUNCTION public.pharmacy_stock_broadcast();
+
+-- The in-charge's device hears an approval being asked, and the counting device hears the answer. A line has no hospital.
+CREATE OR REPLACE FUNCTION public.pharmacy_delivery_line_broadcast()
+  RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE h uuid;
+BEGIN
+  BEGIN
+    SELECT d.hospital_id INTO h FROM public.pharmacy_deliveries d WHERE d.id = NEW.delivery_id;
+    IF h IS NOT NULL THEN
+      PERFORM realtime.send(jsonb_build_object('kind', TG_TABLE_NAME, 'at', now()), 'change',
+        'pharmacy-stock:' || h::text, true);
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    NULL;
+  END;
+  RETURN NULL;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.pharmacy_delivery_line_broadcast() FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS pharmacy_delivery_line_broadcast ON public.pharmacy_delivery_lines;
+CREATE TRIGGER pharmacy_delivery_line_broadcast AFTER UPDATE OF approval_asked_at, approved_by ON public.pharmacy_delivery_lines
+  FOR EACH ROW EXECUTE FUNCTION public.pharmacy_delivery_line_broadcast();

@@ -399,6 +399,9 @@ export async function loadStoreWorld(
   /* ─── Suppliers ─── */
   const supplierRows = await q<{ id: string; name: string; promised: number | null }>(sql`
     SELECT id, name, lead_days AS promised FROM public.pharmacy_suppliers WHERE hospital_id = ${h}::uuid ORDER BY name`);
+  const claimRows = await q<{ supplier_id: string; n: number }>(sql`
+    SELECT pharmacy_supplier_id AS supplier_id, count(*)::int AS n FROM public.pharmacy_supplier_claims
+     WHERE hospital_id = ${h}::uuid AND state <> 'credit' GROUP BY 1`);
   const leadRows = await q<{ order_id: string; days: number }>(sql`
     SELECT o.id AS order_id, ((min(d.arrived_at))::date - (o.sent_at)::date) AS days
       FROM public.pharmacy_orders o JOIN public.pharmacy_deliveries d ON d.order_id = o.id
@@ -719,6 +722,7 @@ export async function loadStoreWorld(
           .map((r) => Number(r.days)),
         promisedDays: Number(s.promised ?? 0),
         openOrder: os.some((x) => x.state === "open"),
+        openClaims: Number(claimRows.find((c) => c.supplier_id === s.id)?.n ?? 0),
       };
     }),
     shelves,

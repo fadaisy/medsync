@@ -21,7 +21,9 @@ export function useCount(initial: ReceiveDelivery) {
   const dirty = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latest = useRef(d);
-  latest.current = d;
+  useEffect(() => {
+    latest.current = d;
+  }, [d]);
 
   useEffect(() => {
     // Someone else moved it on (the in-charge approved, another device finished): take what the server says.
