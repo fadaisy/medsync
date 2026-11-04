@@ -4,25 +4,35 @@ import { fill, PRW, RULES } from "@/content/pharmacy-rework-patients";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { coldStatus, isLive, monthGrid, pctInRange } from "@/lib/pharmacy/cold/derive";
 import { coldChainData } from "@/lib/pharmacy/cold/read";
-import { Contents, Excursions, PrintButton, RecordReading, TempChart } from "./_components/cold-client";
+import {
+  Contents,
+  Excursions,
+  PrintButton,
+  RecordReading,
+  TempChart,
+} from "./_components/cold-client";
 
 const C = PRW.cold;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const t1 = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
 
-/** Store, Cold chain (rework PRD §6.4): the fridge's live line, excursions, the WHO monthly chart and its contents. */
-export async function ColdChainTab({ fridge }: { fridge?: string }) {
-  return <ColdChainBody fridge={fridge} base="/pharmacy/stock/store?tab=cold" />;
-}
-
-/** The same view, reused by Immunisation's fridge tab with its own base link and its fridges only. */
-export async function ColdChainBody({ fridge, base, onlyAt }: { fridge?: string; base: string; onlyAt?: string }) {
+/** Immunisation's fridge tab: the fridge's live line, excursions, the WHO monthly chart and its contents. */
+export async function ColdChainBody({
+  fridge,
+  base,
+  onlyAt,
+}: {
+  fridge?: string;
+  base: string;
+  onlyAt?: string;
+}) {
   const actor = await requirePharmacyActor();
   const now = new Date().getTime();
   const id = fridge && UUID.test(fridge) ? fridge : null;
   const d = await coldChainData(actor.hospitalId, id, Math.floor(now / 60_000) * 60_000, onlyAt);
   const fridges = onlyAt ? d.fridges.filter((f) => f.locationId === onlyAt) : d.fridges;
-  if (!d.fridge || !fridges.length || (onlyAt && d.fridge.locationId !== onlyAt)) return <EmptyState title={C.noFridges} next={C.noFridgesNext} />;
+  if (!d.fridge || !fridges.length || (onlyAt && d.fridge.locationId !== onlyAt))
+    return <EmptyState title={C.noFridges} next={C.noFridgesNext} />;
   const f = d.fridge;
   const last = d.series.at(-1);
   const live = isLive(last, now);
@@ -42,7 +52,11 @@ export async function ColdChainBody({ fridge, base, onlyAt }: { fridge?: string;
         <FilterChips
           label={C.fridgesLabel}
           current={f.id}
-          chips={fridges.map((x) => ({ key: x.id, label: x.name, href: `${base}${sep}fridge=${x.id}` }))}
+          chips={fridges.map((x) => ({
+            key: x.id,
+            label: x.name,
+            href: `${base}${sep}fridge=${x.id}`,
+          }))}
         />
       ) : null}
       <Panel
@@ -69,14 +83,19 @@ export async function ColdChainBody({ fridge, base, onlyAt }: { fridge?: string;
           <TempChart series={d.series} now={now} />
         </div>
       </Panel>
-      <Panel title={C.excursions} action={toAct ? <Pill tone="caution">{fill(C.toAct, { n: toAct })}</Pill> : null}>
+      <Panel
+        title={C.excursions}
+        action={toAct ? <Pill tone="caution">{fill(C.toAct, { n: toAct })}</Pill> : null}
+      >
         <Excursions fridgeId={f.id} list={d.excursions} freezeSensitive={freezeSensitive} />
       </Panel>
       <Panel title={C.contents}>
         <Contents
           fridge={f}
           products={d.products}
-          places={d.fridges.filter((x) => x.id !== f.id).map((x) => ({ id: x.locationId, name: `${x.name} · ${x.place}` }))}
+          places={d.fridges
+            .filter((x) => x.id !== f.id)
+            .map((x) => ({ id: x.locationId, name: `${x.name} · ${x.place}` }))}
         />
       </Panel>
       <Panel title={C.month} action={<PrintButton>{C.monthPrint}</PrintButton>}>
@@ -96,9 +115,18 @@ function MonthChart({
   monthStart: number;
 }) {
   const M = C.mc;
-  const month = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Kampala", month: "long", year: "numeric" }).format(monthStart);
+  const month = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Kampala",
+    month: "long",
+    year: "numeric",
+  }).format(monthStart);
   const cell = "border-ink-200 border px-0.5 text-center tabular-nums";
-  const hhmm = (ms: number) => new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Kampala", hour: "2-digit", minute: "2-digit" }).format(ms);
+  const hhmm = (ms: number) =>
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Africa/Kampala",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(ms);
   return (
     <div className="flex flex-col gap-2 print:text-[9px]">
       <p className="text-body-s flex flex-wrap gap-x-4">
@@ -162,9 +190,17 @@ function MonthChart({
             </tr>
             {(
               [
-                [M.highBand, (s: NonNullable<(typeof grid.days)[number]["sensor"]>) => (s.hiAlarm ? hhmm(s.hiAlarm) : M.ok)],
+                [
+                  M.highBand,
+                  (s: NonNullable<(typeof grid.days)[number]["sensor"]>) =>
+                    s.hiAlarm ? hhmm(s.hiAlarm) : M.ok,
+                ],
                 [M.max, (s: NonNullable<(typeof grid.days)[number]["sensor"]>) => t1(s.max)],
-                [M.lowBand, (s: NonNullable<(typeof grid.days)[number]["sensor"]>) => (s.loAlarm ? hhmm(s.loAlarm) : M.ok)],
+                [
+                  M.lowBand,
+                  (s: NonNullable<(typeof grid.days)[number]["sensor"]>) =>
+                    s.loAlarm ? hhmm(s.loAlarm) : M.ok,
+                ],
                 [M.min, (s: NonNullable<(typeof grid.days)[number]["sensor"]>) => t1(s.min)],
               ] as const
             ).map(([label, val]) => (

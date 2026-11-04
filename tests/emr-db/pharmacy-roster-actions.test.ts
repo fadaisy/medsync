@@ -72,6 +72,20 @@ describe.skipIf(!laneOn)("Roster actions (0273)", () => {
     staff = [L.s.people.pharmacists[0]!, ...L.s.people.techs.slice(0, 2)];
   }, 900_000);
 
+  it("the People tab reads every table it needs, and the 0080 holidays", async () => {
+    const { loadRosterWorld } = await import("@/lib/pharmacy/roster/read");
+    const w = await loadRosterWorld(
+      held.db as never,
+      L.h,
+      chief.userId,
+      true,
+      "2026-11-02",
+      new Date("2026-11-04T06:00:00Z"),
+    );
+    expect(w.gazetted.find((g) => g.day === "2026-03-20")).toMatchObject({ confirmed: false });
+    expect(w.gazetted.find((g) => g.day === "2026-05-01")).toMatchObject({ confirmed: true });
+  });
+
   it("only listed, licensed people are rostered; the slot fills to the signed number", async () => {
     for (const [i, u] of staff.entries())
       await ok(

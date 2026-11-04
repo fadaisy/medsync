@@ -159,6 +159,54 @@ Checks: `tests/emr-db/pharmacy-setup.test.ts` (0274 guards), `tests/emr-db/pharm
 loads, §I.1–I.12 on the demo lane), `tests/pharmacy/setup-derive.test.ts`. Visual: `/styleguide/pharmacy-setup`
 (dev only, `?tab=` and `?empty=1`), checked at 1440 and 390 px.
 
+## Stock › Main store (4 Nov 2026, branch `feat/pharmacy-main-store`, no ADR)
+
+The store's work behind the Store page's Main store tab: Overview, Send out (requisitions, top-up runs, dispatches),
+The places (stock everywhere, place balances), Bring in (orders, put away), Look after the stock (store stock, expiry,
+stock cards, counts, quarantine and losses, conditions). Spec: `docs/pharmacy/rework/STORE.md`.
+
+The owner:
+
+1. Apply GATED 0275 (after 0271–0274) from this branch's folder: `cd ~/Desktop/medsync && npm run db:migrate`. Until it
+   is applied, Main store shows "The main store is not set up yet".
+2. CSO: sign the copy (`content/pharmacy-store.ts` and its `-sendout`, `-places`, `-bringin`, `-lookafter` files; all
+   draft) and the three new rules below.
+3. Supply: the shelves (Counts › Add a shelf), each place's run days (Top-up runs › Change the schedule), a supplier that
+   takes returns, and "expired" and "recalled" in the signed quarantine reasons. Without those two codes, Move to
+   quarantine refuses and says which is missing.
+
+How it works:
+
+- One `StoreWorld` per request (`lib/pharmacy/store/read.ts`), the section in the URL (`?tab=main&section=`), everything
+  else pure derivations in `lib/pharmacy/derive/store/*`. Charts: `components/pharmacy/charts/*`, palette
+  `lib/pharmacy/charts/palette.ts`.
+- A dispatch leaves the store into a `transit` location and reaches the place on confirmation.
+- `?ward=<place>` still opens a place's own stock page: places raise requisitions there until the place tab exists.
+
+Defaults taken:
+
+- Three rules added beyond §K, from numbers the spec states or the prototype hard-codes: `running_out_bad` (3 days),
+  `over_level` (1.5 ×), `asks_less` (0.5 ×).
+- Added because nothing could create them otherwise: Add a shelf, Change the schedule, Move to quarantine on expired or
+  recalled rows. Records › Losses lists the closed stock-take reports.
+- A witness must approve on their own phone; a paper witness is refused for store actions.
+- Open requisitions: urgent, then longest wait. Closed ones: latest first.
+- The chart grid uses theme tokens, so it follows dark mode; the data colours stay as validated in §B3.
+- The old cold chain tab went: Today's cold item now links to Set-up › Places. The old count sheet went too: sheets left
+  open on it no longer show, and any count line still queued offline on a device stays unsent.
+
+Not built:
+
+- Place side: proposing returns and raising urgent requisitions (no screen yet; the store's Accept is ready).
+- "Print the packing list", per-line received on order rows, the order's "cycle closing" date: no data or print exists.
+- Issuing from the actions was tested on PGlite only; the fixture page renders without a database, so nothing was pressed
+  against a real one.
+
+Checks: `tests/emr-db/pharmacy-store.test.ts` (0275 guards), `tests/emr-db/pharmacy-store-actions.test.ts` (§M1–13 on the
+seed), `tests/pharmacy/store-derive.test.ts`, `tests/pharmacy/store-ui.test.ts` (§M13–14, axe without contrast). Visual:
+`/styleguide/pharmacy-store` (dev only, `?section=`), checked at 1440 and 375 px; `world.json` there is a saved
+`loadStoreWorld` over the seed.
+
 ## Still open
 
 - Luganda wording: draft until a native speaker signs.

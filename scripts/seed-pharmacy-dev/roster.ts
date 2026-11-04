@@ -137,8 +137,8 @@ export async function seedRoster(db: Db, hospitalId: string) {
     ["2027-03-10", "Eid al-Fitr"],
     ["2027-05-17", "Eid al-Adha"],
   ])
-    await db.execute(sql`INSERT INTO public.public_holidays (day, name, confirmed) VALUES (${day}::date, ${name}, false)
-      ON CONFLICT DO NOTHING`);
+    await db.execute(sql`INSERT INTO public.public_holidays (holiday_date, name, kind, provisional, source, verified_on)
+      VALUES (${day}::date, ${name}, 'movable', true, 'dev seed', now()::date) ON CONFLICT DO NOTHING`);
 
   // Past weeks published.
   for (let w = -8; w <= -1; w++)

@@ -14,7 +14,7 @@ import { batchesOf, medOf } from "@/lib/pharmacy/derive/store/stock";
 import { useSave } from "./shared";
 
 const T = LA.dlg.loss;
-const REASONS = ["damaged", "broken", "spoilt", "missing", "other"] as const;
+const WHY_CODES = ["damaged", "broken", "spoilt", "missing", "other"] as const;
 
 function LossForm({
   world: w,
@@ -28,7 +28,7 @@ function LossForm({
   const [medId, setMedId] = useState("");
   const [batchId, setBatchId] = useState("");
   const [qty, setQty] = useState("");
-  const [why, setWhy] = useState<(typeof REASONS)[number]>("damaged");
+  const [why, setWhy] = useState<(typeof WHY_CODES)[number]>("damaged");
   const [note, setNote] = useState("");
   const [clientKey] = useState(newKey);
   const { pending, error, setError, go } = useSave();
@@ -125,7 +125,7 @@ function LossForm({
             onChange={(e) => setWhy(e.target.value as typeof why)}
             className={inputCls}
           >
-            {REASONS.map((r) => (
+            {WHY_CODES.map((r) => (
               <option key={r} value={r}>
                 {LA.quar.reason[r]}
               </option>

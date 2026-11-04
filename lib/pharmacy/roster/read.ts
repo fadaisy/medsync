@@ -195,8 +195,8 @@ export async function loadRosterWorld(
         SELECT eve_on, eve_time, change_on, unpub_on, lic_on FROM public.pharmacy_roster_reminders
          WHERE hospital_id = ${h} ORDER BY set_at DESC LIMIT 1`),
     q<{ day: string; name: string; confirmed: boolean }>(sql`
-        SELECT day::text, name, confirmed FROM public.public_holidays
-         WHERE day BETWEEN ${addDays(from, -366)}::date AND ${addDays(to, 366)}::date`),
+        SELECT holiday_date::text AS day, name, NOT provisional AS confirmed FROM public.public_holidays
+         WHERE holiday_date BETWEEN ${addDays(from, -366)}::date AND ${addDays(to, 366)}::date`),
     rowsOf<SignedRule>(
       await db.execute(sql`
           SELECT rule_group, key, text, ${ready?.ok ? sql`params` : sql`NULL::jsonb AS params`}

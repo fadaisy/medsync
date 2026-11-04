@@ -16,7 +16,7 @@ const walk = (dir: string): string[] =>
     return statSync(p).isDirectory() ? walk(p) : [p];
   });
 const mine = [
-  ...["deliveries", "issues", "places"].flatMap((d) => walk(join(ROOT, "app/pharmacy/store", d))),
+  ...["deliveries", "places"].flatMap((d) => walk(join(ROOT, "app/pharmacy/store", d))),
   join(ROOT, "app/pharmacy/store/actions.ts"),
   join(ROOT, "app/hospital-admin/departments/pharmacy/_components/location-golive.tsx"),
   join(ROOT, "app/hospital-admin/departments/pharmacy/location-actions.ts"),
@@ -42,8 +42,8 @@ describe("the store's screens", () => {
 
   it("every page is behind pharmacyStore and calls notFound", () => {
     const pages = mine.filter((p) => p.endsWith("page.tsx"));
-    // The rework keeps the delivery and issue detail pages; the lists live in Stock › Store.
-    expect(pages).toHaveLength(2);
+    // The rework keeps the delivery detail page; the lists live in Stock › Store.
+    expect(pages).toHaveLength(1);
     for (const p of pages) {
       const s = read(p);
       expect(s, rel(p)).toMatch(/if \(!pharmacyStoreLiveFor\(actor\.hospitalId\)\) notFound\(\);/);
@@ -52,7 +52,7 @@ describe("the store's screens", () => {
 
   it("every store action file is 'use server' and goes through the house contract", () => {
     const files = mine.filter((p) => p.endsWith("actions.ts") && p.includes("app/pharmacy/store"));
-    expect(files).toHaveLength(3);
+    expect(files).toHaveLength(2);
     for (const p of files) {
       const s = read(p);
       expect(s.startsWith('"use server";'), rel(p)).toBe(true);
@@ -69,7 +69,6 @@ describe("the store's screens", () => {
   it("every product, batch or recall field accepts a scan where stock is received or moved (5.11)", () => {
     for (const f of [
       "app/pharmacy/store/deliveries/_components/delivery-dialogs.tsx",
-      "app/pharmacy/store/issues/_components/issue-dialogs.tsx",
       "app/pharmacy/store/places/_components/places-dialogs.tsx",
     ])
       expect(read(join(ROOT, f)), f).toMatch(/<ScanField/);

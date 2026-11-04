@@ -260,7 +260,7 @@ export async function coldTodayItems(
         }),
         meta: `${e.kind === "high" ? "+" : ""}${e.peak.toFixed(1)} °C`,
         action: PRW.today.coldAct,
-        href: `/pharmacy/stock/store?tab=cold&fridge=${id}`,
+        href: "/pharmacy/setup?tab=places",
         late: true,
       });
     }
