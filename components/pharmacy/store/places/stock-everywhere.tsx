@@ -281,7 +281,7 @@ function PlaceCell({
         {onWay ? ` +${num(onWay)}` : ""}
       </span>
       <span className={cellSub}>
-        {Math.floor(days) === 1 ? R.day : fill(R.days, { n: Math.floor(days) })}
+        {!p.use ? G.noUse : Math.floor(days) === 1 ? R.day : fill(R.days, { n: Math.floor(days) })}
         {onWay ? G.onWay : ""}
       </span>
     </>

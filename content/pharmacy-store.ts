@@ -271,8 +271,9 @@ export const ST = {
       sub: "Here ÷ use per month. Short is under {a}, too much is over {b} (Rules › Ordering). Bars stop at 12. Click a line for its stock card.",
       cols: ["Medicine", "Months", "State"],
       mark: "{n} months",
-      tip: "{name}: {m} months of stock · {state}",
+      tip: "{name}: {m} of stock · {state}",
       unit: "mo",
+      noUse: "no use",
     },
     cover: {
       title: "Days of cover at each place",

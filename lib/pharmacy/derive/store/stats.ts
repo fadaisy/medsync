@@ -480,13 +480,17 @@ function mosChart(w: StoreWorld, span: ChartSpec["span"], tall = false): ChartSp
       const mos = mosOf(w, m);
       const finite = Number.isFinite(mos) ? mos : 99;
       const st = stateOf(w, m);
-      const txt = finite >= 10 ? String(Math.round(finite)) : finite.toFixed(1);
+      const txt = !Number.isFinite(mos)
+        ? C.mos.noUse
+        : finite >= 10
+          ? `${Math.round(finite)} ${C.mos.unit}`
+          : `${finite.toFixed(1)} ${C.mos.unit}`;
       return {
         mos: finite,
         label: m.short,
         v: Math.min(finite, 12),
         color: color[st],
-        val: onHand(w, m.id) ? `${txt} ${C.mos.unit}` : "0",
+        val: onHand(w, m.id) ? txt : "0",
         chip: stateChip[st],
         tip: fill(C.mos.tip, { name: m.short, m: txt, state: stateWord(w, m) }),
         open: { section: "card" as const, med: m.id },

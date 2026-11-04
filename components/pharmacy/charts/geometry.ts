@@ -53,7 +53,7 @@ export function colGeometry(cols: readonly ColDatum[]) {
     hi = Math.max(hi, pos);
     lo = Math.min(lo, neg);
   }
-  const step = niceStep(Math.max(hi - lo, 1));
+  const step = Math.max(1, niceStep(Math.max(hi - lo, 1)));
   const top = Math.max(step, Math.ceil(hi / step) * step);
   const bot = lo < 0 ? Math.floor(lo / step) * step : 0;
   const span = top - bot;

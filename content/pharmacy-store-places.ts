@@ -41,6 +41,7 @@ export const STP = {
     per: "counted per {unit}",
     months: "{n} months",
     notKept: "not kept",
+    noUse: "no use",
     onWay: " · on way",
     tip: "{place}: {qty}, {days} days of cover",
     tipSend: " · click to send {n}",
