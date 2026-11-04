@@ -17,6 +17,7 @@ export function ruleText(rule: Pick<RegistryRule, "text" | "param">, n?: number)
   const p = rule.param;
   if (!p) return rule.text;
   const v = n ?? p.n;
+  if (p.unit === "UGX") return rule.text.replace("{n}", `UGX ${v.toLocaleString("en-GB")}`);
   return rule.text.replace(
     "{n}",
     `${v.toFixed(decimals(p))}${p.unit === "%" ? "" : " "}${unitFor(v, p)}`,

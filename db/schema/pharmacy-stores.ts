@@ -26,6 +26,8 @@ export const LOCATION_KINDS = [
   "quarantine",
   // Phase 4 (0230, SA-1): stock set aside for one prepared refill
   "prepared",
+  // 0275: the hospital's one "on the way" location; a dispatch sits here until the place confirms it.
+  "transit",
 ] as const;
 export type LocationKind = (typeof LOCATION_KINDS)[number];
 
@@ -135,6 +137,10 @@ export const pharmacyOrders = pgTable("pharmacy_orders", {
   savedAt: timestamp("saved_at", tz),
   savedBy: uuid("saved_by"),
   closedAt: timestamp("closed_at", tz),
+  // 0275: the supplier it goes to and when it was sent (Main store › Orders).
+  supplierId: uuid("supplier_id"),
+  sentAt: timestamp("sent_at", tz),
+  sentBy: uuid("sent_by"),
 });
 
 export const pharmacyOrderLines = pgTable("pharmacy_order_lines", {
@@ -230,6 +236,9 @@ export const pharmacyRequisitions = pgTable("pharmacy_requisitions", {
   state: text("state").$type<RequisitionState>().notNull().default("raised"),
   refusedReason: text("refused_reason"),
   closedAt: timestamp("closed_at", tz),
+  // 0275: an urgent request carries its reason.
+  urgent: boolean("urgent").notNull().default(false),
+  reason: text("reason"),
 });
 
 export const pharmacyRequisitionLines = pgTable("pharmacy_requisition_lines", {
@@ -240,6 +249,16 @@ export const pharmacyRequisitionLines = pgTable("pharmacy_requisition_lines", {
   quantityIssued: integer("quantity_issued"),
   notIssuedReason: text("not_issued_reason"),
 });
+
+export type StoreDispatchKind =
+  | "requisition"
+  | "topup"
+  | "urgent"
+  | "transfer"
+  | "straight"
+  | "no_requisition"
+  | "expiry_move"
+  | "return";
 
 export const pharmacyIssues = pgTable("pharmacy_issues", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -252,6 +271,10 @@ export const pharmacyIssues = pgTable("pharmacy_issues", {
   issuedBy: uuid("issued_by").notNull(),
   witnessAttestationId: uuid("witness_attestation_id"),
   issuedAt: timestamp("issued_at", tz).notNull().defaultNow(),
+  // 0275: a voucher dispatch goes through the on-the-way location and arrives only when confirmed.
+  voucher: text("voucher"),
+  dispatchKind: text("dispatch_kind").$type<StoreDispatchKind>(),
+  witnessId: uuid("witness_id"),
 });
 
 export const pharmacyIssueConfirmations = pgTable("pharmacy_issue_confirmations", {
@@ -262,6 +285,7 @@ export const pharmacyIssueConfirmations = pgTable("pharmacy_issue_confirmations"
   attestationId: uuid("attestation_id"),
   differences: jsonb("differences").notNull().default({}),
   confirmedAt: timestamp("confirmed_at", tz).notNull().defaultNow(),
+  note: text("note"),
 });
 
 export const pharmacyLocationPacks = pgTable("pharmacy_location_packs", {
