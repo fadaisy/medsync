@@ -3,9 +3,9 @@ import type { ColDatum, LinePoint, LineRef, SegKey } from "@/components/pharmacy
 import type { StoreSection } from "@/content/pharmacy-store";
 
 import { niceStep } from "@/components/pharmacy/charts/geometry";
-import { DATA, DATA2, STATUS_MARK as SB, VEN_RAMP } from "@/components/pharmacy/charts/palette";
 import { SECTION_LABEL, ST } from "@/content/pharmacy-store";
 import { fill } from "@/content/pharmacy-workspace-v2";
+import { DATA, DATA2, STATUS_MARK as SB, VEN_RAMP } from "@/lib/pharmacy/charts/palette";
 import { insideLimits, shelfDue, shelvesDue } from "./counts";
 import { atRisk, atRiskValue, expByMonth, expRows } from "./expiry";
 import {

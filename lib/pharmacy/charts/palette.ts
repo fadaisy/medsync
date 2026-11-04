@@ -9,3 +9,9 @@ export const STATUS_MARK = {
   still: "#b4bccb",
 } as const;
 export const VEN_RAMP = { V: "#115e59", E: "#0d9488", N: "#14b8a6" } as const;
+export const GRID = "#eef0f4";
+export const ZERO = "#8a93ab";
+export const REF = "#4a5574";
+export const BAND = "rgba(13,148,136,0.08)";
+export const AREA = "rgba(13,148,136,0.10)";
+export const SPARK = "#8a93ab";
