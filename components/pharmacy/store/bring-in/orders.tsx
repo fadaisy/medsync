@@ -136,7 +136,7 @@ function OrdersList({ w, chosen }: { w: StoreWorld; chosen: string | undefined }
               <span className="flex flex-wrap items-center gap-1.5">
                 <Tag>{x.st}</Tag>
                 {x.rest ? (
-                  <LabButton size="sm" render={<Link href="?tab=receive" />} nativeButton={false}>
+                  <LabButton size="sm" render={<Link href={`?tab=receive&start=1&order=${o.id}`} />} nativeButton={false}>
                     {O.recordRest}
                   </LabButton>
                 ) : null}

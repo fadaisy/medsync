@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/medsync/page-header";
 import { Tag } from "@/components/medsync/tag";
 import { PHARMACY } from "@/content/pharmacy";
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
+import { LabButton } from "@/components/tide/work/button";
 import { DELIVERY_FROM, expiryText, stateWord, STOCK } from "@/content/pharmacy-stock";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
@@ -16,7 +17,6 @@ import { noProductText } from "@/lib/pharmacy/catalogue";
 import { controlledMedicineIds } from "@/lib/pharmacy/controlled-read";
 import { pharmacyCatalogueLiveFor, pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
 import { getStockDetail, pointsBesides } from "@/lib/pharmacy/stock/read";
-import { deliveryFromOffered } from "@/lib/pharmacy/stock/store";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import {
   AddProductDialog,
@@ -26,7 +26,6 @@ import {
   DifferenceDialog,
   FoundDialog,
   LevelDialog,
-  ReceiveDialog,
   TransferDialog,
 } from "../_components/stock-dialogs";
 
@@ -113,10 +112,17 @@ export default async function StockMedicinePage({
           <>
             {canStock ? (
               <>
-                <ReceiveDialog
-                  products={dialogProducts}
-                  from={deliveryFromOffered(actor.hospitalId)}
-                />
+                <LabButton
+                  variant="primary"
+                  render={
+                    <Link
+                      href={`/pharmacy/stock/store?tab=receive&start=1${here[0] ? `&med=${here[0].id}` : ""}`}
+                    />
+                  }
+                  nativeButton={false}
+                >
+                  {STOCK.actions.receive}
+                </LabButton>
                 <CountDialog
                   label={STOCK.actions.count}
                   what={d.name}

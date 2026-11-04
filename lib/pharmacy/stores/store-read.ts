@@ -420,7 +420,7 @@ export async function getDelivery(
           .orderBy(asc(pharmacyDeliveryLines.lineNo)),
         withControlled(tx, scope.hospitalId),
         expiryLookahead(tx, scope.hospitalId),
-        tx.select().from(pharmacyCounterparties).where(eq(pharmacyCounterparties.id, d.supplierId)),
+        tx.select().from(pharmacyCounterparties).where(eq(pharmacyCounterparties.id, d.supplierId ?? d.id)),
         places,
       ]);
       const orderLines = d.orderId
@@ -525,7 +525,7 @@ export async function getDelivery(
       needsDecision: results.some((r) => r.kind === "expires_within") && s.acceptedQuantity > 0,
       packs: s.packs,
       packContents: s.packContents,
-      identitySource: s.identitySource,
+      identitySource: s.identitySource === "order" ? "catalogue" : s.identitySource,
       registrationReason: s.registrationReason,
       registrationNote: s.registrationNote,
     };

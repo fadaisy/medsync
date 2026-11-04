@@ -57,11 +57,15 @@ export async function loadMeds(db: Db, h: string): Promise<ReceiveMed[]> {
     db.execute(sql`
       SELECT p.id, p.name, p.issue_unit AS unit, p.packs, p.pack_size, p.gtin, p.usual_shelf,
              coalesce(p.cold_chain, false) AS cold, private.pharmacy_product_controlled(p.id) AS controlled,
-             p.vaccine, p.own_code, p.item_kind = 'local_medicine' AND p.catalogue_medicine_id IS NULL AS local,
+             p.vaccine, p.own_code, p.medicine_id LIKE 'cat_local_%' AS local,
              (SELECT s.shelf FROM public.pharmacy_batches b
                 JOIN LATERAL (SELECT x.shelf FROM public.pharmacy_batch_shelves x WHERE x.batch_id = b.id
                                ORDER BY x.created_at DESC LIMIT 1) s ON s.shelf IS NOT NULL
-               WHERE b.product_id = p.id LIMIT 1) AS on_shelf
+               WHERE b.product_id = p.id LIMIT 1) AS on_shelf,
+             (SELECT x.price_ugx FROM public.pharmacy_product_prices x
+                JOIN public.pharmacy_payers y ON y.id = x.payer_id AND y.code = 'cash'
+               WHERE x.product_id = p.id AND x.from_date <= current_date
+               ORDER BY x.from_date DESC, x.created_at DESC LIMIT 1) AS price
         FROM public.pharmacy_products p WHERE p.hospital_id = ${h}::uuid AND p.active ORDER BY p.name`),
     lastUnitCosts(db as never, h),
   ]);
@@ -80,6 +84,7 @@ export async function loadMeds(db: Db, h: string): Promise<ReceiveMed[]> {
     own_code: boolean;
     local: boolean;
     on_shelf: string | null;
+    price: number | null;
   }>(rows).map((p) => {
     const per = facts.get(p.id)?.contents ?? p.packs?.[0] ?? (Number.parseInt(p.pack_size ?? "", 10) || 1);
     return {
@@ -88,6 +93,8 @@ export async function loadMeds(db: Db, h: string): Promise<ReceiveMed[]> {
       unit: p.unit,
       per,
       cost: Math.round((costs.get(p.id) ?? 0) * per),
+      price: Number(p.price ?? 0),
+      hand: 0,
       shelf: p.usual_shelf ?? p.on_shelf ?? "",
       gtin: p.gtin ?? "",
       cold: p.cold,
@@ -370,6 +377,14 @@ export async function loadReceiveWorld(
            (SELECT name FROM public.hospitals WHERE id = ${h}::uuid) AS facility
       FROM public.users u WHERE u.id = ${o.actorUserId}::uuid`);
   const [rules, meds, recalls] = await Promise.all([loadRules(db, h), loadMeds(db, h), loadRecalls(db, h)]);
+
+  const handRows = await q<{ product_id: string; n: number }>(sql`
+    SELECT b.product_id, sum(m.quantity)::int AS n
+      FROM public.pharmacy_stock_movements m JOIN public.pharmacy_batches b ON b.id = m.batch_id
+     WHERE m.hospital_id = ${h}::uuid AND m.location_id = ${placeId}::uuid
+     GROUP BY b.product_id`);
+  const hand = new Map(handRows.map((r) => [r.product_id, Number(r.n)]));
+  for (const m of meds) m.hand = hand.get(m.id) ?? 0;
 
   const deliveryRows = await q<DeliveryRow>(sql`${DELIVERY}
      WHERE d.hospital_id = ${h}::uuid AND d.location_id = ${placeId}::uuid

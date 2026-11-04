@@ -19,6 +19,7 @@ import {
   supplierStats,
 } from "@/lib/pharmacy/derive/receive";
 import { parseCode } from "@/lib/pharmacy/gs1";
+import { syncQueue, type DeviceDelivery } from "@/lib/pharmacy/receive/offline";
 
 const rules: ReceiveRules = {
   look: 180, priceTol: 5, secondCheck: 2_000_000, invPct: 1, invUgx: 1000,
@@ -340,5 +341,73 @@ describe("stages", () => {
     const d = delivery([line()], { state: "queued", place: "p1" });
     const c = stages({ ...w, deliveries: [d] }, "p1").stages[1]!.cards[0]!;
     expect(c).toMatchObject({ kind: "count", queued: true, tag: "Waiting for the network" });
+  });
+});
+
+describe("syncQueue (RECEIVE §H)", () => {
+  const device = (id: string, savedAt: number, queued = true): DeviceDelivery => ({
+    delivery: { id, state: "queued" } as ReceiveDelivery,
+    queued,
+    removed: [],
+    savedAt,
+  });
+  const memory = () => {
+    const put: DeviceDelivery[] = [];
+    const dropped: string[] = [];
+    return { put, dropped, store: { put: async (d: DeviceDelivery) => put.push(d), drop: async (id: string) => dropped.push(id) } };
+  };
+  const ok = { push: async () => ({ ok: true as const }), finish: async () => ({ ok: true as const }) };
+
+  it("commits oldest first, once each, and skips what is not queued", async () => {
+    const m = memory();
+    const order: string[] = [];
+    const r = await syncQueue(
+      [device("b", 2), device("a", 1), device("c", 3, false)],
+      { ...ok, finish: async (d) => (order.push(d.delivery.id), { ok: true as const }) },
+      "dup",
+      m.store,
+    );
+    expect(order).toEqual(["a", "b"]);
+    expect(r.added).toEqual(["a", "b"]);
+    expect(m.dropped).toEqual(["a", "b"]);
+  });
+
+  it("a refusal returns the delivery to Counting with the reason, and the next one still runs", async () => {
+    const m = memory();
+    const r = await syncQueue(
+      [device("a", 1), device("b", 2)],
+      { ...ok, finish: async (d) => (d.delivery.id === "a" ? { ok: false as const, error: "Recalled" } : { ok: true as const }) },
+      "dup",
+      m.store,
+    );
+    expect(r.conflicts).toEqual([{ id: "a", reason: "Recalled" }]);
+    expect(m.put[0]).toMatchObject({ queued: false, delivery: { state: "counting", conflict: "Recalled" } });
+    expect(r.added).toEqual(["b"]);
+  });
+
+  it("a duplicate on the server returns it with the duplicate words and never finishes", async () => {
+    const m = memory();
+    let finished = 0;
+    const r = await syncQueue(
+      [device("a", 1)],
+      { push: async () => ({ ok: true as const, duplicate: true }), finish: async () => (finished++, { ok: true as const }) },
+      "Someone recorded it",
+      m.store,
+    );
+    expect(finished).toBe(0);
+    expect(r.conflicts[0]?.reason).toBe("Someone recorded it");
+  });
+
+  it("a lost network stops the run and leaves everything queued", async () => {
+    const m = memory();
+    const r = await syncQueue(
+      [device("a", 1), device("b", 2)],
+      { ...ok, finish: async () => { throw new Error("offline"); } },
+      "dup",
+      m.store,
+    );
+    expect(r).toEqual({ added: [], conflicts: [] });
+    expect(m.put).toEqual([]);
+    expect(m.dropped).toEqual([]);
   });
 });

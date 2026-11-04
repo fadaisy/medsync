@@ -1,5 +1,6 @@
 import type { StoreSection } from "@/content/pharmacy-store";
 
+import { ReceiveTab } from "@/components/pharmacy/receive";
 import { MainStore } from "@/components/pharmacy/store/shell";
 import { EmptyState } from "@/components/tide/work/kit";
 import { PrimaryLink } from "@/components/tide/work/space";
@@ -8,11 +9,10 @@ import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { appDb } from "@/lib/pharmacy/audit/read";
 import { managesPharmacy } from "@/lib/pharmacy/downtime-store";
 import { SETUP_HREF, tabOf } from "@/lib/pharmacy/ia";
+import { loadReceiveWorld } from "@/lib/pharmacy/receive/read";
 import { loadStoreWorld } from "@/lib/pharmacy/store/read";
+import { createServiceClient } from "@/lib/supabase/service";
 import { PageTabs } from "../../_components/page-tabs";
-import DeliveryPage from "../../store/deliveries/[id]/page";
-import { DeliveriesBody } from "../../store/deliveries/body";
-import { PutAwayBody } from "../../store/deliveries/put-away-body";
 import WardStockPage from "../../store/wards/[locationId]/page";
 
 export const dynamic = "force-dynamic";
@@ -32,17 +32,28 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
   const delivery = one(sp.delivery);
   const ward = one(sp.ward);
   let body;
-  if (tab === "receive")
-    body =
-      delivery && UUID.test(delivery) ? (
-        <DeliveryPage params={Promise.resolve({ id: delivery })} />
-      ) : (
-        <div className="flex flex-col gap-6">
-          <DeliveriesBody />
-          <PutAwayBody />
-        </div>
-      );
-  else if (ward && UUID.test(ward))
+  if (tab === "receive") {
+    const opened = delivery && UUID.test(delivery) ? delivery : null;
+    const world = await loadReceiveWorld(appDb(), {
+      hospitalId: actor.hospitalId,
+      actorUserId: actor.userId,
+      placeId: one(sp.place),
+      deliveryId: opened,
+      store: () => loadStoreWorld(appDb(), { hospitalId: actor.hospitalId, actorUserId: actor.userId }),
+      signPhotos: async (paths) => {
+        if (!paths.length) return new Map();
+        const { data } = await createServiceClient()
+          .storage.from("pharmacy-delivery-photos")
+          .createSignedUrls(paths, 3600);
+        return new Map((data ?? []).map((x) => [x.path ?? "", x.signedUrl]));
+      },
+    });
+    body = world ? (
+      <ReceiveTab world={world} deliveryId={opened} />
+    ) : (
+      <EmptyState title={ST.shell.notReady} why={ST.shell.notReadyWhy} next={ST.shell.notReadyAsk} />
+    );
+  } else if (ward && UUID.test(ward))
     body = (
       <WardStockPage
         params={Promise.resolve({ locationId: ward })}

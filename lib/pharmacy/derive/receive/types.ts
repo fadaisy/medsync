@@ -39,6 +39,10 @@ export interface ReceiveMed {
   per: number;
   /** The usual cost of a pack, 0 when none. */
   cost: number;
+  /** The cash price of one unit, 0 when none. */
+  price: number;
+  /** Units at the place being worked at. */
+  hand: number;
   shelf: string;
   gtin: string;
   cold: boolean;

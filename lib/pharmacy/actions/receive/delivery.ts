@@ -55,7 +55,7 @@ async function checkArrival(ctx: Ctx, arrived: string) {
 }
 
 /** Creates the delivery with the order's unfinished lines waiting to be counted. Idempotent on the delivery id. */
-export async function startCore(ctx: Ctx, i: z.infer<typeof Head>): Promise<{ id: string; duplicateOf?: string }> {
+export async function startCore(ctx: Ctx, i: z.infer<typeof Head>, seedOrder = true): Promise<{ id: string; duplicateOf?: string }> {
   const h = ctx.actor.hospitalId;
   if (await one(ctx, sql`SELECT 1 AS ok FROM public.pharmacy_deliveries WHERE id = ${i.id}::uuid AND hospital_id = ${h}::uuid`))
     return { id: i.id };
@@ -68,7 +68,7 @@ export async function startCore(ctx: Ctx, i: z.infer<typeof Head>): Promise<{ id
       order_id, note_number, arrived_at, counted_by, deliverer_name, vehicle_registration, blind)
     VALUES (${i.id}::uuid, ${h}::uuid, ${i.placeId}::uuid, ${i.kind}, ${i.supplierId}::uuid, ${i.fromText}, ${i.fromPlaceId}::uuid,
       ${i.orderId}::uuid, ${i.note}, ${arrivedAt(i.arrived)}, ${ctx.actor.userId}::uuid, ${i.deliverer}, ${i.vehicle}, ${i.blind})`);
-  if (i.orderId)
+  if (i.orderId && seedOrder)
     await ctx.tx.execute(sql`
       INSERT INTO public.pharmacy_delivery_lines (id, delivery_id, line_no, product_id, order_line_id, identity_source, pack_contents, cost_per_pack)
       SELECT gen_random_uuid(), ${i.id}::uuid, row_number() OVER (ORDER BY l.id), l.product_id, l.id, 'order',
@@ -79,7 +79,7 @@ export async function startCore(ctx: Ctx, i: z.infer<typeof Head>): Promise<{ id
   return { id: i.id };
 }
 
-export const startDelivery = act(Head, NEED, startCore);
+export const startDelivery = act(Head, NEED, (ctx, i) => startCore(ctx, i));
 
 export const editDelivery = act(Head, NEED, async (ctx, i) => {
   const dup = await duplicateOf(ctx, i);
@@ -191,9 +191,9 @@ export async function saveLinesCore(ctx: Ctx, i: z.infer<typeof SaveLines>) {
 
 export const saveLines = act(SaveLines, NEED, saveLinesCore);
 
-/** A device's delivery: its head and lines, in one step, after the network came back. */
+/** A device's delivery: its head and the lines it made itself (order lines included), in one step. */
 export const syncCounting = act(z.object({ head: Head, lines: z.array(LineDoc).max(500) }), NEED, async (ctx, i) => {
-  const started = await startCore(ctx, i.head);
+  const started = await startCore(ctx, i.head, false);
   if (started.duplicateOf) return started;
   await saveLinesCore(ctx, { deliveryId: i.head.id, lines: i.lines, removed: [] });
   return { id: i.head.id };

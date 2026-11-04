@@ -77,7 +77,7 @@ export function MainStore({
         <div className="flex flex-wrap gap-2">
           <LabButton onClick={() => setCount(true)}>{ST.shell.countShelf}</LabButton>
           <LabButton onClick={() => setIssue(true)}>{ST.shell.issueNoReq}</LabButton>
-          <LabButton variant="primary" render={<Link href="?tab=receive" />} nativeButton={false}>
+          <LabButton variant="primary" render={<Link href="?tab=receive&start=1" />} nativeButton={false}>
             {ST.shell.receive}
           </LabButton>
         </div>

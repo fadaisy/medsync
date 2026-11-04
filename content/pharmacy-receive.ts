@@ -149,6 +149,17 @@ export const RC = {
     localBlank: "Give the generic name and the strength.",
     photo: "We couldn't start the upload. Try again.",
   },
+  device: {
+    offline: (n: number) =>
+      `Offline. Scans and counts are saved on this device.${n ? ` ${plural(n, "delivery", "deliveries")} waiting for the network.` : ""}`,
+    saved: "Saved on this device. It is added to stock as soon as the connection is back.",
+    back: (n: number) =>
+      n
+        ? `Back online. ${plural(n, "delivery", "deliveries")} saved on this device ${n === 1 ? "was" : "were"} added to stock.`
+        : "Back online.",
+    conflict: (note: string, why: string) => `${note} came back to counting: ${why}`,
+    needsPeople: "It needs a witness or a second check, who have to confirm now. Finish it again.",
+  },
   kind: {
     supplier: "Supplier delivery",
     donation: "Donation",
