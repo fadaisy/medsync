@@ -141,6 +141,9 @@ export const pharmacyOrders = pgTable("pharmacy_orders", {
   supplierId: uuid("supplier_id"),
   sentAt: timestamp("sent_at", tz),
   sentBy: uuid("sent_by"),
+  // 0276.
+  chasedOn: date("chased_on"),
+  editedOn: date("edited_on"),
 });
 
 export const pharmacyOrderLines = pgTable("pharmacy_order_lines", {
@@ -160,13 +163,19 @@ export const pharmacyOrderLines = pgTable("pharmacy_order_lines", {
     "received" | "supplier_out" | "cancelled" | "substituted" | "other"
   >(),
   closeNote: text("close_note"),
+  // 0276: packs, as ordered and as they arrive.
+  packs: integer("packs"),
+  perPack: integer("per_pack"),
+  pricePerPack: numeric("price_per_pack", { precision: 14, scale: 2 }),
+  receivedPacks: integer("received_packs").notNull().default(0),
 });
 
 export const pharmacyDeliveries = pgTable("pharmacy_deliveries", {
   id: uuid("id").primaryKey().defaultRandom(),
   hospitalId: uuid("hospital_id").notNull(),
   locationId: uuid("location_id").notNull(),
-  supplierId: uuid("supplier_id").notNull(),
+  // 0276: a counterparty only for the older deliveries; Receive names `pharmacySupplierId` or `fromText` / `fromLocationId`.
+  supplierId: uuid("supplier_id"),
   noteNumber: text("note_number").notNull(),
   orderId: uuid("order_id"),
   arrivedAt: timestamp("arrived_at", tz).notNull(),
@@ -179,6 +188,17 @@ export const pharmacyDeliveries = pgTable("pharmacy_deliveries", {
   finishedBy: uuid("finished_by"),
   finishedAt: timestamp("finished_at", tz),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+  // 0276: Stock › Receive a delivery.
+  kind: text("kind").$type<"supplier" | "donation" | "facility" | "ward">().notNull().default("supplier"),
+  pharmacySupplierId: uuid("pharmacy_supplier_id"),
+  fromText: text("from_text"),
+  fromLocationId: uuid("from_location_id"),
+  blind: boolean("blind").notNull().default(false),
+  invoiceNo: text("invoice_no"),
+  invoiceTotal: numeric("invoice_total", { precision: 16, scale: 2 }),
+  grn: text("grn"),
+  shelvedAt: timestamp("shelved_at", tz),
+  secondCheckerId: uuid("second_checker_id"),
 });
 
 export const pharmacyDeliveryLines = pgTable("pharmacy_delivery_lines", {
@@ -193,7 +213,7 @@ export const pharmacyDeliveryLines = pgTable("pharmacy_delivery_lines", {
   rejectedKeptQuantity: integer("rejected_kept_quantity").notNull().default(0),
   rejectedReturnedQuantity: integer("rejected_returned_quantity").notNull().default(0),
   rejectReason: text("reject_reason").$type<
-    "damaged" | "wrong_product" | "expired" | "short_dated" | "other"
+    "damaged" | "wrong_product" | "expired" | "short_dated" | "recall" | "cold_chain" | "other"
   >(),
   batchNumber: text("batch_number"),
   expiry: date("expiry"),
@@ -207,12 +227,27 @@ export const pharmacyDeliveryLines = pgTable("pharmacy_delivery_lines", {
   // the coded reason a lapsed or unregistered product needs (Law 9, D-CAT-08).
   packs: integer("packs"),
   packContents: integer("pack_contents"),
-  identitySource: text("identity_source").$type<"scan" | "catalogue" | "typed">(),
+  identitySource: text("identity_source").$type<"scan" | "catalogue" | "typed" | "order">(),
   registrationReason: text("registration_reason").$type<
     "donation" | "no_registered_alternative" | "renewal_pending" | "other"
   >(),
   registrationNote: text("registration_note"),
   updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
+  // 0276: as counted, kept as typed until finishing writes the stock columns.
+  countedPacks: integer("counted_packs"),
+  notePacks: integer("note_packs"),
+  costPerPack: numeric("cost_per_pack", { precision: 14, scale: 2 }),
+  expiryText: text("expiry_text"),
+  tempC: numeric("temp_c", { precision: 4, scale: 1 }),
+  vvmStage: integer("vvm_stage"),
+  freezeCheck: text("freeze_check").$type<"ok" | "tripped">(),
+  approvalAskedAt: timestamp("approval_asked_at", tz),
+  approvedBy: uuid("approved_by"),
+  approvedAt: timestamp("approved_at", tz),
+  rejPacks: integer("rej_packs"),
+  rejFate: text("rej_fate").$type<"driver" | "quarantine">(),
+  witnessId: uuid("witness_id"),
+  owedFrozen: integer("owed_frozen"),
 });
 
 export const REQUISITION_STATES = [
@@ -391,4 +426,66 @@ export const pharmacyPeriodDifferenceReasons = pgTable("pharmacy_period_differen
   note: text("note"),
   actorUserId: uuid("actor_user_id").notNull(),
   at: timestamp("at", tz).notNull().defaultNow(),
+});
+
+/* ─── 0276 receive ─────────────────────────────────────────────────── */
+
+export const pharmacyPackSerials = pgTable(
+  "pharmacy_pack_serials",
+  {
+    hospitalId: uuid("hospital_id").notNull(),
+    gtin: text("gtin").notNull(),
+    serial: text("serial").notNull(),
+    deliveryId: uuid("delivery_id").notNull(),
+    createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.hospitalId, t.gtin, t.serial] })],
+);
+
+export const pharmacyDeliveryPhotos = pgTable("pharmacy_delivery_photos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  deliveryId: uuid("delivery_id").notNull(),
+  kind: text("kind").$type<"note" | "invoice" | "damage">().notNull(),
+  file: text("file").notNull(),
+  byUser: uuid("by_user").notNull(),
+  createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+});
+
+export const pharmacyDeliveryPutAway = pgTable("pharmacy_delivery_put_away", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  deliveryLineId: uuid("delivery_line_id").notNull().unique(),
+  batchId: uuid("batch_id").notNull(),
+  shelf: text("shelf"),
+  qty: integer("qty").notNull(),
+  sentQty: integer("sent_qty").notNull().default(0),
+  shelfRowId: uuid("shelf_row_id"),
+  doneAt: timestamp("done_at", tz),
+  doneBy: uuid("done_by"),
+});
+
+export const pharmacySupplierClaims = pgTable("pharmacy_supplier_claims", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  ref: text("ref").notNull(),
+  deliveryId: uuid("delivery_id").notNull().unique(),
+  pharmacySupplierId: uuid("pharmacy_supplier_id").notNull(),
+  state: text("state").$type<"draft" | "sent" | "credit">().notNull().default("draft"),
+  total: numeric("total", { precision: 16, scale: 2 }).notNull(),
+  sentAt: timestamp("sent_at", tz),
+  sentBy: uuid("sent_by"),
+  creditNote: text("credit_note"),
+  creditedAt: timestamp("credited_at", tz),
+  createdBy: uuid("created_by").notNull(),
+  createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+});
+
+export const pharmacyClaimLines = pgTable("pharmacy_claim_lines", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  claimId: uuid("claim_id").notNull(),
+  productId: uuid("product_id").notNull(),
+  kind: text("kind").notNull(),
+  packs: integer("packs").notNull(),
+  value: numeric("value", { precision: 16, scale: 2 }).notNull(),
 });
