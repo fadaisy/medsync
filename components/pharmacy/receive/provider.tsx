@@ -208,6 +208,11 @@ export function ReceiveProvider({
     },
     [reload],
   );
+  // Offline there is no server to re-read; Next would fall back to a browser navigation and lose the page.
+  const refresh = useCallback(() => {
+    if (navigator.onLine) router.refresh();
+  }, [router]);
+
   const go = useCallback((id: string | null) => {
     const u = new URL(window.location.href);
     if (id) u.searchParams.set("delivery", id);
@@ -240,7 +245,7 @@ export function ReceiveProvider({
     deliveryId,
     keep,
     forget,
-    refresh: router.refresh,
+    refresh,
   };
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }

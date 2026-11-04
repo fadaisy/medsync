@@ -33,6 +33,7 @@ export function Frame({
       </div>
       <div
         {...(printArea ? { "data-print-area": "" } : {})}
+        tabIndex={0}
         className={cn("flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 sm:px-6")}
       >
         {children}

@@ -44,7 +44,7 @@ const Block = ({ title, count, note, children }: { title: string; count: number;
 
 /** Stock › Receive a delivery: everything arriving at the place, one stage per column (RECEIVE §A). */
 export function Board() {
-  const { world: w, open, go, run } = useReceive();
+  const { world: w, open, go, run, online } = useReceive();
   const router = useRouter();
   const path = usePathname();
   const sp = useSearchParams();
@@ -145,7 +145,7 @@ export function Board() {
             {w.places.length > 1 ? (
               <Field label={RB.place} className="w-full min-[640px]:w-56">
                 {(p) => (
-                  <select {...p} className={selectCls()} value={w.placeId} onChange={(e) => pickPlace(e.target.value)}>
+                  <select {...p} disabled={!online} className={selectCls()} value={w.placeId} onChange={(e) => pickPlace(e.target.value)}>
                     {w.places.map((x) => (
                       <option key={x.id} value={x.id}>
                         {x.name}

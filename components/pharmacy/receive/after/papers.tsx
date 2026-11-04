@@ -89,7 +89,7 @@ export function PaperDialog({
             </span>
           ))}
         </div>
-        <div className="overflow-x-auto print:overflow-visible">
+        <div tabIndex={0} className="overflow-x-auto print:overflow-visible">
           <table className="w-full border-collapse text-[13px]">
             <thead>
               <tr>

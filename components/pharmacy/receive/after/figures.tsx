@@ -7,6 +7,7 @@ import { Card, Scroll, tdCls, thCls } from "@/components/pharmacy/store/places/p
 import { LabButton } from "@/components/tide/work/button";
 import { RC } from "@/content/pharmacy-receive";
 import { RA } from "@/content/pharmacy-receive-after";
+import { DATA, STATUS_MARK } from "@/lib/pharmacy/charts/palette";
 import { figures, num, supplierStats } from "@/lib/pharmacy/derive/receive";
 import { cn } from "@/lib/utils";
 import { useReceive } from "../provider";
@@ -29,18 +30,18 @@ function Mini({ chart, label }: { chart: MiniChart; label: string }) {
       <div className="flex gap-2">
         <div
           aria-hidden
-          className="text-ink-600 flex h-24 shrink-0 flex-col justify-between text-[11px] leading-3 tabular-nums"
+          className="text-ink-600 flex h-[72px] shrink-0 flex-col justify-between text-[11px] leading-3 tabular-nums"
         >
           <span>{chart.yMax}</span>
           <span>{RA.figures.yZero}</span>
         </div>
-        <div className="border-ink-300 relative flex h-24 min-w-0 flex-1 items-end gap-1 border-b border-l pl-1">
+        <div className="border-ink-300 relative flex h-[72px] min-w-0 flex-1 items-end gap-[3px] border-b border-l pl-1">
           <span
             aria-hidden
             className="border-ink-500 pointer-events-none absolute right-0 left-0 border-t border-dashed"
             style={{ bottom: `${chart.refBottom}%` }}
           >
-            <span className="bg-card text-ink-700 absolute right-0 bottom-0.5 px-1 text-[11px] leading-3 whitespace-nowrap">
+            <span className="bg-card text-ink-700 absolute right-0 bottom-0.5 z-[1] px-1 text-[11px] leading-3 whitespace-nowrap">
               {chart.refLabel}
             </span>
           </span>
@@ -54,12 +55,8 @@ function Mini({ chart, label }: { chart: MiniChart; label: string }) {
               className="group focus-visible:ring-primary relative flex h-full min-w-0 flex-1 items-end rounded-sm outline-none focus-visible:ring-2"
             >
               <span
-                className={cn(
-                  "block w-full rounded-t-sm",
-                  b.good ? "bg-tide-lagoon" : "bg-status-caution-fg",
-                  !b.last && "opacity-45",
-                )}
-                style={{ height: `${b.height}%` }}
+                className={cn("mx-auto block w-[min(16px,80%)] rounded-t-sm", !b.last && "opacity-45")}
+                style={{ height: `${b.height}%`, background: b.good ? DATA : STATUS_MARK.warn }}
               />
               <span
                 aria-hidden
