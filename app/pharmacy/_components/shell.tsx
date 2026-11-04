@@ -506,12 +506,27 @@ const START: { key: keyof typeof RW.start; icon: LucideIcon; href: string; page:
     page: "dispense",
   },
   { key: "receive", icon: TruckIcon, href: "/pharmacy/stock/store?tab=receive", page: "store" },
-  { key: "issue", icon: SendIcon, href: "/pharmacy/stock/store?tab=issue", page: "store" },
-  { key: "count", icon: ClipboardListIcon, href: "/pharmacy/stock/store?tab=count", page: "store" },
+  {
+    key: "issue",
+    icon: SendIcon,
+    href: "/pharmacy/stock/store?tab=main&section=req",
+    page: "store",
+  },
+  {
+    key: "count",
+    icon: ClipboardListIcon,
+    href: "/pharmacy/stock/store?tab=main&section=count",
+    page: "store",
+  },
   { key: "recall", icon: BanIcon, href: "/pharmacy/stock/medicines?recall=1", page: "medicines" },
   { key: "handover", icon: KeyRoundIcon, href: "/pharmacy/controls/handover", page: "handover" },
   { key: "sheet", icon: FileTextIcon, href: "/pharmacy/records?tab=sheets", page: "records" },
-  { key: "order", icon: ShoppingCartIcon, href: "/pharmacy/stock/store?tab=order", page: "store" },
+  {
+    key: "order",
+    icon: ShoppingCartIcon,
+    href: "/pharmacy/stock/store?tab=main&section=order",
+    page: "store",
+  },
 ];
 
 function StartDialog({

@@ -1,14 +1,14 @@
 {
   "world": {
     "today": "2026-11-04",
-    "now": "2026-11-04T03:02:47.569Z",
-    "storeId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
+    "now": "2026-11-04T03:26:43.943Z",
+    "storeId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
     "storeName": "Main store",
-    "hospitalId": "b7ae9d05-5834-4465-8576-473638ee39ca",
+    "hospitalId": "1fb8af83-c9ae-4ad4-acb8-86dfb6984bea",
     "actor": {
-      "userId": "5df6b923-603f-453e-b51e-7070b3001e13",
+      "userId": "36ac6c7c-6f0c-4e5e-9f2c-43f07869cddc",
       "inCharge": true,
-      "name": "pharmacist-fed839b7@lane.test"
+      "name": "pharmacist-38d5ddfd@lane.test"
     },
     "rules": {
       "monthsTo": 4,
@@ -19,6 +19,9 @@
       "urgentDays": 7,
       "fillTarget": 90,
       "runningOut": 7,
+      "runningOutBad": 3,
+      "overLevel": 1.5,
+      "asksLess": 0.5,
       "coverAmber": 14,
       "transferOver": 60,
       "transferUnder": 14,
@@ -36,7 +39,7 @@
     },
     "meds": [
       {
-        "id": "43915333-1e32-4aaf-8a4c-9144ab2687cf",
+        "id": "f09bda42-d37c-4973-bc5f-20379aae678a",
         "medicineId": "store_coamox",
         "name": "Amoxicillin + clavulanic acid 250/125 mg tablet",
         "short": "Amoxicillin + clavulanic acid 250/125 mg tablet",
@@ -52,7 +55,7 @@
         "bin": "A-03"
       },
       {
-        "id": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
+        "id": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
         "medicineId": "store_amox",
         "name": "Amoxicillin 250 mg capsule",
         "short": "Amoxicillin 250 mg capsule",
@@ -68,7 +71,7 @@
         "bin": "A-01"
       },
       {
-        "id": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
+        "id": "5704c434-c907-428a-b0fc-cc282b40f2ff",
         "medicineId": "store_al",
         "name": "Artemether + lumefantrine 20/120 mg tablet",
         "short": "Artemether + lumefantrine 20/120 mg tablet",
@@ -84,7 +87,7 @@
         "bin": "A-02"
       },
       {
-        "id": "6f668805-9d60-4a38-bc11-b01973dcedc7",
+        "id": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
         "medicineId": "store_azis",
         "name": "Azithromycin 200 mg/5 mL oral suspension",
         "short": "Azithromycin 200 mg/5 mL oral suspension",
@@ -100,7 +103,7 @@
         "bin": "D-01"
       },
       {
-        "id": "612b993b-9cca-4a1f-8698-c2383a21e85f",
+        "id": "3af202bd-fea0-4616-a45c-c84a152c9b66",
         "medicineId": "store_ceft",
         "name": "Ceftriaxone 1 g powder for injection",
         "short": "Ceftriaxone 1 g powder for injection",
@@ -116,7 +119,7 @@
         "bin": "B-01"
       },
       {
-        "id": "f057778c-0a8c-45bf-9f57-3ddddf53fd82",
+        "id": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
         "medicineId": "store_ins",
         "name": "Insulin (soluble) 100 IU/mL injection",
         "short": "Insulin (soluble) 100 IU/mL injection",
@@ -132,7 +135,7 @@
         "bin": "CR-01"
       },
       {
-        "id": "c290dd93-7bac-4b1e-99d8-7aeddebbc324",
+        "id": "e84341d6-874a-4b09-adb1-7eda187d1bae",
         "medicineId": "store_met",
         "name": "Metformin 500 mg tablet",
         "short": "Metformin 500 mg tablet",
@@ -148,7 +151,7 @@
         "bin": "C-01"
       },
       {
-        "id": "bee4d454-7ac4-451a-90b2-175be86fac61",
+        "id": "eea24a40-722a-47bd-bbcb-439e9b11db64",
         "medicineId": "store_morph",
         "name": "Morphine 10 mg/mL injection",
         "short": "Morphine 10 mg/mL injection",
@@ -164,7 +167,7 @@
         "bin": "CD-1"
       },
       {
-        "id": "58dec11a-c979-41c9-8c63-45ce0305e8ea",
+        "id": "7979efed-9500-4a66-85c6-af6445e6abf2",
         "medicineId": "store_mvit",
         "name": "Multivitamin tablet",
         "short": "Multivitamin tablet",
@@ -180,7 +183,7 @@
         "bin": "C-03"
       },
       {
-        "id": "03bc470a-fb4f-44a6-9273-b5820f6d26b1",
+        "id": "b37a8e68-2f48-4145-bb58-5be4871c9612",
         "medicineId": "store_ors",
         "name": "Oral rehydration salts sachet",
         "short": "Oral rehydration salts sachet",
@@ -196,7 +199,7 @@
         "bin": null
       },
       {
-        "id": "098d89d0-ce7d-41ce-be36-d427eb307adb",
+        "id": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
         "medicineId": "store_para",
         "name": "Paracetamol 500 mg tablet",
         "short": "Paracetamol 500 mg tablet",
@@ -214,8 +217,8 @@
     ],
     "batches": [
       {
-        "id": "c94d94cd-d469-4445-839b-6d28704e7b75",
-        "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf",
+        "id": "441e14e1-2aaa-4ecf-af9f-05b48a54b4d5",
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
         "no": "COAMOX-2607",
         "exp": "2027-02-07",
         "bin": "A-03",
@@ -226,8 +229,8 @@
         "blocked": false
       },
       {
-        "id": "80473ded-c65d-462c-bde6-7db1e8aa9d57",
-        "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7",
+        "id": "98e58092-713e-442b-b653-c7b23b683e97",
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
         "no": "AZIS-2607",
         "exp": "2027-04-03",
         "bin": "D-01",
@@ -238,20 +241,20 @@
         "blocked": false
       },
       {
-        "id": "131d51d9-aa95-4a87-a62a-776763066f1d",
-        "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82",
+        "id": "eb7d59c5-628d-4e96-9a11-bc046b5dec4f",
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
         "no": "INS-2611",
         "exp": "2027-08-31",
         "bin": null,
         "qty": 10,
         "waiting": true,
         "grn": "GRN-0001",
-        "receivedAt": "2026-11-04T03:01:43.173Z",
+        "receivedAt": "2026-11-04T03:25:43.522Z",
         "blocked": false
       },
       {
-        "id": "d4fc4a27-b36e-4cd5-a225-0e37c8a88fd1",
-        "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
+        "id": "6a7fb02a-eb74-424b-81ff-c2a2a933cf73",
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
         "no": "AL-2607",
         "exp": "2027-12-29",
         "bin": "A-02",
@@ -262,8 +265,8 @@
         "blocked": false
       },
       {
-        "id": "6f6c0b66-dd78-49ec-95f1-e61d6683db49",
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
+        "id": "3d08886e-34ba-4304-8eb2-fb6993e735a5",
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
         "no": "AMOX-2607",
         "exp": "2027-12-29",
         "bin": "A-01",
@@ -274,8 +277,8 @@
         "blocked": false
       },
       {
-        "id": "8013efcc-0915-42d5-b00a-cb4daad74751",
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
+        "id": "804507b0-a90c-422e-8647-7c159c8926da",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
         "no": "CEFT-2607",
         "exp": "2027-12-29",
         "bin": "B-01",
@@ -286,8 +289,8 @@
         "blocked": false
       },
       {
-        "id": "60634a9f-04da-4730-86c1-0f59169a8121",
-        "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82",
+        "id": "d26c2b12-ca2a-49c4-9f3a-7e82fc62a8fe",
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
         "no": "INS-2607",
         "exp": "2027-12-29",
         "bin": "CR-01",
@@ -298,8 +301,8 @@
         "blocked": false
       },
       {
-        "id": "cb40c028-bd9a-4ad2-bc73-b8b208e9d6b0",
-        "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324",
+        "id": "e60a8aec-6572-4540-ba9e-f867fabb1561",
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
         "no": "MET-2607",
         "exp": "2027-12-29",
         "bin": "C-01",
@@ -310,8 +313,8 @@
         "blocked": false
       },
       {
-        "id": "26912f05-df03-41ba-8e58-1b4203b8b35f",
-        "medId": "bee4d454-7ac4-451a-90b2-175be86fac61",
+        "id": "f0d2419a-5724-4bd9-ae15-a3cb58f902ac",
+        "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64",
         "no": "MORPH-2607",
         "exp": "2027-12-29",
         "bin": "CD-1",
@@ -322,8 +325,8 @@
         "blocked": false
       },
       {
-        "id": "5df03396-d570-414f-b35f-b528bab5b1d8",
-        "medId": "58dec11a-c979-41c9-8c63-45ce0305e8ea",
+        "id": "9ec7bd70-7f5c-4304-bcac-4e8a58f7ea80",
+        "medId": "7979efed-9500-4a66-85c6-af6445e6abf2",
         "no": "MVIT-2607",
         "exp": "2027-12-29",
         "bin": "C-03",
@@ -334,8 +337,8 @@
         "blocked": false
       },
       {
-        "id": "4ada8244-78ea-41d7-8bd0-68d4e9ab8b34",
-        "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb",
+        "id": "0b486d90-bd2e-4133-8103-f080efe80e64",
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
         "no": "PARA-2607",
         "exp": "2027-12-29",
         "bin": "C-02",
@@ -346,20 +349,20 @@
         "blocked": false
       },
       {
-        "id": "d43b534e-602f-438e-8090-0357fa0716fc",
-        "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
+        "id": "ecf2f362-4230-4641-b9e3-e93008c4e40f",
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
         "no": "AL-2611",
         "exp": "2028-03-18",
         "bin": null,
         "qty": 2000,
         "waiting": true,
         "grn": "GRN-0001",
-        "receivedAt": "2026-11-04T03:01:43.180Z",
+        "receivedAt": "2026-11-04T03:25:43.524Z",
         "blocked": false
       },
       {
-        "id": "2045402c-1556-42f1-9591-3f13c42b64bd",
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
+        "id": "9add694a-76cc-4029-b771-ff128b6c52be",
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
         "no": "AMOX-2610",
         "exp": "2028-06-26",
         "bin": "A-01",
@@ -370,952 +373,952 @@
         "blocked": false
       },
       {
-        "id": "3b530d65-7ee6-4d0c-b5ce-74221ce44230",
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
+        "id": "a77fbdd3-fdfb-46a3-9ce4-e23897a4cce4",
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
         "no": "AMOX-2611",
         "exp": "2028-10-04",
         "bin": null,
         "qty": 1800,
         "waiting": true,
         "grn": "GRN-0001",
-        "receivedAt": "2026-11-04T03:01:43.183Z",
+        "receivedAt": "2026-11-04T03:25:43.526Z",
         "blocked": false
       }
     ],
     "places": [
-      { "id": "513706e4-2a03-4ad1-907b-8e6c6b0f0075", "name": "Maternity", "kind": "clinic" },
-      { "id": "8bba22af-4979-435b-b68a-062bc1a1fe52", "name": "OPD dispensary", "kind": "clinic" },
-      { "id": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100", "name": "Paediatrics", "kind": "clinic" },
-      { "id": "408bddab-abc6-4c73-8839-23c856dcbeac", "name": "Ward 3 · Medical", "kind": "clinic" }
+      { "id": "e8d00c33-38bb-473e-ba15-fcc681950bdd", "name": "Maternity", "kind": "clinic" },
+      { "id": "1b8244cf-cf51-4962-b91a-421bb78c3bca", "name": "OPD dispensary", "kind": "clinic" },
+      { "id": "611a11d3-d28e-4cb4-9729-03aa2d98dec0", "name": "Paediatrics", "kind": "clinic" },
+      { "id": "652ef3a3-eed6-4390-b24b-83751ace883b", "name": "Ward 3 · Medical", "kind": "clinic" }
     ],
     "placeStock": [
       {
-        "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "here": 50,
-        "use": 900,
-        "level": 1600
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "here": 8,
+        "use": 27,
+        "level": 40
       },
       {
-        "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "here": 2000,
-        "use": 10333,
-        "level": 22000
-      },
-      {
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "here": 150,
-        "use": 683,
-        "level": 1200
-      },
-      {
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "here": 100,
-        "use": 333,
-        "level": 500
-      },
-      {
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "here": 2000,
-        "use": 3167,
-        "level": 6000
-      },
-      {
-        "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "here": 80,
-        "use": 267,
-        "level": 400
-      },
-      {
-        "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "here": 200,
-        "use": 0,
-        "level": 0
-      },
-      {
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "here": 250,
         "use": 417,
         "level": 600
       },
       {
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
-        "placeId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "here": 40,
         "use": 133,
         "level": 200
       },
       {
-        "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7",
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "here": 25,
-        "use": 90,
-        "level": 150
-      },
-      {
-        "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "here": 100,
-        "use": 883,
-        "level": 1600
-      },
-      {
-        "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "here": 700,
         "use": 1600,
         "level": 4000
       },
       {
-        "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "here": 100,
+        "use": 883,
+        "level": 1600
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "here": 2000,
+        "use": 10333,
+        "level": 22000
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "here": 25,
+        "use": 90,
+        "level": 150
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "here": 50,
+        "use": 900,
+        "level": 1600
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "here": 2000,
+        "use": 3167,
+        "level": 6000
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "here": 150,
+        "use": 683,
+        "level": 1200
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "here": 100,
+        "use": 333,
+        "level": 500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "here": 1500,
         "use": 8667,
         "level": 12000
       },
       {
-        "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "here": 8,
-        "use": 27,
-        "level": 40
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "here": 200,
+        "use": 0,
+        "level": 0
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "here": 80,
+        "use": 267,
+        "level": 400
       }
     ],
     "dispatches": [
       {
-        "id": "cd5736c9-e218-4eeb-852a-a5131e1891ae",
+        "id": "44ec5ea9-78e4-4169-8a87-3a8a44074de5",
         "voucher": "RIV-0050",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
-        "sentAt": "2026-11-04T03:01:43.118Z",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
+        "sentAt": "2026-11-04T03:25:43.505Z",
         "status": "transit",
         "note": null,
         "receivedAt": null,
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 20 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 20 }]
       },
       {
-        "id": "e858fba9-133e-4e24-b301-1959508b30be",
+        "id": "2a2085e1-75f5-48ee-bd53-083f413fe90d",
         "voucher": "RIV-0049",
         "kind": "urgent",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "sentAt": "2026-11-04T03:01:43.061Z",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "sentAt": "2026-11-04T03:25:43.496Z",
         "status": "transit",
         "note": null,
         "receivedAt": null,
         "requisitionId": null,
         "lines": [
-          { "medId": "bee4d454-7ac4-451a-90b2-175be86fac61", "no": "MORPH-2607", "qty": 10 }
+          { "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64", "no": "MORPH-2607", "qty": 10 }
         ]
       },
       {
-        "id": "481d8446-3705-42df-a3ba-c30095609c50",
+        "id": "0e1cb2b8-89cf-4e97-86ba-cc3602de7ed9",
         "voucher": "RIV-0045",
         "kind": "requisition",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-11-03T08:00:00.000Z",
         "status": "transit",
         "note": null,
         "receivedAt": null,
-        "requisitionId": "c32300eb-8752-488b-a6b4-7e25beccfc86",
+        "requisitionId": "7c918b0d-5cf6-4c7a-b49f-a2a53f4d4817",
         "lines": [
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 200 }
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 200 }
         ]
       },
       {
-        "id": "f1603814-0fb7-47d6-bcfa-dd0f8dbb0524",
+        "id": "dd39937e-4c04-4b47-b28c-7348df18194f",
         "voucher": "RIV-0046",
         "kind": "requisition",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-11-03T08:00:00.000Z",
         "status": "transit",
         "note": null,
         "receivedAt": null,
-        "requisitionId": "c568ac50-120a-4325-bb55-fc4600858df1",
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 60 }]
+        "requisitionId": "c787ca88-0ea4-4b90-9879-3b6b0681ef3a",
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 60 }]
       },
       {
-        "id": "5b1fbf4e-f0aa-45f3-a9d7-e5ae589c32c3",
+        "id": "e4efd0e6-6802-4399-b1b6-b3e650357855",
         "voucher": "RIV-0047",
         "kind": "requisition",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-10-30T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-30T12:00:00.000Z",
-        "requisitionId": "2f971261-b5ac-43af-bf73-0cfa2bfa0d67",
+        "requisitionId": "46a3c5bc-028f-4e2f-8032-20b0361f3a69",
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 500 }
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 500 }
         ]
       },
       {
-        "id": "7d914c6e-8093-46ad-8b68-874fc504fc64",
+        "id": "67dc90d1-39e3-49f4-98e2-8571b4d88aed",
         "voucher": "RIV-0041",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-10-28T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-28T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "05f7f8c2-bc94-448a-be98-ef234005fd2d",
+        "id": "c9734f72-bd6f-49cf-9fa0-bc44ddbac770",
         "voucher": "RIV-0042",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-10-28T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-28T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "92cc25a8-7594-4c0a-8587-43ab8b9cf0e1",
+        "id": "f95ba1fa-0874-4451-ae77-6d6b1699ba37",
         "voucher": "RIV-0043",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-10-28T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-28T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "bb367c00-1057-4c2e-9411-4624d5a8f8d5",
+        "id": "c2faf6dc-2d8a-4747-932a-a6b408e0b316",
         "voucher": "RIV-0044",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-10-28T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-28T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "cac4b88a-99a7-4dce-bf67-9faa7498f4b1",
+        "id": "aefa83c9-a6e3-4dcb-9c23-4d0b51d02c00",
         "voucher": "RIV-0048",
         "kind": "requisition",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-10-28T08:00:00.000Z",
         "status": "diff",
         "note": "Two bottles cracked in the box",
         "receivedAt": "2026-10-28T12:00:00.000Z",
-        "requisitionId": "1b47390a-6cf4-4ee9-b455-2a88c7d0d744",
-        "lines": [{ "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 20 }]
+        "requisitionId": "0f779d8b-24bc-431c-9be1-b47022e4d455",
+        "lines": [{ "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 20 }]
       },
       {
-        "id": "5edafe81-941b-40f2-bcd2-816f4e60ae05",
+        "id": "8aa6d4a0-f9e8-4f42-a5b3-b63d39c36ef4",
         "voucher": "RIV-0037",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-10-21T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-21T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "39be81e6-e071-46a3-b90e-98d55e24442f",
+        "id": "26cd1a36-1d9b-4e06-bfea-b8c7d8bd9fa5",
         "voucher": "RIV-0038",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-10-21T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-21T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "ab1da9f2-8a4f-49f7-ae84-b6e980d4f375",
+        "id": "fb6ce81b-0864-45c5-ae25-5d805f2181b6",
         "voucher": "RIV-0039",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-10-21T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-21T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "83099a7d-26e1-4894-aad7-aa36bc76c945",
+        "id": "0646349c-3ff0-4a06-94b7-7960e51845a2",
         "voucher": "RIV-0040",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-10-21T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-21T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "367fd081-e64f-467e-a71a-815054e9c2ec",
+        "id": "da3dad9d-c9bc-468b-b1e3-b6b3a58af0ad",
         "voucher": "RIV-0033",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-10-14T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-14T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "ecd21922-714d-4d1b-a51e-f0725f9335b5",
+        "id": "822b0ad1-8f9a-460d-9b9c-b026d03f3395",
         "voucher": "RIV-0034",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-10-14T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-14T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "58089c6e-70c2-4c95-89a2-72502c89cbd9",
+        "id": "8f80e910-4e72-4734-a4a2-4c72942ea81f",
         "voucher": "RIV-0035",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-10-14T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-14T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "277bd89e-3c54-4294-a6ab-08b46a933f9c",
+        "id": "92013543-eabd-473e-a48b-acdb3c1bd10b",
         "voucher": "RIV-0036",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-10-14T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-14T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "bc6348c7-0915-4921-a7ec-3f53b9052a7f",
+        "id": "37929404-ee85-4334-b3aa-d6e5b8969406",
         "voucher": "RIV-0029",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-10-07T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-07T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "9004b585-f3d4-48e4-94e9-b0276cb36c6d",
+        "id": "18691a70-2606-4530-b2bb-bcc62a8e9e15",
         "voucher": "RIV-0030",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-10-07T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-07T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "62e1548e-c379-464e-bedd-805a9127605e",
+        "id": "08592224-bb57-4ce8-bb4d-ade6a74f3f32",
         "voucher": "RIV-0031",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-10-07T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-07T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "4053c0b6-65ef-4a5c-8691-2eb910b718e3",
+        "id": "81c730b3-f62c-440f-99bb-1c95d6002341",
         "voucher": "RIV-0032",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-10-07T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-10-07T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "5da44fee-080a-4949-98b4-2e790ede9d45",
+        "id": "41101cb7-e8df-4358-b79b-92f916e76e57",
         "voucher": "RIV-0025",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-09-30T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-30T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "d5710734-63e8-4088-9663-d8f278e5627b",
+        "id": "a80f30a5-b06d-4d9f-8b71-8271db16a5f5",
         "voucher": "RIV-0026",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-09-30T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-30T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "97d324ed-e7b8-4476-b87f-efaaf3d400b2",
+        "id": "5bc1758a-0ed0-46ee-84d9-d472fa1d67da",
         "voucher": "RIV-0027",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-09-30T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-30T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "b228ba70-40b7-43a2-b9e0-e4c582ce0579",
+        "id": "9d9b75f3-3984-43a1-9137-5c3042b1f953",
         "voucher": "RIV-0028",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-09-30T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-30T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "df712f48-7aed-46bb-9df3-f50d0075ca15",
+        "id": "0322707f-b807-40d6-b6f1-33462d675a45",
         "voucher": "RIV-0021",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-09-23T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-23T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "f68443af-3910-43f4-a395-9c58d0ce9adc",
+        "id": "dcc12ff4-1495-4955-8c7b-a1b794f86fff",
         "voucher": "RIV-0022",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-09-23T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-23T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "9c208d08-4737-4c50-b549-30fd423b1ba7",
+        "id": "aa50f9d3-a2e6-4af8-92b9-7756a12cc452",
         "voucher": "RIV-0023",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-09-23T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-23T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "3cb640f1-2b0e-4035-9348-35200ba39beb",
+        "id": "b0e86f9f-4e09-4f8c-9643-195a100a793d",
         "voucher": "RIV-0024",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-09-23T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-23T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "837d95af-d33f-42c9-8a9e-443aa445760d",
+        "id": "7a612b14-9682-4638-a9b6-fa59412c06c3",
         "voucher": "RIV-0017",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-09-16T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-16T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "61bb9c05-cf71-41d1-9783-7e173848e36c",
+        "id": "29d2030c-b487-44e8-aeeb-4b6f4c452af4",
         "voucher": "RIV-0018",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-09-16T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-16T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "259d4ac4-f2f2-4323-8113-8c8b926bd148",
+        "id": "ba7dd7d3-ae20-4397-85b5-b294fe84b182",
         "voucher": "RIV-0019",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-09-16T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-16T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "6e338582-38a9-47a5-b7e4-3f218de82994",
+        "id": "15eac3a1-2e04-4bbc-8eac-8655e33a467a",
         "voucher": "RIV-0020",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-09-16T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-16T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "5a4e6958-f4ce-4bc4-a2e0-b98ca4ce4dc9",
+        "id": "020f6110-0cb9-456b-8cd9-391cf1b7d1ab",
         "voucher": "RIV-0013",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-09-09T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-09T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "62714c9f-0d33-4f37-81de-d899d4b4054a",
+        "id": "196c15c1-49de-4d6d-9d17-7997e3873caf",
         "voucher": "RIV-0014",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-09-09T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-09T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "cd8d467c-7f10-4af1-9173-8340f6a8e0f7",
+        "id": "4dc49c70-0dda-4c39-8097-482038d75c6d",
         "voucher": "RIV-0015",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-09-09T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-09T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "b1d7f075-e918-4f85-ab17-630efd05fe76",
+        "id": "9de58f7c-8e07-43be-a328-7885a5868eea",
         "voucher": "RIV-0016",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-09-09T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-09T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "95df2f37-587c-4db9-829c-8fd03102afda",
+        "id": "b115c059-ca2c-475e-bc67-fc0e9987d687",
         "voucher": "RIV-0009",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-09-02T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-02T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "d1f7e08a-29b1-4a4d-a8cb-866c8ffc263f",
+        "id": "e065f1fb-45a8-4247-a090-5fff98e2be6d",
         "voucher": "RIV-0010",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-09-02T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-02T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "b7eb2485-e871-4cbb-9d19-b79ebc2d44c2",
+        "id": "8a542f6d-26ed-4a8c-995a-fb518a07b2db",
         "voucher": "RIV-0011",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-09-02T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-02T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "268a0b36-6215-4364-8614-4d22b5127004",
+        "id": "059b3844-49cc-4145-b207-5c59f66145c8",
         "voucher": "RIV-0012",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-09-02T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-09-02T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "f4512e7e-74c9-462e-8b58-0c23c26dd105",
+        "id": "dc21a534-b740-4aab-89ee-0c1ad09fc8a0",
         "voucher": "RIV-0005",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-08-26T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-08-26T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "99779f03-988f-44e9-990d-d92cee41c2ea",
+        "id": "eb2466a3-4a74-4e6a-94b1-a014bf9c2fb9",
         "voucher": "RIV-0006",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-08-26T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-08-26T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "9177ff42-a29f-4131-af85-82468387a290",
+        "id": "cc9ac190-a57b-4faa-b5b6-e615350d0219",
         "voucher": "RIV-0007",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-08-26T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-08-26T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "12ea921d-22e2-4b66-adfa-d56d38645ef8",
+        "id": "f45b1315-bd31-4d83-bfc9-8a173d387303",
         "voucher": "RIV-0008",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-08-26T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-08-26T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       },
       {
-        "id": "0fbc34ef-3404-48e8-8329-c644510758b1",
+        "id": "c2502b0c-f429-4ac7-9a82-55487e2b6050",
         "voucher": "RIV-0001",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "sentAt": "2026-08-19T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-08-19T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "no": "ORS-2607", "qty": 250 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 500 },
-          { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "no": "MET-2607", "qty": 2500 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
+          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
         ]
       },
       {
-        "id": "8273f6e2-0b75-42fa-ac13-a6c75e8d09fd",
+        "id": "69def1cc-eab6-4d10-8d76-ddd8f0f3df8b",
         "voucher": "RIV-0002",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "sentAt": "2026-08-19T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-08-19T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "no": "COAMOX-2607", "qty": 80 },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "no": "INS-2607", "qty": 8 }
+          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
         ]
       },
       {
-        "id": "f4cd6d90-d253-4530-9a24-3c3e95f0fee0",
+        "id": "b33460d9-830d-447f-abe0-7451f7d49fad",
         "voucher": "RIV-0003",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "sentAt": "2026-08-19T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-08-19T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
       },
       {
-        "id": "4cc7b62a-c432-428b-af13-1507ea732a4e",
+        "id": "320eaa3f-f3e2-4d4e-ad32-bf6a40bc334d",
         "voucher": "RIV-0004",
         "kind": "topup",
-        "fromId": "201e3a6a-d689-4c72-bdb7-24f7caacdf7d",
-        "toId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "fromId": "11cde1b3-7bc9-4219-a59e-26107e002ef8",
+        "toId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "sentAt": "2026-08-19T08:00:00.000Z",
         "status": "received",
         "note": null,
         "receivedAt": "2026-08-19T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "no": "AMOX-2607", "qty": 200 },
-          { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "no": "AL-2607", "qty": 250 }
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
+          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
         ]
       }
     ],
     "requisitions": [
       {
-        "id": "1c4fd362-3a31-479b-b1d3-194478423cfb",
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "askedAt": "2026-11-04T03:01:42.693Z",
+        "id": "38c4b263-36b3-4354-91c3-860cd95006da",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "askedAt": "2026-11-04T03:25:43.447Z",
         "urgent": true,
         "reason": "Malaria admissions up this week",
         "state": "open",
@@ -1324,14 +1327,14 @@
         "diffNote": null,
         "receivedAt": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "asked": 800, "issued": 0 },
-          { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "asked": 1200, "issued": 0 }
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "asked": 800, "issued": 0 },
+          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "asked": 1200, "issued": 0 }
         ]
       },
       {
-        "id": "2f1e870b-3fe2-4497-ad2d-6e9e2bd36989",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "askedAt": "2026-11-04T03:01:42.737Z",
+        "id": "20e24d0d-7fc3-4df2-b11a-d25d73d2c184",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "askedAt": "2026-11-04T03:25:43.452Z",
         "urgent": false,
         "reason": null,
         "state": "open",
@@ -1340,14 +1343,40 @@
         "diffNote": null,
         "receivedAt": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "asked": 3000, "issued": 0 },
-          { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "asked": 8000, "issued": 0 },
-          { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "asked": 600, "issued": 0 }
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "asked": 3000, "issued": 0 },
+          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "asked": 8000, "issued": 0 },
+          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "asked": 600, "issued": 0 }
         ]
       },
       {
-        "id": "c32300eb-8752-488b-a6b4-7e25beccfc86",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "id": "3e1b8759-604d-4a63-b4cf-a3a667f14719",
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
+        "askedAt": "2026-11-04T03:25:43.454Z",
+        "urgent": true,
+        "reason": "Stock finished overnight",
+        "state": "open",
+        "firstIssuedAt": null,
+        "voucher": null,
+        "diffNote": null,
+        "receivedAt": null,
+        "lines": [{ "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "asked": 60, "issued": 0 }]
+      },
+      {
+        "id": "2afd20b1-7a9b-45c3-8d1d-0ed7db4f4853",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "askedAt": "2026-11-04T03:25:43.456Z",
+        "urgent": false,
+        "reason": null,
+        "state": "open",
+        "firstIssuedAt": null,
+        "voucher": null,
+        "diffNote": null,
+        "receivedAt": null,
+        "lines": [{ "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "asked": 40, "issued": 0 }]
+      },
+      {
+        "id": "7c918b0d-5cf6-4c7a-b49f-a2a53f4d4817",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "askedAt": "2026-11-03T05:00:00.000Z",
         "urgent": false,
         "reason": null,
@@ -1357,13 +1386,13 @@
         "diffNote": null,
         "receivedAt": null,
         "lines": [
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "asked": 300, "issued": 200 },
-          { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "asked": 200, "issued": 0 }
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "asked": 300, "issued": 200 },
+          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "asked": 200, "issued": 0 }
         ]
       },
       {
-        "id": "c568ac50-120a-4325-bb55-fc4600858df1",
-        "placeId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "id": "c787ca88-0ea4-4b90-9879-3b6b0681ef3a",
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "askedAt": "2026-11-03T05:00:00.000Z",
         "urgent": false,
         "reason": null,
@@ -1372,11 +1401,11 @@
         "voucher": "RIV-0046",
         "diffNote": null,
         "receivedAt": null,
-        "lines": [{ "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "asked": 60, "issued": 60 }]
+        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "asked": 60, "issued": 60 }]
       },
       {
-        "id": "2f971261-b5ac-43af-bf73-0cfa2bfa0d67",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "id": "46a3c5bc-028f-4e2f-8032-20b0361f3a69",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "askedAt": "2026-10-29T05:00:00.000Z",
         "urgent": false,
         "reason": null,
@@ -1385,11 +1414,11 @@
         "voucher": "RIV-0047",
         "diffNote": null,
         "receivedAt": "2026-10-30T12:00:00.000Z",
-        "lines": [{ "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "asked": 500, "issued": 500 }]
+        "lines": [{ "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "asked": 500, "issued": 500 }]
       },
       {
-        "id": "1b47390a-6cf4-4ee9-b455-2a88c7d0d744",
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "id": "0f779d8b-24bc-431c-9be1-b47022e4d455",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "askedAt": "2026-10-27T05:00:00.000Z",
         "urgent": false,
         "reason": null,
@@ -1398,34 +1427,34 @@
         "voucher": "RIV-0048",
         "diffNote": "Two bottles cracked in the box",
         "receivedAt": "2026-10-28T12:00:00.000Z",
-        "lines": [{ "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "asked": 20, "issued": 20 }]
+        "lines": [{ "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "asked": 20, "issued": 20 }]
       }
     ],
     "runs": [
       {
-        "id": "24cd8c5d-f47f-430f-b961-b25b69857b2d",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "id": "27e8a903-22da-497e-9982-eb240369b846",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "weekdays": [1, 2, 3, 4, 5, 6, 7],
         "at": "08:30",
         "sentVoucher": null
       },
       {
-        "id": "20af02ef-e11c-423d-85c3-0e4c105f932f",
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
+        "id": "447a7331-5f8b-402d-9e03-185fcc0cf5e0",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
         "weekdays": [3],
         "at": "10:00",
         "sentVoucher": null
       },
       {
-        "id": "d7846f38-f848-4449-b14f-dfda5aeaaa80",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "id": "815676ac-c7e1-48ac-8956-899083a7f14d",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "weekdays": [4],
         "at": "10:00",
         "sentVoucher": null
       },
       {
-        "id": "07c19044-0321-440f-b7be-5fbfb33ebfb1",
-        "placeId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "id": "4901da8d-73aa-4b84-92f9-cbed4e4b5ab5",
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "weekdays": [3],
         "at": "10:30",
         "sentVoucher": "RIV-0050"
@@ -1433,9 +1462,9 @@
     ],
     "returns": [
       {
-        "id": "df04e505-7eb5-4f5d-868a-70fbbaf2119a",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf",
+        "id": "adffc18d-9c8b-4439-8f5b-578b1923bcae",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
         "no": "COAMOX-2607",
         "exp": "2027-02-07",
         "qty": 200,
@@ -1445,38 +1474,38 @@
     ],
     "orders": [
       {
-        "id": "c4099151-7d30-4b4c-b7a6-ed6efd9a788d",
-        "supplierId": "85d29149-ddfe-4691-a0da-a41d4eb57e42",
+        "id": "74eb8ed8-583d-4347-8870-dd94674dd4f5",
+        "supplierId": "eeebf07c-b873-44f7-a0bc-4712ecde73d4",
         "supplier": "NMS",
         "state": "draft",
         "budget": 12000000,
         "sentAt": null,
-        "createdAt": "2026-11-04T03:02:43.156Z",
+        "createdAt": "2026-11-04T03:26:43.518Z",
         "received": 0,
         "ordered": 0,
         "closedAt": null,
         "lines": []
       },
       {
-        "id": "22276863-38ec-438e-ba8b-07b3d995d678",
-        "supplierId": "85d29149-ddfe-4691-a0da-a41d4eb57e42",
+        "id": "ae3c2348-d42f-409f-ba61-ae980ec81528",
+        "supplierId": "eeebf07c-b873-44f7-a0bc-4712ecde73d4",
         "supplier": "NMS",
         "state": "open",
         "budget": 12000000,
         "sentAt": "2026-10-05T06:00:00.000Z",
-        "createdAt": "2026-11-04T03:02:43.144Z",
+        "createdAt": "2026-11-04T03:26:43.515Z",
         "received": 1800,
         "ordered": 13000,
         "closedAt": null,
         "lines": [
-          { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "qty": 12000, "trimmed": false },
-          { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "qty": 1000, "trimmed": false }
+          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "qty": 1000, "trimmed": false },
+          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "qty": 12000, "trimmed": false }
         ]
       }
     ],
     "suppliers": [
       {
-        "id": "85d29149-ddfe-4691-a0da-a41d4eb57e42",
+        "id": "eeebf07c-b873-44f7-a0bc-4712ecde73d4",
         "name": "NMS",
         "ordered": 13000,
         "received": 1800,
@@ -1487,7 +1516,7 @@
     ],
     "shelves": [
       {
-        "id": "20c6bd12-be5c-4df3-a590-7e150a339bee",
+        "id": "191c8d89-1fd5-4243-b7e6-be78a5930482",
         "code": "A",
         "name": "Oral antibiotics and antimalarials",
         "controlled": false,
@@ -1497,7 +1526,7 @@
         "inStocktake": false
       },
       {
-        "id": "188e71cf-e5be-4f08-85e3-5703d134419b",
+        "id": "6ea4d646-9dae-490e-a7c8-8137eec35a5c",
         "code": "B",
         "name": "Injectables",
         "controlled": false,
@@ -1507,7 +1536,7 @@
         "inStocktake": false
       },
       {
-        "id": "f1b22d47-5cd1-4f7f-a031-bb4dee4ecafd",
+        "id": "1270ead5-0c11-4a56-8d59-84dcca1c65e4",
         "code": "C",
         "name": "Tablets",
         "controlled": false,
@@ -1517,7 +1546,7 @@
         "inStocktake": false
       },
       {
-        "id": "832be76f-a48b-4d34-b6be-ec62841d7b86",
+        "id": "fc2d0470-85f7-4ddb-a93c-9523315764d0",
         "code": "CD-1",
         "name": "Controlled cupboard (double lock)",
         "controlled": true,
@@ -1527,7 +1556,7 @@
         "inStocktake": false
       },
       {
-        "id": "5eebbe93-c3af-4135-bac5-c5b2376f9c17",
+        "id": "89140238-4a3e-49c6-ac8a-d8eba8851c62",
         "code": "CR-01",
         "name": "Cold room",
         "controlled": false,
@@ -1537,7 +1566,7 @@
         "inStocktake": false
       },
       {
-        "id": "f4785b35-9ddf-4f94-8107-663c65442d12",
+        "id": "feffc2a0-10bb-41c8-8a88-833d7ec35737",
         "code": "D",
         "name": "Oral liquids and sachets",
         "controlled": false,
@@ -1549,10 +1578,10 @@
     ],
     "counts": [
       {
-        "id": "08e62fdc-b0ea-4373-a485-e9f58534f13b",
-        "shelfId": "f4785b35-9ddf-4f94-8107-663c65442d12",
+        "id": "30258109-624a-4cbc-bdd4-66c9e9036465",
+        "shelfId": "feffc2a0-10bb-41c8-8a88-833d7ec35737",
         "voucher": "CNT-0004",
-        "countedAt": "2026-11-04T03:01:43.235Z",
+        "countedAt": "2026-11-04T03:25:43.551Z",
         "diffValue": 64000,
         "needsSign": true,
         "signed": false,
@@ -1560,8 +1589,8 @@
         "totalValue": 400000
       },
       {
-        "id": "3049546b-5eb3-4a55-a00a-564f7bbd85d8",
-        "shelfId": "832be76f-a48b-4d34-b6be-ec62841d7b86",
+        "id": "15f1a9b6-4848-470f-9cb2-2d804966b922",
+        "shelfId": "fc2d0470-85f7-4ddb-a93c-9523315764d0",
         "voucher": "CNT-0006",
         "countedAt": "2026-11-03T06:00:00.000Z",
         "diffValue": 0,
@@ -1571,8 +1600,8 @@
         "totalValue": 0
       },
       {
-        "id": "8a6ab1a7-36fe-4f20-b221-623c1ddd4c06",
-        "shelfId": "5eebbe93-c3af-4135-bac5-c5b2376f9c17",
+        "id": "164655ea-da99-4a89-9dec-a2080e5ed1a7",
+        "shelfId": "89140238-4a3e-49c6-ac8a-d8eba8851c62",
         "voucher": "CNT-0005",
         "countedAt": "2026-11-01T06:00:00.000Z",
         "diffValue": 0,
@@ -1582,8 +1611,8 @@
         "totalValue": 0
       },
       {
-        "id": "f265acac-957b-497c-b6b1-083298f0b72c",
-        "shelfId": "f1b22d47-5cd1-4f7f-a031-bb4dee4ecafd",
+        "id": "eaeb77c7-41fa-4054-99aa-0c3b2a74e8c1",
+        "shelfId": "1270ead5-0c11-4a56-8d59-84dcca1c65e4",
         "voucher": "CNT-0003",
         "countedAt": "2026-10-29T06:00:00.000Z",
         "diffValue": 0,
@@ -1593,8 +1622,8 @@
         "totalValue": 0
       },
       {
-        "id": "cd98ce7b-2d18-4a17-b7a2-349bfbfcde68",
-        "shelfId": "20c6bd12-be5c-4df3-a590-7e150a339bee",
+        "id": "df25616f-797c-4c3e-af83-56b733cab7bc",
+        "shelfId": "191c8d89-1fd5-4243-b7e6-be78a5930482",
         "voucher": "CNT-0001",
         "countedAt": "2026-10-23T06:00:00.000Z",
         "diffValue": 0,
@@ -1604,8 +1633,8 @@
         "totalValue": 0
       },
       {
-        "id": "5fe5eb25-ea91-402d-a0f3-0d34240d0d3b",
-        "shelfId": "188e71cf-e5be-4f08-85e3-5703d134419b",
+        "id": "91cca23c-9225-401d-8158-2b3726a3a6a3",
+        "shelfId": "6ea4d646-9dae-490e-a7c8-8137eec35a5c",
         "voucher": "CNT-0002",
         "countedAt": "2026-09-21T06:00:00.000Z",
         "diffValue": 0,
@@ -1618,24 +1647,24 @@
     "stocktake": null,
     "quarantine": [
       {
-        "id": "e147b45c-c625-4352-a571-2405e48a8965",
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
+        "id": "26101f03-b875-4ae1-b640-8d6738cd453e",
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
         "no": "AMOX-2510",
         "exp": "2026-11-01",
         "qty": 1200,
         "why": "expired"
       },
       {
-        "id": "9a9c8fb4-8205-453a-af26-a9d2b1793f99",
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
+        "id": "dadc6096-5a35-476d-8949-5bf8b5edaccf",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
         "no": "CEFT-2509",
         "exp": "2027-05-23",
         "qty": 150,
         "why": "recalled"
       },
       {
-        "id": "018b7754-8643-4711-8532-919162e5ab68",
-        "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf",
+        "id": "4c470ef2-566e-4aab-a672-c3f7f0c9fe96",
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
         "no": "COAMOX-2514",
         "exp": "2027-05-23",
         "qty": 200,
@@ -1644,9 +1673,9 @@
     ],
     "losses": [
       {
-        "id": "066ddbc1-6a3a-4064-9495-195ea53ba1b1",
+        "id": "6fbc43f0-3d51-4bea-988e-2ed35d0cdab5",
         "at": "2026-11-03T06:00:00.000Z",
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
         "no": "CEFT-2607",
         "qty": 4,
         "reason": "broken",
@@ -1656,9 +1685,9 @@
         "caseId": null
       },
       {
-        "id": "fcf5da73-1d06-4431-9d0e-b360bf805830",
+        "id": "9cbedffe-770e-4733-970d-4ce4d404558f",
         "at": "2026-10-15T06:00:00.000Z",
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
         "no": "AMOX-2607",
         "qty": 200,
         "reason": "spoilt",
@@ -1668,16 +1697,16 @@
         "caseId": null
       },
       {
-        "id": "a9261cd0-8023-450a-a209-6b71f46bb51e",
+        "id": "fd099062-bded-4b6e-858e-60d6e770b5ca",
         "at": "2026-09-25T06:00:00.000Z",
-        "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb",
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
         "no": "PARA-2607",
         "qty": 800,
         "reason": "missing",
         "note": "Box short at the count, not found",
         "value": 12000,
         "voucher": "ADJ-0003",
-        "caseId": "bcf0e70c-02d0-4096-95e8-ff28b6acd05d"
+        "caseId": "1c0193a7-8111-48c1-90f9-19cb65e0c0b9"
       }
     ],
     "room": [
@@ -1693,112 +1722,37 @@
       { "at": "2026-11-02T11:00:00.000Z", "temp": 24.8, "humidity": 58 },
       { "at": "2026-11-03T05:00:00.000Z", "temp": 23.2, "humidity": 50 },
       { "at": "2026-11-03T11:00:00.000Z", "temp": 24.5, "humidity": 52 },
-      { "at": "2026-11-04T03:01:43.424Z", "temp": 23.1, "humidity": 50 }
+      { "at": "2026-11-04T03:25:43.587Z", "temp": 23.1, "humidity": 50 }
     ],
-    "coldRoom": null,
+    "coldRoom": {
+      "code": "CR-01",
+      "sensor": "SEED-CR-01",
+      "fridgeId": "75057041-3f69-4174-9f53-98c897355614",
+      "temp": 4,
+      "readAt": "2026-11-04T03:26:43.541Z",
+      "min": 4,
+      "max": 6,
+      "history": [
+        { "at": "2026-11-03T05:26:43.535Z", "temp": 6 },
+        { "at": "2026-11-03T07:26:43.535Z", "temp": 5 },
+        { "at": "2026-11-03T09:26:43.536Z", "temp": 4 },
+        { "at": "2026-11-03T11:26:43.537Z", "temp": 6 },
+        { "at": "2026-11-03T13:26:43.537Z", "temp": 5 },
+        { "at": "2026-11-03T15:26:43.538Z", "temp": 4 },
+        { "at": "2026-11-03T17:26:43.539Z", "temp": 6 },
+        { "at": "2026-11-03T19:26:43.539Z", "temp": 5 },
+        { "at": "2026-11-03T21:26:43.540Z", "temp": 4 },
+        { "at": "2026-11-03T23:26:43.540Z", "temp": 6 },
+        { "at": "2026-11-04T01:26:43.541Z", "temp": 5 },
+        { "at": "2026-11-04T03:26:43.541Z", "temp": 4 }
+      ],
+      "outOfRange7d": 0,
+      "lines": ["Insulin (soluble) 100 IU/mL injection"]
+    },
     "balances": [
       {
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
-        "opening": 2200,
-        "received": 0,
-        "used": 2050,
-        "sent": 0,
-        "closing": 150
-      },
-      {
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7",
-        "opening": 295,
-        "received": 0,
-        "used": 270,
-        "sent": 0,
-        "closing": 25
-      },
-      {
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
-        "opening": 2750,
-        "received": 0,
-        "used": 2650,
-        "sent": 0,
-        "closing": 100
-      },
-      {
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
-        "opening": 1100,
-        "received": 0,
-        "used": 1000,
-        "sent": 0,
-        "closing": 100
-      },
-      {
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf",
-        "opening": 880,
-        "received": 0,
-        "used": 800,
-        "sent": 0,
-        "closing": 80
-      },
-      {
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
-        "opening": 1620,
-        "received": 0,
-        "used": 1250,
-        "sent": 0,
-        "closing": 250
-      },
-      {
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82",
-        "opening": 88,
-        "received": 0,
-        "used": 80,
-        "sent": 0,
-        "closing": 8
-      },
-      {
-        "placeId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
-        "opening": 440,
-        "received": 0,
-        "used": 400,
-        "sent": 0,
-        "closing": 40
-      },
-      {
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1",
-        "opening": 2750,
-        "received": 0,
-        "used": 2700,
-        "sent": 0,
-        "closing": 50
-      },
-      {
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb",
-        "opening": 33000,
-        "received": 0,
-        "used": 31000,
-        "sent": 0,
-        "closing": 2000
-      },
-      {
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
-        "opening": 11500,
-        "received": 0,
-        "used": 9500,
-        "sent": 0,
-        "closing": 2000
-      },
-      {
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
         "opening": 5500,
         "received": 0,
         "used": 4800,
@@ -1806,13 +1760,112 @@
         "closing": 700
       },
       {
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "opening": 33000,
+        "received": 0,
+        "used": 31000,
+        "sent": 0,
+        "closing": 2000
+      },
+      {
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "opening": 2750,
+        "received": 0,
+        "used": 2700,
+        "sent": 0,
+        "closing": 50
+      },
+      {
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "opening": 11500,
+        "received": 0,
+        "used": 9500,
+        "sent": 0,
+        "closing": 2000
+      },
+      {
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
         "opening": 27500,
         "received": 0,
         "used": 26000,
         "sent": 0,
         "closing": 1500
+      },
+      {
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "opening": 2750,
+        "received": 0,
+        "used": 2650,
+        "sent": 0,
+        "closing": 100
+      },
+      {
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "opening": 295,
+        "received": 0,
+        "used": 270,
+        "sent": 0,
+        "closing": 25
+      },
+      {
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "opening": 2200,
+        "received": 0,
+        "used": 2050,
+        "sent": 0,
+        "closing": 150
+      },
+      {
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "opening": 88,
+        "received": 0,
+        "used": 80,
+        "sent": 0,
+        "closing": 8
+      },
+      {
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "opening": 1620,
+        "received": 0,
+        "used": 1250,
+        "sent": 0,
+        "closing": 250
+      },
+      {
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "opening": 1100,
+        "received": 0,
+        "used": 1000,
+        "sent": 0,
+        "closing": 100
+      },
+      {
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "opening": 880,
+        "received": 0,
+        "used": 800,
+        "sent": 0,
+        "closing": 80
+      },
+      {
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "opening": 440,
+        "received": 0,
+        "used": 400,
+        "sent": 0,
+        "closing": 40
       }
     ],
     "balanceCases": [],
@@ -1831,217 +1884,217 @@
       { "start": "2026-11-02", "inValue": 798000, "outValue": 539000 }
     ],
     "storeDays": [
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-08-12", "delta": 2750 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-08-19", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-08-26", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-09-02", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-09-09", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-09-16", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-09-23", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-09-30", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-10-07", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-10-14", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-10-21", "delta": -250 },
-      { "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1", "day": "2026-10-28", "delta": -250 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-08-12", "delta": 83800 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-08-19", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-08-26", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-09-02", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-09-09", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-09-16", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-09-23", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-09-25", "delta": -800 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-09-30", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-10-07", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-10-14", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-10-21", "delta": -3000 },
-      { "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb", "day": "2026-10-28", "delta": -3000 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-08-12", "delta": 24000 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-08-19", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-08-26", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-09-02", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-09-05", "delta": 1200 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-09-09", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-09-16", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-09-23", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-09-30", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-10-05", "delta": 12000 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-10-07", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-10-14", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-10-15", "delta": -200 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-10-21", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-10-28", "delta": -1300 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-10-30", "delta": -500 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-11-02", "delta": -1200 },
-      { "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c", "day": "2026-11-04", "delta": 1800 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-08-12", "delta": 1780 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-08-19", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-08-26", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-09-02", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-09-05", "delta": 200 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-09-09", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-09-16", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-09-23", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-09-30", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-10-07", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-10-14", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-10-21", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-10-28", "delta": -80 },
-      { "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf", "day": "2026-11-02", "delta": -200 },
-      { "medId": "58dec11a-c979-41c9-8c63-45ce0305e8ea", "day": "2026-08-12", "delta": 800 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-08-12", "delta": 2944 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-08-19", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-08-26", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-09-02", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-09-05", "delta": 150 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-09-09", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-09-16", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-09-23", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-09-30", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-10-07", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-10-14", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-10-21", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-10-28", "delta": -160 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-11-02", "delta": -150 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-11-03", "delta": -264 },
-      { "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f", "day": "2026-11-04", "delta": -20 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-08-12", "delta": 795 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-08-19", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-08-26", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-09-02", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-09-09", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-09-16", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-09-23", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-09-30", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-10-07", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-10-14", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-10-21", "delta": -25 },
-      { "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7", "day": "2026-10-28", "delta": -45 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-08-12", "delta": 13250 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-08-19", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-08-26", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-09-02", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-09-09", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-09-16", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-09-23", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-09-30", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-10-07", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-10-14", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-10-21", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-10-28", "delta": -750 },
-      { "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d", "day": "2026-11-04", "delta": 2000 },
-      { "medId": "bee4d454-7ac4-451a-90b2-175be86fac61", "day": "2026-08-12", "delta": 50 },
-      { "medId": "bee4d454-7ac4-451a-90b2-175be86fac61", "day": "2026-11-04", "delta": -10 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-08-12", "delta": 57500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-08-19", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-08-26", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-09-02", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-09-09", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-09-16", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-09-23", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-09-30", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-10-07", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-10-14", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-10-21", "delta": -2500 },
-      { "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324", "day": "2026-10-28", "delta": -2500 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-08-12", "delta": 128 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-08-19", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-08-26", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-09-02", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-09-09", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-09-16", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-09-23", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-09-30", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-10-07", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-10-14", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-10-21", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-10-28", "delta": -8 },
-      { "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82", "day": "2026-11-04", "delta": 10 }
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-08-12", "delta": 128 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-08-19", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-08-26", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-02", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-09", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-16", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-23", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-30", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-10-07", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-10-14", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-10-21", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-10-28", "delta": -8 },
+      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-11-04", "delta": 10 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-08-12", "delta": 2944 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-08-19", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-08-26", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-02", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-05", "delta": 150 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-09", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-16", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-23", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-30", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-10-07", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-10-14", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-10-21", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-10-28", "delta": -160 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-11-02", "delta": -150 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-11-03", "delta": -264 },
+      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-11-04", "delta": -20 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-08-12", "delta": 13250 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-08-19", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-08-26", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-02", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-09", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-16", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-23", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-30", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-10-07", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-10-14", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-10-21", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-10-28", "delta": -750 },
+      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-11-04", "delta": 2000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-08-12", "delta": 83800 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-08-19", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-08-26", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-02", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-09", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-16", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-23", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-25", "delta": -800 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-30", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-10-07", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-10-14", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-10-21", "delta": -3000 },
+      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-10-28", "delta": -3000 },
+      { "medId": "7979efed-9500-4a66-85c6-af6445e6abf2", "day": "2026-08-12", "delta": 800 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-08-12", "delta": 795 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-08-19", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-08-26", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-02", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-09", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-16", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-23", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-30", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-10-07", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-10-14", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-10-21", "delta": -25 },
+      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-10-28", "delta": -45 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-08-12", "delta": 2750 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-08-19", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-08-26", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-02", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-09", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-16", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-23", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-30", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-10-07", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-10-14", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-10-21", "delta": -250 },
+      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-10-28", "delta": -250 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-08-12", "delta": 24000 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-08-19", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-08-26", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-02", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-05", "delta": 1200 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-09", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-16", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-23", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-30", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-05", "delta": 12000 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-07", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-14", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-15", "delta": -200 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-21", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-28", "delta": -1300 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-30", "delta": -500 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-11-02", "delta": -1200 },
+      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-11-04", "delta": 1800 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-08-12", "delta": 57500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-08-19", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-08-26", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-02", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-09", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-16", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-23", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-30", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-10-07", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-10-14", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-10-21", "delta": -2500 },
+      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-10-28", "delta": -2500 },
+      { "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64", "day": "2026-08-12", "delta": 50 },
+      { "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64", "day": "2026-11-04", "delta": -10 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-08-12", "delta": 1780 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-08-19", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-08-26", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-02", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-05", "delta": 200 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-09", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-16", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-23", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-30", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-10-07", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-10-14", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-10-21", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-10-28", "delta": -80 },
+      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-11-02", "delta": -200 }
     ],
     "placeDays": [
       {
-        "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "day": "2026-11-01",
-        "delta": -2700
+        "delta": -80
       },
       {
-        "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "day": "2026-11-01",
-        "delta": -31000
-      },
-      {
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "day": "2026-11-01",
-        "delta": -2050
-      },
-      {
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "day": "2026-11-01",
-        "delta": -1000
-      },
-      {
-        "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
-        "day": "2026-11-01",
-        "delta": -9500
-      },
-      {
-        "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
-        "day": "2026-11-01",
-        "delta": -800
-      },
-      {
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "day": "2026-11-01",
         "delta": -1250
       },
       {
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "day": "2026-11-04",
         "delta": -120
       },
       {
-        "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
-        "placeId": "513706e4-2a03-4ad1-907b-8e6c6b0f0075",
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
         "day": "2026-11-01",
         "delta": -400
       },
       {
-        "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7",
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "day": "2026-11-01",
-        "delta": -270
-      },
-      {
-        "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
-        "placeId": "23ce4c2c-2d6e-4f10-aa3a-e59019cc9100",
-        "day": "2026-11-01",
-        "delta": -2650
-      },
-      {
-        "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "day": "2026-11-01",
         "delta": -4800
       },
       {
-        "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324",
-        "placeId": "8bba22af-4979-435b-b68a-062bc1a1fe52",
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "day": "2026-11-01",
+        "delta": -2650
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "day": "2026-11-01",
+        "delta": -31000
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "day": "2026-11-01",
+        "delta": -270
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "day": "2026-11-01",
+        "delta": -2700
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "day": "2026-11-01",
+        "delta": -9500
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "day": "2026-11-01",
+        "delta": -2050
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "day": "2026-11-01",
+        "delta": -1000
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
         "day": "2026-11-01",
         "delta": -26000
       },
       {
-        "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82",
-        "placeId": "408bddab-abc6-4c73-8839-23c856dcbeac",
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
         "day": "2026-11-01",
-        "delta": -80
+        "delta": -800
       }
     ],
     "expiryActions": {},
@@ -2049,15 +2102,15 @@
     "card": null
   },
   "cards": {
-    "43915333-1e32-4aaf-8a4c-9144ab2687cf": {
-      "medId": "43915333-1e32-4aaf-8a4c-9144ab2687cf",
+    "f09bda42-d37c-4973-bc5f-20379aae678a": {
+      "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
       "rows": [
         {
           "at": "2026-11-02T08:00:00.000Z",
           "ref": "",
           "party": "",
           "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2065,7 +2118,7 @@
           "ref": "RIV-0042",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2073,7 +2126,7 @@
           "ref": "RIV-0038",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2081,7 +2134,7 @@
           "ref": "RIV-0034",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2089,7 +2142,7 @@
           "ref": "RIV-0030",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2097,7 +2150,7 @@
           "ref": "RIV-0026",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2105,7 +2158,7 @@
           "ref": "RIV-0022",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2113,7 +2166,7 @@
           "ref": "RIV-0018",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2121,7 +2174,7 @@
           "ref": "RIV-0014",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2129,7 +2182,7 @@
           "ref": "",
           "party": "",
           "delta": 200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2137,7 +2190,7 @@
           "ref": "RIV-0010",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2145,7 +2198,7 @@
           "ref": "RIV-0006",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2153,7 +2206,7 @@
           "ref": "RIV-0002",
           "party": "Ward 3 · Medical",
           "delta": -80,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2161,20 +2214,20 @@
           "ref": "",
           "party": "",
           "delta": 1780,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c": {
-      "medId": "30d79936-ccaf-4eaa-bfbf-5a19a2b0987c",
+    "d19156fc-e0c4-4413-b1fe-cd6715fae292": {
+      "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
       "rows": [
         {
-          "at": "2026-11-04T03:01:43.183Z",
+          "at": "2026-11-04T03:25:43.526Z",
           "ref": "GRN-0001",
           "party": "",
           "delta": 1800,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2182,7 +2235,7 @@
           "ref": "",
           "party": "",
           "delta": -1200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2190,15 +2243,7 @@
           "ref": "RIV-0047",
           "party": "OPD dispensary",
           "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-10-28T08:00:00.000Z",
-          "ref": "RIV-0042",
-          "party": "Ward 3 · Medical",
-          "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2206,7 +2251,15 @@
           "ref": "RIV-0041",
           "party": "OPD dispensary",
           "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-10-28T08:00:00.000Z",
+          "ref": "RIV-0042",
+          "party": "Ward 3 · Medical",
+          "delta": -100,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2214,23 +2267,7 @@
           "ref": "RIV-0044",
           "party": "Paediatrics",
           "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-10-21T08:00:00.000Z",
-          "ref": "RIV-0038",
-          "party": "Ward 3 · Medical",
-          "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-10-21T08:00:00.000Z",
-          "ref": "RIV-0040",
-          "party": "Paediatrics",
-          "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2238,7 +2275,23 @@
           "ref": "RIV-0037",
           "party": "OPD dispensary",
           "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-10-21T08:00:00.000Z",
+          "ref": "RIV-0040",
+          "party": "Paediatrics",
+          "delta": -200,
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-10-21T08:00:00.000Z",
+          "ref": "RIV-0038",
+          "party": "Ward 3 · Medical",
+          "delta": -100,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2246,23 +2299,7 @@
           "ref": "",
           "party": "",
           "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-10-14T08:00:00.000Z",
-          "ref": "RIV-0034",
-          "party": "Ward 3 · Medical",
-          "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-10-14T08:00:00.000Z",
-          "ref": "RIV-0036",
-          "party": "Paediatrics",
-          "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2270,15 +2307,23 @@
           "ref": "RIV-0033",
           "party": "OPD dispensary",
           "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
-          "at": "2026-10-07T08:00:00.000Z",
-          "ref": "RIV-0029",
-          "party": "OPD dispensary",
-          "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "at": "2026-10-14T08:00:00.000Z",
+          "ref": "RIV-0036",
+          "party": "Paediatrics",
+          "delta": -200,
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-10-14T08:00:00.000Z",
+          "ref": "RIV-0034",
+          "party": "Ward 3 · Medical",
+          "delta": -100,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2286,7 +2331,15 @@
           "ref": "RIV-0032",
           "party": "Paediatrics",
           "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-10-07T08:00:00.000Z",
+          "ref": "RIV-0029",
+          "party": "OPD dispensary",
+          "delta": -1000,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2294,7 +2347,7 @@
           "ref": "RIV-0030",
           "party": "Ward 3 · Medical",
           "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2302,15 +2355,7 @@
           "ref": "",
           "party": "",
           "delta": 12000,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-09-30T08:00:00.000Z",
-          "ref": "RIV-0025",
-          "party": "OPD dispensary",
-          "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2318,7 +2363,7 @@
           "ref": "RIV-0028",
           "party": "Paediatrics",
           "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2326,23 +2371,15 @@
           "ref": "RIV-0026",
           "party": "Ward 3 · Medical",
           "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
-          "at": "2026-09-23T08:00:00.000Z",
-          "ref": "RIV-0024",
-          "party": "Paediatrics",
-          "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-09-23T08:00:00.000Z",
-          "ref": "RIV-0021",
+          "at": "2026-09-30T08:00:00.000Z",
+          "ref": "RIV-0025",
           "party": "OPD dispensary",
           "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2350,23 +2387,23 @@
           "ref": "RIV-0022",
           "party": "Ward 3 · Medical",
           "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
-          "at": "2026-09-16T08:00:00.000Z",
-          "ref": "RIV-0017",
+          "at": "2026-09-23T08:00:00.000Z",
+          "ref": "RIV-0021",
           "party": "OPD dispensary",
           "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
-          "at": "2026-09-16T08:00:00.000Z",
-          "ref": "RIV-0020",
+          "at": "2026-09-23T08:00:00.000Z",
+          "ref": "RIV-0024",
           "party": "Paediatrics",
           "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2374,15 +2411,23 @@
           "ref": "RIV-0018",
           "party": "Ward 3 · Medical",
           "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
-          "at": "2026-09-09T08:00:00.000Z",
-          "ref": "RIV-0014",
-          "party": "Ward 3 · Medical",
-          "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "at": "2026-09-16T08:00:00.000Z",
+          "ref": "RIV-0020",
+          "party": "Paediatrics",
+          "delta": -200,
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-09-16T08:00:00.000Z",
+          "ref": "RIV-0017",
+          "party": "OPD dispensary",
+          "delta": -1000,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2390,7 +2435,7 @@
           "ref": "RIV-0016",
           "party": "Paediatrics",
           "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2398,7 +2443,15 @@
           "ref": "RIV-0013",
           "party": "OPD dispensary",
           "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-09-09T08:00:00.000Z",
+          "ref": "RIV-0014",
+          "party": "Ward 3 · Medical",
+          "delta": -100,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2406,7 +2459,7 @@
           "ref": "",
           "party": "",
           "delta": 1200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2414,15 +2467,7 @@
           "ref": "RIV-0010",
           "party": "Ward 3 · Medical",
           "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-09-02T08:00:00.000Z",
-          "ref": "RIV-0012",
-          "party": "Paediatrics",
-          "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2430,23 +2475,15 @@
           "ref": "RIV-0009",
           "party": "OPD dispensary",
           "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
-          "at": "2026-08-26T08:00:00.000Z",
-          "ref": "RIV-0006",
-          "party": "Ward 3 · Medical",
-          "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-08-26T08:00:00.000Z",
-          "ref": "RIV-0005",
-          "party": "OPD dispensary",
-          "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "at": "2026-09-02T08:00:00.000Z",
+          "ref": "RIV-0012",
+          "party": "Paediatrics",
+          "delta": -200,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2454,15 +2491,23 @@
           "ref": "RIV-0008",
           "party": "Paediatrics",
           "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
-          "at": "2026-08-19T08:00:00.000Z",
-          "ref": "RIV-0004",
-          "party": "Paediatrics",
-          "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "at": "2026-08-26T08:00:00.000Z",
+          "ref": "RIV-0005",
+          "party": "OPD dispensary",
+          "delta": -1000,
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-08-26T08:00:00.000Z",
+          "ref": "RIV-0006",
+          "party": "Ward 3 · Medical",
+          "delta": -100,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2470,7 +2515,7 @@
           "ref": "RIV-0002",
           "party": "Ward 3 · Medical",
           "delta": -100,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2478,7 +2523,15 @@
           "ref": "RIV-0001",
           "party": "OPD dispensary",
           "delta": -1000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-08-19T08:00:00.000Z",
+          "ref": "RIV-0004",
+          "party": "Paediatrics",
+          "delta": -200,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2486,20 +2539,20 @@
           "ref": "",
           "party": "",
           "delta": 24000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "9ba6fbcb-983e-4160-815e-9e98984ff63d": {
-      "medId": "9ba6fbcb-983e-4160-815e-9e98984ff63d",
+    "5704c434-c907-428a-b0fc-cc282b40f2ff": {
+      "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
       "rows": [
         {
-          "at": "2026-11-04T03:01:43.180Z",
+          "at": "2026-11-04T03:25:43.524Z",
           "ref": "GRN-0001",
           "party": "",
           "delta": 2000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2507,7 +2560,7 @@
           "ref": "RIV-0044",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2515,7 +2568,7 @@
           "ref": "RIV-0041",
           "party": "OPD dispensary",
           "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2523,7 +2576,7 @@
           "ref": "RIV-0040",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2531,7 +2584,7 @@
           "ref": "RIV-0037",
           "party": "OPD dispensary",
           "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2539,7 +2592,7 @@
           "ref": "RIV-0036",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2547,15 +2600,7 @@
           "ref": "RIV-0033",
           "party": "OPD dispensary",
           "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-10-07T08:00:00.000Z",
-          "ref": "RIV-0029",
-          "party": "OPD dispensary",
-          "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2563,7 +2608,15 @@
           "ref": "RIV-0032",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-10-07T08:00:00.000Z",
+          "ref": "RIV-0029",
+          "party": "OPD dispensary",
+          "delta": -500,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2571,7 +2624,7 @@
           "ref": "RIV-0025",
           "party": "OPD dispensary",
           "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2579,7 +2632,7 @@
           "ref": "RIV-0028",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2587,7 +2640,7 @@
           "ref": "RIV-0021",
           "party": "OPD dispensary",
           "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2595,7 +2648,7 @@
           "ref": "RIV-0024",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2603,7 +2656,7 @@
           "ref": "RIV-0020",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2611,15 +2664,7 @@
           "ref": "RIV-0017",
           "party": "OPD dispensary",
           "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-09-09T08:00:00.000Z",
-          "ref": "RIV-0013",
-          "party": "OPD dispensary",
-          "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2627,7 +2672,15 @@
           "ref": "RIV-0016",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-09-09T08:00:00.000Z",
+          "ref": "RIV-0013",
+          "party": "OPD dispensary",
+          "delta": -500,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2635,7 +2688,7 @@
           "ref": "RIV-0009",
           "party": "OPD dispensary",
           "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2643,7 +2696,7 @@
           "ref": "RIV-0012",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2651,7 +2704,7 @@
           "ref": "RIV-0008",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2659,15 +2712,7 @@
           "ref": "RIV-0005",
           "party": "OPD dispensary",
           "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-08-19T08:00:00.000Z",
-          "ref": "RIV-0001",
-          "party": "OPD dispensary",
-          "delta": -500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2675,7 +2720,15 @@
           "ref": "RIV-0004",
           "party": "Paediatrics",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-08-19T08:00:00.000Z",
+          "ref": "RIV-0001",
+          "party": "OPD dispensary",
+          "delta": -500,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2683,28 +2736,28 @@
           "ref": "",
           "party": "",
           "delta": 13250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "6f668805-9d60-4a38-bc11-b01973dcedc7": {
-      "medId": "6f668805-9d60-4a38-bc11-b01973dcedc7",
+    "8722aa42-9dc9-4bf7-b8a0-32ce79cde245": {
+      "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
       "rows": [
-        {
-          "at": "2026-10-28T08:00:00.000Z",
-          "ref": "RIV-0044",
-          "party": "Paediatrics",
-          "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
         {
           "at": "2026-10-28T08:00:00.000Z",
           "ref": "RIV-0048",
           "party": "Paediatrics",
           "delta": -20,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-10-28T08:00:00.000Z",
+          "ref": "RIV-0044",
+          "party": "Paediatrics",
+          "delta": -25,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2712,7 +2765,7 @@
           "ref": "RIV-0040",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2720,7 +2773,7 @@
           "ref": "RIV-0036",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2728,7 +2781,7 @@
           "ref": "RIV-0032",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2736,7 +2789,7 @@
           "ref": "RIV-0028",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2744,7 +2797,7 @@
           "ref": "RIV-0024",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2752,7 +2805,7 @@
           "ref": "RIV-0020",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2760,7 +2813,7 @@
           "ref": "RIV-0016",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2768,7 +2821,7 @@
           "ref": "RIV-0012",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2776,7 +2829,7 @@
           "ref": "RIV-0008",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2784,7 +2837,7 @@
           "ref": "RIV-0004",
           "party": "Paediatrics",
           "delta": -25,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2792,28 +2845,20 @@
           "ref": "",
           "party": "",
           "delta": 795,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "612b993b-9cca-4a1f-8698-c2383a21e85f": {
-      "medId": "612b993b-9cca-4a1f-8698-c2383a21e85f",
+    "3af202bd-fea0-4616-a45c-c84a152c9b66": {
+      "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
       "rows": [
         {
-          "at": "2026-11-04T03:01:43.121Z",
+          "at": "2026-11-04T03:25:43.506Z",
           "ref": "RIV-0050",
           "party": "Maternity",
           "delta": -20,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-11-03T08:00:00.000Z",
-          "ref": "RIV-0045",
-          "party": "Ward 3 · Medical",
-          "delta": -200,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2821,7 +2866,15 @@
           "ref": "RIV-0046",
           "party": "Maternity",
           "delta": -60,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-11-03T08:00:00.000Z",
+          "ref": "RIV-0045",
+          "party": "Ward 3 · Medical",
+          "delta": -200,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2829,7 +2882,7 @@
           "ref": "",
           "party": "",
           "delta": -4,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2837,7 +2890,7 @@
           "ref": "",
           "party": "",
           "delta": -150,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2845,7 +2898,7 @@
           "ref": "RIV-0043",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2853,15 +2906,7 @@
           "ref": "RIV-0042",
           "party": "Ward 3 · Medical",
           "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-10-21T08:00:00.000Z",
-          "ref": "RIV-0038",
-          "party": "Ward 3 · Medical",
-          "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2869,7 +2914,23 @@
           "ref": "RIV-0039",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-10-21T08:00:00.000Z",
+          "ref": "RIV-0038",
+          "party": "Ward 3 · Medical",
+          "delta": -120,
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-10-14T08:00:00.000Z",
+          "ref": "RIV-0034",
+          "party": "Ward 3 · Medical",
+          "delta": -120,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2877,15 +2938,7 @@
           "ref": "RIV-0035",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-10-14T08:00:00.000Z",
-          "ref": "RIV-0034",
-          "party": "Ward 3 · Medical",
-          "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2893,7 +2946,7 @@
           "ref": "RIV-0031",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2901,7 +2954,7 @@
           "ref": "RIV-0030",
           "party": "Ward 3 · Medical",
           "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2909,7 +2962,7 @@
           "ref": "RIV-0026",
           "party": "Ward 3 · Medical",
           "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2917,7 +2970,7 @@
           "ref": "RIV-0027",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2925,7 +2978,7 @@
           "ref": "RIV-0023",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2933,15 +2986,7 @@
           "ref": "RIV-0022",
           "party": "Ward 3 · Medical",
           "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-09-16T08:00:00.000Z",
-          "ref": "RIV-0018",
-          "party": "Ward 3 · Medical",
-          "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2949,7 +2994,23 @@
           "ref": "RIV-0019",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-09-16T08:00:00.000Z",
+          "ref": "RIV-0018",
+          "party": "Ward 3 · Medical",
+          "delta": -120,
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-09-09T08:00:00.000Z",
+          "ref": "RIV-0014",
+          "party": "Ward 3 · Medical",
+          "delta": -120,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2957,15 +3018,7 @@
           "ref": "RIV-0015",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-09-09T08:00:00.000Z",
-          "ref": "RIV-0014",
-          "party": "Ward 3 · Medical",
-          "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2973,7 +3026,7 @@
           "ref": "",
           "party": "",
           "delta": 150,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2981,7 +3034,7 @@
           "ref": "RIV-0010",
           "party": "Ward 3 · Medical",
           "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2989,7 +3042,7 @@
           "ref": "RIV-0011",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -2997,7 +3050,7 @@
           "ref": "RIV-0006",
           "party": "Ward 3 · Medical",
           "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3005,15 +3058,7 @@
           "ref": "RIV-0007",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
-          "isCount": false
-        },
-        {
-          "at": "2026-08-19T08:00:00.000Z",
-          "ref": "RIV-0002",
-          "party": "Ward 3 · Medical",
-          "delta": -120,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3021,7 +3066,15 @@
           "ref": "RIV-0003",
           "party": "Maternity",
           "delta": -40,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
+          "isCount": false
+        },
+        {
+          "at": "2026-08-19T08:00:00.000Z",
+          "ref": "RIV-0002",
+          "party": "Ward 3 · Medical",
+          "delta": -120,
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3029,20 +3082,20 @@
           "ref": "",
           "party": "",
           "delta": 2944,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "f057778c-0a8c-45bf-9f57-3ddddf53fd82": {
-      "medId": "f057778c-0a8c-45bf-9f57-3ddddf53fd82",
+    "3297e4aa-7158-4ae6-9d98-92ac57feef2f": {
+      "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
       "rows": [
         {
-          "at": "2026-11-04T03:01:43.173Z",
+          "at": "2026-11-04T03:25:43.522Z",
           "ref": "GRN-0001",
           "party": "",
           "delta": 10,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3050,7 +3103,7 @@
           "ref": "RIV-0042",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3058,7 +3111,7 @@
           "ref": "RIV-0038",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3066,7 +3119,7 @@
           "ref": "RIV-0034",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3074,7 +3127,7 @@
           "ref": "RIV-0030",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3082,7 +3135,7 @@
           "ref": "RIV-0026",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3090,7 +3143,7 @@
           "ref": "RIV-0022",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3098,7 +3151,7 @@
           "ref": "RIV-0018",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3106,7 +3159,7 @@
           "ref": "RIV-0014",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3114,7 +3167,7 @@
           "ref": "RIV-0010",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3122,7 +3175,7 @@
           "ref": "RIV-0006",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3130,7 +3183,7 @@
           "ref": "RIV-0002",
           "party": "Ward 3 · Medical",
           "delta": -8,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3138,20 +3191,20 @@
           "ref": "",
           "party": "",
           "delta": 128,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "c290dd93-7bac-4b1e-99d8-7aeddebbc324": {
-      "medId": "c290dd93-7bac-4b1e-99d8-7aeddebbc324",
+    "e84341d6-874a-4b09-adb1-7eda187d1bae": {
+      "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
       "rows": [
         {
           "at": "2026-10-28T08:00:00.000Z",
           "ref": "RIV-0041",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3159,7 +3212,7 @@
           "ref": "RIV-0037",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3167,7 +3220,7 @@
           "ref": "RIV-0033",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3175,7 +3228,7 @@
           "ref": "RIV-0029",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3183,7 +3236,7 @@
           "ref": "RIV-0025",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3191,7 +3244,7 @@
           "ref": "RIV-0021",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3199,7 +3252,7 @@
           "ref": "RIV-0017",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3207,7 +3260,7 @@
           "ref": "RIV-0013",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3215,7 +3268,7 @@
           "ref": "RIV-0009",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3223,7 +3276,7 @@
           "ref": "RIV-0005",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3231,7 +3284,7 @@
           "ref": "RIV-0001",
           "party": "OPD dispensary",
           "delta": -2500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3239,20 +3292,20 @@
           "ref": "",
           "party": "",
           "delta": 57500,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "bee4d454-7ac4-451a-90b2-175be86fac61": {
-      "medId": "bee4d454-7ac4-451a-90b2-175be86fac61",
+    "eea24a40-722a-47bd-bbcb-439e9b11db64": {
+      "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64",
       "rows": [
         {
-          "at": "2026-11-04T03:01:43.077Z",
+          "at": "2026-11-04T03:25:43.498Z",
           "ref": "RIV-0049",
           "party": "Ward 3 · Medical",
           "delta": -10,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3260,33 +3313,33 @@
           "ref": "",
           "party": "",
           "delta": 50,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "58dec11a-c979-41c9-8c63-45ce0305e8ea": {
-      "medId": "58dec11a-c979-41c9-8c63-45ce0305e8ea",
+    "7979efed-9500-4a66-85c6-af6445e6abf2": {
+      "medId": "7979efed-9500-4a66-85c6-af6445e6abf2",
       "rows": [
         {
           "at": "2026-08-12T06:00:00.000Z",
           "ref": "",
           "party": "",
           "delta": 800,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "03bc470a-fb4f-44a6-9273-b5820f6d26b1": {
-      "medId": "03bc470a-fb4f-44a6-9273-b5820f6d26b1",
+    "b37a8e68-2f48-4145-bb58-5be4871c9612": {
+      "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
       "rows": [
         {
           "at": "2026-10-28T08:00:00.000Z",
           "ref": "RIV-0041",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3294,7 +3347,7 @@
           "ref": "RIV-0037",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3302,7 +3355,7 @@
           "ref": "RIV-0033",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3310,7 +3363,7 @@
           "ref": "RIV-0029",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3318,7 +3371,7 @@
           "ref": "RIV-0025",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3326,7 +3379,7 @@
           "ref": "RIV-0021",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3334,7 +3387,7 @@
           "ref": "RIV-0017",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3342,7 +3395,7 @@
           "ref": "RIV-0013",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3350,7 +3403,7 @@
           "ref": "RIV-0009",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3358,7 +3411,7 @@
           "ref": "RIV-0005",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3366,7 +3419,7 @@
           "ref": "RIV-0001",
           "party": "OPD dispensary",
           "delta": -250,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3374,20 +3427,20 @@
           "ref": "",
           "party": "",
           "delta": 2750,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]
     },
-    "098d89d0-ce7d-41ce-be36-d427eb307adb": {
-      "medId": "098d89d0-ce7d-41ce-be36-d427eb307adb",
+    "69ebd770-59bb-47c9-b8f1-b6e30256df7b": {
+      "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
       "rows": [
         {
           "at": "2026-10-28T08:00:00.000Z",
           "ref": "RIV-0041",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3395,7 +3448,7 @@
           "ref": "RIV-0037",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3403,7 +3456,7 @@
           "ref": "RIV-0033",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3411,7 +3464,7 @@
           "ref": "RIV-0029",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3419,7 +3472,7 @@
           "ref": "RIV-0025",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3427,7 +3480,7 @@
           "ref": "",
           "party": "",
           "delta": -800,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3435,7 +3488,7 @@
           "ref": "RIV-0021",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3443,7 +3496,7 @@
           "ref": "RIV-0017",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3451,7 +3504,7 @@
           "ref": "RIV-0013",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3459,7 +3512,7 @@
           "ref": "RIV-0009",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3467,7 +3520,7 @@
           "ref": "RIV-0005",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3475,7 +3528,7 @@
           "ref": "RIV-0001",
           "party": "OPD dispensary",
           "delta": -3000,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         },
         {
@@ -3483,7 +3536,7 @@
           "ref": "",
           "party": "",
           "delta": 83800,
-          "by": "pharmacist-904b3f3f@lane.test",
+          "by": "pharmacist-51ad366c@lane.test",
           "isCount": false
         }
       ]

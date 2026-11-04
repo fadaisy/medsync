@@ -200,6 +200,27 @@ export const RULE_REGISTRY: readonly RegistryGroup[] = [
         1,
         30,
       ]),
+      R(
+        "running_out_bad",
+        "Running out, urgent",
+        "Under {n} of cover shows as urgent",
+        "Every place",
+        [3, "days", 1, 14],
+      ),
+      R(
+        "over_level",
+        "Over the level",
+        "Over {n} the top-up level shows as more than needed",
+        "Every place",
+        [1.5, "times", 1, 5],
+      ),
+      R(
+        "asks_less",
+        "Asks less",
+        "Under {n} what the place needs reads as asking less",
+        "Every place",
+        [0.5, "times", 0.1, 1],
+      ),
       R("cover_amber", "Cover, amber", "Under {n} of cover shows amber", "Every place", [
         14,
         "days",

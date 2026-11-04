@@ -16,6 +16,9 @@ export interface StoreRules {
   urgentDays: number;
   fillTarget: number;
   runningOut: number;
+  runningOutBad: number;
+  overLevel: number;
+  asksLess: number;
   coverAmber: number;
   transferOver: number;
   transferUnder: number;
@@ -42,6 +45,9 @@ export const storeRules = (n: RuleNumbers): StoreRules => ({
   urgentDays: n("ord", "urgent_days"),
   fillTarget: n("ord", "fill_target"),
   runningOut: n("cold", "running_out"),
+  runningOutBad: n("cold", "running_out_bad"),
+  overLevel: n("cold", "over_level"),
+  asksLess: n("cold", "asks_less"),
   coverAmber: n("cold", "cover_amber"),
   transferOver: n("cold", "transfer_over"),
   transferUnder: n("cold", "transfer_under"),
@@ -276,6 +282,7 @@ export interface ColdRoom {
   min: number | null;
   max: number | null;
   history: { at: string; temp: number }[];
+  outOfRange7d: number;
   lines: string[];
 }
 

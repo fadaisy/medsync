@@ -1,4 +1,4 @@
-import type { ReqLine, Requisition, StoreMed, StoreWorld } from "./types";
+import type { ReqLine, Requisition, StoreMed, StoreRules, StoreWorld } from "./types";
 
 import { dayOf, median } from "./format";
 import { needAt, psOf } from "./places";
@@ -14,7 +14,8 @@ export function sortedReqs(rs: readonly Requisition[]): Requisition[] {
   return [...rs].sort((a, b) => {
     if (isOpen(a) !== isOpen(b)) return isOpen(a) ? -1 : 1;
     if (a.urgent !== b.urgent) return a.urgent ? -1 : 1;
-    return b.askedAt.localeCompare(a.askedAt);
+    /* Open: the longest wait on top. Done: the latest on top. */
+    return isOpen(a) ? a.askedAt.localeCompare(b.askedAt) : b.askedAt.localeCompare(a.askedAt);
   });
 }
 
@@ -27,11 +28,16 @@ export type NeedNote =
   | { kind: "less"; n: number }
   | { kind: "needs"; n: number };
 
-/** "Asks more" over 1.5 × the need or the need plus a pack; "asks less" under half of it. */
-export function needNote(asked: number, need: number, pack: number): NeedNote {
+/** "Asks more" over the rule × the need or the need plus a pack; "asks less" under the other rule × it. */
+export function needNote(
+  asked: number,
+  need: number,
+  pack: number,
+  r: Pick<StoreRules, "overLevel" | "asksLess">,
+): NeedNote {
   if (need === 0) return { kind: "at_level" };
-  if (asked > Math.max(need * 1.5, need + pack)) return { kind: "more", n: need };
-  if (asked < need * 0.5) return { kind: "less", n: need };
+  if (asked > Math.max(need * r.overLevel, need + pack)) return { kind: "more", n: need };
+  if (asked < need * r.asksLess) return { kind: "less", n: need };
   return { kind: "needs", n: need };
 }
 

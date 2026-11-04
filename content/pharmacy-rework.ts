@@ -96,13 +96,7 @@ export const RW = {
       defaulters: "Defaulters",
     },
     reminders: { today: "Today's messages", rules: "Rules" },
-    store: {
-      receive: "Receive",
-      issue: "Issue",
-      count: "Count",
-      order: "Order",
-      cold: "Cold chain",
-    },
+    store: { main: "Main store", receive: "Receive a delivery" },
     cd: { register: "Registers", flags: "To fix", checks: "Balance checks", paper: "Paper" },
     records: {
       audit: "Audit trail",

@@ -4,6 +4,7 @@ import type { StoreSection } from "@/content/pharmacy-store";
 import type { OpenTarget } from "@/lib/pharmacy/derive/store/stats";
 import type { StoreWorld } from "@/lib/pharmacy/derive/store/types";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { ChartGrid, FigureTiles } from "@/components/pharmacy/charts/card";
@@ -11,7 +12,8 @@ import { useStockLive } from "@/components/pharmacy/medicines/use-stock-live";
 import { LabButton } from "@/components/tide/work/button";
 import { ST } from "@/content/pharmacy-store";
 import { fill } from "@/content/pharmacy-workspace-v2";
-import { compact } from "@/lib/pharmacy/derive/store/format";
+import { ugx } from "@/lib/pharmacy/derive/store/format";
+import { planFor } from "@/lib/pharmacy/derive/store/orders";
 import { navGroups, sectionStats } from "@/lib/pharmacy/derive/store/stats";
 import { storeValue } from "@/lib/pharmacy/derive/store/stock";
 import { Orders, PutAway } from "../bring-in";
@@ -48,16 +50,28 @@ export function MainStore({
   const [filter, setFilter] = useState<string | null>(null);
   const [count, setCount] = useState(false);
   const [issue, setIssue] = useState(false);
-  const stats = sectionStats(world, section, {
-    orderQty: undefined,
-  });
+  const asked = useSearchParams().get("supplier");
+  const supplier = world.suppliers.find((x) => x.id === asked) ?? world.suppliers[0];
+  const stats = sectionStats(
+    world,
+    section,
+    section === "order" && supplier
+      ? {
+          orderQty: new Map(planFor(world, supplier.id).map((l) => [l.medId, l.qty])),
+          budget:
+            world.orders.find((o) => o.state === "draft" && o.supplierId === supplier.id)?.budget ??
+            0,
+          order: { supplier: supplier.name },
+        }
+      : undefined,
+  );
   return (
     <div className="flex flex-col gap-4">
       <header className="bg-card shadow-card flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
         <h2 className="text-foreground m-0 text-[17px] leading-6 font-semibold">
           {world.storeName}{" "}
           <span className="text-ink-600 text-[14px] font-normal">
-            · {fill(ST.shell.line, { n: world.meds.length, value: compact(storeValue(world)) })}
+            · {fill(ST.shell.line, { n: world.meds.length, value: ugx(storeValue(world)) })}
           </span>
         </h2>
         <div className="flex flex-wrap gap-2">
@@ -74,7 +88,7 @@ export function MainStore({
       {section === "home" ? <NeedsYouNow world={world} /> : null}
       {section === "req" ? <Requisitions world={world} /> : null}
       {section === "runs" ? <TopUpRuns world={world} /> : null}
-      {section === "disp" ? <Dispatches world={world} /> : null}
+      {section === "disp" ? <Dispatches world={world} filter={filter} /> : null}
       {section === "all" ? <StockEverywhere world={world} filter={filter} /> : null}
       {section === "books" ? <PlaceBalances world={world} /> : null}
       {section === "order" ? <Orders world={world} /> : null}

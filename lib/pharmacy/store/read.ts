@@ -13,6 +13,7 @@ import type {
 import { sql } from "drizzle-orm";
 
 import { rowsOf } from "@/lib/pharmacy/audit/read";
+import { outOfRange } from "@/lib/pharmacy/derive/setup/places";
 import { addDays, kampala } from "@/lib/pharmacy/derive/store/format";
 import { storeRules } from "@/lib/pharmacy/derive/store/types";
 import { lastUnitCosts } from "@/lib/pharmacy/prices/store";
@@ -41,7 +42,14 @@ const mondayOf = (day: string) => {
 
 export async function loadStoreWorld(
   db: Db,
-  o: { hospitalId: string; actorUserId: string; now?: Date; medId?: string | null },
+  o: {
+    hospitalId: string;
+    actorUserId: string;
+    now?: Date;
+    medId?: string | null;
+    /** The stock-card section is open: with no `medId`, the first medicine's card. */
+    cardOpen?: boolean;
+  },
 ): Promise<StoreWorld | null> {
   const h = o.hospitalId;
   const now = o.now ?? new Date();
@@ -479,6 +487,9 @@ export async function loadStoreWorld(
        WHERE p.hospital_id = ${h}::uuid AND p.cold_chain AND EXISTS (SELECT 1 FROM public.pharmacy_batches b
          JOIN public.pharmacy_stock_movements m ON m.batch_id = b.id WHERE b.product_id = p.id AND b.location_id = ${S}::uuid
          GROUP BY b.id HAVING sum(m.quantity) > 0) ORDER BY p.name`);
+    const week = await q<{ temp: string }>(sql`
+      SELECT temp_c AS temp FROM public.pharmacy_fridge_readings
+       WHERE fridge_id = ${fridge.id}::uuid AND read_at >= ${now.toISOString()}::timestamptz - interval '7 days'`);
     const history = reads.map((r) => ({ at: iso(r.at)!, temp: Number(r.temp) }));
     const todayReads = history
       .filter((r) => kampala(r.at).slice(0, 10) === today)
@@ -492,6 +503,7 @@ export async function loadStoreWorld(
       min: todayReads.length ? Math.min(...todayReads) : null,
       max: todayReads.length ? Math.max(...todayReads) : null,
       history,
+      outOfRange7d: week.filter((r) => outOfRange(Number(r.temp))).length,
       lines: lines.map((l) => l.name),
     };
   }
@@ -573,7 +585,8 @@ export async function loadStoreWorld(
 
   /* ─── The stock card, only when one is open ─── */
   let card: StoreWorld["card"] = null;
-  if (o.medId && known.has(o.medId)) {
+  const cardMed = o.medId && known.has(o.medId) ? o.medId : o.cardOpen ? meds[0]?.id : null;
+  if (cardMed) {
     const rows = await q<{
       at: string;
       kind: string;
@@ -595,18 +608,39 @@ export async function loadStoreWorld(
         LEFT JOIN public.pharmacy_shelf_counts c ON c.id = m.source_id
         LEFT JOIN public.pharmacy_store_losses x ON x.id = m.source_id OR x.quarantine_decision_id = m.source_id
         LEFT JOIN public.pharmacy_deliveries d ON d.id = m.source_id
-       WHERE m.location_id = ${S}::uuid AND b.product_id = ${o.medId}::uuid
+       WHERE m.location_id = ${S}::uuid AND b.product_id = ${cardMed}::uuid
        ORDER BY m.effective_at DESC, m.id DESC LIMIT 500`);
+    /* A count that matched moved nothing, so the ledger has no row for it; the card still says "0 diff" (§F3). */
+    const matched = await q<{ at: string; voucher: string; by: string }>(sql`
+      SELECT c.counted_at AS at, c.voucher, coalesce(u.full_name, u.email, '') AS by
+        FROM public.pharmacy_shelf_count_lines l
+        JOIN public.pharmacy_shelf_counts c ON c.id = l.count_id
+        JOIN public.pharmacy_batches b ON b.id = l.batch_id
+        LEFT JOIN public.users u ON u.id = c.counted_by
+       WHERE b.product_id = ${cardMed}::uuid AND b.location_id = ${S}::uuid AND c.hospital_id = ${h}::uuid
+       GROUP BY c.id, c.counted_at, c.voucher, u.full_name, u.email
+      HAVING bool_and(l.expected = l.counted)
+       ORDER BY c.counted_at DESC LIMIT 100`);
     card = {
-      medId: o.medId,
-      rows: rows.map((r) => ({
-        at: iso(r.at)!,
-        ref: r.voucher ?? r.count_voucher ?? r.loss_voucher ?? r.grn ?? "",
-        party: r.party ?? "",
-        delta: Number(r.delta),
-        by: r.by,
-        isCount: r.kind === "count_correction",
-      })),
+      medId: cardMed,
+      rows: [
+        ...rows.map((r) => ({
+          at: iso(r.at)!,
+          ref: r.voucher ?? r.count_voucher ?? r.loss_voucher ?? r.grn ?? "",
+          party: r.party ?? "",
+          delta: Number(r.delta),
+          by: r.by,
+          isCount: r.kind === "count_correction",
+        })),
+        ...matched.map((r) => ({
+          at: iso(r.at)!,
+          ref: r.voucher,
+          party: "",
+          delta: 0,
+          by: r.by,
+          isCount: true,
+        })),
+      ].sort((a, b) => b.at.localeCompare(a.at)),
     };
   }
 
@@ -750,4 +784,31 @@ export async function loadStoreWorld(
     transfersArranged,
     card,
   };
+}
+
+/** Records › Losses: the closed stock-takes, newest first (STORE.md §F4). Empty until 0275 is applied. */
+export async function loadStocktakeReports(db: Db, hospitalId: string) {
+  const [ready] = rowsOf<{ ok: boolean }>(
+    await db.execute(sql`SELECT to_regclass('public.pharmacy_stocktakes') IS NOT NULL AS ok`),
+  );
+  if (!ready?.ok) return [];
+  const rows = rowsOf<{
+    id: string;
+    closed_at: string;
+    by: string;
+    report: { shelves: { code: string }[]; totalDiff: number } | null;
+  }>(
+    await db.execute(sql`
+      SELECT t.id, t.closed_at, coalesce(u.full_name, u.email, '') AS by, t.report
+        FROM public.pharmacy_stocktakes t LEFT JOIN public.users u ON u.id = t.closed_by
+       WHERE t.hospital_id = ${hospitalId}::uuid AND t.closed_at IS NOT NULL
+       ORDER BY t.closed_at DESC LIMIT 24`),
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    closedAt: iso(r.closed_at)!,
+    by: r.by,
+    shelves: r.report?.shelves.length ?? 0,
+    diff: Number(r.report?.totalDiff ?? 0),
+  }));
 }

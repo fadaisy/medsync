@@ -22,6 +22,12 @@ export type StoreSection =
   | "quar"
   | "cond";
 
+/** Records › Losses, the filed reports. */
+export const STOCKTAKE_REPORTS = {
+  title: "Stock-take reports",
+  cols: ["Closed", "Shelves", "Difference", "Closed by"],
+} as const;
+
 export const SECTION_LABEL: Record<StoreSection, string> = {
   home: "Overview",
   req: "Requisitions",
@@ -47,6 +53,7 @@ export const ST = {
     receive: "Receive a delivery",
     sectionsLabel: "Store sections",
     selectLabel: "Section",
+    notReady: "The main store is not set up yet",
     tabs: { main: "Main store", receive: "Receive a delivery", medicines: "Medicines" },
     statsHome: "Store at a glance",
     statsOther: "Figures for this section",
@@ -433,5 +440,7 @@ export const STORE_SAYS = {
   undoOwn: "Nothing to undo.",
   shelfCode: "A shelf code is capitals and numbers, like A or CR-01.",
   bestPlaceNone: "No place can take it.",
+  noQuarantineReason:
+    "The signed quarantine reasons have no \u201c{code}\u201d. Add it in Set-up \u203a Rules.",
   noSupplier: "No supplier takes returns yet. Add one in Set-up › Places.",
 } as const;

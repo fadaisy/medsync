@@ -6,6 +6,7 @@ import { niceStep } from "@/components/pharmacy/charts/geometry";
 import { SECTION_LABEL, ST } from "@/content/pharmacy-store";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { DATA, DATA2, STATUS_MARK as SB, VEN_RAMP } from "@/lib/pharmacy/charts/palette";
+import { fridgeState } from "../setup/places";
 import { insideLimits, shelfDue, shelvesDue } from "./counts";
 import { atRisk, atRiskValue, expByMonth, expRows } from "./expiry";
 import {
@@ -1390,14 +1391,7 @@ function condStats(w: StoreWorld): { tiles: Tile[]; charts: ChartSpec[] } {
   const charts: ChartSpec[] = [];
   const cr = w.coldRoom;
   if (cr) {
-    const state =
-      cr.temp === null
-        ? C.cold.none
-        : cr.temp < 2 || cr.temp > 8
-          ? C.cold.out
-          : cr.temp < 2 + w.rules.coldNear || cr.temp > 8 - w.rules.coldNear
-            ? C.cold.near
-            : C.cold.ok;
+    const state = cr.temp === null ? C.cold.none : C.cold[fridgeState(cr.temp, w.rules.coldNear)];
     const hist = cr.history;
     charts.push({
       key: "cold",

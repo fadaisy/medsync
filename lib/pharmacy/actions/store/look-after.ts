@@ -16,6 +16,7 @@ import {
   quarantineOf,
   moveToQuarantine as toQuarantine,
 } from "@/lib/pharmacy/stores/expiry-store";
+import { reasonList } from "@/lib/pharmacy/stores/packs";
 import {
   balancesAt,
   batchRef,
@@ -213,7 +214,12 @@ export const expiryAction = act(
 );
 
 /** Expired or recalled, off the shelf. The reason is from the signed list. */
-export const moveToQuarantine = act(QuarantineInput, NEED, (ctx, i) => toQuarantine(ctx, i));
+export const moveToQuarantine = act(QuarantineInput, NEED, async (ctx, i) => {
+  const list = await reasonList(ctx.tx, ctx.actor.hospitalId, "quarantine");
+  if (list && !list.some((r) => r.code === i.reasonCode))
+    throw fail("invalid", fill(S.noQuarantineReason, { code: i.reasonCode }));
+  return toQuarantine(ctx, i);
+});
 
 /* ─── Counts ─── */
 

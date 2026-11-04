@@ -389,6 +389,9 @@ export async function seedStore(db: Db, hospitalId: string) {
     ["para", 8000],
     ["ors", 600],
   ]);
+  // Two places over what the store holds: Share fairly has something to do.
+  await req(mat, 0, [["ins", 60]], { urgent: true, reason: "Stock finished overnight" });
+  await req(ward, 0, [["ins", 40]]);
   const part = await req(ward, 1, [
     ["ceft", 300],
     ["coamox", 200],
@@ -463,6 +466,19 @@ export async function seedStore(db: Db, hospitalId: string) {
   const gap = await receive("ceft", "CEFT-2612", inDays(400), 300, 40, ward);
   await db.execute(sql`INSERT INTO public.pharmacy_stock_movements (hospital_id, location_id, batch_id, kind, quantity, effective_at, actor_user_id, source_kind, reason_code, reason_note)
     VALUES (${h}, ${ward}::uuid, ${gap}::uuid, 'adjusted', -120, ${at(0)}::timestamptz, ${keeper}::uuid, 'adjustment', 'other', 'Found short at the ward count')`);
+
+  // ─── The cold room: a sensor reading every two hours for a day ───
+  const hasCold = await one<{ id: string }>(
+    sql`SELECT id FROM public.pharmacy_fridges WHERE location_id = ${store}::uuid AND archived_at IS NULL LIMIT 1`,
+  );
+  if (!hasCold) {
+    const room =
+      await id(sql`INSERT INTO public.pharmacy_fridges (hospital_id, location_id, code, name, sensor_id, created_by)
+      VALUES (${h}, ${store}::uuid, 'CR-01', 'Cold room', 'SEED-CR-01', ${boss}::uuid) RETURNING id`);
+    for (let hours = 24; hours >= 0; hours -= 2)
+      await db.execute(sql`INSERT INTO public.pharmacy_fridge_readings (hospital_id, fridge_id, read_at, temp_c, source)
+        VALUES (${h}, ${room}::uuid, now() - make_interval(hours => ${hours}), ${4 + (hours % 6) / 2}, 'sensor')`);
+  }
 
   // ─── Shelves, counted at different ages; one count waiting for sign-off ───
   const shelf = async (code: string, name: string, controlled = false) =>
