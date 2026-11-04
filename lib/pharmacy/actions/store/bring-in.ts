@@ -8,6 +8,7 @@ import { z } from "zod";
 import { STORE_SAYS as S } from "@/content/pharmacy-store";
 import { planFor, planTotal, trimToBudget } from "@/lib/pharmacy/derive/store/orders";
 import { medOf } from "@/lib/pharmacy/derive/store/stock";
+import { markShelved } from "@/lib/pharmacy/actions/receive/after";
 import { PutAwayInput, putAway as putOnShelf } from "@/lib/pharmacy/stores/shelves";
 import { fail, loadLocation } from "@/lib/pharmacy/stores/write";
 import {
@@ -135,7 +136,11 @@ export const sendOrder = act(Supplier, NEED, async (ctx, i) => {
 });
 
 /** Cold-first is the database's rule (`pbs_cold_first`). */
-export const putAway = act(PutAwayInput, NEED, (ctx, i) => putOnShelf(ctx, i));
+export const putAway = act(PutAwayInput, NEED, async (ctx, i) => {
+  const out = await putOnShelf(ctx, i);
+  await markShelved(ctx, i.batchId, i.shelf, i.clientKey);
+  return out;
+});
 
 /** Undo in the same session: a new row that says so. Only the person who put it away (`undo_own`). */
 export const undoPutAway = act(

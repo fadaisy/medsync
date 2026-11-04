@@ -7,6 +7,18 @@ export const PHARMACY_RECEIVE_COPY: SignedCopy = { status: "draft", signedBy: nu
 
 const line = (no: number) => `Line ${no}`;
 
+/** The kinds of dispatch, as a place sees them (§F). */
+export const CATALOGUE_DISPATCH_WORDS = {
+  requisition: "Requisition",
+  topup: "Top-up",
+  urgent: "Urgent",
+  transfer: "Transfer",
+  straight: "Straight from delivery",
+  no_requisition: "Without a requisition",
+  expiry_move: "Near expiry",
+  return: "Return",
+};
+
 export const RC = {
   dash: "—",
   why: {
@@ -114,6 +126,28 @@ export const RC = {
     received: ["Received", "Closed deliveries, newest first.", "Nothing received yet."],
     way: ["On the way", "From Main store. It joins this place’s stock when you confirm it arrived.", "Nothing is on the way."],
     placeReceived: ["Received", "Confirmed, newest first.", "Nothing received yet."],
+  },
+  says: {
+    finished: "This delivery is already finished.",
+    future: "The arrival time is in the future.",
+    arrival: "Give the date and time it arrived.",
+    duplicate: "This delivery note is already recorded for this supplier, so the stock cannot come in twice.",
+    witness: "Each controlled line needs its witness.",
+    second: "Choose who checked the count.",
+    sameChecker: "The person who checked the count cannot be the person receiving it.",
+    abandon: "Say why it is abandoned.",
+    serial: (serial: string, note: string) =>
+      `This pack was already scanned (serial ${serial}, on ${note}). The same serial twice can mean a copied pack: set it aside and tell the in-charge. It was not counted.`,
+    cold: (med: string, bin: string) => `Cold-chain first: put the ${med}${bin ? ` in ${bin}` : " away"}.`,
+    shelf: "Give the shelf code first.",
+    inCharge: "Only the in-charge can approve this.",
+    below: (name: string, n: number) => `${name}: ordered can't be less than the ${plural(n, "pack")} that already arrived.`,
+    orderEmpty: "An order needs at least one line.",
+    lineEmpty: (name: string) => `${name}: give the packs and the price.`,
+    credit: "Give the credit note number.",
+    noQuarantine: "There is no quarantine place to keep these in. Add one in Set-up › Places.",
+    localBlank: "Give the generic name and the strength.",
+    photo: "We couldn't start the upload. Try again.",
   },
   kind: {
     supplier: "Supplier delivery",

@@ -325,7 +325,7 @@ describe("figures", () => {
 
 describe("stages", () => {
   const w = { ...world(), hospitalId: "", facility: "", me: { id: "", name: "", inCharge: false }, placeId: "p1", suppliers: [], claims: [],
-    asks: [], figureRows: [], supplierRows: [], registration: [], dispatches: [],
+    asks: [], figureRows: [], supplierRows: [], differencesBy: [], registration: [], dispatches: [],
     places: [{ id: "p1", name: "Main store", kind: "store", direct: true }, { id: "p2", name: "OPD", kind: "dispensing_point", direct: false }],
     deliveries: [], orders: [] };
   it("a receiving place has four columns, others two", () => {

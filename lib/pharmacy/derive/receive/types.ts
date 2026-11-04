@@ -258,6 +258,7 @@ export interface ReceiveWorld {
   asks: ApprovalAsk[];
   figureRows: FigureRow[];
   supplierRows: SupplierRow[];
+  differencesBy: [string, number][];
   registration: RegistrationLine[];
   rules: ReceiveRules;
   today: string;

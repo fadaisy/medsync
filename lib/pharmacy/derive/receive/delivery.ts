@@ -1,9 +1,48 @@
 import type { LineInfo } from "./line-info";
-import type { ClaimLine, LineWorld, ReceiveDelivery, ReceiveOrder, ReceiveRules } from "./types";
+import type { ClaimLine, LineSource, LineWorld, ReceiveDelivery, ReceiveLine, ReceiveMed, ReceiveOrder, ReceiveRules } from "./types";
 
 import { RC } from "@/content/pharmacy-receive";
 import { addDaysIso, daysBetween, hm, money, plural } from "./format";
 import { lineInfo } from "./line-info";
+
+/** A line waiting to be counted (`blankLine`): the medicine's usual pack and price, nothing typed. */
+export function blankLine(
+  id: string,
+  d: Pick<ReceiveDelivery, "lines">,
+  m: Pick<ReceiveMed, "id" | "per" | "cost">,
+  source: LineSource,
+  x: Partial<ReceiveLine> = {},
+): ReceiveLine {
+  return {
+    id,
+    no: d.lines.reduce((a, l) => Math.max(a, l.no), 0) + 1,
+    medId: m.id,
+    source,
+    orderLineId: null,
+    batch: "",
+    exp: "",
+    packs: "",
+    per: String(m.per),
+    notePacks: "",
+    cost: m.cost ? String(m.cost) : "",
+    temp: "",
+    decision: "",
+    approvedBy: "",
+    approvalAsked: false,
+    regReason: "",
+    regNote: "",
+    rejOn: false,
+    rejPacks: "",
+    rejWhy: "",
+    rejFate: "driver",
+    vvm: "",
+    freeze: "",
+    rank: 0,
+    owedFrozen: null,
+    witnessName: "",
+    ...x,
+  };
+}
 
 /** Every blocking problem, and whether a line is counted at all. Finishing needs none, and one. */
 export function deliveryProblems(d: ReceiveDelivery, w: LineWorld) {
