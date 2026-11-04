@@ -1428,7 +1428,7 @@ function condStats(w: StoreWorld): { tiles: Tile[]; charts: ChartSpec[] } {
       },
     });
   }
-  const room = w.room;
+  const room = w.room.slice(-14);
   const lim = w.rules.roomTemp;
   charts.push({
     key: "room",

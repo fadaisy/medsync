@@ -245,6 +245,8 @@ describe("source rules", () => {
       "app/pharmacy/setup/setup-actions.ts",
       "app/pharmacy/stock/actions.ts",
       "app/pharmacy/stock/store/count-actions.ts",
+      // Stock › Main store (STORE.md §I), through runPharmacyWrite.
+      "app/pharmacy/stock/store/store-actions.ts",
       // Pharmacy Phase 2: the Store group (Steps 4 to 9).
       "app/pharmacy/store/actions.ts",
       "app/pharmacy/store/deliveries/actions.ts",

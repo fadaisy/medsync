@@ -56,3 +56,22 @@ export const supplierFillRate = (s: Pick<SupplierStat, "ordered" | "received">) 
   s.ordered > 0 ? Math.round((Math.min(s.received, s.ordered) / s.ordered) * 100) : null;
 export const supplierLeadDays = (s: Pick<SupplierStat, "leadDays">) =>
   s.leadDays.length ? Math.round(s.leadDays.reduce((a, b) => a + b, 0) / s.leadDays.length) : null;
+
+/**
+ * The order as it stands for a supplier: what was typed into its draft, else the formula. Medicines not moving are left
+ * out unless someone typed them. Screen and server read the same plan.
+ */
+export function planFor(w: StoreWorld, supplierId: string): PlanLine[] {
+  const draft = w.orders.find((o) => o.state === "draft" && o.supplierId === supplierId);
+  const typed = new Map(draft?.lines.map((l) => [l.medId, l.qty]));
+  return w.meds
+    .filter((m) => typed.has(m.id) || !notMoving(m, w.rules))
+    .map((m) => ({
+      medId: m.id,
+      ven: m.ven,
+      qty: typed.get(m.id) ?? suggestFor(w, m),
+      cost: m.cost,
+      pack: m.pack,
+      minQty: minQtyFor(w, m, w.rules),
+    }));
+}

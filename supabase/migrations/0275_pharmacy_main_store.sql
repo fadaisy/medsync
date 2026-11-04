@@ -311,7 +311,8 @@ BEGIN
   END IF;
   SELECT * INTO _b FROM public.pharmacy_batches WHERE id = NEW.batch_id;
   SELECT cold_chain INTO _cold FROM public.pharmacy_products WHERE id = _b.product_id;
-  IF NOT coalesce(_cold, false) AND EXISTS (
+  -- A batch that is not waiting (a move between shelves, a return back on its bin) is no put-away.
+  IF NOT coalesce(_cold, false) AND private.pharmacy_batch_waiting(NEW.batch_id) AND EXISTS (
     SELECT 1 FROM public.pharmacy_batches o JOIN public.pharmacy_products p ON p.id = o.product_id
      WHERE coalesce(o.location_id, o.dispensing_point_id) = coalesce(_b.location_id, _b.dispensing_point_id)
        AND o.id <> _b.id AND p.cold_chain AND private.pharmacy_batch_waiting(o.id)
@@ -519,6 +520,20 @@ CREATE TABLE IF NOT EXISTS public.pharmacy_store_room_readings (
 );
 CREATE INDEX IF NOT EXISTS psrr_when ON public.pharmacy_store_room_readings (location_id, read_at DESC);
 
+-- What was done about an expiring batch: moved, marked to go first, or sent back. One row per act; the row shows it.
+CREATE TABLE IF NOT EXISTS public.pharmacy_expiry_actions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  hospital_id uuid NOT NULL REFERENCES public.hospitals(id) ON DELETE RESTRICT,
+  batch_id uuid NOT NULL REFERENCES public.pharmacy_batches(id) ON DELETE RESTRICT,
+  action text NOT NULL CHECK (action IN ('move','first','return')),
+  qty integer NOT NULL CHECK (qty >= 0),
+  to_location_id uuid REFERENCES public.pharmacy_locations(id) ON DELETE RESTRICT,
+  voucher text CHECK (voucher IS NULL OR voucher ~ '^(RIV|RTN)-[0-9]{4,}$'),
+  done_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  done_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS pea_batch ON public.pharmacy_expiry_actions (batch_id, done_at DESC);
+
 -- ─── 10. Cases and place balances ────────────────────────────────────────
 ALTER TABLE public.pharmacy_cases DROP CONSTRAINT IF EXISTS pharmacy_cases_source_type_check;
 ALTER TABLE public.pharmacy_cases ADD CONSTRAINT pharmacy_cases_source_type_check CHECK (source_type IN
@@ -570,7 +585,7 @@ DO $$
 DECLARE t text;
 BEGIN
   FOREACH t IN ARRAY ARRAY['pharmacy_topup_run_log','pharmacy_shelf_count_lines','pharmacy_quarantine_decisions',
-    'pharmacy_store_losses','pharmacy_store_room_readings'] LOOP
+    'pharmacy_store_losses','pharmacy_store_room_readings','pharmacy_expiry_actions'] LOOP
     EXECUTE format('DROP TRIGGER IF EXISTS %1$s_append_only ON public.%1$I', t);
     EXECUTE format('CREATE TRIGGER %1$s_append_only BEFORE UPDATE OR DELETE ON public.%1$I
       FOR EACH ROW EXECUTE FUNCTION public.block_modify_append_only()', t);
@@ -578,7 +593,7 @@ BEGIN
   FOREACH t IN ARRAY ARRAY['pharmacy_voucher_seq','pharmacy_topup_runs','pharmacy_topup_run_log',
     'pharmacy_store_returns','pharmacy_shelves','pharmacy_stocktakes','pharmacy_shelf_counts',
     'pharmacy_shelf_count_lines','pharmacy_quarantine_decisions','pharmacy_store_losses',
-    'pharmacy_store_room_readings'] LOOP
+    'pharmacy_store_room_readings','pharmacy_expiry_actions'] LOOP
     IF t NOT IN ('pharmacy_voucher_seq','pharmacy_shelf_count_lines') THEN
       EXECUTE format('DROP TRIGGER IF EXISTS audit_%1$s ON public.%1$I', t);
       EXECUTE format('CREATE TRIGGER audit_%1$s AFTER INSERT OR UPDATE OR DELETE ON public.%1$I

@@ -173,10 +173,11 @@ export async function seedStore(db: Db, hospitalId: string) {
     qty: number,
     daysAgo: number,
     loc = store,
+    delivery: string | null = null,
   ) => {
     const b = await batchAt(key, no, expiry, loc);
-    await db.execute(sql`INSERT INTO public.pharmacy_stock_movements (hospital_id, location_id, batch_id, kind, quantity, effective_at, actor_user_id, source_kind, unit_cost)
-      VALUES (${h}, ${loc}::uuid, ${b}::uuid, 'received', ${qty}, ${at(daysAgo)}::timestamptz, ${keeper}::uuid, 'delivery', ${med(key)[5]})`);
+    await db.execute(sql`INSERT INTO public.pharmacy_stock_movements (hospital_id, location_id, batch_id, kind, quantity, effective_at, actor_user_id, source_kind, source_id, unit_cost)
+      VALUES (${h}, ${loc}::uuid, ${b}::uuid, 'received', ${qty}, ${at(daysAgo)}::timestamptz, ${keeper}::uuid, 'delivery', ${delivery}::uuid, ${med(key)[5]})`);
     return b;
   };
   const put = (b: string, shelf: string) =>
@@ -433,20 +434,35 @@ export async function seedStore(db: Db, hospitalId: string) {
       sql`SELECT id FROM public.pharmacy_suppliers WHERE hospital_id = ${h} ORDER BY name LIMIT 1`,
     )
   )?.id;
+  // The one who delivers and takes returns (0180); deliveries name it, orders name the 0274 supplier.
+  const carrier =
+    await id(sql`INSERT INTO public.pharmacy_counterparties (hospital_id, kind, name, takes_returns, created_by)
+      VALUES (${h}, 'supplier', 'National Medical Stores', true, ${boss}::uuid) RETURNING id`);
+  const delivery = async (daysAgo: number, order: string | null) =>
+    id(sql`INSERT INTO public.pharmacy_deliveries (hospital_id, location_id, supplier_id, note_number, order_id, arrived_at, counted_by, state, finished_by, finished_at)
+      VALUES (${h}, ${store}::uuid, ${carrier}::uuid, ${await voucher("GRN")}, ${order}::uuid, ${at(daysAgo)}::timestamptz, ${keeper}::uuid, 'received', ${keeper}::uuid, ${at(daysAgo)}::timestamptz) RETURNING id`);
+  let sentOrder: string | null = null;
   if (supplier) {
     const order =
       await id(sql`INSERT INTO public.pharmacy_orders (hospital_id, kind, state, cut_at, budget, created_by, saved_at, saved_by, supplier_id, sent_at, sent_by)
       VALUES (${h}, 'cycle', 'open', ${at(30)}::timestamptz, 12000000, ${boss}::uuid, ${at(30)}::timestamptz, ${boss}::uuid, ${supplier}::uuid, ${at(30)}::timestamptz, ${boss}::uuid) RETURNING id`);
     await db.execute(sql`INSERT INTO public.pharmacy_order_lines (order_id, medicine_id, product_id, inputs, proposed_units, chosen_units)
       VALUES (${order}::uuid, 'store_ceft', ${P.ceft}::uuid, '{}', 1000, 1000), (${order}::uuid, 'store_amox', ${P.amox}::uuid, '{}', 12000, 12000)`);
+    sentOrder = order;
     await db.execute(sql`INSERT INTO public.pharmacy_orders (hospital_id, kind, state, cut_at, budget, created_by, supplier_id)
       VALUES (${h}, 'cycle', 'draft', now(), 12000000, ${boss}::uuid, ${supplier}::uuid)`);
   }
 
   // ─── To put away: a delivery today, cold first ───
-  await receive("ins", "INS-2611", inDays(300), 10, 0);
-  await receive("al", "AL-2611", inDays(500), 2000, 0);
-  await receive("amox", "AMOX-2611", inDays(700), 1800, 0);
+  const today = await delivery(0, sentOrder);
+  await receive("ins", "INS-2611", inDays(300), 10, 0, store, today);
+  await receive("al", "AL-2611", inDays(500), 2000, 0, store, today);
+  await receive("amox", "AMOX-2611", inDays(700), 1800, 0, store, today);
+
+  // ─── A place whose books do not balance this month ───
+  const gap = await receive("ceft", "CEFT-2612", inDays(400), 300, 40, ward);
+  await db.execute(sql`INSERT INTO public.pharmacy_stock_movements (hospital_id, location_id, batch_id, kind, quantity, effective_at, actor_user_id, source_kind, reason_code, reason_note)
+    VALUES (${h}, ${ward}::uuid, ${gap}::uuid, 'adjusted', -120, ${at(0)}::timestamptz, ${keeper}::uuid, 'adjustment', 'other', 'Found short at the ward count')`);
 
   // ─── Shelves, counted at different ages; one count waiting for sign-off ───
   const shelf = async (code: string, name: string, controlled = false) =>

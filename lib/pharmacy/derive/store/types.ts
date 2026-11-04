@@ -89,6 +89,8 @@ export interface StoreBatch {
   waiting: boolean;
   grn: string | null;
   receivedAt: string | null;
+  /** Expired or recalled: on the shelf, counted, but never on hand and never picked. */
+  blocked?: boolean;
 }
 
 export interface StorePlace {

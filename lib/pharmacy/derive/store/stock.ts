@@ -6,7 +6,7 @@ function build(w: StoreWorld) {
   const hand = new Map<string, number>();
   const list = new Map<string, StoreBatch[]>();
   for (const b of w.batches) {
-    hand.set(b.medId, (hand.get(b.medId) ?? 0) + b.qty);
+    if (!b.blocked) hand.set(b.medId, (hand.get(b.medId) ?? 0) + b.qty);
     const l = list.get(b.medId);
     if (l) l.push(b);
     else list.set(b.medId, [b]);
@@ -73,7 +73,7 @@ export function fefo(list: readonly StoreBatch[], qty: number): Take[] {
     (x, y) => x.exp.localeCompare(y.exp) || x.no.localeCompare(y.no),
   )) {
     if (left <= 0) break;
-    if (!b.qty) continue;
+    if (!b.qty || b.blocked) continue;
     const n = Math.min(b.qty, left);
     out.push({ batchId: b.id, no: b.no, exp: b.exp, bin: b.bin, n });
     left -= n;
@@ -88,4 +88,4 @@ export function takeOut(list: readonly StoreBatch[], qty: number): StoreBatch[] 
 }
 
 export const storeValue = (w: StoreWorld) =>
-  w.batches.reduce((a, b) => a + b.qty * (medOf(w, b.medId)?.cost ?? 0), 0);
+  w.batches.reduce((a, b) => a + (b.blocked ? 0 : b.qty * (medOf(w, b.medId)?.cost ?? 0)), 0);

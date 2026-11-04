@@ -379,3 +379,59 @@ export const ST = {
     },
   },
 } as const;
+
+/** The database guards of 0275, in words (`databaseRefusal`). */
+export const STORE_REFUSAL: [string, string][] = [
+  ["a controlled line needs a witness", "Controlled: choose the witness."],
+  ["is not the first to expire", "Take the batch that expires first. Choose again."],
+  [
+    "reaches the place only when it is confirmed",
+    "It reaches the place only when the place confirms it.",
+  ],
+  ["a vital line is never trimmed", "V lines are never cut."],
+  ["cold-chain lines are put away first", "Cold-chain first: put the cold lines away."],
+  ["only the person who put it away undoes it", "Only the person who put it away can undo it."],
+  ["posts only once signed", "This difference needs the in-charge's sign-off first."],
+  ["count every shelf first", "Count every shelf first."],
+  ["a count still needs", "A count still needs the in-charge's sign-off."],
+  ["only the in-charge closes", "Only the in-charge closes a stock-take."],
+  ["only the in-charge signs off", "Only the in-charge signs off a count."],
+  ["a controlled loss needs a witness", "Controlled: choose the witness."],
+  ["theft or a controlled loss opens a case", "Theft or a controlled medicine opens a case."],
+];
+
+/** What an action says when it refuses. */
+export const STORE_SAYS = {
+  noStore: "This hospital has no main store yet. Add it in Set-up › Places.",
+  onlyN: "Only {n} in the store.",
+  onlyNBatch: "Only {n} in that batch.",
+  nothing: "Nothing to send.",
+  chooseWitness: "Controlled: choose the witness.",
+  witnessOnline:
+    "The witness has to approve this on their phone. A paper signature is not enough here.",
+  destroyWitness: "Choose the witness for the destruction.",
+  reqDone: "That requisition has already been issued in full.",
+  overOwed: "Only {n} of that line is still owed.",
+  placeOnly: "Only someone at {place} confirms this.",
+  runMissing: "That place has no top-up run.",
+  runSent: "This run has already gone today, on {voucher}.",
+  returnGone: "That return has already been accepted.",
+  gapSmall: "This gap does not need a case.",
+  inChargeOnly: "Only the in-charge can do this.",
+  orderMissing: "There is no draft order for this supplier.",
+  orderEmpty: "The order has no lines.",
+  bud: "Type the budget.",
+  countAll: "Type a count for every batch, 0 if none.",
+  noDiff: "This count does not need a sign-off.",
+  stocktakeOpen: "A stock-take is already open.",
+  noStocktake: "No stock-take is open.",
+  notQuarantine: "That batch is not in quarantine.",
+  quarantineEmpty: "Nothing is left of that batch.",
+  noQuarantine: "This hospital has no quarantine shelf yet. Add it in Set-up › Places.",
+  chooseMedBatch: "Choose the medicine and batch.",
+  sayWhat: "Say what happened.",
+  undoOwn: "Nothing to undo.",
+  shelfCode: "A shelf code is capitals and numbers, like A or CR-01.",
+  bestPlaceNone: "No place can take it.",
+  noSupplier: "No supplier takes returns yet. Add one in Set-up › Places.",
+} as const;

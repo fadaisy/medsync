@@ -21,6 +21,7 @@ import {
 import { pharmacyLoanClosures } from "@/db/schema/pharmacy-stores-0182";
 import { assertPicked } from "@/lib/pharmacy/distribution/store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
+import { arriveDispatch } from "@/lib/pharmacy/stores/dispatch";
 import {
   confirmationAdjustments,
   loanBalances,
@@ -83,7 +84,7 @@ const lineList = z
 /* ─── The issue itself (IS-2, IS-6, LC-3, Law 7) ───────────────────────── */
 
 /** The batches of a product at a location, with the ones under an open recall (SL-14). */
-async function productBatches(tx: EmrTx, location: StockLocation, productId: string) {
+export async function productBatches(tx: EmrTx, location: StockLocation, productId: string) {
   const rows = await tx
     .select({
       id: pharmacyBatches.id,
@@ -495,6 +496,17 @@ export async function confirmIssue(
     .from(pharmacyIssueConfirmations)
     .where(eq(pharmacyIssueConfirmations.issueId, issue.id));
   if (done) return { id: done.id, differences: 0 };
+  // 0275: a voucher dispatch sits on the way until now; it arrives whole, a difference is a note and a case.
+  if (issue.voucher) {
+    const id = await arriveDispatch(tx, {
+      hospitalId: args.hospitalId,
+      issue,
+      note: args.reason ?? null,
+      confirmedBy: args.confirmedByUserId,
+      now: args.now,
+    });
+    return { id, differences: args.reason ? 1 : 0 };
+  }
   const location = await loadLocation(tx, args.hospitalId, issue.toLocationId);
   const legs = await tx
     .select({

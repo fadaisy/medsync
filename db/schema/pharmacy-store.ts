@@ -152,3 +152,15 @@ export const pharmacyStoreRoomReadings = pgTable("pharmacy_store_room_readings",
   humidity: integer("humidity").notNull(),
   recordedBy: uuid("recorded_by").notNull(),
 });
+
+export const pharmacyExpiryActions = pgTable("pharmacy_expiry_actions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hospitalId: uuid("hospital_id").notNull(),
+  batchId: uuid("batch_id").notNull(),
+  action: text("action").$type<"move" | "first" | "return">().notNull(),
+  qty: integer("qty").notNull(),
+  toLocationId: uuid("to_location_id"),
+  voucher: text("voucher"),
+  doneBy: uuid("done_by").notNull(),
+  doneAt: timestamp("done_at", tz).notNull().defaultNow(),
+});

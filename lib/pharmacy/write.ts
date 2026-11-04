@@ -6,6 +6,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { ROSTER_REFUSAL } from "@/content/pharmacy-roster";
 import { SETUP_REFUSAL } from "@/content/pharmacy-setup";
+import { STORE_REFUSAL } from "@/content/pharmacy-store";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { pharmacyDispensingPoints } from "@/db/schema/pharmacy";
 import { asClinicalWriter } from "@/lib/emr/db";
@@ -242,6 +243,8 @@ export function databaseRefusal(e: unknown): string | null {
     ["pharmacy_roster_week_events: the week is already", ROSTER_REFUSAL.weekState],
     // 0274: the set-up tabs' guards.
     ...SETUP_REFUSAL,
+    // 0275: the main store's guards.
+    ...STORE_REFUSAL,
   ];
   const lines = msg.match(/pharmacy_locations: (\d+) lines are still here/);
   if (lines) return `Move or issue out its stock first: ${lines[1]} lines are still here.`;
