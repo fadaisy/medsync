@@ -24,7 +24,7 @@ export const RA = {
     allDone: "all done",
     labels: "Print shelf labels",
     note: "Each batch goes to the shelf where its medicine already is. Cold-chain lines first.",
-    cold: "2–8 °C · first",
+    cold: (lo: number, hi: number) => `${lo}–${hi} °C · first`,
     controlled: "Controlled",
     row: (batch: string, exp: string, qty: string) => `${batch} · exp ${exp} · ${qty}`,
     sentOn: (n: number) => ` (${num(n)} sent on)`,

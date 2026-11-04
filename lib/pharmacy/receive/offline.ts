@@ -40,7 +40,9 @@ export const allDevice = () => tx<DeviceDelivery[]>("readonly", (s) => s.getAll(
 
 export interface SyncSteps {
   /** The head and lines; a duplicate note comes back as `duplicate`. */
-  push(d: DeviceDelivery): Promise<{ ok: true; duplicate?: boolean } | { ok: false; error: string }>;
+  push(
+    d: DeviceDelivery,
+  ): Promise<{ ok: true; duplicate?: boolean } | { ok: false; error: string }>;
   finish(d: DeviceDelivery): Promise<{ ok: true } | { ok: false; error: string }>;
 }
 
@@ -62,7 +64,11 @@ export async function syncQueue(
 ): Promise<SyncResult> {
   const out: SyncResult = { added: [], conflicts: [] };
   const back = async (d: DeviceDelivery, reason: string) => {
-    await store.put({ ...d, queued: false, delivery: { ...d.delivery, state: "counting", conflict: reason } });
+    await store.put({
+      ...d,
+      queued: false,
+      delivery: { ...d.delivery, state: "counting", conflict: reason },
+    });
     out.conflicts.push({ id: d.delivery.id, reason });
   };
   for (const d of [...items].filter((x) => x.queued).sort((a, b) => a.savedAt - b.savedAt)) {

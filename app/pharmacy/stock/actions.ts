@@ -42,13 +42,6 @@ async function act<I, R extends { id: string }>(
   }
 }
 
-export async function receiveDelivery(raw: unknown) {
-  return act(store.DeliveryInput, raw, store.STOCK_NEED, store.receiveDelivery);
-}
-
-export async function receiveStock(raw: unknown) {
-  return act(store.ReceiveInput, raw, store.STOCK_NEED, store.receiveStock);
-}
 export async function addBatchFoundOnShelf(raw: unknown) {
   return act(store.FoundInput, raw, store.STOCK_NEED, store.addBatchFoundOnShelf);
 }

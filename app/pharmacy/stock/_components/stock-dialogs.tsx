@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import {
   ADJUSTMENT_REASONS,
   COUNT_DIFFERENCE_REASONS,
-  DELIVERY_FROM,
   STOCK,
 } from "@/content/pharmacy-stock";
 import { CataloguePicker } from "@/app/pharmacy/_components/catalogue-picker";
@@ -100,113 +99,7 @@ function ExpiryField({ name, defaultValue }: { name: string; defaultValue?: stri
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const int = (f: FormData, k: string) => Number(str(f, k));
 
-/* ─── Receive stock ───────────────────────────────────────────────────── */
 
-type ReceiveFields = {
-  clientKey: string;
-  productId: string;
-  batchNumber: string;
-  expiry: string;
-  quantity: number;
-  from: string;
-  deliveryRef: string;
-};
-
-/**
- * 5.8 Receive stock. The Controlled drugs page passes its own `save` (the witnessed receipt, CD-5) and
- * the witness block as `before`, rendered first.
- */
-export function ReceiveDialog({
-  products,
-  title = STOCK.receive.title,
-  save = actions.receiveStock,
-  before,
-  from = Object.keys(DELIVERY_FROM) as (keyof typeof DELIVERY_FROM)[],
-}: {
-  products: DialogProduct[];
-  title?: string;
-  save?: (input: ReceiveFields) => Promise<StockResult<unknown>>;
-  before?: ReactNode;
-  /** Phase 2 Law 3 (S17a): the sources still offered here (`deliveryFromOffered`); every one by default. */
-  from?: readonly (keyof typeof DELIVERY_FROM)[];
-}) {
-  const ids = { product: useId(), batch: useId(), qty: useId(), ref: useId() };
-  const [productId, setProductId] = useState(products[0]?.id ?? "");
-  const product = products.find((p) => p.id === productId);
-  return (
-    <StockDialog
-      label={STOCK.actions.receive}
-      title={title}
-      submit={STOCK.receive.submit}
-      variant="primary"
-      onSave={async (clientKey, d) => {
-        return save({
-          clientKey,
-          productId,
-          batchNumber: str(d, "batchNumber"),
-          expiry: str(d, "expiry"),
-          quantity: int(d, "quantity"),
-          from: str(d, "from"),
-          deliveryRef: str(d, "deliveryRef"),
-        });
-      }}
-    >
-      {before}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {products.length === 0 ? (
-          <p className="text-body-s text-muted-foreground sm:col-span-2">
-            {STOCK.receive.noProduct}
-          </p>
-        ) : (
-          <Field label={STOCK.receive.product} id={ids.product}>
-            <select
-              id={ids.product}
-              className={SELECT}
-              value={productId}
-              onChange={(e) => setProductId(e.target.value)}
-            >
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.medicineName} · {p.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-        )}
-        <Field label={STOCK.receive.batch} id={ids.batch}>
-          <Input id={ids.batch} name="batchNumber" required maxLength={60} className={TARGET} />
-        </Field>
-        <ExpiryField name="expiry" />
-        <Field
-          label={
-            product
-              ? STOCK.receive.quantity(product.medicineName, product.issueUnit)
-              : STOCK.transfer.quantity
-          }
-          id={ids.qty}
-        >
-          <Input id={ids.qty} name="quantity" type="number" min={1} required className={TARGET} />
-        </Field>
-        <fieldset className="flex flex-col gap-1 sm:col-span-2">
-          <legend className="text-ink-700 text-caption mb-1.5 font-medium">
-            {STOCK.receive.from}
-          </legend>
-          {from
-            .map((code) => [code, DELIVERY_FROM[code]] as const)
-            .map(([code, word], i) => (
-              <label key={code} className="text-body-s inline-flex min-h-11 items-center gap-2">
-                <input type="radio" name="from" value={code} defaultChecked={i === 0} required />
-                {word}
-              </label>
-            ))}
-        </fieldset>
-        <Field label={STOCK.receive.ref} id={ids.ref}>
-          <Input id={ids.ref} name="deliveryRef" maxLength={120} className={TARGET} />
-        </Field>
-      </div>
-    </StockDialog>
-  );
-}
 
 /* ─── Count (blind) ───────────────────────────────────────────────────── */
 

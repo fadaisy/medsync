@@ -135,7 +135,9 @@ export function AfterView({ delivery: d }: { delivery: ReceiveDelivery }) {
                       <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-0.5">
                         <span className={cn(rowTitle, "flex flex-wrap items-center gap-1.5")}>
                           {i.m.name}
-                          {i.m.cold ? <Tag>{RA.put.cold}</Tag> : null}
+                          {i.m.cold ? (
+                            <Tag>{RA.put.cold(world.rules.tempLow, world.rules.tempHigh)}</Tag>
+                          ) : null}
                           {i.m.controlled ? <Tag>{RA.put.controlled}</Tag> : null}
                         </span>
                         <span className={rowSub}>

@@ -4,7 +4,11 @@ import { RC } from "@/content/pharmacy-receive";
 import { plural } from "@/lib/pharmacy/derive/receive/format";
 
 /** Stock › Receive a delivery: the board, the start dialog and the order dialogs (RECEIVE.md §A–§C). Draft until the CSO signs. */
-export const PHARMACY_RECEIVE_BOARD_COPY: SignedCopy = { status: "draft", signedBy: null, signedOn: null };
+export const PHARMACY_RECEIVE_BOARD_COPY: SignedCopy = {
+  status: "draft",
+  signedBy: null,
+  signedOn: null,
+};
 
 export const RB = {
   title: "Receive",
@@ -17,7 +21,8 @@ export const RB = {
       `${name} gets its stock from Main store, so there is no delivery note here: confirm what arrives. A supplier delivery goes through the store.`,
   },
   line: {
-    direct: (orders: number, things: number) => `${plural(orders, "order")} expected · ${plural(things, "thing")} to do`,
+    direct: (orders: number, things: number) =>
+      `${plural(orders, "order")} expected · ${plural(things, "thing")} to do`,
     place: (n: number) => `${plural(n, "dispatch", "dispatches")} to confirm`,
   },
   card: {
@@ -55,7 +60,8 @@ export const RB = {
       renewal_pending: "Registration renewal pending (supplier's letter)",
       other: "Other (with text)",
     } as Record<string, string>,
-    sub: (note: string, batch: string, reason: string) => `${note}${batch ? ` · batch ${batch}` : ""} · ${reason}`,
+    sub: (note: string, batch: string, reason: string) =>
+      `${note}${batch ? ` · batch ${batch}` : ""} · ${reason}`,
   },
   start: {
     title: "Receive a delivery",
@@ -72,7 +78,12 @@ export const RB = {
       facility: { title: RC.kind.facility, line: "Lent or sent by another hospital" },
       ward: { title: RC.kind.ward, line: "Stock a ward or unit sends back" },
     },
-    from: { supplier: "Supplier and order", donation: "Donor", facility: "Facility", ward: "Ward or unit" },
+    from: {
+      supplier: "Supplier and order",
+      donation: "Donor",
+      facility: "Facility",
+      ward: "Ward or unit",
+    },
     supplier: "Supplier",
     open: (n: number) => (n === 1 ? "1 order open" : `${n} orders open`),
     pickOrder: "Pick the order below",
@@ -84,11 +95,15 @@ export const RB = {
     kindLead: {
       donation:
         "Donated stock is received like any other: counted, checked and given a GRN. It is valued at the usual price and no claim is made.",
-      facility: "Stock lent or sent by another facility. Record their transfer voucher so the two books match.",
+      facility:
+        "Stock lent or sent by another facility. Record their transfer voucher so the two books match.",
       ward: "Stock a ward or unit sends back. It is checked like a delivery before it goes back on the shelves.",
     },
     fromLabel: { donation: "Donor (organisation or programme)", facility: "Facility it came from" },
-    fromPh: { donation: "e.g. MSF Uganda, Global Fund via NMS", facility: "e.g. Kiruddu National Referral Hospital" },
+    fromPh: {
+      donation: "e.g. MSF Uganda, Global Fund via NMS",
+      facility: "e.g. Kiruddu National Referral Hospital",
+    },
     wardLabel: "Ward or unit",
     wardChoose: "Choose the ward or unit",
     paper: "Paperwork",
@@ -98,9 +113,15 @@ export const RB = {
       facility: "Their transfer voucher number",
       ward: "Return slip number",
     },
-    notePh: { supplier: "e.g. DN-20418", donation: "e.g. DON/2026/014", facility: "e.g. TRF-0381", ward: "e.g. RET-0042" },
+    notePh: {
+      supplier: "e.g. DN-20418",
+      donation: "e.g. DON/2026/014",
+      facility: "e.g. TRF-0381",
+      ward: "e.g. RET-0042",
+    },
     noteHint: {
-      supplier: "As printed on the note. A note already recorded is refused, so stock never comes in twice.",
+      supplier:
+        "As printed on the note. A note already recorded is refused, so stock never comes in twice.",
       other: "As written on their paperwork.",
     },
     arrived: "Arrived",
@@ -116,8 +137,12 @@ export const RB = {
     vehicle: "Vehicle number plate",
     vehiclePh: "UBK 123X",
     blind: "Count blind",
-    blindLine: "The note and order quantities stay hidden until each line is counted, so the count is what is in the boxes.",
-    foot: { order: "The order's lines will be ready to count.", none: "You add lines by scanning or typing." },
+    blindLine:
+      "The note and order quantities stay hidden until each line is counted, so the count is what is in the boxes.",
+    foot: {
+      order: "The order's lines will be ready to count.",
+      none: "You add lines by scanning or typing.",
+    },
     openDup: "Open that delivery",
     say: {
       supplier: "Choose the supplier.",
@@ -143,8 +168,8 @@ export const RB = {
       price: "Price a pack, UGX",
       value: "Value, UGX",
     },
-    sub: (per: number, unit: string, cold: boolean, controlled: boolean) =>
-      `Pack of ${per} ${unit}s${cold ? " · 2–8 °C" : ""}${controlled ? " · controlled" : ""}`,
+    sub: (per: number, unit: string, cold: boolean, controlled: boolean, lo: number, hi: number) =>
+      `Pack of ${per} ${unit}s${cold ? ` · ${lo}–${hi} °C` : ""}${controlled ? " · controlled" : ""}`,
     allIn: "All in",
     total: "Order value",
     packsOf: (name: string) => `Packs ordered of ${name}`,
@@ -161,13 +186,15 @@ export const RB = {
     addPacks: "Packs",
     addPrice: "Price a pack",
     addGo: "Add",
-    reason: "Lines that have already arrived can't go below what came. The supplier is not told automatically.",
+    reason:
+      "Lines that have already arrived can't go below what came. The supplier is not told automatically.",
     pickMed: "Choose the medicine to add.",
     typePacks: "Type how many packs.",
     empty: (name: string) => `${name}: ordered can't be empty.`,
     below: RC.says.below,
     none: RC.says.orderEmpty,
-    changed: (supplier: string) => `Order changed. Send the change to ${supplier} too: they are not told automatically.`,
+    changed: (supplier: string) =>
+      `Order changed. Send the change to ${supplier} too: they are not told automatically.`,
   },
   chase: {
     title: (ref: string) => `Chase ${ref}`,

@@ -1,7 +1,7 @@
 "use client";
 
-import type { DeviceDelivery } from "@/lib/pharmacy/receive/offline";
 import type { ReceiveDelivery, ReceiveLine, ReceiveWorld } from "@/lib/pharmacy/derive/receive";
+import type { DeviceDelivery } from "@/lib/pharmacy/receive/offline";
 import type { ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -15,7 +15,10 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { finishDeliveryAction, syncCountingAction } from "@/app/pharmacy/stock/store/receive-actions";
+import {
+  finishDeliveryAction,
+  syncCountingAction,
+} from "@/app/pharmacy/stock/store/receive-actions";
 import { useStockLive } from "@/components/pharmacy/medicines/use-stock-live";
 import { RC } from "@/content/pharmacy-receive";
 import { allDevice, dropDevice, putDevice, syncQueue } from "@/lib/pharmacy/receive/offline";
@@ -124,7 +127,8 @@ export function ReceiveProvider({
   const [seenDoor, setSeenDoor] = useState<string | null>(null);
   if (seenDoor !== door) {
     setSeenDoor(door);
-    if (door) open({ kind: "start", orderId: orderDoor ?? undefined, seedMedId: medDoor ?? undefined });
+    if (door)
+      open({ kind: "start", orderId: orderDoor ?? undefined, seedMedId: medDoor ?? undefined });
   }
   useEffect(() => {
     if (!door) return;
@@ -142,24 +146,42 @@ export function ReceiveProvider({
       const items = await allDevice().catch(() => []);
       // A delivery still being counted goes up first, so a reload here finds it.
       for (const d of items.filter((x) => !x.queued)) {
-        const r = await syncCountingAction({ head: headOf(d.delivery), lines: d.delivery.lines.map(lineForSync) }).catch(() => null);
+        const r = await syncCountingAction({
+          head: headOf(d.delivery),
+          lines: d.delivery.lines.map(lineForSync),
+        }).catch(() => null);
         if (!r) break;
         if (r.ok && !r.data?.duplicateOf) await dropDevice(d.delivery.id);
-        else if (r.ok) await putDevice({ ...d, delivery: { ...d.delivery, conflict: RC.says.duplicate } });
+        else if (r.ok)
+          await putDevice({ ...d, delivery: { ...d.delivery, conflict: RC.says.duplicate } });
         else await putDevice({ ...d, delivery: { ...d.delivery, conflict: r.error } });
       }
       const out = await syncQueue(
         items,
         {
           push: async (d) => {
-            const r = await syncCountingAction({ head: headOf(d.delivery), lines: d.delivery.lines.map(lineForSync) });
-            return r.ok ? { ok: true, duplicate: !!r.data?.duplicateOf } : { ok: false, error: r.error };
+            const r = await syncCountingAction({
+              head: headOf(d.delivery),
+              lines: d.delivery.lines.map(lineForSync),
+            });
+            return r.ok
+              ? { ok: true, duplicate: !!r.data?.duplicateOf }
+              : { ok: false, error: r.error };
           },
           finish: async (d) => {
-            const r = await finishDeliveryAction({ deliveryId: d.delivery.id, witnesses: [], secondAttestationId: null });
+            const r = await finishDeliveryAction({
+              deliveryId: d.delivery.id,
+              witnesses: [],
+              secondAttestationId: null,
+            });
             if (r.ok) return { ok: true };
             // Witnesses and second checkers confirm in person, so they cannot be carried over the gap.
-            return { ok: false, error: /witness|checked the count/.test(r.error) ? `${r.error} ${RC.device.needsPeople}` : r.error };
+            return {
+              ok: false,
+              error: /witness|checked the count/.test(r.error)
+                ? `${r.error} ${RC.device.needsPeople}`
+                : r.error,
+            };
           },
         },
         RC.says.duplicate,
@@ -225,10 +247,18 @@ export function ReceiveProvider({
     // The device's copy wins while offline, queued or refused; otherwise only until the server has the delivery.
     const server = new Set(world.deliveries.map((d) => d.id));
     const ours = device.filter(
-      (x) => x.delivery.place === world.placeId && (!online || x.queued || !!x.delivery.conflict || !server.has(x.delivery.id)),
+      (x) =>
+        x.delivery.place === world.placeId &&
+        (!online || x.queued || !!x.delivery.conflict || !server.has(x.delivery.id)),
     );
     const here = new Set(ours.map((x) => x.delivery.id));
-    return { ...world, deliveries: [...ours.map((x) => x.delivery), ...world.deliveries.filter((d) => !here.has(d.id))] };
+    return {
+      ...world,
+      deliveries: [
+        ...ours.map((x) => x.delivery),
+        ...world.deliveries.filter((d) => !here.has(d.id)),
+      ],
+    };
   }, [world, device, online]);
 
   const value: Ctx = {

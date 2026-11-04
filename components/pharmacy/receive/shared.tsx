@@ -43,7 +43,11 @@ export function Field({
       <label htmlFor={id} className="text-foreground text-[13px] leading-[18px] font-semibold">
         {label}
       </label>
-      {children({ id, ...(error ? { "aria-invalid": true as const } : {}), ...(error || hint ? { "aria-describedby": say } : {}) })}
+      {children({
+        id,
+        ...(error ? { "aria-invalid": true as const } : {}),
+        ...(error || hint ? { "aria-describedby": say } : {}),
+      })}
       {error ? (
         <p id={say} className="text-status-critical-fg-aa m-0 text-[12.5px] leading-[18px]">
           {error}
@@ -69,7 +73,13 @@ export function OptionCards<V extends string>({
   label: string;
   value: V | "";
   onChange: (v: V) => void;
-  options: readonly { value: V; title: string; line?: ReactNode; icon?: ReactNode; aside?: ReactNode }[];
+  options: readonly {
+    value: V;
+    title: string;
+    line?: ReactNode;
+    icon?: ReactNode;
+    aside?: ReactNode;
+  }[];
   error?: string | null;
   disabled?: boolean;
   className?: string;
@@ -77,37 +87,60 @@ export function OptionCards<V extends string>({
   const name = useId();
   return (
     <div>
-      <div role="radiogroup" aria-label={label} className={cn("grid gap-2 sm:grid-cols-2", className)}>
+      <div
+        role="radiogroup"
+        aria-label={label}
+        className={cn("grid gap-2 sm:grid-cols-2", className)}
+      >
         {options.map((o) => {
           const on = value === o.value;
           return (
             <label
               key={o.value}
               className={cn(
-                "bg-card flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border p-3 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary/30",
+                "bg-card has-[:focus-visible]:ring-primary/30 flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border p-3 has-[:focus-visible]:ring-2",
                 on ? "border-primary bg-tide-lagoon-tint" : "border-ink-300 hover:bg-ink-50",
                 disabled && "cursor-not-allowed opacity-70",
               )}
             >
-              <input type="radio" name={name} className="sr-only" checked={on} disabled={disabled} onChange={() => onChange(o.value)} />
+              <input
+                type="radio"
+                name={name}
+                className="sr-only"
+                checked={on}
+                disabled={disabled}
+                onChange={() => onChange(o.value)}
+              />
               {o.icon ? <span className="text-ink-700 mt-0.5 shrink-0">{o.icon}</span> : null}
               <span className="min-w-0 flex-1">
                 <span className="text-foreground flex flex-wrap items-center gap-2 text-[14px] leading-5 font-semibold">
                   {o.title}
                   {o.aside}
                 </span>
-                {o.line ? <span className="text-ink-600 block text-[12.5px] leading-[18px]">{o.line}</span> : null}
+                {o.line ? (
+                  <span className="text-ink-600 block text-[12.5px] leading-[18px]">{o.line}</span>
+                ) : null}
               </span>
             </label>
           );
         })}
       </div>
-      {error ? <p className="text-status-critical-fg-aa m-0 mt-1 text-[12.5px] leading-[18px]">{error}</p> : null}
+      {error ? (
+        <p className="text-status-critical-fg-aa m-0 mt-1 text-[12.5px] leading-[18px]">{error}</p>
+      ) : null}
     </div>
   );
 }
 
-export function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+export function Switch({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
   return (
     <button
       type="button"
@@ -116,20 +149,33 @@ export function Switch({ checked, onChange, label }: { checked: boolean; onChang
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cn(
-        "focus-visible:ring-primary/30 relative h-6 w-11 shrink-0 rounded-full outline-none transition-colors duration-150 focus-visible:ring-2",
+        "focus-visible:ring-primary/30 relative h-6 w-11 shrink-0 rounded-full transition-colors duration-150 outline-none focus-visible:ring-2",
         checked ? "bg-primary" : "bg-ink-300",
       )}
     >
       <span
         aria-hidden
-        className={cn("absolute top-0.5 left-0.5 size-5 rounded-full bg-white transition-transform duration-150", checked && "translate-x-5")}
+        className={cn(
+          "absolute top-0.5 left-0.5 size-5 rounded-full bg-white transition-transform duration-150",
+          checked && "translate-x-5",
+        )}
       />
     </button>
   );
 }
 
 /** White card, as the Main store's. */
-export function Panel({ title, aside, children, className }: { title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string }) {
+export function Panel({
+  title,
+  aside,
+  children,
+  className,
+}: {
+  title?: ReactNode;
+  aside?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <section className={cn("bg-card shadow-card rounded-2xl p-4 sm:p-5", className)}>
       {title ? (
@@ -144,4 +190,5 @@ export function Panel({ title, aside, children, className }: { title?: ReactNode
 }
 
 /** Square-ish status word: never colour alone. */
-export const tagTone = (t: "bad" | "warn" | "info" | "ok" | "teal" | "") => (t === "" ? "neutral" : t);
+export const tagTone = (t: "bad" | "warn" | "info" | "ok" | "teal" | "") =>
+  t === "" ? "neutral" : t;

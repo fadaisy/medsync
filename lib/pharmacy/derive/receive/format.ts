@@ -3,7 +3,8 @@ import { RC } from "@/content/pharmacy-receive";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export const num = (x: number) => Number(x).toLocaleString("en-GB");
-export const plural = (n: number, one: string, many?: string) => `${num(n)} ${n === 1 ? one : (many ?? `${one}s`)}`;
+export const plural = (n: number, one: string, many?: string) =>
+  `${num(n)} ${n === 1 ? one : (many ?? `${one}s`)}`;
 export const money = (x: number) => `UGX ${num(Math.round(x))}`;
 export const hm = (mins: number) => {
   const h = Math.floor(mins / 60);

@@ -5,19 +5,60 @@ import { deliveryProblems, orderDue, owedLines } from "./delivery";
 import { atText, plural } from "./format";
 
 export type StageKey = "way" | "expected" | "counting" | "put" | "received";
-export interface OrderCard { kind: "order"; order: ReceiveOrder; due: ReturnType<typeof orderDue>; stateText: string; sub: string }
-export interface CountCard { kind: "count"; delivery: ReceiveDelivery; tag: string; queued: boolean; sub: string }
-export interface PutCard { kind: "put"; delivery: ReceiveDelivery; left: number; sub: string }
-export interface DoneCard { kind: "done"; delivery: ReceiveDelivery; sub: string; diffs: number }
-export interface WayCard { kind: "way"; dispatch: ReceiveDispatch; sub: string }
-export interface ConfirmedCard { kind: "confirmed"; dispatch: ReceiveDispatch; sub: string }
+export interface OrderCard {
+  kind: "order";
+  order: ReceiveOrder;
+  due: ReturnType<typeof orderDue>;
+  stateText: string;
+  sub: string;
+}
+export interface CountCard {
+  kind: "count";
+  delivery: ReceiveDelivery;
+  tag: string;
+  queued: boolean;
+  sub: string;
+}
+export interface PutCard {
+  kind: "put";
+  delivery: ReceiveDelivery;
+  left: number;
+  sub: string;
+}
+export interface DoneCard {
+  kind: "done";
+  delivery: ReceiveDelivery;
+  sub: string;
+  diffs: number;
+}
+export interface WayCard {
+  kind: "way";
+  dispatch: ReceiveDispatch;
+  sub: string;
+}
+export interface ConfirmedCard {
+  kind: "confirmed";
+  dispatch: ReceiveDispatch;
+  sub: string;
+}
 export type StageCard = OrderCard | CountCard | PutCard | DoneCard | WayCard | ConfirmedCard;
-export interface Stage { key: StageKey; title: string; note: string; empty: string; tone: "warn" | "info" | ""; cards: StageCard[] }
+export interface Stage {
+  key: StageKey;
+  title: string;
+  note: string;
+  empty: string;
+  tone: "warn" | "info" | "";
+  cards: StageCard[];
+}
 
-const stateWord = (o: ReceiveOrder) => (o.state === "sent" ? "Sent" : o.state === "part" ? "Partly delivered" : "Closed");
+const stateWord = (o: ReceiveOrder) =>
+  o.state === "sent" ? "Sent" : o.state === "part" ? "Partly delivered" : "Closed";
 
 /** The board (§A) for one place. A place that does not receive directly gets On the way → Received only. */
-export function stages(w: ReceiveWorld, placeId: string): { stages: Stage[]; toDo: number; expected: number } {
+export function stages(
+  w: ReceiveWorld,
+  placeId: string,
+): { stages: Stage[]; toDo: number; expected: number } {
   const place = w.places.find((p) => p.id === placeId);
   const here = w.deliveries.filter((d) => d.place === placeId);
   const meds = new Map(w.meds.map((m) => [m.id, m]));
@@ -30,7 +71,11 @@ export function stages(w: ReceiveWorld, placeId: string): { stages: Stage[]; toD
     }));
   const confirmed: StageCard[] = w.dispatches
     .filter((d) => d.state !== "transit")
-    .map((dispatch) => ({ kind: "confirmed", dispatch, sub: dispatch.note || atText(dispatch.sentAt) }));
+    .map((dispatch) => ({
+      kind: "confirmed",
+      dispatch,
+      sub: dispatch.note || atText(dispatch.sentAt),
+    }));
   const orders: StageCard[] = w.orders
     .filter((o) => o.place === placeId && o.state !== "closed")
     .map((order) => {
@@ -53,7 +98,12 @@ export function stages(w: ReceiveWorld, placeId: string): { stages: Stage[]; toD
         kind: "count",
         delivery,
         queued: delivery.state === "queued",
-        tag: delivery.state === "queued" ? "Waiting for the network" : delivery.kind === "supplier" ? "Counting" : RC.kind[delivery.kind],
+        tag:
+          delivery.state === "queued"
+            ? "Waiting for the network"
+            : delivery.kind === "supplier"
+              ? "Counting"
+              : RC.kind[delivery.kind],
         sub: `Arrived ${atText(delivery.arrived)} · ${plural(counted, "line")} counted`,
       };
     });
@@ -61,14 +111,20 @@ export function stages(w: ReceiveWorld, placeId: string): { stages: Stage[]; toD
     .filter((d) => d.state === "received" && d.put.some((p) => !p.done))
     .map((delivery) => {
       const left = delivery.put.filter((p) => !p.done).length;
-      return { kind: "put", delivery, left, sub: `${plural(left, "batch", "batches")} waiting for a shelf` };
+      return {
+        kind: "put",
+        delivery,
+        left,
+        sub: `${plural(left, "batch", "batches")} waiting for a shelf`,
+      };
     });
   const done: StageCard[] = here
     .filter((d) => d.state === "received" || d.state === "abandoned")
     .map((delivery) => {
       const diffs =
         delivery.state === "received"
-          ? deliveryProblems(delivery, w).infos.filter((x) => x.i.words.some((y) => y.caution)).length
+          ? deliveryProblems(delivery, w).infos.filter((x) => x.i.words.some((y) => y.caution))
+              .length
           : 0;
       const prefix = delivery.kind === "supplier" ? "" : `${RC.kind[delivery.kind]} · `;
       return {
@@ -82,7 +138,12 @@ export function stages(w: ReceiveWorld, placeId: string): { stages: Stage[]; toD
             : `Abandoned: ${delivery.abandonReason}`),
       };
     });
-  const stage = (key: StageKey, t: readonly [string, string, string], cards: StageCard[], tone: Stage["tone"]): Stage => ({
+  const stage = (
+    key: StageKey,
+    t: readonly [string, string, string],
+    cards: StageCard[],
+    tone: Stage["tone"],
+  ): Stage => ({
     key,
     title: t[0],
     note: t[1],

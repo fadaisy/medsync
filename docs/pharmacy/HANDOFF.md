@@ -224,3 +224,26 @@ seed), `tests/pharmacy/store-derive.test.ts`, `tests/pharmacy/store-ui.test.ts` 
 - Set-up has no screens yet to add fridges, EPI clinics and vaccines; only the dev seed creates them.
 - Dev seed: `PHARMACY_SEED_OK=1 DATABASE_URL=… npx tsx scripts/seed-pharmacy-dev.ts <hospital-id>` (test
   hospitals only).
+
+## Stock › Receive a delivery (RECEIVE.md, branch `feat/pharmacy-receive`)
+
+Built: the stage board, the one start dialog, order detail, edit and chase, counting with scanning, finishing with witness and second check, claims, put away with shelf labels, papers, receiving figures, working offline. Old delivery pages and the Medicines delivery dialog are gone; `/pharmacy/store/deliveries*` redirect here. Dev fixture: `/styleguide/pharmacy-receive` with `MEDSYNC_FIXTURES=1`.
+
+**Before deploying:** apply GATED migration 0276 (`cd ~/Desktop/medsync-receive && npm run db:migrate`). The Main store reads it too, so app and migration go together. Copy is `draft`.
+
+**Defaults taken:**
+- A queued delivery that needs a witness, second check or in-charge approval comes back to Counting on reconnect: those need people online. Offline works only with the tab already open (no service worker).
+- One witness confirmation per controlled line, in one dialog (an attestation is single use).
+- A place receives directly when it is the store, or a dispensing point or clinic with nothing supplying it.
+- A medicine added during a count is a local line, `health_supply`, not controlled until reviewed in Set-up › Medicines.
+- An unknown barcode links on `pharmacy_products.gtin`. Offline it is counted and linked after.
+- Purchase order references are shown as `PO-000n` by position, since orders have no reference column.
+- Figures use the last 8 deliveries; the suppliers table the last 6 months.
+- `lib/pharmacy/stores/receiving-store.ts` still holds the older writer, because the pharmacy demo seed and helpers (`productForPick`, `registrationList`) use it. No page calls its delivery writes. The finish guard skips a delivery naming an old counterparty, so only that writer keeps the older rules; move the demo to the Receive actions when convenient.
+- Vaccine has no Set-up field yet, so `pharmacy_products.vaccine` is set by hand for now.
+
+**Not tested in a browser against a database:** 0276 is unapplied, so server paths are covered by the PGlite lane, and the screens by the fixture in headless Chrome at 1440 and 390 px (axe, console, scroll, the offline flow). This repo has no Playwright. The side-by-side with the prototype was by reading its code and wording, since it needs its host to render.
+
+**The owner still supplies:** supplier lead days; receiving targets and limits (registry defaults until signed); HMIS 087 columns; the recall feed source; label printer and label size; the in-house code prefix (`200` now).
+
+**TODO:** send chase and claim through the Messages integration. They are drafted and copied only.

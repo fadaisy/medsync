@@ -207,152 +207,15 @@ export const STOCK = {
   } as Record<string, string>,
 
   receive: {
-    title: "Receive stock",
     product: "Product",
     batch: "Batch number",
     expiry: "Expiry",
     monthOnly: "The pack gives a month only",
     quantity: (medicine: string, unit: string) => `${medicine}, quantity in ${unit}`,
-    from: "From",
-    ref: "Delivery reference (optional)",
-    submit: "Add to stock",
-    noProduct: "Add a product first.",
   },
   /** The delivery dialog: a delivery note line by line (Stock › Receive a delivery). */
   delivery: {
     open: "Receive a delivery",
-    title: (point: string) => `Receive a delivery · ${point}`,
-    lede: "One line per batch on the delivery note. Quantities are counted in each medicine's issue unit.",
-    from: "From",
-    ref: "Delivery note no.",
-    refHint: "As printed on the note",
-    into: "Into",
-    scan: "Scan a pack's barcode",
-    scanHint: "Scan a pack: the batch and expiry fill themselves",
-    scanHelp:
-      "A scanner types into the box and presses Enter. Packs without a barcode are typed as before.",
-    read: "Read",
-    filled: (n: number, med: string) => `Filled line ${n}: ${med}.`,
-    onePack: (n: number, packs: string) => `One more pack on line ${n} (${packs} packs).`,
-    newLine: (n: number) => `New line ${n} from the scan.`,
-    unlinked: (n: number) => `Line ${n} has the batch and expiry: choose its medicine.`,
-    cols: {
-      medicine: "Medicine",
-      batch: "Batch",
-      expiry: "Expiry",
-      packs: "Packs",
-      per: "Per pack",
-      cost: "Cost per pack, UGX",
-      qty: "Quantity",
-    },
-    choose: "Choose a medicine",
-    addNew: "Not stocked yet? Add it…",
-    countedPer: (unit: string) => `Counted per ${unit}`,
-    expiryHint: "2028-06 or 2028-06-30",
-    perUnit: (cost: string, unit: string) => `${cost} per ${unit}`,
-    remove: (n: number) => `Remove line ${n}`,
-    addLine: "+ Add a line",
-    sameBatch:
-      "Same batch twice adds to the one already here. Scanning the same pack again counts one more.",
-    reject: "Reject some",
-    keepAll: "Keep it all",
-    rejected: "packs rejected, because",
-    sendOn: "Send some on",
-    keepHere: "Keep it all here",
-    send: "send",
-    straightTo: "packs straight on to",
-    temp: "Temperature on arrival",
-    tempHint: "°C, read from the cool box",
-    why: {
-      damaged: "damaged or broken",
-      wrong: "the wrong item",
-      short: "the expiry is too short",
-      seal: "the seal is broken",
-      extra: "it was not ordered",
-    },
-    newMed: {
-      generic: "Generic name",
-      strength: "Strength",
-      form: "Form",
-      unit: "Counted per",
-      reason: "Why it is stocked",
-      add: "Add to medicines",
-      cancel: "Back to the list",
-      required: "Give the generic name and the strength.",
-      added:
-        "Added to Set-up › Medicines as a local line. The in-charge reviews why it is stocked.",
-    },
-    note: {
-      expired: (when: string) =>
-        `Expired ${when}. It cannot go into stock: keep it apart and return it.`,
-      short: (months: number, when: string) =>
-        `Short expiry: ${months} months left (${when}). Receive it only if it will be used by then, or reject it.`,
-      coldOk: (t: string) => `Arrived at ${t} °C, inside 2–8 °C. It goes straight into the fridge.`,
-      coldBad: (t: string) =>
-        `Arrived at ${t} °C, outside 2–8 °C. Keep it apart in the fridge, call the supplier, and reject it or receive it after their answer.`,
-      pack: (per: number, usual: number) =>
-        `Packs of ${per} this time; the usual pack is ${usual}.`,
-      rejected: (packs: string, why: string) =>
-        `${packs} rejected because ${why}. They go back with the driver and are listed on the goods-received note.`,
-      sendOn: (packs: string, qty: string, to: string, stay: string) =>
-        `${packs} (${qty}) go straight on to ${to} as a transfer; ${stay} stay here.`,
-      noPrice: (sell: string | null, unit: string) =>
-        sell
-          ? `No cash price yet. Your price rule gives ${sell} per ${unit}: set it in Set-up › Medicines.`
-          : "No cash price yet: set one in Set-up › Medicines.",
-      overPrice: (cost: string, price: string, unit: string) =>
-        `Costs ${cost} per ${unit}, above its price of ${price}. Review the price in Set-up › Medicines.`,
-      local: "A local line, new in Set-up › Medicines.",
-    },
-    problem: {
-      med: (n: number) => `Line ${n}: choose the medicine.`,
-      batch: (n: number) => `Line ${n}: give the batch number from the pack, or scan it.`,
-      expiry: (n: number) =>
-        `Line ${n}: give the expiry from the pack (2028-06 or 2028-06-30), or scan it.`,
-      count: (n: number, unit: string) =>
-        `Line ${n}: give how many packs and how many ${unit}s in each.`,
-      expired: (n: number) => `Line ${n} has expired.`,
-      temp: (n: number) => `Line ${n}: give the temperature on arrival.`,
-      cold: (n: number) => `Line ${n}: the cold chain was broken.`,
-      sendTo: (n: number) => `Line ${n}: choose where to send it on to.`,
-      sendMany: (n: number, packs: string) => `Line ${n}: only ${packs} are kept to send on.`,
-      nothing: "Nothing is being added: every pack is rejected.",
-    },
-    sendTooMany: (n: number) => `Line ${n}: more is sent on than was received.`,
-    noteText: {
-      rejected: (packs: number, why: string) => `${packs} packs rejected: ${why}`,
-      temp: (t: string) => `arrived at ${t} °C`,
-    },
-    summary: (lines: number, qty: string, total: string | null) =>
-      [`${lines} ${lines === 1 ? "line" : "lines"}`, qty, total].filter(Boolean).join(" · "),
-    ready: "Ready. Nothing is in stock until you add it.",
-    toFinish: (n: number) => `${n} ${n === 1 ? "thing" : "things"} to finish before it is added.`,
-    submit: (n: number) => `Add ${n} ${n === 1 ? "line" : "lines"} to stock`,
-    controlled: "Controlled medicines are received on the Controlled drugs page, with a witness.",
-    draft: "Save draft",
-    draftSaved: (at: string) => `Draft saved at ${at} on this device. Nothing is in stock yet.`,
-    draftBack: (at: string) => `Carried on from your draft of ${at}.`,
-    startAgain: "Start again",
-    done: (point: string) => `Added to ${point}`,
-    doneLede:
-      "Each batch is in stock with its expiry and cost, and every line keeps the delivery note it came on.",
-    grn: "Goods-received note",
-    grnLine: (from: string, ref: string, point: string, at: string) =>
-      `${from} · delivery note ${ref} · into ${point} · ${at}`,
-    noRef: "(not given)",
-    grnCols: {
-      medicine: "Medicine",
-      batch: "Batch",
-      expiry: "Expiry",
-      got: "Received",
-      off: "Rejected",
-      cost: "Cost",
-    },
-    print: "Print",
-    total: (t: string) => `Total ${t}`,
-    noCost: "Total — (no costs given)",
-    receivedBy: "Received by",
-    close: "Close",
   },
   count: {
     title: (what: string) => `Count · ${what}`,

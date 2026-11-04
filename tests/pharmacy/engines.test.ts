@@ -446,6 +446,8 @@ describe("Law 2: no clinical write from the pharmacy's code", () => {
       (w) =>
         !/ (pharmacy[A-Z]\w*|paper\w*|downtime\w*|auditLog)$/.test(w) &&
         !/^patient-list\.ts: (insert|update) selfMedications$/.test(w) &&
+        // The device's own IndexedDB queue (RECEIVE §H), not a table.
+        !/^receive\/offline\.ts: delete id$/.test(w) &&
         // Phase 4 (5.4, 5.5): a renewal request asks the prescriber (it changes no prescription), and a
         // saved collector is the patient's own contact; neither is a clinical record.
         !/^refill-store\.ts: insert (prescriptionRenewalRequests|patientCollectors)$/.test(w) &&

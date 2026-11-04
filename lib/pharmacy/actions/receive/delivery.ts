@@ -50,14 +50,26 @@ async function duplicateOf(ctx: Ctx, i: z.infer<typeof Head>) {
 }
 
 async function checkArrival(ctx: Ctx, arrived: string) {
-  const r = await one<{ later: boolean }>(ctx, sql`SELECT ${arrivedAt(arrived)} > ${ctx.now.toISOString()}::timestamptz AS later`);
+  const r = await one<{ later: boolean }>(
+    ctx,
+    sql`SELECT ${arrivedAt(arrived)} > ${ctx.now.toISOString()}::timestamptz AS later`,
+  );
   if (r?.later) throw fail("invalid", S.future);
 }
 
 /** Creates the delivery with the order's unfinished lines waiting to be counted. Idempotent on the delivery id. */
-export async function startCore(ctx: Ctx, i: z.infer<typeof Head>, seedOrder = true): Promise<{ id: string; duplicateOf?: string }> {
+export async function startCore(
+  ctx: Ctx,
+  i: z.infer<typeof Head>,
+  seedOrder = true,
+): Promise<{ id: string; duplicateOf?: string }> {
   const h = ctx.actor.hospitalId;
-  if (await one(ctx, sql`SELECT 1 AS ok FROM public.pharmacy_deliveries WHERE id = ${i.id}::uuid AND hospital_id = ${h}::uuid`))
+  if (
+    await one(
+      ctx,
+      sql`SELECT 1 AS ok FROM public.pharmacy_deliveries WHERE id = ${i.id}::uuid AND hospital_id = ${h}::uuid`,
+    )
+  )
     return { id: i.id };
   const dup = await duplicateOf(ctx, i);
   if (dup) return { id: i.id, duplicateOf: dup };
@@ -93,7 +105,11 @@ export const editDelivery = act(Head, NEED, async (ctx, i) => {
 });
 
 export const saveInvoice = act(
-  z.object({ deliveryId: z.uuid(), invoice: opt(60), total: z.number().nonnegative().max(1e13).nullable() }),
+  z.object({
+    deliveryId: z.uuid(),
+    invoice: opt(60),
+    total: z.number().nonnegative().max(1e13).nullable(),
+  }),
   NEED,
   async (ctx, i) => {
     await ctx.tx.execute(sql`
@@ -132,17 +148,34 @@ export const LineDoc = z.object({
     return v.trim() !== "" && Number.isFinite(n) && n >= -40 && n <= 60 ? n : null;
   }),
   decision: z.enum(["", "accept", "accept_tell", "reject"]).transform((v) => v || null),
-  regReason: z.enum(["", "donation", "no_registered_alternative", "renewal_pending", "other"]).transform((v) => v || null),
+  regReason: z
+    .enum(["", "donation", "no_registered_alternative", "renewal_pending", "other"])
+    .transform((v) => v || null),
   regNote: opt(300),
   rejOn: z.boolean(),
   rejPacks: whole(1_000_000),
-  rejWhy: z.enum(["", "damaged", "wrong_product", "expired", "short_dated", "recall", "cold_chain", "other"]).transform((v) => v || null),
+  rejWhy: z
+    .enum([
+      "",
+      "damaged",
+      "wrong_product",
+      "expired",
+      "short_dated",
+      "recall",
+      "cold_chain",
+      "other",
+    ])
+    .transform((v) => v || null),
   rejFate: z.enum(["driver", "quarantine"]),
   vvm: z.enum(["", "1", "2", "3", "4"]).transform((v) => (v ? Number(v) : null)),
   freeze: z.enum(["", "ok", "tripped"]).transform((v) => v || null),
 });
 
-const SaveLines = z.object({ deliveryId: z.uuid(), lines: z.array(LineDoc).max(500), removed: z.array(z.uuid()).max(500) });
+const SaveLines = z.object({
+  deliveryId: z.uuid(),
+  lines: z.array(LineDoc).max(500),
+  removed: z.array(z.uuid()).max(500),
+});
 
 async function counting(ctx: Ctx, deliveryId: string) {
   const d = await one<{ state: string; note_number: string }>(
@@ -158,9 +191,13 @@ async function counting(ctx: Ctx, deliveryId: string) {
 export async function saveLinesCore(ctx: Ctx, i: z.infer<typeof SaveLines>) {
   await counting(ctx, i.deliveryId);
   if (i.removed.length)
-    await ctx.tx.execute(sql`DELETE FROM public.pharmacy_delivery_lines WHERE delivery_id = ${i.deliveryId}::uuid AND id = ANY(${`{${i.removed.join(",")}}`}::uuid[])`);
+    await ctx.tx.execute(
+      sql`DELETE FROM public.pharmacy_delivery_lines WHERE delivery_id = ${i.deliveryId}::uuid AND id = ANY(${`{${i.removed.join(",")}}`}::uuid[])`,
+    );
   if (i.lines.length) {
-    await ctx.tx.execute(sql`UPDATE public.pharmacy_delivery_lines SET line_no = line_no + 100000 WHERE delivery_id = ${i.deliveryId}::uuid`);
+    await ctx.tx.execute(
+      sql`UPDATE public.pharmacy_delivery_lines SET line_no = line_no + 100000 WHERE delivery_id = ${i.deliveryId}::uuid`,
+    );
     for (const l of i.lines)
       await ctx.tx.execute(sql`
         INSERT INTO public.pharmacy_delivery_lines AS t (id, delivery_id, line_no, product_id, order_line_id, identity_source, batch_number, expiry_text,
@@ -183,8 +220,13 @@ export async function saveLinesCore(ctx: Ctx, i: z.infer<typeof SaveLines>) {
     await ctx.tx.execute(sql`UPDATE public.pharmacy_delivery_lines l SET line_no = 200000 + s.n
       FROM (SELECT id, row_number() OVER (ORDER BY line_no) AS n FROM public.pharmacy_delivery_lines WHERE delivery_id = ${i.deliveryId}::uuid AND line_no > 100000) s
       WHERE l.id = s.id AND l.delivery_id = ${i.deliveryId}::uuid AND l.line_no > 100000`);
-    const top = await one<{ n: number }>(ctx, sql`SELECT coalesce(max(line_no) FILTER (WHERE line_no < 100000), 0)::int AS n FROM public.pharmacy_delivery_lines WHERE delivery_id = ${i.deliveryId}::uuid`);
-    await ctx.tx.execute(sql`UPDATE public.pharmacy_delivery_lines SET line_no = line_no - 200000 + ${top?.n ?? 0} WHERE delivery_id = ${i.deliveryId}::uuid AND line_no > 200000`);
+    const top = await one<{ n: number }>(
+      ctx,
+      sql`SELECT coalesce(max(line_no) FILTER (WHERE line_no < 100000), 0)::int AS n FROM public.pharmacy_delivery_lines WHERE delivery_id = ${i.deliveryId}::uuid`,
+    );
+    await ctx.tx.execute(
+      sql`UPDATE public.pharmacy_delivery_lines SET line_no = line_no - 200000 + ${top?.n ?? 0} WHERE delivery_id = ${i.deliveryId}::uuid AND line_no > 200000`,
+    );
   }
   return { id: i.deliveryId };
 }
@@ -192,16 +234,24 @@ export async function saveLinesCore(ctx: Ctx, i: z.infer<typeof SaveLines>) {
 export const saveLines = act(SaveLines, NEED, saveLinesCore);
 
 /** A device's delivery: its head and the lines it made itself (order lines included), in one step. */
-export const syncCounting = act(z.object({ head: Head, lines: z.array(LineDoc).max(500) }), NEED, async (ctx, i) => {
-  const started = await startCore(ctx, i.head, false);
-  if (started.duplicateOf) return started;
-  await saveLinesCore(ctx, { deliveryId: i.head.id, lines: i.lines, removed: [] });
-  return { id: i.head.id };
-});
+export const syncCounting = act(
+  z.object({ head: Head, lines: z.array(LineDoc).max(500) }),
+  NEED,
+  async (ctx, i) => {
+    const started = await startCore(ctx, i.head, false);
+    if (started.duplicateOf) return started;
+    await saveLinesCore(ctx, { deliveryId: i.head.id, lines: i.lines, removed: [] });
+    return { id: i.head.id };
+  },
+);
 
 /** A pack's serial, claimed once for the hospital. The same pack on the same line again is the same refusal. */
 export const scanPack = act(
-  z.object({ deliveryId: z.uuid(), gtin: z.string().regex(/^\d{8,14}$/), serial: z.string().trim().min(1).max(40) }),
+  z.object({
+    deliveryId: z.uuid(),
+    gtin: z.string().regex(/^\d{8,14}$/),
+    serial: z.string().trim().min(1).max(40),
+  }),
   NEED,
   async (ctx, i) => {
     const h = ctx.actor.hospitalId;
@@ -226,7 +276,12 @@ export const linkGtin = act(GtinInput, NEED, setGtin);
 
 /** "Not stocked yet? Add it": a local line, reviewed in Set-up › Medicines. */
 export const addLocalMedicine = act(
-  z.object({ id: z.uuid(), generic: z.string().trim().min(1, S.localBlank).max(100), strength: z.string().trim().min(1, S.localBlank).max(60), unit: z.string().trim().min(1).max(30) }),
+  z.object({
+    id: z.uuid(),
+    generic: z.string().trim().min(1, S.localBlank).max(100),
+    strength: z.string().trim().min(1, S.localBlank).max(60),
+    unit: z.string().trim().min(1).max(30),
+  }),
   NEED,
   async (ctx, i) => {
     await ctx.tx.execute(sql`
@@ -238,20 +293,30 @@ export const addLocalMedicine = act(
 );
 
 /** The request to the in-charge's device; their board shows it live. */
-export const askApproval = act(z.object({ deliveryId: z.uuid(), lineId: z.uuid() }), NEED, async (ctx, i) => {
-  await counting(ctx, i.deliveryId);
-  await ctx.tx.execute(sql`UPDATE public.pharmacy_delivery_lines SET approval_asked_at = ${ctx.now.toISOString()}::timestamptz
+export const askApproval = act(
+  z.object({ deliveryId: z.uuid(), lineId: z.uuid() }),
+  NEED,
+  async (ctx, i) => {
+    await counting(ctx, i.deliveryId);
+    await ctx.tx
+      .execute(sql`UPDATE public.pharmacy_delivery_lines SET approval_asked_at = ${ctx.now.toISOString()}::timestamptz
     WHERE id = ${i.lineId}::uuid AND delivery_id = ${i.deliveryId}::uuid`);
-  return { id: i.lineId };
-});
+    return { id: i.lineId };
+  },
+);
 
-export const approveShortDated = act(z.object({ deliveryId: z.uuid(), lineId: z.uuid() }), VIEW, async (ctx, i) => {
-  await mustBeInCharge(ctx);
-  await counting(ctx, i.deliveryId);
-  await ctx.tx.execute(sql`UPDATE public.pharmacy_delivery_lines SET approved_by = ${ctx.actor.userId}::uuid, approved_at = ${ctx.now.toISOString()}::timestamptz
+export const approveShortDated = act(
+  z.object({ deliveryId: z.uuid(), lineId: z.uuid() }),
+  VIEW,
+  async (ctx, i) => {
+    await mustBeInCharge(ctx);
+    await counting(ctx, i.deliveryId);
+    await ctx.tx
+      .execute(sql`UPDATE public.pharmacy_delivery_lines SET approved_by = ${ctx.actor.userId}::uuid, approved_at = ${ctx.now.toISOString()}::timestamptz
     WHERE id = ${i.lineId}::uuid AND delivery_id = ${i.deliveryId}::uuid`);
-  return { id: i.lineId };
-});
+    return { id: i.lineId };
+  },
+);
 
 /** Nothing moved, so nothing to undo: stock and orders stay as they were. Its serials are free again. */
 export const abandonDelivery = act(
@@ -259,27 +324,37 @@ export const abandonDelivery = act(
   NEED,
   async (ctx, i) => {
     const h = ctx.actor.hospitalId;
-    const d = await one<{ state: string }>(ctx, sql`SELECT state FROM public.pharmacy_deliveries WHERE id = ${i.deliveryId}::uuid AND hospital_id = ${h}::uuid FOR UPDATE`);
+    const d = await one<{ state: string }>(
+      ctx,
+      sql`SELECT state FROM public.pharmacy_deliveries WHERE id = ${i.deliveryId}::uuid AND hospital_id = ${h}::uuid FOR UPDATE`,
+    );
     if (!d) throw fail("not_found", S.finished);
     if (d.state === "abandoned") return { id: i.deliveryId };
     if (d.state !== "counting") throw fail("conflict", S.finished);
-    await ctx.tx.execute(sql`DELETE FROM public.pharmacy_pack_serials WHERE delivery_id = ${i.deliveryId}::uuid`);
-    await ctx.tx.execute(sql`UPDATE public.pharmacy_deliveries SET state = 'abandoned', abandon_reason = ${i.reason}, finished_by = ${ctx.actor.userId}::uuid,
+    await ctx.tx.execute(
+      sql`DELETE FROM public.pharmacy_pack_serials WHERE delivery_id = ${i.deliveryId}::uuid`,
+    );
+    await ctx.tx
+      .execute(sql`UPDATE public.pharmacy_deliveries SET state = 'abandoned', abandon_reason = ${i.reason}, finished_by = ${ctx.actor.userId}::uuid,
       finished_at = ${ctx.now.toISOString()}::timestamptz WHERE id = ${i.deliveryId}::uuid`);
     return { id: i.deliveryId };
   },
 );
 
 export const addPhoto = act(
-  z.object({ id: z.uuid(), deliveryId: z.uuid(), kind: z.enum(["note", "invoice", "damage"]), file: z.string().min(3).max(300) }),
+  z.object({
+    id: z.uuid(),
+    deliveryId: z.uuid(),
+    kind: z.enum(["note", "invoice", "damage"]),
+    file: z.string().min(3).max(300),
+  }),
   NEED,
   async (ctx, i) => {
     const h = ctx.actor.hospitalId;
     if (!i.file.startsWith(`${h}/${i.deliveryId}/`)) throw fail("invalid", S.photo);
-    await ctx.tx.execute(sql`INSERT INTO public.pharmacy_delivery_photos (id, hospital_id, delivery_id, kind, file, by_user)
+    await ctx.tx
+      .execute(sql`INSERT INTO public.pharmacy_delivery_photos (id, hospital_id, delivery_id, kind, file, by_user)
       VALUES (${i.id}::uuid, ${h}::uuid, ${i.deliveryId}::uuid, ${i.kind}, ${i.file}, ${ctx.actor.userId}::uuid) ON CONFLICT (id) DO NOTHING`);
     return { id: i.id };
   },
 );
-
-

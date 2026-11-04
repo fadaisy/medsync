@@ -194,7 +194,7 @@ describe("Rules", () => {
     expect(R.applyProposal(90, { n: 120, applied: false })).toBe(90);
   });
   it("searchRules by name, wording, applies-to and group", () => {
-    expect(R.searchRules(RULE_REGISTRY, "").length).toBe(10);
+    expect(R.searchRules(RULE_REGISTRY, "").length).toBe(11);
     expect(
       R.searchRules(RULE_REGISTRY, "expiry").flatMap((g) => g.rules.map((r) => r.key)),
     ).toContain("expiry_warning");

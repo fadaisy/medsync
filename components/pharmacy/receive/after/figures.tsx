@@ -55,7 +55,10 @@ function Mini({ chart, label }: { chart: MiniChart; label: string }) {
               className="group focus-visible:ring-primary relative flex h-full min-w-0 flex-1 items-end rounded-sm outline-none focus-visible:ring-2"
             >
               <span
-                className={cn("mx-auto block w-[min(16px,80%)] rounded-t-sm", !b.last && "opacity-45")}
+                className={cn(
+                  "mx-auto block w-[min(16px,80%)] rounded-t-sm",
+                  !b.last && "opacity-45",
+                )}
                 style={{ height: `${b.height}%`, background: b.good ? DATA : STATUS_MARK.warn }}
               />
               <span

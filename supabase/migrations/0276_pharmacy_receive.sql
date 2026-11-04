@@ -133,6 +133,8 @@ DECLARE
   l record;
   _expires date;
 BEGIN
+  -- A delivery naming an old counterparty is the older writer, which only the demo seed still calls; it keeps its rules.
+  IF NEW.pharmacy_supplier_id IS NULL AND NEW.supplier_id IS NOT NULL THEN RETURN NEW; END IF;
   IF NOT (OLD.state = 'counting' AND NEW.state = 'received') THEN RETURN NEW; END IF;
   FOR l IN
     SELECT dl.*, p.cold_chain, p.vaccine, private.pharmacy_product_controlled(p.id) AS controlled

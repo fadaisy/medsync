@@ -7,9 +7,9 @@ import { CautionNotice } from "@/components/medsync/caution-notice";
 import { PageHeader } from "@/components/medsync/page-header";
 import { StatCard } from "@/components/medsync/stat-card";
 import { MedicinesGrid } from "@/components/pharmacy/medicines/grid";
+import { LabButton } from "@/components/tide/work/button";
 import { PHARMACY } from "@/content/pharmacy";
 import { NATIONAL_LIST } from "@/content/pharmacy-catalogue";
-import { LabButton } from "@/components/tide/work/button";
 import { expiryText, STOCK } from "@/content/pharmacy-stock";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
@@ -97,7 +97,9 @@ export async function StockBody() {
               {nationalList}
               <LabButton
                 variant="primary"
-                render={<Link href={`/pharmacy/stock/store?tab=receive&start=1&place=${point.id}`} />}
+                render={
+                  <Link href={`/pharmacy/stock/store?tab=receive&start=1&place=${point.id}`} />
+                }
                 nativeButton={false}
               >
                 {STOCK.delivery.open}

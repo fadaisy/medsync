@@ -1,5 +1,14 @@
 import type { LineInfo } from "./line-info";
-import type { ClaimLine, LineSource, LineWorld, ReceiveDelivery, ReceiveLine, ReceiveMed, ReceiveOrder, ReceiveRules } from "./types";
+import type {
+  ClaimLine,
+  LineSource,
+  LineWorld,
+  ReceiveDelivery,
+  ReceiveLine,
+  ReceiveMed,
+  ReceiveOrder,
+  ReceiveRules,
+} from "./types";
 
 import { RC } from "@/content/pharmacy-receive";
 import { addDaysIso, daysBetween, hm, money, plural } from "./format";
@@ -59,8 +68,11 @@ export function matchRows(d: ReceiveDelivery, w: LineWorld, rules: ReceiveRules)
   const M = RC.match;
   const out: { cls: "ok" | "warn" | ""; text: string }[] = [];
   const prices = counted.filter((x) => x.i.priceDiff).length;
-  if (d.orderId) out.push(prices ? { cls: "warn", text: M.priced(prices) } : { cls: "ok", text: M.pricesOk });
-  const notes = counted.filter((x) => x.l.notePacks !== "" && Number(x.l.notePacks) !== x.i.packs).length;
+  if (d.orderId)
+    out.push(prices ? { cls: "warn", text: M.priced(prices) } : { cls: "ok", text: M.pricesOk });
+  const notes = counted.filter(
+    (x) => x.l.notePacks !== "" && Number(x.l.notePacks) !== x.i.packs,
+  ).length;
   out.push(notes ? { cls: "warn", text: M.differ(notes) } : { cls: "ok", text: M.countsOk });
   if (d.invoiceTotal) {
     const total = Number(d.invoiceTotal);
@@ -90,7 +102,9 @@ export function orderDue(o: Pick<ReceiveOrder, "sentOn" | "leadDays" | "state">,
 }
 
 /** §E2: short on the note, rejected (not short-dated), charged above the order price. */
-export function claimLines(infos: readonly { l: { medId: string; notePacks: string; cost: string }; i: LineInfo }[]) {
+export function claimLines(
+  infos: readonly { l: { medId: string; notePacks: string; cost: string }; i: LineInfo }[],
+) {
   const out: ClaimLine[] = [];
   for (const { l, i } of infos) {
     const cost = Number(l.cost) || 0;
@@ -121,14 +135,24 @@ export function coldTimer(mins: number, limit: number) {
 }
 
 /** The order's state after its lines change. */
-export const orderState = (lines: readonly { packs: number; received: number }[]): ReceiveOrder["state"] =>
-  lines.every((l) => l.received >= l.packs) ? "closed" : lines.some((l) => l.received > 0) ? "part" : "sent";
+export const orderState = (
+  lines: readonly { packs: number; received: number }[],
+): ReceiveOrder["state"] =>
+  lines.every((l) => l.received >= l.packs)
+    ? "closed"
+    : lines.some((l) => l.received > 0)
+      ? "part"
+      : "sent";
 
 /** What is still owed, for chasing and the order card. */
 export const owedLines = (o: ReceiveOrder) => o.lines.filter((l) => l.packs - l.received > 0);
 
 /** The chase message (§C3), editable before it is copied. */
-export function chaseText(o: ReceiveOrder, w: { meds: LineWorld["meds"]; placeName: string }, today: string) {
+export function chaseText(
+  o: ReceiveOrder,
+  w: { meds: LineWorld["meds"]; placeName: string },
+  today: string,
+) {
   const owed = owedLines(o).map((l) => ({
     name: w.meds.find((m) => m.id === l.medId)?.name ?? "",
     packs: plural(l.packs - l.received, "pack"),

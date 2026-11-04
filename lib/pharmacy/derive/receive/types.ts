@@ -29,7 +29,14 @@ export const receiveRules = (n: RuleNumbers): ReceiveRules => ({
 });
 
 export type DeliveryKind = "supplier" | "donation" | "facility" | "ward";
-export type RejWhy = "damaged" | "wrong_product" | "expired" | "short_dated" | "recall" | "cold_chain" | "other";
+export type RejWhy =
+  | "damaged"
+  | "wrong_product"
+  | "expired"
+  | "short_dated"
+  | "recall"
+  | "cold_chain"
+  | "other";
 export type LineSource = "scan" | "catalogue" | "typed" | "order";
 
 export interface ReceiveMed {

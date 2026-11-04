@@ -31,7 +31,17 @@ interface CardView {
   acts: Act[];
 }
 
-const Block = ({ title, count, note, children }: { title: string; count: number; note?: string; children: ReactNode }) => (
+const Block = ({
+  title,
+  count,
+  note,
+  children,
+}: {
+  title: string;
+  count: number;
+  note?: string;
+  children: ReactNode;
+}) => (
   <Panel>
     <header className="mb-3 flex flex-wrap items-center gap-2">
       <h2 className="text-foreground m-0 text-[15px] leading-[22px] font-semibold">{title}</h2>
@@ -57,8 +67,14 @@ export function Board() {
     switch (c.kind) {
       case "order": {
         const o = c.order;
-        const acts: Act[] = [{ label: o.state === "part" ? RB.card.rest : RB.card.receive, go: () => open({ kind: "start", orderId: o.id }) }];
-        if (c.due.late) acts.push({ label: RB.card.chase, go: () => open({ kind: "chase", orderId: o.id }) });
+        const acts: Act[] = [
+          {
+            label: o.state === "part" ? RB.card.rest : RB.card.receive,
+            go: () => open({ kind: "start", orderId: o.id }),
+          },
+        ];
+        if (c.due.late)
+          acts.push({ label: RB.card.chase, go: () => open({ kind: "chase", orderId: o.id }) });
         return {
           key: o.id,
           ref: o.ref,
@@ -94,7 +110,9 @@ export function Board() {
         return {
           key: d.id,
           ref: d.note,
-          tag: ok ? { text: RB.card.received, tone: "ok" } : { text: RB.card.abandoned, tone: "neutral" },
+          tag: ok
+            ? { text: RB.card.received, tone: "ok" }
+            : { text: RB.card.abandoned, tone: "neutral" },
           title: d.source,
           sub: c.sub,
           acts: ok ? [{ label: RB.card.open, go: () => go(d.id) }] : [],
@@ -107,13 +125,22 @@ export function Board() {
           tag: { text: RB.card.way, tone: "info" },
           title: RB.card.fromMain,
           sub: c.sub,
-          acts: [{ label: RB.card.confirm, go: () => open({ kind: "confirm", dispatchId: c.dispatch.id }), primary: true }],
+          acts: [
+            {
+              label: RB.card.confirm,
+              go: () => open({ kind: "confirm", dispatchId: c.dispatch.id }),
+              primary: true,
+            },
+          ],
         };
       case "confirmed":
         return {
           key: c.dispatch.id,
           ref: c.dispatch.voucher,
-          tag: c.dispatch.state === "diff" ? { text: RB.card.diff, tone: "bad" } : { text: RB.card.received, tone: "ok" },
+          tag:
+            c.dispatch.state === "diff"
+              ? { text: RB.card.diff, tone: "bad" }
+              : { text: RB.card.received, tone: "ok" },
           title: RB.card.main,
           sub: c.sub,
           acts: [],
@@ -136,16 +163,25 @@ export function Board() {
             <h1 className="text-foreground m-0 text-[22px] leading-7 font-semibold">
               {RB.title}{" "}
               <span className="text-ink-600 font-normal">
-                · {place?.name ?? ""} · {direct ? RB.line.direct(expected, toDo) : RB.line.place(onWay)}
+                · {place?.name ?? ""} ·{" "}
+                {direct ? RB.line.direct(expected, toDo) : RB.line.place(onWay)}
               </span>
             </h1>
-            <p className="text-ink-600 m-0 mt-1 text-[14px] leading-5">{direct ? RB.lead.direct : RB.lead.place(place?.name ?? "")}</p>
+            <p className="text-ink-600 m-0 mt-1 text-[14px] leading-5">
+              {direct ? RB.lead.direct : RB.lead.place(place?.name ?? "")}
+            </p>
           </div>
           <div className="flex w-full flex-wrap items-end gap-3 min-[640px]:w-auto">
             {w.places.length > 1 ? (
               <Field label={RB.place} className="w-full min-[640px]:w-56">
                 {(p) => (
-                  <select {...p} disabled={!online} className={selectCls()} value={w.placeId} onChange={(e) => pickPlace(e.target.value)}>
+                  <select
+                    {...p}
+                    disabled={!online}
+                    className={selectCls()}
+                    value={w.placeId}
+                    onChange={(e) => pickPlace(e.target.value)}
+                  >
                     {w.places.map((x) => (
                       <option key={x.id} value={x.id}>
                         {x.name}
@@ -156,7 +192,11 @@ export function Board() {
               </Field>
             ) : null}
             {direct ? (
-              <LabButton variant="primary" className="h-11 w-full min-[640px]:w-auto" onClick={() => open({ kind: "start" })}>
+              <LabButton
+                variant="primary"
+                className="h-11 w-full min-[640px]:w-auto"
+                onClick={() => open({ kind: "start" })}
+              >
                 {RB.receive}
               </LabButton>
             ) : null}
@@ -168,16 +208,31 @@ export function Board() {
         <Block title={RB.asks.title} count={w.asks.length} note={RB.asks.note}>
           <ul className="m-0 flex list-none flex-col p-0">
             {w.asks.map((a) => (
-              <li key={`${a.deliveryId}-${a.lineId}`} className="border-ink-200 flex flex-wrap items-center justify-between gap-3 border-t py-3 first:border-t-0 first:pt-0">
+              <li
+                key={`${a.deliveryId}-${a.lineId}`}
+                className="border-ink-200 flex flex-wrap items-center justify-between gap-3 border-t py-3 first:border-t-0 first:pt-0"
+              >
                 <div className="min-w-0 flex-1 basis-64">
-                  <b className="text-foreground block text-[14px] leading-5 font-semibold">{a.med}</b>
+                  <b className="text-foreground block text-[14px] leading-5 font-semibold">
+                    {a.med}
+                  </b>
                   <span className="text-ink-600 block text-[12.5px] leading-[18px]">
-                    {RB.asks.sub(a.batch, /^\d{4}-\d{2}(-\d{2})?$/.test(a.exp) ? expText(a.exp, a.exp) : a.exp || "—", a.note, a.askedBy)}
+                    {RB.asks.sub(
+                      a.batch,
+                      /^\d{4}-\d{2}(-\d{2})?$/.test(a.exp) ? expText(a.exp, a.exp) : a.exp || "—",
+                      a.note,
+                      a.askedBy,
+                    )}
                   </span>
                 </div>
                 <LabButton
                   aria-label={`${RB.asks.approve}: ${a.med}`}
-                  onClick={() => run(() => approveShortDatedAction({ deliveryId: a.deliveryId, lineId: a.lineId }), RB.asks.done)}
+                  onClick={() =>
+                    run(
+                      () => approveShortDatedAction({ deliveryId: a.deliveryId, lineId: a.lineId }),
+                      RB.asks.done,
+                    )
+                  }
                 >
                   {RB.asks.approve}
                 </LabButton>
@@ -205,7 +260,10 @@ export function Board() {
         <Block title={RB.noReg.title} count={w.registration.length} note={RB.noReg.note}>
           <ul className="m-0 flex list-none flex-col p-0">
             {w.registration.map((r, i) => (
-              <li key={`${r.note}-${r.med}-${i}`} className="border-ink-200 border-t py-2.5 first:border-t-0 first:pt-0">
+              <li
+                key={`${r.note}-${r.med}-${i}`}
+                className="border-ink-200 border-t py-2.5 first:border-t-0 first:pt-0"
+              >
                 <b className="text-foreground block text-[14px] leading-5 font-semibold">{r.med}</b>
                 <span className="text-ink-600 block text-[12.5px] leading-[18px]">
                   {RB.noReg.sub(r.note, r.batch, RB.noReg.reasons[r.reason] ?? r.reason)}
@@ -221,19 +279,31 @@ export function Board() {
 
 function Column({ s, no, view }: { s: Stage; no: number; view: (c: StageCard) => CardView }) {
   return (
-    <section role="listitem" aria-label={s.title} className="bg-tide-sunken flex min-w-0 flex-col gap-2 rounded-2xl p-3">
+    <section
+      role="listitem"
+      aria-label={s.title}
+      className="bg-tide-sunken flex min-w-0 flex-col gap-2 rounded-2xl p-3"
+    >
       <div className="flex items-center gap-2">
-        <span aria-hidden className="bg-card text-ink-700 grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-semibold">
+        <span
+          aria-hidden
+          className="bg-card text-ink-700 grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-semibold"
+        >
           {no}
         </span>
-        <h2 className="text-foreground m-0 min-w-0 flex-1 text-[15px] leading-[22px] font-semibold">{s.title}</h2>
+        <h2 className="text-foreground m-0 min-w-0 flex-1 text-[15px] leading-[22px] font-semibold">
+          {s.title}
+        </h2>
         <Chip tone={s.cards.length && s.tone ? s.tone : "neutral"}>{s.cards.length}</Chip>
       </div>
       <p className="text-ink-600 m-0 text-[12.5px] leading-[18px]">{s.note}</p>
       {s.cards.map((c) => {
         const v = view(c);
         return (
-          <article key={v.key} className="bg-card shadow-card flex min-w-0 flex-col items-start gap-1 rounded-xl px-3.5 py-3">
+          <article
+            key={v.key}
+            className="bg-card shadow-card flex min-w-0 flex-col items-start gap-1 rounded-xl px-3.5 py-3"
+          >
             <div className="flex w-full flex-wrap items-center justify-between gap-2">
               <span className="text-ink-700 font-mono text-[12.5px] break-all">{v.ref}</span>
               {v.tag ? <Chip tone={v.tag.tone}>{v.tag.text}</Chip> : null}
@@ -260,7 +330,9 @@ function Column({ s, no, view }: { s: Stage; no: number; view: (c: StageCard) =>
         );
       })}
       {s.cards.length ? null : (
-        <p className="text-ink-600 border-ink-300 m-0 rounded-xl border border-dashed px-3 py-[18px] text-center text-[13px]">{s.empty}</p>
+        <p className="text-ink-600 border-ink-300 m-0 rounded-xl border border-dashed px-3 py-[18px] text-center text-[13px]">
+          {s.empty}
+        </p>
       )}
     </section>
   );

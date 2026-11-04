@@ -3,7 +3,11 @@
 import type { ReceiveDelivery, ReceiveLine } from "@/lib/pharmacy/derive/receive";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { finishDeliveryAction, saveInvoiceAction, saveLinesAction } from "@/app/pharmacy/stock/store/receive-actions";
+import {
+  finishDeliveryAction,
+  saveInvoiceAction,
+  saveLinesAction,
+} from "@/app/pharmacy/stock/store/receive-actions";
 import { blankLine } from "@/lib/pharmacy/derive/receive";
 import { newKey } from "../store/shared";
 import { useReceive } from "./provider";
@@ -40,7 +44,11 @@ export function useCount(initial: ReceiveDelivery) {
       return false;
     }
     dirty.current = false;
-    const r = await saveLinesAction({ deliveryId: cur.id, lines: cur.lines, removed: removed.current }).catch(() => null);
+    const r = await saveLinesAction({
+      deliveryId: cur.id,
+      lines: cur.lines,
+      removed: removed.current,
+    }).catch(() => null);
     if (!r?.ok) {
       dirty.current = true;
       await keep(cur, { removed: removed.current });
@@ -78,14 +86,19 @@ export function useCount(initial: ReceiveDelivery) {
       change((x) => ({ ...x, lines: x.lines.map((l) => (l.id === id ? { ...l, ...patch } : l)) })),
     [change],
   );
-  const addLines = useCallback((lines: ReceiveLine[]) => change((x) => ({ ...x, lines: [...x.lines, ...lines] })), [change]);
+  const addLines = useCallback(
+    (lines: ReceiveLine[]) => change((x) => ({ ...x, lines: [...x.lines, ...lines] })),
+    [change],
+  );
   /** Port of `removeLine`: the last line on an order line goes back to waiting; anything else goes. */
   const removeLine = useCallback(
     (id: string) =>
       change((x) => {
         const l = x.lines.find((y) => y.id === id);
         if (!l) return x;
-        const others = x.lines.some((y) => y.id !== id && y.orderLineId && y.orderLineId === l.orderLineId);
+        const others = x.lines.some(
+          (y) => y.id !== id && y.orderLineId && y.orderLineId === l.orderLineId,
+        );
         const m = world.meds.find((y) => y.id === l.medId);
         if (l.orderLineId && !others && m) {
           const fresh = blankLine(l.id, x, m, "order", { no: l.no, orderLineId: l.orderLineId });
@@ -100,7 +113,11 @@ export function useCount(initial: ReceiveDelivery) {
     (invoice: string, invoiceTotal: string) => {
       setD((x) => ({ ...x, invoice, invoiceTotal }));
       if (navigator.onLine)
-        void saveInvoiceAction({ deliveryId: d.id, invoice, total: invoiceTotal === "" ? null : Number(invoiceTotal) || 0 });
+        void saveInvoiceAction({
+          deliveryId: d.id,
+          invoice,
+          total: invoiceTotal === "" ? null : Number(invoiceTotal) || 0,
+        });
       else dirty.current = true;
     },
     [d.id],
@@ -108,7 +125,10 @@ export function useCount(initial: ReceiveDelivery) {
 
   /** `finish`. Returns the action's result, or `queued` when offline. */
   const finish = useCallback(
-    async (witnesses: { lineId: string; attestationId: string }[], secondAttestationId: string | null) => {
+    async (
+      witnesses: { lineId: string; attestationId: string }[],
+      secondAttestationId: string | null,
+    ) => {
       if (!online || !navigator.onLine) {
         await keep(latest.current, { queued: true, removed: removed.current });
         go(null);

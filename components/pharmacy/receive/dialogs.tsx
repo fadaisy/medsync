@@ -14,7 +14,14 @@ export function ReceiveDialogs() {
   if (!dialog) return null;
   switch (dialog.kind) {
     case "start":
-      return <StartDialog orderId={dialog.orderId} seedMedId={dialog.seedMedId} edit={dialog.edit} onClose={close} />;
+      return (
+        <StartDialog
+          orderId={dialog.orderId}
+          seedMedId={dialog.seedMedId}
+          edit={dialog.edit}
+          onClose={close}
+        />
+      );
     case "order":
       return <OrderDialog orderId={dialog.orderId} startEditing={dialog.edit} onClose={close} />;
     case "chase":

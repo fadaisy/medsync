@@ -27,7 +27,7 @@ const rules: ReceiveRules = {
 };
 const today = "2026-11-04";
 const med = (over: Partial<ReceiveMed> = {}): ReceiveMed => ({
-  id: "m1", name: "Amoxicillin 500 mg", unit: "capsule", per: 100, cost: 1000, shelf: "A-03", gtin: "", cold: false,
+  id: "m1", name: "Amoxicillin 500 mg", unit: "capsule", per: 100, cost: 1000, price: 0, hand: 0, shelf: "A-03", gtin: "", cold: false,
   controlled: false, vaccine: false, regLapsed: false, local: false, ownCode: false, short: null, ...over,
 });
 const line = (over: Partial<ReceiveLine> = {}): ReceiveLine => ({

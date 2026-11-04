@@ -4,6 +4,7 @@ import type { DeliveryKind, OrderCard, ReceiveDelivery } from "@/lib/pharmacy/de
 import type { ReactNode } from "react";
 import { useState } from "react";
 
+import { DateField } from "@/app/lab/_components/v2/fields";
 import { editDeliveryAction, syncCountingAction } from "@/app/pharmacy/stock/store/receive-actions";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Chip } from "@/components/pharmacy/charts/chip";
@@ -25,21 +26,36 @@ interface Err {
 }
 
 /** `YYYY-MM-DD HH:MM`, Kampala, now. */
-const nowText = () => new Date().toLocaleString("sv-SE", { timeZone: "Africa/Kampala" }).slice(0, 16);
+const nowText = () =>
+  new Date().toLocaleString("sv-SE", { timeZone: "Africa/Kampala" }).slice(0, 16);
 const asMs = (s: string) => Date.parse(`${s.replace(" ", "T")}:00Z`);
 
 const ICON: Record<DeliveryKind, string> = {
-  supplier: "M3 7h11v9H3zM14 10h4l3 3v3h-7zM5.5 17.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0M15.5 17.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0",
+  supplier:
+    "M3 7h11v9H3zM14 10h4l3 3v3h-7zM5.5 17.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0M15.5 17.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0",
   donation: "M4 11h16v9H4zM3 7h18v4H3zM12 7v13M12 7c-2-4-6-3-5 0M12 7c2-4 6-3 5 0",
   facility: "M4 21V5l8-3 8 3v16M9 21v-5h6v5M9 9h.01M15 9h.01M9 13h.01M15 13h.01",
   ward: "M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3",
 };
 const KINDS: DeliveryKind[] = ["supplier", "donation", "facility", "ward"];
 
-const Sec = ({ no, title, aside, children }: { no: number; title: string; aside?: string; children: ReactNode }) => (
+const Sec = ({
+  no,
+  title,
+  aside,
+  children,
+}: {
+  no: number;
+  title: string;
+  aside?: string;
+  children: ReactNode;
+}) => (
   <section className="flex flex-col gap-2.5">
     <h3 className="text-foreground m-0 flex items-center gap-2 text-[15px] leading-[22px] font-semibold">
-      <span aria-hidden className="bg-ink-100 text-ink-700 grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-semibold">
+      <span
+        aria-hidden
+        className="bg-ink-100 text-ink-700 grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-semibold"
+      >
         {no}
       </span>
       {title}
@@ -64,7 +80,8 @@ export function StartDialog({
   const { world: w, online, keep, go, refresh } = useReceive();
   const place = w.places.find((p) => p.id === w.placeId);
   const locked = !!orderId && !edit;
-  const open = (stages(w, w.placeId).stages.find((s) => s.key === "expected")?.cards ?? []) as OrderCard[];
+  const open = (stages(w, w.placeId).stages.find((s) => s.key === "expected")?.cards ??
+    []) as OrderCard[];
   const fromOrder = orderId ? w.orders.find((o) => o.id === orderId) : null;
 
   const [kind, setKind] = useState<DeliveryKind>(edit?.kind ?? "supplier");
@@ -98,7 +115,8 @@ export function StartDialog({
 
   const submit = async () => {
     const n = note.trim();
-    const fail = (field: FieldName, text: string, dupId: string | null = null) => setErr({ field, text, dupId });
+    const fail = (field: FieldName, text: string, dupId: string | null = null) =>
+      setErr({ field, text, dupId });
     if (kind === "supplier" && !supplierId) return fail("supplier", T.say.supplier);
     if (kind === "ward" && !fromPlace) return fail("from", T.say.ward);
     if ((kind === "donation" || kind === "facility") && !from.trim())
@@ -143,9 +161,15 @@ export function StartDialog({
     };
 
     // The same supplier or source, the same reference, unless abandoned: the stock cannot come in twice.
-    const key = (d: Pick<ReceiveDelivery, "supplierId" | "fromPlace" | "from">) => d.supplierId ?? d.fromPlace ?? d.from.toLowerCase();
+    const key = (d: Pick<ReceiveDelivery, "supplierId" | "fromPlace" | "from">) =>
+      d.supplierId ?? d.fromPlace ?? d.from.toLowerCase();
     const dup = w.deliveries.find(
-      (d) => d.id !== doc.id && d.kind === doc.kind && d.state !== "abandoned" && key(d) === key(doc) && d.note.toLowerCase() === n.toLowerCase(),
+      (d) =>
+        d.id !== doc.id &&
+        d.kind === doc.kind &&
+        d.state !== "abandoned" &&
+        key(d) === key(doc) &&
+        d.note.toLowerCase() === n.toLowerCase(),
     );
     if (dup) return fail("note", T.say.duplicate, dup.id);
 
@@ -155,20 +179,35 @@ export function StartDialog({
         const med = w.meds.find((m) => m.id === ol.medId);
         if (!med || ol.packs - ol.received <= 0) continue;
         doc.lines.push(
-          blankLine(newKey(), doc, med, "order", { orderLineId: ol.id, per: String(med.per), ...(ol.price ? { cost: String(ol.price) } : {}) }),
+          blankLine(newKey(), doc, med, "order", {
+            orderLineId: ol.id,
+            per: String(med.per),
+            ...(ol.price ? { cost: String(ol.price) } : {}),
+          }),
         );
       }
       const seed = seedMedId ? w.meds.find((m) => m.id === seedMedId) : null;
-      if (seed && !doc.lines.some((l) => l.medId === seed.id)) doc.lines.push(blankLine(newKey(), doc, seed, "catalogue"));
+      if (seed && !doc.lines.some((l) => l.medId === seed.id))
+        doc.lines.push(blankLine(newKey(), doc, seed, "catalogue"));
     }
 
     setPending(true);
     try {
       if (online) {
         // A refusal shows here; a dropped connection falls through to the device's copy, as offline does.
-        const r = await (edit ? editDeliveryAction(headOf(doc)) : syncCountingAction({ head: headOf(doc), lines: doc.lines })).catch(() => null);
-        if (r && !r.ok) return fail(r.error === T.say.future || r.error === T.say.arrival ? "arrived" : "", r.error);
-        const dupId = r?.ok ? (r.data as { duplicateOf?: string } | undefined)?.duplicateOf : undefined;
+        const r = await (
+          edit
+            ? editDeliveryAction(headOf(doc))
+            : syncCountingAction({ head: headOf(doc), lines: doc.lines })
+        ).catch(() => null);
+        if (r && !r.ok)
+          return fail(
+            r.error === T.say.future || r.error === T.say.arrival ? "arrived" : "",
+            r.error,
+          );
+        const dupId = r?.ok
+          ? (r.data as { duplicateOf?: string } | undefined)?.duplicateOf
+          : undefined;
         if (dupId) return fail("note", T.say.duplicate, dupId);
       }
       await keep(doc);
@@ -203,7 +242,17 @@ export function StartDialog({
                 title: T.kinds[k].title,
                 line: T.kinds[k].line,
                 icon: (
-                  <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    aria-hidden
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d={ICON[k]} />
                   </svg>
                 ),
@@ -234,7 +283,9 @@ export function StartDialog({
               />
               {supplierId && supplierOrders(supplierId).length ? (
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-foreground text-[13px] leading-[18px] font-semibold">{T.against}</span>
+                  <span className="text-foreground text-[13px] leading-[18px] font-semibold">
+                    {T.against}
+                  </span>
                   <OptionCards
                     label={T.orderLabel}
                     value={pickedOrder || "none"}
@@ -343,21 +394,19 @@ export function StartDialog({
             >
               {(p) => (
                 <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-2">
-                  <input
-                    {...p}
-                    type="date"
-                    aria-label={T.date}
-                    className={inputCls(!!p["aria-invalid"])}
+                  <DateField
+                    hideLabel
+                    label={T.date}
                     value={date}
-                    onChange={(e) => {
-                      setDate(e.target.value);
+                    onChange={(v) => {
+                      setDate(v);
                       clear();
                     }}
                   />
                   <input
+                    {...p}
                     type="time"
                     aria-label={T.time}
-                    aria-invalid={p["aria-invalid"]}
                     className={inputCls(!!p["aria-invalid"])}
                     value={time}
                     onChange={(e) => {
@@ -374,7 +423,16 @@ export function StartDialog({
         <Sec no={edit ? 3 : 4} title={T.who} aside={T.optional}>
           <div className="grid gap-3 min-[640px]:grid-cols-2">
             <Field label={T.deliverer}>
-              {(p) => <input {...p} autoComplete="off" className={inputCls()} placeholder={T.delivererPh} value={deliverer} onChange={(e) => setDeliverer(e.target.value)} />}
+              {(p) => (
+                <input
+                  {...p}
+                  autoComplete="off"
+                  className={inputCls()}
+                  placeholder={T.delivererPh}
+                  value={deliverer}
+                  onChange={(e) => setDeliverer(e.target.value)}
+                />
+              )}
             </Field>
             <Field label={T.vehicle}>
               {(p) => (
@@ -402,7 +460,10 @@ export function StartDialog({
         )}
 
         {err && !err.field ? (
-          <p role="alert" className="text-status-critical-fg-aa m-0 text-[13px] leading-5 font-semibold">
+          <p
+            role="alert"
+            className="text-status-critical-fg-aa m-0 text-[13px] leading-5 font-semibold"
+          >
             {err.text}
           </p>
         ) : null}

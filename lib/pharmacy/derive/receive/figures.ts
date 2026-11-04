@@ -71,7 +71,11 @@ function delta(a: readonly number[], kind: "mins" | "pct"): [string, "ok" | "war
 }
 
 /** The four cards (§G1), from finished deliveries oldest first and open claims newest first. */
-export function figures(rows: readonly FigureRow[], claims: readonly ReceiveClaim[], r: ReceiveRules): ReceiveFigure[] {
+export function figures(
+  rows: readonly FigureRow[],
+  claims: readonly ReceiveClaim[],
+  r: ReceiveRules,
+): ReceiveFigure[] {
   const stockP = rows.flatMap((x) => {
     const v = minsBetween(x.arrived, x.finished);
     return v === null ? [] : [{ note: x.note, v }];
@@ -80,7 +84,9 @@ export function figures(rows: readonly FigureRow[], claims: readonly ReceiveClai
     const v = x.shelvedAt ? minsBetween(x.finished, x.shelvedAt) : null;
     return v === null ? [] : [{ note: x.note, v }];
   });
-  const matchP = rows.filter((x) => x.lines > 0).map((x) => ({ note: x.note, v: Math.round((x.matched / x.lines) * 100) }));
+  const matchP = rows
+    .filter((x) => x.lines > 0)
+    .map((x) => ({ note: x.note, v: Math.round((x.matched / x.lines) * 100) }));
   const stock = stockP.map((x) => x.v);
   const shelf = shelfP.map((x) => x.v);
   const matched = matchP.map((x) => x.v);
@@ -114,12 +120,42 @@ export function figures(rows: readonly FigureRow[], claims: readonly ReceiveClai
   for (const c of open) bySupplier.set(c.supplier, (bySupplier.get(c.supplier) ?? 0) + c.total);
   const maxBy = Math.max(1, ...bySupplier.values());
   return [
-    card("stock", F.stock, hm(m1), F.median, delta(stock, "mins"), F.last(stock.length), stock.length ? m1 <= r.targetStock : null,
-      stock.length ? miniBars(stockP, { target: r.targetStock, lowerBetter: true, pct: false }) : null),
-    card("shelf", F.shelf, hm(m2), F.median, delta(shelf, "mins"), F.last(shelf.length), shelf.length ? m2 <= r.targetShelf : null,
-      shelf.length ? miniBars(shelfP, { target: r.targetShelf, lowerBetter: true, pct: false }) : null),
-    card("matched", F.matched, `${lastM}%`, F.lastDelivery, delta(matched, "pct"), F.last(matched.length), matched.length ? lastM >= r.targetMatched : null,
-      matched.length ? miniBars(matchP, { target: r.targetMatched, lowerBetter: false, pct: true }) : null),
+    card(
+      "stock",
+      F.stock,
+      hm(m1),
+      F.median,
+      delta(stock, "mins"),
+      F.last(stock.length),
+      stock.length ? m1 <= r.targetStock : null,
+      stock.length
+        ? miniBars(stockP, { target: r.targetStock, lowerBetter: true, pct: false })
+        : null,
+    ),
+    card(
+      "shelf",
+      F.shelf,
+      hm(m2),
+      F.median,
+      delta(shelf, "mins"),
+      F.last(shelf.length),
+      shelf.length ? m2 <= r.targetShelf : null,
+      shelf.length
+        ? miniBars(shelfP, { target: r.targetShelf, lowerBetter: true, pct: false })
+        : null,
+    ),
+    card(
+      "matched",
+      F.matched,
+      `${lastM}%`,
+      F.lastDelivery,
+      delta(matched, "pct"),
+      F.last(matched.length),
+      matched.length ? lastM >= r.targetMatched : null,
+      matched.length
+        ? miniBars(matchP, { target: r.targetMatched, lowerBetter: false, pct: true })
+        : null,
+    ),
     {
       key: "claims",
       label: F.claims,

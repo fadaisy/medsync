@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ReceiveTab } from "@/components/pharmacy/receive";
-
 import { fixtureWorld } from "./world";
 
 /**
@@ -11,7 +10,11 @@ import { fixtureWorld } from "./world";
  */
 export const metadata: Metadata = { title: "Receive fixture", robots: { index: false } };
 
-export default async function ReceiveFixture({ searchParams }: { searchParams: Promise<{ delivery?: string }> }) {
+export default async function ReceiveFixture({
+  searchParams,
+}: {
+  searchParams: Promise<{ delivery?: string }>;
+}) {
   if (process.env.MEDSYNC_FIXTURES !== "1") notFound();
   const { delivery } = await searchParams;
   return (

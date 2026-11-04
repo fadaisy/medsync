@@ -36,7 +36,8 @@ import { productCatalogueFacts, registrationList } from "@/lib/pharmacy/stores/r
  * pack) until finishing; older deliveries, finished before 0276, read their stock columns.
  */
 type Db = EmrDb | EmrTx;
-const KAMPALA = (col: ReturnType<typeof sql>) => sql`to_char(${col} AT TIME ZONE 'Africa/Kampala', 'YYYY-MM-DD HH24:MI')`;
+const KAMPALA = (col: ReturnType<typeof sql>) =>
+  sql`to_char(${col} AT TIME ZONE 'Africa/Kampala', 'YYYY-MM-DD HH24:MI')`;
 
 const text = (v: unknown) => (v === null || v === undefined ? "" : String(v));
 const wholeOr = (v: unknown) => {
@@ -46,8 +47,15 @@ const wholeOr = (v: unknown) => {
 };
 
 export async function loadRules(db: Db, h: string): Promise<ReceiveRules> {
-  const rows = rowsOf<{ rule_group: string; key: string; text: string; params: { n?: number } | null }>(
-    await db.execute(sql`SELECT rule_group, key, text, params FROM public.pharmacy_rules WHERE hospital_id = ${h}::uuid`),
+  const rows = rowsOf<{
+    rule_group: string;
+    key: string;
+    text: string;
+    params: { n?: number } | null;
+  }>(
+    await db.execute(
+      sql`SELECT rule_group, key, text, params FROM public.pharmacy_rules WHERE hospital_id = ${h}::uuid`,
+    ),
   );
   return receiveRules(ruleNumbers(rows as never));
 }
@@ -86,7 +94,8 @@ export async function loadMeds(db: Db, h: string): Promise<ReceiveMed[]> {
     on_shelf: string | null;
     price: number | null;
   }>(rows).map((p) => {
-    const per = facts.get(p.id)?.contents ?? p.packs?.[0] ?? (Number.parseInt(p.pack_size ?? "", 10) || 1);
+    const per =
+      facts.get(p.id)?.contents ?? p.packs?.[0] ?? (Number.parseInt(p.pack_size ?? "", 10) || 1);
     return {
       id: p.id,
       name: p.name,
@@ -109,14 +118,32 @@ export async function loadMeds(db: Db, h: string): Promise<ReceiveMed[]> {
 }
 
 export async function loadRecalls(db: Db, h: string): Promise<ReceiveRecall[]> {
-  return rowsOf<{ product_id: string; batch: string | null; notice: string; level: string; source: string }>(
+  return rowsOf<{
+    product_id: string;
+    batch: string | null;
+    notice: string;
+    level: string;
+    source: string;
+  }>(
     await db.execute(sql`SELECT product_id, batch_number AS batch, notice_ref AS notice, level, source
       FROM public.pharmacy_recalls WHERE hospital_id = ${h}::uuid AND closed_at IS NULL`),
-  ).map((r) => ({ medId: r.product_id, batch: r.batch ?? "", notice: r.notice, why: r.level, from: r.source.toUpperCase() }));
+  ).map((r) => ({
+    medId: r.product_id,
+    batch: r.batch ?? "",
+    notice: r.notice,
+    why: r.level,
+    from: r.source.toUpperCase(),
+  }));
 }
 
 /** Open orders, and any closed ones `alsoIds` names (a finished delivery's line still reads its order). */
-export async function loadOrders(db: Db, h: string, storeId: string, meds: readonly ReceiveMed[], alsoIds: readonly string[] = []): Promise<ReceiveOrder[]> {
+export async function loadOrders(
+  db: Db,
+  h: string,
+  storeId: string,
+  meds: readonly ReceiveMed[],
+  alsoIds: readonly string[] = [],
+): Promise<ReceiveOrder[]> {
   const heads = rowsOf<{
     id: string;
     state: string;
@@ -220,7 +247,9 @@ interface LineRow {
 }
 
 export function lineFromRow(r: LineRow): ReceiveLine {
-  const old = r.counted_packs === null && r.accepted_quantity + r.rejected_kept_quantity + r.rejected_returned_quantity > 0;
+  const old =
+    r.counted_packs === null &&
+    r.accepted_quantity + r.rejected_kept_quantity + r.rejected_returned_quantity > 0;
   const rejected = r.rejected_kept_quantity + r.rejected_returned_quantity;
   return {
     id: r.id,
@@ -243,7 +272,8 @@ export function lineFromRow(r: LineRow): ReceiveLine {
     rejOn: old ? rejected > 0 : r.rej_packs !== null,
     rejPacks: old ? (rejected ? String(rejected) : "") : text(r.rej_packs),
     rejWhy: (r.reject_reason ?? "") as "" | RejWhy,
-    rejFate: (r.rej_fate ?? (r.rejected_kept_quantity ? "quarantine" : "driver")) as ReceiveLine["rejFate"],
+    rejFate: (r.rej_fate ??
+      (r.rejected_kept_quantity ? "quarantine" : "driver")) as ReceiveLine["rejFate"],
     vvm: (r.vvm_stage ? String(r.vvm_stage) : "") as ReceiveLine["vvm"],
     freeze: (r.freeze_check ?? "") as ReceiveLine["freeze"],
     rank: 0,
@@ -365,7 +395,12 @@ export async function loadReceiveWorld(
 ): Promise<ReceiveWorld | null> {
   const h = o.hospitalId;
   const q = async <T>(s: ReturnType<typeof sql>) => rowsOf<T>(await db.execute(s));
-  const places = await q<{ id: string; name: string; kind: string; supplied_from: string | null }>(sql`
+  const places = await q<{
+    id: string;
+    name: string;
+    kind: string;
+    supplied_from: string | null;
+  }>(sql`
     SELECT id, name, kind, supplied_from FROM public.pharmacy_locations
      WHERE hospital_id = ${h}::uuid AND archived_at IS NULL AND kind NOT IN ('quarantine','transit','prepared') ORDER BY kind = 'store' DESC, name`);
   const store = places.find((p) => p.kind === "store");
@@ -376,7 +411,11 @@ export async function loadReceiveWorld(
            to_char(${o.now?.toISOString() ?? new Date().toISOString()}::timestamptz AT TIME ZONE 'Africa/Kampala', 'YYYY-MM-DD') AS today,
            (SELECT name FROM public.hospitals WHERE id = ${h}::uuid) AS facility
       FROM public.users u WHERE u.id = ${o.actorUserId}::uuid`);
-  const [rules, meds, recalls] = await Promise.all([loadRules(db, h), loadMeds(db, h), loadRecalls(db, h)]);
+  const [rules, meds, recalls] = await Promise.all([
+    loadRules(db, h),
+    loadMeds(db, h),
+    loadRecalls(db, h),
+  ]);
 
   const handRows = await q<{ product_id: string; n: number }>(sql`
     SELECT b.product_id, sum(m.quantity)::int AS n
@@ -391,7 +430,10 @@ export async function loadReceiveWorld(
        AND (d.state = 'counting' OR d.finished_at >= now() - interval '180 days'
             OR d.id = ${o.deliveryId ?? null}::uuid)
      ORDER BY coalesce(d.finished_at, d.arrived_at) DESC LIMIT 60`);
-  const lineMap = await loadLines(db, deliveryRows.map((d) => d.id));
+  const lineMap = await loadLines(
+    db,
+    deliveryRows.map((d) => d.id),
+  );
   const deliveries = deliveryRows.map((d) => deliveryOf(d, lineMap.get(d.id) ?? []));
   const put = await q<{
     delivery_id: string;
@@ -425,13 +467,27 @@ export async function loadReceiveWorld(
     const photos = await q<{ id: string; kind: DeliveryPhoto["kind"]; file: string }>(sql`
       SELECT id, kind, file FROM public.pharmacy_delivery_photos WHERE delivery_id = ${o.deliveryId}::uuid ORDER BY created_at`);
     const urls = (await o.signPhotos?.(photos.map((p) => p.file))) ?? new Map<string, string>();
-    deliveries.find((d) => d.id === o.deliveryId)!.photos = photos.map((p) => ({ id: p.id, kind: p.kind, url: urls.get(p.file) ?? "" }));
+    deliveries.find((d) => d.id === o.deliveryId)!.photos = photos.map((p) => ({
+      id: p.id,
+      kind: p.kind,
+      url: urls.get(p.file) ?? "",
+    }));
   }
 
-  const orders = await loadOrders(db, h, store.id, meds, deliveries.flatMap((d) => (d.orderId ? [d.orderId] : [])));
+  const orders = await loadOrders(
+    db,
+    h,
+    store.id,
+    meds,
+    deliveries.flatMap((d) => (d.orderId ? [d.orderId] : [])),
+  );
 
   // "Send n straight": only when something waits for a shelf, since it reads the Main store's whole world.
-  const waiting = new Set(deliveries.flatMap((d) => d.put.filter((p) => !p.done).map((p) => d.lines.find((l) => l.id === p.lineId)?.medId)));
+  const waiting = new Set(
+    deliveries.flatMap((d) =>
+      d.put.filter((p) => !p.done).map((p) => d.lines.find((l) => l.id === p.lineId)?.medId),
+    ),
+  );
   if (waiting.size && o.store) {
     const sw = await o.store();
     if (sw)
@@ -462,7 +518,13 @@ export async function loadReceiveWorld(
      WHERE c.hospital_id = ${h}::uuid AND (c.state <> 'credit' OR c.credited_at >= now() - interval '90 days')
      ORDER BY c.created_at DESC`);
   const claimLineRows = claimRows.length
-    ? await q<{ claim_id: string; product_id: string; kind: string; packs: number; value: string }>(sql`
+    ? await q<{
+        claim_id: string;
+        product_id: string;
+        kind: string;
+        packs: number;
+        value: string;
+      }>(sql`
         SELECT claim_id, product_id, kind, packs, value FROM public.pharmacy_claim_lines
          WHERE claim_id = ANY(${`{${claimRows.map((c) => c.id).join(",")}}`}::uuid[])`)
     : [];
@@ -483,7 +545,14 @@ export async function loadReceiveWorld(
       .map((l) => ({ medId: l.product_id, kind: l.kind, packs: l.packs, value: Number(l.value) })),
   }));
 
-  const issues = await q<{ id: string; voucher: string; kind: string; sent: string; confirmed: boolean; note: string | null }>(sql`
+  const issues = await q<{
+    id: string;
+    voucher: string;
+    kind: string;
+    sent: string;
+    confirmed: boolean;
+    note: string | null;
+  }>(sql`
     SELECT i.id, i.voucher, i.dispatch_kind AS kind, ${KAMPALA(sql`i.issued_at`)} AS sent, c.id IS NOT NULL AS confirmed, c.note
       FROM public.pharmacy_issues i LEFT JOIN public.pharmacy_issue_confirmations c ON c.issue_id = i.id
      WHERE i.hospital_id = ${h}::uuid AND i.to_location_id = ${placeId}::uuid AND i.voucher IS NOT NULL
@@ -503,18 +572,36 @@ export async function loadReceiveWorld(
     sentAt: i.sent,
     state: !i.confirmed ? "transit" : i.note ? "diff" : "received",
     note: i.note ?? "",
-    lines: legs.filter((l) => l.issue_id === i.id).map((l) => ({ name: l.name, batch: l.batch, qty: l.qty })),
+    lines: legs
+      .filter((l) => l.issue_id === i.id)
+      .map((l) => ({ name: l.name, batch: l.batch, qty: l.qty })),
   }));
 
   const asks: ApprovalAsk[] = me?.in_charge
-    ? await q<{ delivery_id: string; id: string; note: string; med: string; batch: string; exp: string; asked_by: string }>(sql`
+    ? await q<{
+        delivery_id: string;
+        id: string;
+        note: string;
+        med: string;
+        batch: string;
+        exp: string;
+        asked_by: string;
+      }>(sql`
         SELECT d.id AS delivery_id, l.id, d.note_number AS note, p.name AS med, coalesce(l.batch_number, '') AS batch,
                coalesce(l.expiry_text, '') AS exp, coalesce(u.full_name, u.email) AS asked_by
           FROM public.pharmacy_delivery_lines l JOIN public.pharmacy_deliveries d ON d.id = l.delivery_id
           JOIN public.pharmacy_products p ON p.id = l.product_id JOIN public.users u ON u.id = d.counted_by
          WHERE d.hospital_id = ${h}::uuid AND d.state = 'counting' AND l.approval_asked_at IS NOT NULL AND l.approved_by IS NULL
          ORDER BY l.approval_asked_at`).then((r) =>
-        r.map((a) => ({ deliveryId: a.delivery_id, lineId: a.id, note: a.note, med: a.med, batch: a.batch, exp: a.exp, askedBy: a.asked_by })),
+        r.map((a) => ({
+          deliveryId: a.delivery_id,
+          lineId: a.id,
+          note: a.note,
+          med: a.med,
+          batch: a.batch,
+          exp: a.exp,
+          askedBy: a.asked_by,
+        })),
       )
     : [];
 
@@ -531,7 +618,8 @@ export async function loadReceiveWorld(
         finished: d.finished,
         shelvedAt: d.shelvedAt,
         lines: counted.length,
-        matched: counted.filter((l) => !lineInfo(l, d, lineWorld).words.some((x) => x.caution)).length,
+        matched: counted.filter((l) => !lineInfo(l, d, lineWorld).words.some((x) => x.caution))
+          .length,
       };
     })
     .slice(-8);
@@ -579,7 +667,8 @@ export async function loadReceiveWorld(
       id: p.id,
       name: p.name,
       kind: p.kind,
-      direct: p.kind === "store" || (!p.supplied_from && ["dispensing_point", "clinic"].includes(p.kind)),
+      direct:
+        p.kind === "store" || (!p.supplied_from && ["dispensing_point", "clinic"].includes(p.kind)),
     })),
     meds,
     suppliers: supplierList.map((s) => ({ id: s.id, name: s.name, leadDays: s.lead_days })),

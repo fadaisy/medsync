@@ -15,8 +15,10 @@ import { num, plural } from "./format";
 export function normExp(raw: string): string | null {
   const v = String(raw || "").trim();
   let m: RegExpExecArray | null;
-  if ((m = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(v))) return Number(m[2]) >= 1 && Number(m[2]) <= 12 ? v : null;
-  if ((m = /^(\d{2})\/(\d{4})$/.exec(v))) return Number(m[1]) >= 1 && Number(m[1]) <= 12 ? `${m[2]}-${m[1]}` : null;
+  if ((m = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(v)))
+    return Number(m[2]) >= 1 && Number(m[2]) <= 12 ? v : null;
+  if ((m = /^(\d{2})\/(\d{4})$/.exec(v)))
+    return Number(m[1]) >= 1 && Number(m[1]) <= 12 ? `${m[2]}-${m[1]}` : null;
   if ((m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v))) return `${m[3]}-${m[2]}-${m[1]}`;
   return null;
 }
@@ -98,10 +100,15 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
   const expired = days !== null && days < 0;
   const short = days !== null && days >= 0 && days < w.rules.look;
   const temp = String(l.temp).trim() === "" ? null : Number(l.temp);
-  const tempBad = m.cold && temp !== null && (Number.isNaN(temp) || temp < w.rules.tempLow || temp > w.rules.tempHigh);
+  const tempBad =
+    m.cold &&
+    temp !== null &&
+    (Number.isNaN(temp) || temp < w.rules.tempLow || temp > w.rules.tempHigh);
   const batch = String(l.batch).trim().toUpperCase();
   const rc =
-    w.recalls.find((r) => r.medId === l.medId && has(batch) && (!r.batch || r.batch.toUpperCase() === batch)) ?? null;
+    w.recalls.find(
+      (r) => r.medId === l.medId && has(batch) && (!r.batch || r.batch.toUpperCase() === batch),
+    ) ?? null;
   const order = d.orderId ? w.orders.find((o) => o.id === d.orderId) : undefined;
   const ol = (l.orderLineId && order?.lines.find((x) => x.id === l.orderLineId)) || null;
   let owed = ol ? ol.packs - ol.received : 0;
@@ -119,7 +126,8 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
   let priceDiff: PriceDiff | null = null;
   if (priceRef && l.cost !== "" && Number(l.cost) > 0) {
     const pct = Math.round(((Number(l.cost) - priceRef) / priceRef) * 100);
-    if (Math.abs(pct) > w.rules.priceTol) priceDiff = { pct, ref: priceRef, fromOrder: !!ol?.price };
+    if (Math.abs(pct) > w.rules.priceTol)
+      priceDiff = { pct, ref: priceRef, fromOrder: !!ol?.price };
   }
   const vvmBad = m.vaccine && (l.vvm === "3" || l.vvm === "4");
   const frozen = m.vaccine && l.freeze === "tripped";
@@ -129,9 +137,13 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
   if (counted) {
     if (l.notePacks !== "" && Number(l.notePacks) !== packs) {
       const diff = packs - Number(l.notePacks);
-      words.push({ word: `${plural(Math.abs(diff), "pack")}${diff < 0 ? RC.word.fewer : RC.word.more}`, caution: true });
+      words.push({
+        word: `${plural(Math.abs(diff), "pack")}${diff < 0 ? RC.word.fewer : RC.word.more}`,
+        caution: true,
+      });
     } else if (l.notePacks === "" && ol && olAcc < owed) {
-      if (d.state === "counting") words.push({ word: `${plural(owed - olAcc, "pack")}${RC.word.left}`, caution: false });
+      if (d.state === "counting")
+        words.push({ word: `${plural(owed - olAcc, "pack")}${RC.word.left}`, caution: false });
       else words.push({ word: `${plural(owed - olAcc, "pack")}${RC.word.short}`, caution: true });
     }
     if (d.orderId && !l.orderLineId) words.push({ word: RC.word.notOnOrder, caution: true });
@@ -141,7 +153,8 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
     if (why === "wrong_product") words.push({ word: RC.why.wrong_product, caution: true });
     if (tempBad) words.push({ word: RC.why.cold_chain, caution: true });
     if (rc) words.push({ word: RC.why.recall, caution: true });
-    if (priceDiff) words.push({ word: RC.word.price(priceDiff.pct, priceDiff.fromOrder), caution: true });
+    if (priceDiff)
+      words.push({ word: RC.word.price(priceDiff.pct, priceDiff.fromOrder), caution: true });
     if (vvmBad) words.push({ word: RC.word.vvm(l.vvm), caution: true });
     if (frozen) words.push({ word: RC.word.frozen, caution: true });
     if (!words.length) words.push({ word: RC.word.matches, caution: false });
@@ -155,7 +168,13 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
     if (m.cold && acc > 0 && temp === null) problems.push(P.temp(no));
     if (tempBad && acc > 0) problems.push(P.coldBroken(no));
     if (short && !expired && !dec && acc > 0) problems.push(P.decide(no));
-    if (short && !expired && (dec === "accept" || dec === "accept_tell") && acc > 0 && !l.approvedBy)
+    if (
+      short &&
+      !expired &&
+      (dec === "accept" || dec === "accept_tell") &&
+      acc > 0 &&
+      !l.approvedBy
+    )
       problems.push(P.approval(no));
     if (rc && acc > 0) problems.push(P.recall(no, l.batch, rc.notice));
     if (m.vaccine && acc > 0) {
@@ -197,7 +216,8 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
     ol,
     words,
     problems,
-    unitsText: per > 1 ? `${num(acc)} × ${num(per)} = ${plural(acc * per, m.unit)}` : plural(acc, m.unit),
+    unitsText:
+      per > 1 ? `${num(acc)} × ${num(per)} = ${plural(acc * per, m.unit)}` : plural(acc, m.unit),
     value: l.cost === "" ? null : acc * Number(l.cost),
   };
 }
