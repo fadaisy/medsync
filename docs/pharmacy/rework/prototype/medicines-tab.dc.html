@@ -42,14 +42,17 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
     </nav>
 
     <section aria-label="Medicines" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px; display: flex; flex-direction: column; gap: 12px">
-      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-end; gap: 8px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+        <nav aria-label="What to show" style="display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #eef0f4; border-radius: 999px">
+          <sc-for list="{{itypes}}" as="it" hint-placeholder-count="4"><button type="button" aria-pressed="{{it.on}}" onClick="{{it.pick}}" style="{{it.style}}">{{it.label}}<span style="{{it.countStyle}}">{{it.count}}</span></button></sc-for>
+        </nav>
         <button type="button" onClick="{{openPicker}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px/20px Figtree, sans-serif; box-shadow: 0 8px 22px -6px rgba(45,212,191,0.65)">Add from the catalogue</button>
       </div>
 
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
         <label style="flex: 1 1 260px; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6987" stroke-width="1.75" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
-          <input aria-label="Find a medicine" placeholder="Find a medicine or class" value="{{q}}" onChange="{{setQ}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font: 400 15px Figtree, sans-serif; color: #1b2540">
+          <input aria-label="Find a medicine or supply" placeholder="Find a medicine, supply or class" value="{{q}}" onChange="{{setQ}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font: 400 15px Figtree, sans-serif; color: #1b2540">
         </label>
         <button type="button" onClick="{{openFilters}}" style="{{filterBtnStyle}}">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"></path></svg>
@@ -829,7 +832,9 @@ class Component extends DCLogic {
       miso: [['Cytotec', 'Pfizer'], ['Generic (any maker)', 'Unbranded']]
     };
     this.PLACES = [['store', 'Main store', 'Store'], ['opd', 'OPD dispensary', 'OPD'], ['w3', 'Ward 3 · Medical', 'Ward 3'], ['mat', 'Maternity', 'Maternity'], ['paed', 'Paediatrics', 'Paeds'], ['epi', 'EPI clinic', 'EPI']];
-    this.CLASSES = ['Antibiotics', 'Antimalarials', 'Analgesics', 'Fluids and electrolytes', 'Antihypertensives', 'Diuretics', 'Anticonvulsants', 'Antidiabetics', 'Haematinics', 'Obstetric (uterotonics)', 'Respiratory', 'Gastrointestinal', 'Anthelmintics', 'Corticosteroids', 'Vaccines', 'Antineoplastics (anticancer)', 'Immunosuppressants', 'Antiretrovirals', 'Anti-TB', 'Antifungals', 'Antivirals', 'Anticoagulants', 'Lipid-lowering', 'Psychiatric', 'Dermatologicals', 'Eye and ear', 'Hormones and contraceptives', 'Thyroid', 'Antihistamines', 'Vitamins and minerals', 'Anaesthetics'];
+    this.CLASSES = ['Antibiotics', 'Antimalarials', 'Analgesics', 'Fluids and electrolytes', 'Antihypertensives', 'Diuretics', 'Anticonvulsants', 'Antidiabetics', 'Haematinics', 'Obstetric (uterotonics)', 'Respiratory', 'Gastrointestinal', 'Anthelmintics', 'Corticosteroids', 'Vaccines', 'Antineoplastics (anticancer)', 'Immunosuppressants', 'Antiretrovirals', 'Anti-TB', 'Antifungals', 'Antivirals', 'Anticoagulants', 'Lipid-lowering', 'Psychiatric', 'Dermatologicals', 'Eye and ear', 'Hormones and contraceptives', 'Thyroid', 'Antihistamines', 'Vitamins and minerals', 'Anaesthetics', 'Administration sets, cannulas, needles and syringes', 'Antiseptics, detergents and disinfectants', 'Bandages and dressings', 'Catheters and tubes', 'Gloves', 'Ligatures, suture materials and surgicals', 'Protectives', 'Ward and theatre supplies', 'Laboratory: rapid tests', 'Laboratory: test strips']
+    // EMHSLU 2023 Section B (general health supplies) and Section D (laboratory supplies): the item's type follows its class
+    this.SUPCLS = { 'Administration sets, cannulas, needles and syringes': 'Health supply', 'Antiseptics, detergents and disinfectants': 'Health supply', 'Bandages and dressings': 'Health supply', 'Catheters and tubes': 'Health supply', 'Gloves': 'Health supply', 'Ligatures, suture materials and surgicals': 'Health supply', 'Protectives': 'Health supply', 'Ward and theatre supplies': 'Health supply', 'Laboratory: rapid tests': 'Laboratory supply', 'Laboratory: test strips': 'Laboratory supply' };;
     this.CATALOGUE = [
       ['cyclo', 'Cyclophosphamide 500 mg powder for injection', 'vial', 'Antineoplastics (anticancer)', { cyto: true, high: true }, ['1'], false],
       ['doxo', 'Doxorubicin 50 mg powder for injection', 'vial', 'Antineoplastics (anticancer)', { cyto: true, high: true }, ['1'], false],
@@ -883,19 +888,41 @@ class Component extends DCLogic {
       ['miso', 'Misoprostol 200 mcg tablet', 'tablet', 'Obstetric (uterotonics)', {}, ['28', '100'], false],
       ['ffa', 'Ferrous sulfate + folic acid tablet', 'tablet', 'Haematinics', {}, ['100', '1000'], true],
       ['insulin', 'Soluble insulin 100 IU/ml vial', 'vial', 'Antidiabetics', { cold: true }, ['1'], false],
-      ['penta', 'Pentavalent vaccine (DTP-HepB-Hib)', 'dose', 'Vaccines', { cold: true, freeze: true }, ['10'], false]
+      ['penta', 'Pentavalent vaccine (DTP-HepB-Hib)', 'dose', 'Vaccines', { cold: true, freeze: true }, ['10'], false],
+      ['bgset', 'Blood giving set, disposable', 'piece', 'Administration sets, cannulas, needles and syringes', { sterile: true }, ['25'], true],
+      ['scalp', 'Set, infusion, scalp vein, with butterfly needle, 25G', 'piece', 'Administration sets, cannulas, needles and syringes', { sterile: true }, ['100'], true],
+      ['can16', 'Cannula IV with inj port and wings (grey), 16G', 'piece', 'Administration sets, cannulas, needles and syringes', { sterile: true }, ['50'], true],
+      ['ins1', 'Syringe disposable, hypodermic, luer, insulin 100 IU/1 ml', 'piece', 'Administration sets, cannulas, needles and syringes', { sterile: true }, ['100'], true],
+      ['chx', 'Chlorhexidine gluconate scrub, with dispenser', 'bottle', 'Antiseptics, detergents and disinfectants', {}, ['1'], false],
+      ['pvi', 'Polyvidone-iodine solution 10%', 'bottle', 'Antiseptics, detergents and disinfectants', {}, ['1'], false],
+      ['crepe', 'Bandage, elastic, crepe, 10 cm x 4.5 m', 'roll', 'Bandages and dressings', {}, ['10'], true],
+      ['pop', 'Plaster of paris (POP) roll, 15 cm x 2.7 m', 'roll', 'Bandages and dressings', {}, ['12'], true],
+      ['fol14', 'Catheter foley, balloon, 2-way, FG14', 'piece', 'Catheters and tubes', { sterile: true }, ['10'], true],
+      ['suc8', 'Suction catheter, disposable, FG8', 'piece', 'Catheters and tubes', { sterile: true }, ['50'], true],
+      ['ett7', 'Endotracheal tube, oral/nasal, plain cuffed, 7.0 mm', 'piece', 'Catheters and tubes', { sterile: true }, ['10'], true],
+      ['glnit', 'Gloves, ambidextrose, nitrile, large', 'piece', 'Gloves', {}, ['100'], true],
+      ['glgyn', 'Gynaecological gloves, size 7.5', 'pair', 'Gloves', { sterile: true }, ['50'], true],
+      ['silk1', 'Suture silk, thread M4 (1), 75 cm, ½ circle taper', 'piece', 'Ligatures, suture materials and surgicals', { sterile: true }, ['12'], true],
+      ['apron', 'Apron plastic disposable, opaque with neck band', 'piece', 'Protectives', {}, ['100'], true],
+      ['n95', 'Face mask N95', 'piece', 'Protectives', {}, ['20'], true],
+      ['liner', 'Bin liners, yellow, 12 L', 'packet', 'Protectives', {}, ['1'], false],
+      ['mucus', 'Mucus extractor, disposable, infant', 'piece', 'Ward and theatre supplies', { sterile: true }, ['50'], true],
+      ['hbsag2', 'Hepatitis, HBsAg Screening Kit, 25 tests', 'test', 'Laboratory: rapid tests', { kit: true }, ['25'], true],
+      ['hivst', 'HIV-1/2, OraQuick Rapid Antibody Test (self-test)', 'test', 'Laboratory: rapid tests', { kit: true }, ['1'], false],
+      ['urin3', 'Test Strips, Urinalysis Strips, 3 parameters', 'strip', 'Laboratory: test strips', { kit: true }, ['100'], true]
     ];
     // Filter builder columns and operators; grid columns that can be shown or hidden
     this.FCOLS = {
-      name: { label: 'Medicine name', type: 'text' },
+      name: { label: 'Name', type: 'text' },
+      itype: { label: 'Type', type: 'enum', opts: ['Medicine', 'Health supply', 'Laboratory supply'] },
       strength: { label: 'Strength', type: 'text' },
-      form: { label: 'Form', type: 'enum', opts: ['Tablet', 'Dispersible tablet', 'Capsule', 'Syrup', 'Suspension', 'Oral solution', 'Oral drops', 'Powder (sachet)', 'Injection', 'Powder for injection', 'Suspension for injection', 'Infusion'] },
+      form: { label: 'Form', type: 'enum', opts: ['Tablet', 'Dispersible tablet', 'Capsule', 'Syrup', 'Suspension', 'Oral solution', 'Oral drops', 'Powder (sachet)', 'Injection', 'Powder for injection', 'Suspension for injection', 'Infusion', 'Syringe', 'Cannula', 'Set', 'Swab', 'Disinfectant', 'Cotton wool', 'Gauze swab', 'Adhesive plaster', 'Catheter', 'Tube', 'Bag', 'Gloves', 'Suture', 'Container', 'Mask', 'Clamp', 'Test kit', 'Test strips'] },
       route: { label: 'Route', type: 'route', opts: ['Oral', 'IV', 'IM', 'SC', 'Intradermal', 'Rectal'] },
       cls: { label: 'Class', type: 'enum', opts: this.CLASSES },
       group: { label: 'Pharmacological group', type: 'text' },
-      sale: { label: 'Sale category', type: 'enum', opts: ['Controlled', 'Prescription only', 'Pharmacy only', 'Over the counter'] },
+      sale: { label: 'Sale category', type: 'enum', opts: ['Controlled', 'Prescription only', 'Pharmacy only', 'Over the counter', 'Supply (issued, not dispensed)'] },
       ven: { label: 'VEN', type: 'enum', opts: ['Vital', 'Essential', 'Necessary', 'Not set'] },
-      handling: { label: 'Handling', type: 'flag', opts: ['Controlled', 'High-risk', 'Cold chain', 'Freeze-sensitive', 'Cytotoxic'] },
+      handling: { label: 'Handling', type: 'flag', opts: ['Controlled', 'High-risk', 'Cold chain', 'Freeze-sensitive', 'Cytotoxic', 'Sterile', 'Kit, 2–30 °C'] },
       status: { label: 'Stock status', type: 'status', opts: ['Low or out', 'Out', 'Low', 'OK', 'Over', 'Top-up not set'] },
       onhand: { label: 'On hand', type: 'num' },
       topup: { label: '% of top-up', type: 'num' },
@@ -956,7 +983,36 @@ class Component extends DCLogic {
       ['bopv', 'bOPV vaccine', 'dose', 'X', 'V', 'k', ['20'], 0, 25, 'store epi'],
       ['penta', 'Pentavalent vaccine (DTP-HepB-Hib)', 'dose', 'X', 'V', 'kf', ['10'], 0, 25, 'store epi'],
       ['mr', 'Measles-rubella vaccine', 'dose', 'X', 'V', 'k', ['10'], 0, 10, 'store epi'],
-      ['td', 'Td vaccine', 'dose', 'X', 'V', 'kf', ['10'], 0, 15, 'store epi mat']
+      ['td', 'Td vaccine', 'dose', 'X', 'V', 'kf', ['10'], 0, 15, 'store epi mat'],
+      // Health supplies (EMHSLU 2023 Section B) and laboratory supplies (Section D): flags s sterile, t test kit kept at 2–30 °C, z free from a national programme; then the lowest level of care
+      ['sad5', 'Syringe AD + needle, disposable detached, 5 ml', 'piece', 'B1', 'V', 's', ['100'], 1, 180, 'store opd w3 mat paed epi', 'HC3'],
+      ['sad2', 'Syringe AD + needle, disposable detached, 2 ml', 'piece', 'B1', 'V', 's', ['100'], 1, 90, 'store opd w3 mat paed', 'HC3'],
+      ['can18', 'Cannula IV with inj port and wings (green), 18G', 'piece', 'B1', 'V', 's', ['50'], 1, 25, 'store w3 mat', 'HC3'],
+      ['can22', 'Cannula IV with inj port and wings (blue), 22G', 'piece', 'B1', 'E', 's', ['50'], 1, 20, 'store w3 paed', 'HC3'],
+      ['can24', 'Cannula IV with inj port and wings (yellow), 24G', 'piece', 'B1', 'V', 's', ['50'], 1, 8, 'store paed', 'HC4'],
+      ['ivset', 'Set, infusion + needle, adult', 'piece', 'B1', 'V', 's', ['25'], 1, 30, 'store w3 mat paed', 'HC3'],
+      ['aswab', 'Alcohol swab, 70%', 'piece', 'B2', 'V', '', ['100'], 1, 150, 'store opd w3 mat paed epi', 'HC2'],
+      ['hypo', 'Sodium hypochlorite 6%', 'bottle', 'B2', 'V', '', ['1'], 0, 2, 'store w3 mat', 'HC2'],
+      ['cotton', 'Wool, cotton, hospital quality, 500 g', 'roll', 'B3', 'V', '', ['1'], 0, 3, 'store opd w3 mat', 'HC2'],
+      ['gswab', 'Gauze swabs, WOW, sterile 12 ply, 10 x 10 cm', 'packet', 'B3', 'E', 's', ['10'], 1, 15, 'store w3 mat', 'HC4'],
+      ['zox', 'Plaster, adhesive, zinc oxide, 7.5 cm x 5 m', 'roll', 'B3', 'N', '', ['1'], 0, 2, 'store opd w3', 'HC2'],
+      ['fol16', 'Catheter foley, balloon, 2-way, FG16', 'piece', 'B4', 'V', 's', ['10'], 1, 3, 'store w3 mat', 'HC4'],
+      ['ngt8', 'Nasogastric/feeding tube, neonate/child, FG8', 'piece', 'B4', 'V', 's', ['10'], 1, 2, 'store paed', 'HC4'],
+      ['ucb', 'Urine collecting bag, sterile, disposable, adult 2 L', 'piece', 'B9', 'E', 's', ['10'], 1, 3, 'store w3', 'HC4'],
+      ['glex', 'Examination gloves, latex, non-sterile, medium', 'piece', 'B5', 'N', '', ['100'], 1, 400, 'store opd w3 mat paed epi', 'HC2'],
+      ['glsur', 'Surgeon gloves, sterile, size 7.5', 'pair', 'B5', 'V', 's', ['50'], 1, 20, 'store w3 mat', 'HC2'],
+      ['pga1', 'Polyglycolic acid, thread M4 (1), 90 cm, ½ circle taper', 'piece', 'B6', 'V', 's', ['12'], 1, 3, 'store mat', 'HC4'],
+      ['nyl2', 'Suture nylon, thread M3 (2/0), 45 cm, 3/8 circle', 'piece', 'B6', 'V', 's', ['12'], 1, 2, 'store opd w3', 'HC3'],
+      ['sbox', 'Safety box for syringes & needles, disposable', 'piece', 'B7', 'V', '', ['25'], 1, 4, 'store opd w3 mat paed epi', 'HC2'],
+      ['mask', 'Face masks, disposable, 2-ply', 'piece', 'B7', 'E', '', ['50'], 1, 40, 'store w3 mat', 'HC4'],
+      ['clamp', 'Disposable umbilical cord clamp with safe security lock', 'piece', 'B9', 'E', 's', ['100'], 1, 8, 'store mat', 'HC3'],
+      ['mrdt', 'Malaria Antigen P.f/Pan Kit (dipstick), 25 tests', 'test', 'D1', 'V', 'tz', ['25'], 1, 80, 'store opd w3 paed', 'HC2'],
+      ['hivd', 'HIV 1/2, Determine Complete HIV Kit, 100 tests', 'test', 'D1', 'V', 'tz', ['100'], 1, 30, 'store opd mat', 'HC2'],
+      ['hivs', 'HIV 1/2, Stat-Pak Dipstick Assay Kit, 30 tests', 'test', 'D1', 'V', 'tz', ['30'], 1, 6, 'store opd mat', 'HC2'],
+      ['hbs', 'Hepatitis, HBsAg Screening Kit, 25 tests', 'test', 'D1', 'V', 't', ['25'], 1, 4, 'store opd mat', 'HC2'],
+      ['hcg', 'HCG pregnancy test strips', 'test', 'D1', 'V', 't', ['50'], 1, 10, 'store opd mat', 'HC2'],
+      ['urin', 'Test Strips, Urinalysis Strips, 10 parameters', 'strip', 'D2', 'V', 't', ['100'], 1, 15, 'store opd mat w3', 'HC3'],
+      ['gluc', 'Glucometer, Test Strips, 50 pieces', 'strip', 'D2', 'V', 't', ['50'], 1, 20, 'store opd w3', 'HC3']
     ];
     // Each line's identity: generic, strength, form, route. A different strength, form or route is a different line.
     var ST = this.STRUCT = {
@@ -1018,11 +1074,35 @@ class Component extends DCLogic {
       miso: ['Misoprostol', '200 mcg', 'Tablet', 'Oral'], mgso4: ['Magnesium sulfate', '50% · 10 ml', 'Injection', 'IM/IV'],
       bcg: ['BCG vaccine', '20-dose vial', 'Powder for injection', 'Intradermal'], bopv: ['bOPV vaccine', '20-dose vial', 'Oral drops', 'Oral'],
       penta: ['Pentavalent vaccine', '10-dose vial', 'Suspension for injection', 'IM'], mr: ['Measles-rubella vaccine', '10-dose vial', 'Powder for injection', 'SC'],
-      td: ['Td vaccine', '10-dose vial', 'Suspension for injection', 'IM']
+      td: ['Td vaccine', '10-dose vial', 'Suspension for injection', 'IM'],
+      sad5: ['Syringe AD + needle, disposable detached', '5 ml, needle 21 G', 'Syringe', '—'], sad2: ['Syringe AD + needle, disposable detached', '2 ml, needle 23 G', 'Syringe', '—'],
+      can18: ['Cannula IV with inj port and wings (green)', '18G, 1.2 mm x 45 mm', 'Cannula', '—'], can22: ['Cannula IV with inj port and wings (blue)', '22G, 0.7 mm x 26 mm', 'Cannula', '—'],
+      can24: ['Cannula IV with inj port and wings (yellow)', '24G, 0.55 mm x 19 mm', 'Cannula', '—'], ivset: ['Set, infusion + needle', '21G adult, 15–20 drops/ml', 'Set', '—'],
+      aswab: ['Alcohol swab', '70%', 'Swab', '—'], hypo: ['Sodium hypochlorite', '6%', 'Disinfectant', '—'],
+      cotton: ['Wool, cotton, hospital quality', '500 g', 'Cotton wool', '—'], gswab: ['Gauze swabs, WOW, sterile 12 ply', '10 x 10 cm', 'Gauze swab', '—'],
+      zox: ['Plaster, adhesive, zinc oxide', '7.5 cm x 5 m', 'Adhesive plaster', '—'], fol16: ['Catheter foley, balloon, 2-way', 'FG16, 10–30 ml', 'Catheter', '—'],
+      ngt8: ['Nasogastric/feeding tube, neonate/child', 'FG8 x 50 cm', 'Tube', '—'], ucb: ['Urine collecting bag, sterile, disposable', 'Adult, 2 L', 'Bag', '—'],
+      glex: ['Examination gloves, latex, non-sterile', 'Medium', 'Gloves', '—'], glsur: ['Surgeon gloves, sterile', 'Size 7.5 (medium)', 'Gloves', '—'],
+      pga1: ['Polyglycolic acid, thread M4 (1)', '90 cm, needle 40 mm ½ circle taper heavy', 'Suture', '—'], nyl2: ['Suture nylon, thread M3 (2/0)', '45 cm, needle 26 mm 3/8 circle rev. cut', 'Suture', '—'],
+      sbox: ['Safety box for syringes & needles', 'Disposable', 'Container', '—'], mask: ['Face masks, disposable', '2-ply, operation theatre', 'Mask', '—'],
+      clamp: ['Disposable umbilical cord clamp', 'With safe security lock', 'Clamp', '—'],
+      mrdt: ['Malaria Antigen P.f/Pan Kit (dipstick)', '25 tests', 'Test kit', '—'], hivd: ['HIV 1/2, Determine Complete HIV Kit', '100 tests', 'Test kit', '—'],
+      hivs: ['HIV 1/2, Stat-Pak Dipstick Assay Kit', '30 tests', 'Test kit', '—'], hbs: ['Hepatitis, HBsAg Screening Kit', '25 tests', 'Test kit', '—'],
+      hcg: ['HCG pregnancy test strips', 'Per test', 'Test strips', '—'], urin: ['Test Strips, Urinalysis Strips', '10 parameters', 'Test strips', '—'], gluc: ['Glucometer, Test Strips', '50 pieces', 'Test strips', '—'],
+      bgset: ['Blood giving set, disposable', 'Standard', 'Set', '—'], scalp: ['Set, infusion, scalp vein, with butterfly needle', '0.5 mm, 25G', 'Set', '—'],
+      can16: ['Cannula IV with inj port and wings (grey)', '16G, 1.6 mm x 45 mm', 'Cannula', '—'], ins1: ['Syringe disposable, hypodermic, luer', 'Insulin 100 IU/1 ml', 'Syringe', '—'],
+      chx: ['Chlorhexidine gluconate scrub, with dispenser', 'As listed', 'Disinfectant', '—'], pvi: ['Polyvidone-iodine solution', '10%', 'Disinfectant', '—'],
+      crepe: ['Bandage, elastic, crepe', '10 cm x 4.5 m stretched', 'Adhesive plaster', '—'], pop: ['Plaster of paris (POP) roll', '15 cm x 2.7 m', 'Adhesive plaster', '—'],
+      fol14: ['Catheter foley, balloon, 2-way', 'FG14, 10–30 ml', 'Catheter', '—'], suc8: ['Suction catheter, disposable', 'FG8, 52 cm', 'Catheter', '—'],
+      ett7: ['Endotracheal tube, oral/nasal, plain cuffed', '7.0 mm', 'Tube', '—'], glnit: ['Gloves, ambidextrose, nitrile', 'Large', 'Gloves', '—'],
+      glgyn: ['Gynaecological gloves', 'Size 7.5 (medium)', 'Gloves', '—'], silk1: ['Suture silk, thread', 'M4 (1) 75 cm, needle 34 mm ½ circle taper fine', 'Suture', '—'],
+      apron: ['Apron plastic disposable, opaque with neck band', '90 x 100 cm', 'Mask', '—'], n95: ['Face mask N95', 'Respirator', 'Mask', '—'],
+      liner: ['Bin liners, 12 L', 'Yellow, pack of 100', 'Container', '—'], mucus: ['Mucus extractor, disposable', 'Infant', 'Tube', '—'],
+      hbsag2: ['Hepatitis, HBsAg Screening Kit', '25 tests', 'Test kit', '—'], hivst: ['HIV-1/2, OraQuick Rapid Antibody Test', '1 test (self-test)', 'Test kit', '—'], urin3: ['Test Strips, Urinalysis Strips', '3 parameters', 'Test strips', '—']
     };
-    var CL = { A: 'Antibiotics', P: 'Analgesics', F: 'Fluids and electrolytes', H: 'Antihypertensives', S: 'Anticonvulsants', D: 'Antidiabetics', I: 'Haematinics', O: 'Obstetric (uterotonics)', X: 'Vaccines' };
+    var CL = { A: 'Antibiotics', P: 'Analgesics', F: 'Fluids and electrolytes', H: 'Antihypertensives', S: 'Anticonvulsants', D: 'Antidiabetics', I: 'Haematinics', O: 'Obstetric (uterotonics)', X: 'Vaccines', B1: 'Administration sets, cannulas, needles and syringes', B2: 'Antiseptics, detergents and disinfectants', B3: 'Bandages and dressings', B4: 'Catheters and tubes', B5: 'Gloves', B6: 'Ligatures, suture materials and surgicals', B7: 'Protectives', B9: 'Ward and theatre supplies', D1: 'Laboratory: rapid tests', D2: 'Laboratory: test strips' };
     var VN = { V: 'Vital', E: 'Essential', N: 'Necessary' };
-    var PR = { tablet: [50, 300, 10], capsule: [100, 400, 10], vial: [3000, 12000, 500], ampoule: [1000, 5000, 100], bottle: [2500, 9000, 500], sachet: [300, 600, 50] };
+    var PR = { tablet: [50, 300, 10], capsule: [100, 400, 10], vial: [3000, 12000, 500], ampoule: [1000, 5000, 100], bottle: [2500, 9000, 500], sachet: [300, 600, 50], piece: [200, 3500, 50], pair: [800, 2500, 50], packet: [1500, 4000, 100], roll: [3000, 15000, 500], test: [1500, 5000, 100], strip: [300, 1200, 50] };
     var seed = 11, rnd = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
     var nice = function (n) { var st = n >= 1000 ? 100 : n >= 100 ? 10 : n >= 20 ? 5 : 1; return Math.max(1, Math.round(n / st) * st); };
     var meds = [], stock = {};
@@ -1032,8 +1112,11 @@ class Component extends DCLogic {
       if (r[5].indexOf('h') >= 0) fl.high = true;
       if (r[5].indexOf('k') >= 0) fl.cold = true;
       if (r[5].indexOf('f') >= 0) fl.freeze = true;
+      if (r[5].indexOf('s') >= 0) fl.sterile = true;
+      if (r[5].indexOf('t') >= 0) fl.kit = true;
       var m = med(r[0], r[1], r[2], CL[r[3]], VN[r[4]], fl, r[6], !!r[7]);
       m.use = r[8];
+      if (r[10]) { m.itype = r[3].charAt(0) === 'D' ? 'Laboratory supply' : 'Health supply'; m.loc = r[10]; }
       if (ST[m.id]) { m.generic = ST[m.id][0]; m.strength = ST[m.id][1]; m.form = ST[m.id][2]; m.route = ST[m.id][3]; }
       var places = r[9].split(' '), wards = Math.max(1, places.length - 1), setLv = i % 9 !== 4;
       stock[m.id] = {};
@@ -1043,7 +1126,7 @@ class Component extends DCLogic {
         var x = rnd(), f = x < 0.06 ? 0 : x < 0.22 ? 0.15 + rnd() * 0.3 : x < 0.9 ? 0.55 + rnd() * 0.45 : 1.05 + rnd() * 0.25;
         stock[m.id][p] = Math.round(lvl * f);
       });
-      if (r[3] === 'X') m.free = true;
+      if (r[3] === 'X' || r[5].indexOf('z') >= 0) m.free = true;
       else if (i % 7 !== 3) { var pr = PR[r[2]]; m.prices.cash = String(Math.round((pr[0] + rnd() * (pr[1] - pr[0])) / pr[2]) * pr[2]); }
       // sample quality-control data: last received unit cost, batches with expiry, last movement, last review
       m.cost = m.prices.cash ? String(Math.round(+m.prices.cash * (0.55 + rnd() * 0.55))) : '';
@@ -1091,13 +1174,15 @@ class Component extends DCLogic {
       { id: 'cold', scope: 'Cold chain', flag: 'cold', label: 'Cold chain', rules: ['Kept at 2–8 °C in a listed fridge', 'Alarm above +8 °C or below −0.5 °C', '30 min or more out of range is an excursion'] },
       { id: 'freeze', scope: 'Freeze-sensitive', flag: 'freeze', label: 'Freeze-sensitive', rules: ['Shake test before use after a freeze alarm'] },
       { id: 'cyto', scope: 'Cytotoxic', flag: 'cyto', label: 'Cytotoxic', rules: ['Prepared only in the designated area, with gloves, gown and mask', 'Every dose checked against body surface area by a second pharmacist', 'Stored apart and labelled cytotoxic', 'Waste and spills handled with the cytotoxic spill kit'] },
+      { id: 'sterile', scope: 'Sterile supplies', flag: 'sterile', label: 'Sterile', rules: ['Packaging checked at receipt and before use: a torn, wet or opened pack is rejected', 'Single use: never re-sterilised or re-used', 'First expiry, first out, as for medicines'] },
+      { id: 'kit', scope: 'Test kits', flag: 'kit', label: 'Kit, 2–30 °C', rules: ['Kept at 2–30 °C, out of direct sun; never frozen', 'Each new lot checked with a known positive and a known negative before use', 'An opened kit is used within the time on its insert'] },
       { id: 'vax', scope: 'Vaccines', cls: 'Vaccines', rules: ['Open vials: BCG and MR 6 h; bOPV, IPV, Penta and Td 28 days', 'Given free'] },
       { id: 'rx', scope: 'Prescription checks', rx: true, rules: [] }
     ];
     var PGc = this.PG, SALEc = this.SALE, NCc = this.NATCD;
-    meds.forEach(function (m) { m.group = PGc[m.id] || ''; m.sale = NCc.indexOf(m.id) >= 0 ? 'Controlled' : SALEc[m.id] || 'Prescription only'; });
+    meds.forEach(function (m) { m.group = PGc[m.id] || ''; m.sale = NCc.indexOf(m.id) >= 0 ? 'Controlled' : SALEc[m.id] || 'Prescription only'; if (m.itype) { m.group = 'EMHSLU 2023 · from ' + m.loc; m.sale = 'Supply (issued, not dispensed)'; } });
     this.state = {
-      q: '', filter: 'All', openId: '', edit: null, picking: false, picked: {}, pq: '', toast: '',
+      q: '', filter: 'All', itype: 'All', openId: '', edit: null, picking: false, picked: {}, pq: '', toast: '',
       stock: stock,
       sort: { key: 'name', dir: 1 }, group: false, page: 0, sel: {}, colMenu: '', colsOpen: false,
       cols: { strength: true, form: true, route: true, cls: false, group: false, sale: false, ven: true, handling: true, stock: true, status: true, expiry: true, cover: false, qc: true, price: true },
@@ -1105,7 +1190,7 @@ class Component extends DCLogic {
       fridges: { 'CR-01': { name: 'Main store cold room', temp: 4.6, sensor: true, at: '' }, 'RF-02': { name: 'Maternity ice-lined fridge', temp: 5.3, sensor: true, at: '' }, 'RF-03': { name: 'EPI solar fridge', temp: 6.1, sensor: false, at: '08:00' } }, pend: {}, draft: null,
       rsets: this.RULESETS.map(function (g) { return Object.assign({}, g, { rules: g.rules.slice() }); }), rx: Object.assign({}, this.RX), saveName: '', view: 'all', bulkVen: '', bulkPlace: '', bulkLevel: '',
       views: [
-        { id: 'all', name: 'All medicines', conds: [] },
+        { id: 'all', name: 'Everything', conds: [] },
         { id: 'lowout', name: 'Low or out', conds: [{ join: 'AND', col: 'status', op: 'any place is', val: 'Low or out' }] },
         { id: 'cover', name: 'Under 14 days of cover', conds: [{ join: 'AND', col: 'cover', op: 'less than', val: '14' }] },
         { id: 'vital', name: 'Vital and low', conds: [{ join: 'AND', col: 'ven', op: 'is', val: 'Vital' }, { join: 'AND', col: 'status', op: 'any place is', val: 'Low or out' }] },
@@ -1170,7 +1255,8 @@ class Component extends DCLogic {
     };
     var isLowMed = function (m) { return statFor(m).some(function (x) { return x.flag === 'Low' || x.flag === 'Out'; }); };
     var priced = function (m) { return m.free || +m.prices.cash > 0; };
-    var flagList = function (f) { var o = []; if (f.controlled) o.push('Controlled'); if (f.cold) o.push('Cold chain'); if (f.high) o.push('High-risk'); if (f.freeze) o.push('Freeze-sensitive'); if (f.cyto) o.push('Cytotoxic'); return o; };
+    var flagList = function (f) { var o = []; if (f.controlled) o.push('Controlled'); if (f.cold) o.push('Cold chain'); if (f.high) o.push('High-risk'); if (f.freeze) o.push('Freeze-sensitive'); if (f.cyto) o.push('Cytotoxic'); if (f.sterile) o.push('Sterile'); if (f.kit) o.push('Kit, 2–30 °C'); return o; };
+    var SUPCLS = this.SUPCLS, typeOf = function (m) { return m.itype || SUPCLS[m.cls] || 'Medicine'; };
     var levelText = function (m) {
       var on = PLACES.filter(function (p) { return +m.levels[p[0]] > 0; }).map(function (p) { return p[2] + ' ' + fmt(m.levels[p[0]]); });
       if (!on.length) return 'Not set';
@@ -1182,6 +1268,7 @@ class Component extends DCLogic {
     var q = s.q.trim().toLowerCase();
     var match = function (m) {
       if (q && m.name.toLowerCase().indexOf(q) < 0 && m.cls.toLowerCase().indexOf(q) < 0) return false;
+      if (s.itype !== 'All' && typeOf(m) !== s.itype) return false;
       switch (s.filter) {
         case 'Controlled': return !!m.flags.controlled;
         case 'Cold chain': return !!m.flags.cold;
@@ -1200,7 +1287,7 @@ class Component extends DCLogic {
     // ---- data grid: metrics, conditions, sort, group, page ----
     var FCOLS = this.FCOLS, OPS = this.OPS, COLDEF = this.COLDEF;
     var VENR = { Vital: 0, Essential: 1, Necessary: 2, 'Not set': 3 };
-    var ABBR = { Controlled: 'CD', 'High-risk': 'High-risk', 'Cold chain': '2–8 °C', 'Freeze-sensitive': 'No freeze', Cytotoxic: 'Cytotoxic' };
+    var ABBR = { Controlled: 'CD', 'High-risk': 'High-risk', 'Cold chain': '2–8 °C', 'Freeze-sensitive': 'No freeze', Cytotoxic: 'Cytotoxic', Sterile: 'Sterile', 'Kit, 2–30 °C': '2–30 °C' };
     var metrics = function (m) {
       var st = statFor(m), haveT = 0, lvlT = 0, cnt = { Out: 0, Low: 0, OK: 0, Over: 0 }, sf = {};
       st.forEach(function (x) { haveT += x.have; if (x.lvl > 0) { lvlT += x.lvl; cnt[x.flag]++; sf[x.flag] = true; } });
@@ -1218,6 +1305,7 @@ class Component extends DCLogic {
       switch (c.col) {
         case 'name': var hit = m.name.toLowerCase().indexOf(String(v).toLowerCase()) >= 0; return c.op === 'contains' ? hit : !hit;
         case 'cls': return c.op === 'is' ? m.cls === v : m.cls !== v;
+        case 'itype': return c.op === 'is' ? typeOf(m) === v : typeOf(m) !== v;
         case 'group': var hg = String(m.group || '').toLowerCase().indexOf(String(v).toLowerCase()) >= 0; return c.op === 'contains' ? hg : !hg;
         case 'sale': return c.op === 'is' ? m.sale === v : m.sale !== v;
         case 'strength': var hs = String(m.strength || '').toLowerCase().indexOf(String(v).toLowerCase()) >= 0; return c.op === 'contains' ? hs : !hs;
@@ -1237,6 +1325,7 @@ class Component extends DCLogic {
     };
     var passes = function (m, mx) {
       if (q && m.name.toLowerCase().indexOf(q) < 0 && m.cls.toLowerCase().indexOf(q) < 0) return false;
+      if (s.itype !== 'All' && typeOf(m) !== s.itype) return false;
       var cs = s.conds;
       if (!cs.length) return true;
       var r = evalCond(cs[0], m, mx);
@@ -1511,7 +1600,9 @@ class Component extends DCLogic {
         ['high', 'High-risk', 'Counted at every handover.'],
         ['cold', 'Cold chain, 2–8 °C', 'Kept in a fridge.'],
         ['freeze', 'Freeze-sensitive', 'Shake test after freezing.'],
-        ['cyto', 'Cytotoxic', 'PPE, designated area, cytotoxic waste and spill kit.']
+        ['cyto', 'Cytotoxic', 'PPE, designated area, cytotoxic waste and spill kit.'],
+        ['sterile', 'Sterile, single use', 'Packaging checked at receipt and before use.'],
+        ['kit', 'Test kit, 2–30 °C', 'Kept out of the sun, never frozen; each new lot checked.']
       ].map(function (f) {
         var fon = !!e.flags[f[0]];
         var locked = f[0] === 'controlled' && NATCD.indexOf(e.id) >= 0;
@@ -1637,7 +1728,7 @@ class Component extends DCLogic {
       generic: lf0.generic || '', strength: lf0.strength || '', form: lf0.form || 'Tablet', route: lf0.route || 'Oral', unit: lf0.unit || 'tablet', cls: lf0.cls || CLASSES[0], packs: lf0.packs || '', why: lf0.why || 'Specialist request',
       forms: FCOLS.form.opts.concat(['Cream', 'Ointment', 'Eye drops', 'Inhaler', 'Pessary', 'Suppository']),
       routes: ['Oral', 'IV', 'IM', 'SC', 'IV/IM', 'Topical', 'Inhaled', 'Eye', 'Rectal', 'Vaginal', 'Intradermal'],
-      units: ['tablet', 'capsule', 'vial', 'ampoule', 'bottle', 'sachet', 'tube', 'inhaler', 'dose', 'pessary', 'suppository'],
+      units: ['tablet', 'capsule', 'vial', 'ampoule', 'bottle', 'sachet', 'tube', 'inhaler', 'dose', 'pessary', 'suppository', 'piece', 'pair', 'packet', 'roll', 'test', 'strip'],
       classes: CLASSES, hasError: !!lf0.error, error: lf0.error || '',
       preview: lf0.generic ? [lf0.generic, lf0.strength || '[strength]', lf0.form || 'Tablet', lf0.route || 'Oral'].join(' · ') + ' · issued per ' + (lf0.unit || 'tablet') + ' · marked LOCAL' : 'Type the generic name and strength.',
       setGeneric: function (ev) { updLf({ generic: ev.target.value }); }, setStrength: function (ev) { updLf({ strength: ev.target.value }); },
@@ -1650,12 +1741,16 @@ class Component extends DCLogic {
       sections: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (l) {
         return { label: l, style: base + (l === 'Set-up' ? 'background:#1b2540;color:#ffffff;font-weight:600' : 'color:#5f6987') };
       }),
-      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) {
+      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines and supplies', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) {
         var on = t[0] === 'Medicines';
         return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') };
       }),
       q: s.q, setQ: function (ev) { set({ q: ev.target.value }); },
       clearFind: function () { set({ q: '', filter: 'All' }); },
+      itypes: [['All', 'Everything'], ['Medicine', 'Medicines'], ['Health supply', 'Health supplies'], ['Laboratory supply', 'Lab supplies']].map(function (t) {
+        var on = s.itype === t[0], n = t[0] === 'All' ? meds.length : meds.filter(function (m) { return typeOf(m) === t[0]; }).length;
+        return { label: t[1], count: String(n), on: on ? 'true' : 'false', pick: function () { set({ itype: t[0], page: 0 }); }, style: 'display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:0;border-radius:999px;font:600 14px Figtree,sans-serif;' + (on ? 'background:#2dd4bf;color:#1b2540' : 'background:transparent;color:#4a5574'), countStyle: 'display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;font-size:11px;font-weight:700;' + (on ? 'background:#ffffff;color:#0f766e' : 'background:#e4e7ee;color:#4a5574') };
+      }),
       filters: [['All', meds.length], ['Controlled', -1], ['Cold chain', -1], ['High-risk', -1], ['No levels', noLevels], ['No price', noPrice]].map(function (f) {
         var on = s.filter === f[0];
         return { label: f[1] >= 0 && f[0] !== 'All' ? f[0] + ' · ' + f[1] : f[0], on: on ? 'true' : 'false', style: chipBtn + (on ? onS : offS), pick: function () { set({ filter: f[0] }); } };
@@ -1674,7 +1769,7 @@ class Component extends DCLogic {
             style: 'display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;text-align:left;font-family:Figtree,sans-serif;' + (on ? 'border:1px solid #2dd4bf;background:#ccfbf1' : 'border:1px solid #dde1e9;background:#ffffff') };
         };
         return [
-          tile('Medicines', String(meds.length), 'stocked', '', 'all'),
+          tile('Items', String(meds.length), meds.filter(function (m) { return typeOf(m) === 'Medicine'; }).length + ' medicines · ' + meds.filter(function (m) { return typeOf(m) !== 'Medicine'; }).length + ' supplies', '', 'all'),
           tile('Places OK', kept ? ok + ' of ' + kept : '0', 'medicine × place', DOT.OK, 'all'),
           tile('Low', String(low), 'places below half', DOT.Low, 'low'),
           tile('Out', String(out), 'places with none', DOT.Out, 'out'),
@@ -1697,7 +1792,7 @@ class Component extends DCLogic {
       rulesChevron: 'transition: transform 0.15s; transform: rotate(' + (s.rulesOpen ? 90 : 0) + 'deg)',
       toggleRules: function () { set({ rulesOpen: !self.state.rulesOpen }); },
       headStyle: gridCols + 'padding:0 0 4px;',
-      nameHead: menuFor('name', 'Medicine', false),
+      nameHead: menuFor('name', s.itype === 'Medicine' ? 'Medicine' : s.itype === 'All' ? 'Item' : 'Supply', false),
       heads: COLDEF.filter(function (cd) { return s.cols[cd[0]]; }).map(function (cd) { return menuFor(cd[0], cd[1], true); }),
       allSel: allSel,
       toggleAll: function () {
@@ -1705,7 +1800,7 @@ class Component extends DCLogic {
         pageItems.forEach(function (x) { if (allSel) delete ns[x.m.id]; else ns[x.m.id] = true; });
         set({ sel: ns });
       },
-      pageLine: list.length ? 'Showing ' + (page * PS + 1) + '–' + Math.min(list.length, page * PS + PS) + ' of ' + list.length + (list.length === meds.length ? ' medicines' : ' (of ' + meds.length + ')') : 'No medicines match',
+      pageLine: list.length ? 'Showing ' + (page * PS + 1) + '–' + Math.min(list.length, page * PS + PS) + ' of ' + list.length + (list.length === meds.length ? ' items' : ' (of ' + meds.length + ')') : 'No medicines match',
       pageOf: 'Page ' + (page + 1) + ' of ' + pages,
       noPrev: page === 0, noNext: page >= pages - 1,
       prevStyle: 'height:36px;padding:0 14px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (page === 0 ? 'border:1px solid #dde1e9;background:#f6f7f9;color:#5f6987' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),

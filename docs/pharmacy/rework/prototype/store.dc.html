@@ -378,13 +378,14 @@ details>summary{list-style-position:inside}
       <section style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 10px; display: flex; flex-direction: column; gap: 8px">
         <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
           <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Stock health <span style="font-weight: 400; color: #5f6987">· {{healthSub}}</span></h2>
+          <nav aria-label="What to show" style="display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #eef0f4; border-radius: 999px"><sc-for list="{{itypes}}" as="it" hint-placeholder-count="4"><button type="button" aria-pressed="{{it.on}}" onClick="{{it.pick}}" style="{{it.style}}">{{it.label}}</button></sc-for></nav>
           <span style="font-size: 12px; color: #5f6987">Months of stock = here ÷ use per month. Under 2 is short, over 6 is too much (Rules › Ordering).</span>
         </div>
         <div style="overflow-x: auto">
           <div style="min-width: 760px; display: grid; grid-template-columns: minmax(0, 1.8fr) 3.5rem 7rem 7rem minmax(0, 1.3fr) 7rem 7.5rem; gap: 0 12px; font-size: 13px">
             <sc-for list="{{healthCols}}" as="c" hint-placeholder-count="7"><span style="padding: 6px 0; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #5f6987">{{c}}</span></sc-for>
             <sc-for list="{{health}}" as="h" hint-placeholder-count="8">
-              <span style="padding: 9px 0; border-top: 1px solid #dde1e9"><button type="button" onClick="{{h.open}}" style="padding: 0; border: 0; background: transparent; text-align: left; font: 600 14px Figtree, sans-serif; color: #0f766e; text-decoration: underline">{{h.name}}</button></span>
+              <span style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 0; border-top: 1px solid #dde1e9"><button type="button" onClick="{{h.open}}" style="padding: 0; border: 0; background: transparent; text-align: left; font: 600 14px Figtree, sans-serif; color: #0f766e; text-decoration: underline">{{h.name}}</button><sc-if value="{{h.hasType}}" hint-placeholder-val="{{false}}"><span style="{{h.typeStyle}}">{{h.typeLabel}}</span></sc-if></span>
               <span style="padding: 9px 0; border-top: 1px solid #dde1e9"><span style="{{h.venStyle}}">{{h.ven}}</span></span>
               <span style="padding: 9px 0; border-top: 1px solid #dde1e9; font-variant-numeric: tabular-nums">{{h.here}}</span>
               <span style="padding: 9px 0; border-top: 1px solid #dde1e9; font-variant-numeric: tabular-nums">{{h.amc}}</span>
@@ -636,7 +637,7 @@ details>summary{list-style-position:inside}
         <div style="padding: 8px 24px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
           <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">To</span><select value="{{iss.to}}" onChange="{{setIssTo}}" style="height: 44px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><sc-for list="{{placeOpts}}" as="o" hint-placeholder-count="4"><option>{{o}}</option></sc-for></select></label>
           <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Why</span><select value="{{iss.why}}" onChange="{{setIssWhy}}" style="height: 44px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option>Emergency at night</option><option>Patient waiting, the place is out</option><option>Theatre case</option><option>Other</option></select></label>
-          <label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Medicine</span><select value="{{iss.med}}" onChange="{{setIssMed}}" style="height: 44px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option value="">Choose a medicine</option><sc-for list="{{medOpts}}" as="o" hint-placeholder-count="10"><option value="{{o.v}}">{{o.label}}</option></sc-for></select></label>
+          <label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Medicine or supply</span><select value="{{iss.med}}" onChange="{{setIssMed}}" style="height: 44px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option value="">Choose a medicine</option><sc-for list="{{medOpts}}" as="o" hint-placeholder-count="10"><option value="{{o.v}}">{{o.label}}</option></sc-for></select></label>
           <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">{{iss.qtyLabel}}</span><input inputmode="numeric" value="{{iss.qty}}" onChange="{{setIssQty}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 600 15px Figtree, sans-serif; color: #1b2540"></label>
           <sc-if value="{{iss.isCd}}" hint-placeholder-val="{{false}}"><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Witness (controlled)</span><select value="{{iss.witness}}" onChange="{{setIssWitness}}" style="height: 44px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option value="">Choose</option><sc-for list="{{witnesses}}" as="w" hint-placeholder-count="4"><option>{{w}}</option></sc-for></select></label></sc-if>
           <span style="grid-column: 1 / -1; font-size: 13px; color: #4a5574">{{iss.takes}}</span>
@@ -685,7 +686,7 @@ details>summary{list-style-position:inside}
       <div role="dialog" aria-modal="true" aria-label="Record a loss" style="width: 560px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
         <div style="padding: 20px 24px 8px; display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">Record a loss</h2><p style="margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">Taken off the store's books with its value. Theft, and any controlled medicine, opens a case.</p></div>
         <div style="padding: 8px 24px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
-          <label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Medicine</span><select value="{{lf.med}}" onChange="{{setLfMed}}" style="height: 44px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option value="">Choose a medicine</option><sc-for list="{{medOpts}}" as="o" hint-placeholder-count="10"><option value="{{o.v}}">{{o.label}}</option></sc-for></select></label>
+          <label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Medicine or supply</span><select value="{{lf.med}}" onChange="{{setLfMed}}" style="height: 44px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option value="">Choose a medicine</option><sc-for list="{{medOpts}}" as="o" hint-placeholder-count="10"><option value="{{o.v}}">{{o.label}}</option></sc-for></select></label>
           <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Batch</span><select value="{{lf.batch}}" onChange="{{setLfBatch}}" style="height: 44px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option value="">Choose</option><sc-for list="{{lf.batches}}" as="b" hint-placeholder-count="2"><option value="{{b.v}}">{{b.label}}</option></sc-for></select></label>
           <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">{{lf.qtyLabel}}</span><input inputmode="numeric" value="{{lf.qty}}" onChange="{{setLfQty}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 600 15px Figtree, sans-serif; color: #1b2540"></label>
           <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Why</span><select value="{{lf.why}}" onChange="{{setLfWhy}}" style="height: 44px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option>Damaged</option><option>Broken</option><option>Spoilt (heat or damp)</option><option>Missing (theft suspected)</option></select></label>
@@ -722,7 +723,15 @@ class Component extends DCLogic {
       morph: M('Morphine 10 mg/mL injection', 'ampoule', 'V', 40, 3500, 10, { cd: true }),
       mvit: M('Multivitamin tablet', 'tablet', 'N', 50, 10, 1000, { moved: 121 }),
       ors: M('Oral rehydration salts sachet', 'sachet', 'V', 1500, 400, 100, { moved: 9, outDays: 9, short: 'ORS' }),
-      para: M('Paracetamol 500 mg tablet', 'tablet', 'E', 20000, 15, 1000)
+      para: M('Paracetamol 500 mg tablet', 'tablet', 'E', 20000, 15, 1000),
+      // Health supplies (EMHSLU 2023 Section B) and laboratory supplies (Section D)
+      glex: M('Examination gloves, latex, non-sterile, medium', 'piece', 'N', 12000, 60, 100, { type: 'Health supply', short: 'Exam gloves (M)' }),
+      sad5: M('Syringe AD + needle, disposable detached, 5 ml', 'piece', 'V', 5400, 250, 100, { type: 'Health supply', sterile: true, short: 'AD syringe 5 ml' }),
+      can18: M('Cannula IV with inj port and wings (green), 18G', 'piece', 'V', 750, 1200, 50, { type: 'Health supply', sterile: true, short: 'IV cannula 18G' }),
+      gswab: M('Gauze swabs, WOW, sterile 12 ply, 10 x 10 cm', 'packet', 'E', 450, 2500, 10, { type: 'Health supply', sterile: true, short: 'Gauze swabs, sterile' }),
+      sbox: M('Safety box for syringes & needles, disposable', 'piece', 'V', 120, 3000, 25, { type: 'Health supply', noExp: true, short: 'Safety box' }),
+      mrdt: M('Malaria Antigen P.f/Pan Kit (dipstick), 25 tests', 'test', 'V', 2400, 1800, 25, { type: 'Laboratory supply', kit: true, short: 'Malaria RDT' }),
+      hivd: M('HIV 1/2, Determine Complete HIV Kit, 100 tests', 'test', 'V', 900, 3500, 100, { type: 'Laboratory supply', kit: true, short: 'HIV test (Determine)' })
     };
     // stock at each place: [have, use per month, top-up level]
     this.PLACES = ['OPD dispensary', 'Ward 3 · Medical', 'Maternity', 'Paediatrics'];
@@ -737,7 +746,14 @@ class Component extends DCLogic {
       morph: { 'Ward 3 · Medical': [8, 25, 30], 'Maternity': [5, 6, 10] },
       mvit: { 'OPD dispensary': [400, 50, 300] },
       ors: { 'OPD dispensary': [40, 900, 1200], 'Ward 3 · Medical': [100, 100, 150], 'Paediatrics': [20, 500, 700] },
-      para: { 'OPD dispensary': [3000, 14000, 15000], 'Ward 3 · Medical': [900, 2000, 2500], 'Maternity': [700, 1200, 1500], 'Paediatrics': [800, 2500, 3000] }
+      para: { 'OPD dispensary': [3000, 14000, 15000], 'Ward 3 · Medical': [900, 2000, 2500], 'Maternity': [700, 1200, 1500], 'Paediatrics': [800, 2500, 3000] },
+      glex: { 'OPD dispensary': [4000, 6000, 8000], 'Ward 3 · Medical': [1500, 3000, 4000], 'Maternity': [600, 2500, 3000], 'Paediatrics': [800, 1500, 2000] },
+      sad5: { 'OPD dispensary': [900, 2400, 3000], 'Ward 3 · Medical': [400, 1200, 1500], 'Paediatrics': [150, 900, 1200] },
+      can18: { 'Ward 3 · Medical': [60, 300, 400], 'Maternity': [40, 200, 250] },
+      gswab: { 'Ward 3 · Medical': [60, 200, 250], 'Maternity': [15, 150, 200] },
+      sbox: { 'OPD dispensary': [6, 40, 50], 'Ward 3 · Medical': [10, 30, 40] },
+      mrdt: { 'OPD dispensary': [600, 1800, 2000], 'Paediatrics': [100, 500, 700] },
+      hivd: { 'OPD dispensary': [300, 600, 800], 'Maternity': [80, 250, 300] }
     };
     this.PS0 = JSON.parse(JSON.stringify(ps));
     var B = function (no, exp, bin, qty) { return { no: no, exp: exp, bin: bin, qty: qty }; };
@@ -745,13 +761,15 @@ class Component extends DCLogic {
       al: [B('AL-2706', '2027-06-30', 'A-05', 3000)], amox: [B('AX-2701', '2027-01-31', 'A-02', 4000), B('AX-2805', '2028-05-31', 'A-02', 5000)],
       coamox: [B('CA-2708', '2027-08-31', 'A-03', 4200)], azis: [B('AZ-2701', '2027-01-31', 'D-03', 500)], ceft: [B('CF-2702', '2027-02-28', 'B-01', 600)],
       ins: [B('IN-2703', '2027-03-31', 'CR-01', 40)], met: [B('MF-2612', '2026-12-31', 'C-04', 4000), B('MF-2806', '2028-06-30', 'C-04', 18000)],
-      morph: [B('MO-2709', '2027-09-30', 'CD-1', 120)], mvit: [B('MV-2704', '2027-04-30', 'C-07', 2000)], ors: [], para: [B('PA-2802', '2028-02-29', 'C-01', 12000)]
+      morph: [B('MO-2709', '2027-09-30', 'CD-1', 120)], mvit: [B('MV-2704', '2027-04-30', 'C-07', 2000)], ors: [], para: [B('PA-2802', '2028-02-29', 'C-01', 12000)],
+      glex: [B('GL-2709', '2027-09-30', 'E-01', 30000)], sad5: [B('AD-2803', '2028-03-31', 'E-02', 12000)], can18: [B('CN-2711', '2027-11-30', 'E-03', 900)], gswab: [B('GZ-2701', '2027-01-31', 'E-04', 1500)],
+      sbox: [B('SB-NOEXP', '2099-12-31', 'E-05', 300)], mrdt: [B('RD-2706', '2027-06-30', 'L-01', 3000)], hivd: [B('HV-2704', '2027-04-30', 'L-02', 1200)]
     };
     var R = function (id, from, asked, lines, x) { return Object.assign({ id: id, from: from, asked: asked, lines: lines, urgent: false, state: 'open' }, x || {}); };
     var reqs = [
-      R('r1', 'OPD dispensary', '2 Nov, 16:10', [['amox', 3000], ['para', 10000], ['ors', 300], ['met', 5000]]),
-      R('r2', 'Ward 3 · Medical', '3 Nov, 08:40', [['ceft', 200], ['ins', 20], ['coamox', 500], ['morph', 20]]),
-      R('r3', 'Paediatrics', '3 Nov, 09:15', [['azis', 40], ['ors', 200], ['al', 600], ['para', 4000]], { urgent: true, reason: 'Malaria admissions up this week; ward out of artemether + lumefantrine' }),
+      R('r1', 'OPD dispensary', '2 Nov, 16:10', [['amox', 3000], ['para', 10000], ['ors', 300], ['met', 5000], ['glex', 4000], ['mrdt', 1000]]),
+      R('r2', 'Ward 3 · Medical', '3 Nov, 08:40', [['ceft', 200], ['ins', 20], ['coamox', 500], ['morph', 20], ['can18', 200]]),
+      R('r3', 'Paediatrics', '3 Nov, 09:15', [['azis', 40], ['ors', 200], ['al', 600], ['para', 4000], ['sad5', 600]], { urgent: true, reason: 'Malaria admissions up this week; ward out of artemether + lumefantrine' }),
       R('r4', 'Maternity', '1 Nov, 10:20', [['ceft', 50], ['met', 1000]], { state: 'issued', voucher: 'RIV-0412', issuedAt: '1 Nov, 14:05', issued: { ceft: 50, met: 1000 } })
     ];
     var approve = {};
@@ -771,13 +789,13 @@ class Component extends DCLogic {
         { id: 'd1', voucher: 'RIV-0412', to: 'Maternity', from: 'Main store', kind: 'Requisition', at: '1 Nov, 14:05', lines: [['ceft', 50], ['met', 1000]], status: 'transit', req: 'r4' },
         { id: 'd0', voucher: 'RIV-0410', to: 'OPD dispensary', from: 'Main store', kind: 'Top-up run', at: '2 Nov, 09:30', lines: [['para', 8000], ['amox', 2000]], status: 'received', receivedAt: '2 Nov, 10:15' }
       ], runDone: {}, xferDone: {}, retDone: {}, putQty: {}, cases: {},
-      view: 'home', tile: '', navOpen: '', sel: 'r3', batches: batches, reqs: reqs, approve: approve, witness: {}, diff: {}, nextRiv: 413,
+      view: 'home', tile: '', itype: 'All', navOpen: '', sel: 'r3', batches: batches, reqs: reqs, approve: approve, witness: {}, diff: {}, nextRiv: 413,
       budget: '30000000', qty: null, trimmed: [], sent: false,
       put: { p1: 'CR-01', p2: 'A-05', p3: 'A-02' }, putDone: {},
       quarAct: { q1: 'destroy', q2: 'return', q3: 'return' }, quarWit: {}, quarDone: {},
       expAct: {}, expDone: {},
       cardMed: 'para', ledger: ledger,
-      shelves: { A: 41, B: 12, C: 35, D: 8, 'CR-01': 3, 'CD-1': 1 }, shelfRes: {}, stocktake: null,
+      shelves: { A: 41, B: 12, C: 35, D: 8, E: 18, L: 33, 'CR-01': 3, 'CD-1': 1 }, shelfRes: {}, stocktake: null,
       count: null, issue: null, loss: null,
       losses: [['30 Oct', 'coamox', 'CA-2611', 12, 'Broken', 'Dropped carton at put-away']],
       room: [['08:00', 23.8, 55, 'Moses Wanyama']], roomT: '', roomH: '',
@@ -803,7 +821,7 @@ class Component extends DCLogic {
     var units = function (n, u) { return num(n) + ' ' + u + (Math.round(n) === 1 ? '' : 's'); };
     var ugx = function (n) { return n >= 1e6 ? 'UGX ' + (Math.round(n / 1e5) / 10) + ' m' : 'UGX ' + num(n); };
     var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    var fmtExp = function (iso) { return MON[+iso.slice(5, 7) - 1] + ' ' + iso.slice(0, 4); };
+    var fmtExp = function (iso) { return iso.slice(0, 4) === '2099' ? 'no expiry' : MON[+iso.slice(5, 7) - 1] + ' ' + iso.slice(0, 4); };
     var fmtD = function (iso) { return +iso.slice(8, 10) + ' ' + MON[+iso.slice(5, 7) - 1]; };
     var monthsTo = function (iso) { return (Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) - Date.UTC(2026, 10, 3)) / (864e5 * 30.4); };
     var now = new Date(), hm = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2), TODAY = '2026-11-03';
@@ -899,7 +917,7 @@ class Component extends DCLogic {
     var atRiskValue = expRows.reduce(function (a, e) { return a + (s.expDone[e.id + '|' + e.b.no] ? 0 : e.risk * MEDS[e.id].cost); }, 0);
     var bestPlace = function (id) { var pts = POINTS[id] || {}, best = null; Object.keys(pts).forEach(function (pl) { var p = pts[pl]; if (!best || p[1] - p[0] > best[1]) best = [pl, p[1] - p[0]]; }); return best && best[1] > 0 ? best[0] : null; };
     // ── counts
-    var SHELVES = [['A', 'Oral antibiotics and antimalarials', ['amox', 'coamox', 'al']], ['B', 'Injectables', ['ceft']], ['C', 'Tablets', ['para', 'met', 'mvit']], ['D', 'Oral liquids and sachets', ['azis', 'ors']], ['CR-01', 'Cold room', ['ins']], ['CD-1', 'Controlled cupboard (double lock)', ['morph']]];
+    var SHELVES = [['A', 'Oral antibiotics and antimalarials', ['amox', 'coamox', 'al']], ['B', 'Injectables', ['ceft']], ['C', 'Tablets', ['para', 'met', 'mvit']], ['D', 'Oral liquids and sachets', ['azis', 'ors']], ['E', 'Health supplies (sterile consumables, PPE)', ['glex', 'sad5', 'can18', 'gswab', 'sbox']], ['L', 'Laboratory supplies, kept 2–30 °C', ['mrdt', 'hivd']], ['CR-01', 'Cold room', ['ins']], ['CD-1', 'Controlled cupboard (double lock)', ['morph']]];
     var due = function (code) { var d = s.shelves[code]; return code === 'CD-1' ? d >= 1 : d > 30; };
     var shelfBatches = function (code) { var out = []; SHELVES.filter(function (x) { return x[0] === code; })[0][2].forEach(function (id) { (B[id] || []).forEach(function (b) { if (code.length > 1 ? b.bin === code : b.bin.charAt(0) === code) out.push({ id: id, b: b }); }); }); return out; };
     // ── order plan
@@ -922,7 +940,8 @@ class Component extends DCLogic {
     var VIEWS = [['req', 'Requisitions', openReqs.length], ['all', 'Across places', lowList.length ? lowList.length + ' running out' : ''], ['runs', 'Top-up runs', runsDue ? runsDue + ' due today' : ''], ['disp', 'Dispatches', inTransit.length ? inTransit.length + ' on the way' : ''], ['books', 'Place balances', ''], ['health', 'Store stock', ''], ['order', 'Orders', s.sent ? '' : '1 to send'], ['exp', 'Expiry', expRows.filter(function (e) { return e.risk > 0 && !s.expDone[e.id + '|' + e.b.no]; }).length + ' at risk'], ['card', 'Stock cards', ''], ['count', 'Counts', shelvesDue ? shelvesDue + ' due' : ''], ['put', 'Put away', putsLeft || ''], ['quar', 'Quarantine and losses', QUAR.filter(function (q) { return !s.quarDone[q.id]; }).length || ''], ['cond', 'Store conditions', '']];
     var go = function (v, tile) { return function () { set({ view: v, tile: tile === undefined ? '' : tile }); }; };
     var tile = function (id, view, label, value, sub, dot) { var on = s.tile === id; return { label: label, value: value, sub: sub, on: on ? 'true' : 'false', dot: dot ? 'flex:0 0 8px;width:8px;height:8px;border-radius:999px;background:' + dot : 'display:none', pick: function () { set({ view: view, tile: on ? '' : id }); }, style: 'display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;text-align:left;font-family:Figtree,sans-serif;color:#1b2540;' + (on ? 'border:1px solid #2dd4bf;background:#ccfbf1' : 'border:1px solid #dde1e9;background:#ffffff') }; };
-    var healthFilter = function (id) { if (s.tile === 'out') return !onHand(id); if (s.tile === 'low') return lowIds.indexOf(id) >= 0; if (s.tile === 'over') return overIds.indexOf(id) >= 0 || deadIds.indexOf(id) >= 0; return true; };
+    var typeOf = function (id) { return MEDS[id].type || 'Medicine'; };
+    var healthFilter = function (id) { if (s.itype !== 'All' && typeOf(id) !== s.itype) return false; if (s.tile === 'out') return !onHand(id); if (s.tile === 'low') return lowIds.indexOf(id) >= 0; if (s.tile === 'over') return overIds.indexOf(id) >= 0 || deadIds.indexOf(id) >= 0; return true; };
     // ── stock card
     var cm = s.cardMed, cmM = MEDS[cm];
     var rowsCard = s.ledger.map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return x.r.med === cm; }).sort(function (a, b) { return a.r.date < b.r.date ? 1 : a.r.date > b.r.date ? -1 : a.i - b.i; }).map(function (x) { return x.r; });
@@ -958,8 +977,8 @@ class Component extends DCLogic {
     var roomSt = function (t, h) { return [t > 25 ? C.out : t > 24 ? C.low : C.ok, h > 60 ? C.out : h > 55 ? C.low : C.ok]; };
     var OUT = {
       sections: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (l) { return { label: l, href: l === 'Set-up' ? 'GoingLive.dc.html' : '#', style: base + (l === 'Stock' ? 'background:#1b2540;color:#ffffff;font-weight:600' : 'color:#5f6987') }; }),
-      tabs: [['Main store', 'Store.dc.html'], ['Receive a delivery', 'Receive.dc.html'], ['Medicines', 'Main.dc.html']].map(function (t) { var on = t[0] === 'Main store'; return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') }; }),
-      storeLine: ids.length + ' medicines · ' + ugx(storeValue) + ' on hand',
+      tabs: [['Main store', 'Store.dc.html'], ['Receive a delivery', 'Receive.dc.html'], ['Medicines and supplies', 'Main.dc.html']].map(function (t) { var on = t[0] === 'Main store'; return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') }; }),
+      storeLine: ids.filter(function (id) { return !MEDS[id].type; }).length + ' medicines · ' + ids.filter(function (id) { return MEDS[id].type; }).length + ' supplies · ' + ugx(storeValue) + ' on hand',
       kpis: [
         tile('', 'req', 'Requisitions to pick', String(openReqs.length), openReqs.some(function (r) { return r.urgent; }) ? '1 urgent' : openReqs.length ? 'oldest ' + openReqs[openReqs.length - 1].asked : 'all answered', openReqs.some(function (r) { return r.urgent; }) ? '#dc2626' : ''),
         tile('out', 'health', 'Out of stock', String(outIds.length), outIds.map(function (id) { return (MEDS[id].short || MEDS[id].name.split(' ')[0]) + ' · ' + MEDS[id].outDays + ' days out'; }).join(', ') || 'none', outIds.length ? '#dc2626' : '#16a34a'),
@@ -1108,9 +1127,10 @@ class Component extends DCLogic {
         issueStyle: 'height:44px;padding:0 20px;border-radius:999px;font:600 15px Figtree,sans-serif;' + (issueOff ? 'border:1px solid #dde1e9;background:#f6f7f9;color:#8a93ab;cursor:not-allowed' : 'border:0;background:#2dd4bf;color:#1b2540;box-shadow:0 8px 22px -6px rgba(45,212,191,0.65)') },
       issue: doIssue,
       printPick: function () { try { window.print(); } catch (e) { self.flash('Use your browser’s print.'); } },
-      healthSub: s.tile ? { out: 'out of stock', low: 'under 2 months', over: 'too much or not moving' }[s.tile] || 'all medicines' : 'all medicines',
-      healthCols: ['Medicine', 'VEN', 'Here', 'Use / month', 'Months of stock', 'Last moved', 'State'],
-      health: ids.filter(healthFilter).sort(function (a, b) { return mosOf(a) - mosOf(b); }).map(function (id) { var m = MEDS[id], st = stateOf(id), mo = mosOf(id); return { name: m.name, open: function () { set({ view: 'card', cardMed: id, tile: '' }); }, ven: m.ven, venStyle: chip(VEN[m.ven]), here: units(onHand(id), m.unit), amc: num(m.amc), mos: mo.toFixed(1), bar: 'display:block;height:100%;border-radius:999px;width:' + Math.round(Math.min(1, mo / 6) * 100) + '%;background:' + (mo < 2 ? (mo === 0 ? '#dc2626' : '#d97706') : mo > 6 ? '#2563eb' : '#16a34a'), moved: m.moved <= 1 ? 'today' : m.moved + ' days ago', st: st[0], stStyle: chip(st[1]) }; }),
+      healthSub: (s.tile ? { out: 'out of stock', low: 'under 2 months', over: 'too much or not moving' }[s.tile] || '' : '') + (s.tile && s.itype !== 'All' ? ' · ' : '') + (s.itype === 'All' ? (s.tile ? '' : 'everything') : { Medicine: 'medicines', 'Health supply': 'health supplies', 'Laboratory supply': 'lab supplies' }[s.itype]),
+      itypes: [['All', 'Everything'], ['Medicine', 'Medicines'], ['Health supply', 'Health supplies'], ['Laboratory supply', 'Lab supplies']].map(function (t) { var on = s.itype === t[0], n = t[0] === 'All' ? ids.length : ids.filter(function (id) { return typeOf(id) === t[0]; }).length; return { label: t[1] + ' · ' + n, on: on ? 'true' : 'false', pick: function () { set({ itype: t[0] }); }, style: 'height:32px;padding:0 12px;border:0;border-radius:999px;font:600 13px Figtree,sans-serif;' + (on ? 'background:#2dd4bf;color:#1b2540' : 'background:transparent;color:#4a5574') }; }),
+      healthCols: ['Item', 'VEN', 'Here', 'Use / month', 'Months of stock', 'Last moved', 'State'],
+      health: ids.filter(healthFilter).sort(function (a, b) { return mosOf(a) - mosOf(b); }).map(function (id) { var m = MEDS[id], st = stateOf(id), mo = mosOf(id); return { name: m.name, hasType: !!m.type, typeLabel: m.type === 'Laboratory supply' ? 'Lab supply' + (m.kit ? ' · 2–30 °C' : '') : m.type ? 'Health supply' + (m.sterile ? ' · sterile' : '') : '', typeStyle: chip(m.type === 'Laboratory supply' ? C.blue : C.teal) + ';margin-top:2px', open: function () { set({ view: 'card', cardMed: id, tile: '' }); }, ven: m.ven, venStyle: chip(VEN[m.ven]), here: units(onHand(id), m.unit), amc: num(m.amc), mos: mo.toFixed(1), bar: 'display:block;height:100%;border-radius:999px;width:' + Math.round(Math.min(1, mo / 6) * 100) + '%;background:' + (mo < 2 ? (mo === 0 ? '#dc2626' : '#d97706') : mo > 6 ? '#2563eb' : '#16a34a'), moved: m.moved <= 1 ? 'today' : m.moved + ' days ago', st: st[0], stStyle: chip(st[1]) }; }),
       orders: [
         { title: 'NMS · cycle closing 16 Nov', meta: s.sent ? 'Sent 3 Nov · lead time about 21 days' : 'Draft · built from months of stock below', st: s.sent ? 'Sent' : 'Draft', stStyle: chip(s.sent ? C.blue : C.grey), hasLines: false, lines: '', hasAct: false },
         { title: 'JMS top-up · sent 21 Oct', meta: 'Expected 28 Oct · 6 days late · 1 of 2 lines delivered', lines: 'Artemether + lumefantrine 2,000 of 2,000 received · Ceftriaxone 0 of 1,000 still to come', hasLines: true, st: 'Partly delivered', stStyle: chip(C.low), hasAct: true, href: 'Receive.dc.html', actLabel: 'Record the rest', act: function () {} },
@@ -1148,7 +1168,7 @@ class Component extends DCLogic {
             set({ expDone: d, batches: b, ledger: addLedger(rows), nextRiv: a === 'move' ? self.state.nextRiv + 1 : self.state.nextRiv }); self.flash(d[k]);
           } };
       }),
-      medOpts: ids.map(function (id) { return { v: id, label: MEDS[id].name }; }),
+      medOpts: ids.map(function (id) { return { v: id, label: (MEDS[id].type ? '[' + (MEDS[id].type === 'Laboratory supply' ? 'Lab' : 'Supply') + '] ' : '') + MEDS[id].name }; }),
       cardMed: cm, setCardMed: function (ev) { set({ cardMed: ev.target.value }); },
       card: { stats: [{ k: 'Balance', v: units(onHand(cm), cmM.unit) }, { k: 'Use a month', v: num(cmM.amc) }, { k: 'Months of stock', v: mosOf(cm).toFixed(1) }, { k: 'Value', v: ugx(onHand(cm) * cmM.cost) }],
         batches: (B[cm] || []).map(function (b) { return { bin: b.bin, no: b.no, exp: fmtExp(b.exp), qty: units(b.qty, cmM.unit) }; }), noBatch: !(B[cm] || []).length, rows: cardRows },
@@ -1339,11 +1359,11 @@ class Component extends DCLogic {
     var COVK = [{ label: 'Under 7 days', c: SB.bad, ink: '#ffffff', fmt: function (v) { return String(v); } }, { label: '7 to 14 days', c: SB.warn, ink: '#0b0b0b', fmt: function (v) { return String(v); } }, { label: 'Over 14 days', c: SB.ok, ink: '#ffffff', fmt: function (v) { return String(v); } }];
     var coverChart = function (wide) { return mkChart(Object.assign({ title: 'Days of cover at each place', sub: 'Medicine lines at each place, counting what is on the way.', wide: wide, legend: legendOf(COVK), openLabel: wide ? '' : 'Stock everywhere', open: function () { set({ view: 'all', tile: '' }); }, tableCols: ['Place', 'Under 7 days', '7 to 14 days', 'Over 14 days'], tableRows: cover.map(function (x) { return [x.pl, String(x.c[0]), String(x.c[1]), String(x.c[2])]; }) },
       stack(cover.map(function (x) { var t = x.c[0] + x.c[1] + x.c[2]; return { label: x.pl, parts: x.c, val: t + (t === 1 ? ' line' : ' lines'), pick: function () { set({ view: 'all', tile: '' }); } }; }), COVK))); };
-    var mosRows = ids.map(function (id) { var m = mosOf(id), stt = stateOf(id), c = !onHand(id) ? SB.bad : MEDS[id].moved > 90 ? SB.still : m < 2 ? SB.warn : m > 6 ? SB.over : SB.ok; return { id: id, m: m, label: shortName(id), v: Math.min(m, 12), c: c, val: !onHand(id) ? '0' : (m >= 10 ? Math.round(m) : m.toFixed(1)) + ' mo', chip: [{ 'Under 2 months': 'Short', 'Over 6 months': 'Too much', 'No movement': 'Not moving' }[stt[0]] || stt[0], stt[1]], state: stt[0], tip: shortName(id) + ': ' + (m >= 10 ? Math.round(m) : m.toFixed(1)) + ' months of stock · ' + stt[0], pick: function () { set({ view: 'card', cardMed: id, tile: '' }); } }; }).sort(function (a, b) { return a.m - b.m; });
+    var mosRows = ids.filter(function (id) { return s.view !== 'health' || s.itype === 'All' || typeOf(id) === s.itype; }).map(function (id) { var m = mosOf(id), stt = stateOf(id), c = !onHand(id) ? SB.bad : MEDS[id].moved > 90 ? SB.still : m < 2 ? SB.warn : m > 6 ? SB.over : SB.ok; return { id: id, m: m, label: shortName(id), v: Math.min(m, 12), c: c, val: !onHand(id) ? '0' : (m >= 10 ? Math.round(m) : m.toFixed(1)) + ' mo', chip: [{ 'Under 2 months': 'Short', 'Over 6 months': 'Too much', 'No movement': 'Not moving' }[stt[0]] || stt[0], stt[1]], state: stt[0], tip: shortName(id) + ': ' + (m >= 10 ? Math.round(m) : m.toFixed(1)) + ' months of stock · ' + stt[0], pick: function () { set({ view: 'card', cardMed: id, tile: '' }); } }; }).sort(function (a, b) { return a.m - b.m; });
     var mosChart = function (wide) { return mkChart(Object.assign({ title: 'Months of stock in the store', sub: 'Here ÷ use per month. Short is under 2, too much is over 6 (Rules › Ordering). Bars stop at 12. Click a line for its stock card.', wide: wide, tableCols: ['Medicine', 'Months', 'State'], tableRows: mosRows.map(function (r) { return [r.label, r.val, r.state]; }) }, hbar(mosRows.map(function (r) { return { label: r.label, v: r.v, c: r.c, val: r.val, chip: r.chip, tip: r.tip, pick: r.pick }; }), { max: 12, lw: '11rem', marks: [{ v: 2, label: '2 months' }, { v: 6, label: '6 months' }] }))); };
     var venV = ['V', 'E', 'N'].map(function (k) { return ids.filter(function (id) { return MEDS[id].ven === k; }).reduce(function (a, id) { return a + onHand(id) * MEDS[id].cost; }, 0); });
     var VENK = [{ label: 'Vital', c: '#115e59', ink: '#ffffff', fmt: function (v, sh) { return Math.round(sh * 100) + '%'; } }, { label: 'Essential', c: '#0d9488', ink: '#ffffff', fmt: function (v, sh) { return Math.round(sh * 100) + '%'; } }, { label: 'Necessary', c: '#14b8a6', ink: '#0b0b0b', fmt: function (v, sh) { return Math.round(sh * 100) + '%'; } }];
-    var venChart = function () { return mkChart({ title: 'Store value by VEN class', sub: 'Where the money on the shelves sits. Vital lines should never run out.', isSeg: true, seg: segOf('', venV, VENK, 12).map(function (g) { g.lab = ''; return g; }), list: venV.map(function (v, i) { var n = ids.filter(function (id) { return MEDS[id].ven === ['V', 'E', 'N'][i]; }).length; return { sw: 'flex:0 0 10px;width:10px;height:10px;border-radius:3px;background:' + VENK[i].c, label: VENK[i].label, sub: n + (n === 1 ? ' medicine' : ' medicines'), val: ugx(v), share: (v / (storeValue || 1) < 0.01 && v > 0 ? '<1' : Math.round(v / (storeValue || 1) * 100)) + '%' }; }), tableCols: ['Class', 'Value', 'Share'], tableRows: venV.map(function (v, i) { return [VENK[i].label, ugx(v), Math.round(v / (storeValue || 1) * 100) + '%']; }) }); };
+    var venChart = function () { return mkChart({ title: 'Store value by VEN class', sub: 'Where the money on the shelves sits. Vital lines should never run out.', isSeg: true, seg: segOf('', venV, VENK, 12).map(function (g) { g.lab = ''; return g; }), list: venV.map(function (v, i) { var n = ids.filter(function (id) { return MEDS[id].ven === ['V', 'E', 'N'][i]; }).length; return { sw: 'flex:0 0 10px;width:10px;height:10px;border-radius:3px;background:' + VENK[i].c, label: VENK[i].label, sub: n + (n === 1 ? ' item' : ' items'), val: ugx(v), share: (v / (storeValue || 1) < 0.01 && v > 0 ? '<1' : Math.round(v / (storeValue || 1) * 100)) + '%' }; }), tableCols: ['Class', 'Value', 'Share'], tableRows: venV.map(function (v, i) { return [VENK[i].label, ugx(v), Math.round(v / (storeValue || 1) * 100) + '%']; }) }); };
     var EXPK = [{ label: 'Will be used in time', c: DATA }, { label: 'Won’t be used in time', c: SB.bad }];
     var expByM = []; for (var mi = 0; mi < 12; mi++) expByM.push({ used: 0, risk: 0, n: 0 });
     ids.forEach(function (id) { (B[id] || []).forEach(function (b) { var mt = monthsTo(b.exp), idx = (+b.exp.slice(0, 4) - 2026) * 12 + (+b.exp.slice(5, 7) - 1) - 10; if (idx < 0 || idx > 11) return; var risk = Math.max(0, Math.round(b.qty - MEDS[id].amc * Math.max(0, mt))), done = s.expDone[id + '|' + b.no]; if (done) risk = 0; expByM[idx].risk += risk * MEDS[id].cost; expByM[idx].used += (b.qty - risk) * MEDS[id].cost; expByM[idx].n++; }); });

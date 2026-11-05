@@ -262,6 +262,13 @@ class Component extends DCLogic {
           ['Over budget', 'Trim N lines first, then E · never V', 'Every order', null, 'Prototype default'],
           ['Order due', '{n} before the cycle date', 'Every supplier with a cycle', [7, 'days', 1, 30], 'Prototype default']
         ]),
+        G('sup', 'Health and lab supplies', ['Medicines', 'Stock'], false, [
+          ['Sterile packs', 'A broken, wet or torn sterile pack is rejected as damaged, never stocked', 'Sterile health supplies', null, 'Prototype default'],
+          ['Test kits', 'Kept at 2–30 °C; kits that got hotter are kept apart until the supplier answers', 'Laboratory test kits', null, 'Prototype default'],
+          ['Kit expiry warning', 'Warn {n} before a test kit expires', 'Laboratory test kits', [60, 'days', 30, 180, 15], 'Prototype default'],
+          ['No expiry', 'Received by batch or lot only, with no expiry date', 'Safety boxes and items marked no expiry', null, 'Prototype default'],
+          ['Issued, not sold', 'Go out to places on requisition; patients are billed only when a price is set', 'Health and lab supplies', null, 'Prototype default']
+        ]),
         G('price', 'Prices and billing', ['Medicines', 'Places'], true, [
           ['Price rule', 'Received cost + {n}, rounded to UGX 50', 'Lines without a typed price', [25, '%', 0, 100]],
           ['Free point', 'Every line at a free dispensing point is billed as free', 'Free dispensing points'],
@@ -373,7 +380,7 @@ class Component extends DCLogic {
     var histShown = s.history.filter(function (h) { return s.histF === 'all' || h.gid === s.sel; });
     return {
       sections: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (l) { return { label: l, style: base + (l === 'Set-up' ? 'background:#1b2540;color:#ffffff;font-weight:600' : 'color:#5f6987') }; }),
-      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) { var on = t[0] === 'Rules'; return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') }; }),
+      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines and supplies', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) { var on = t[0] === 'Rules'; return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') }; }),
       ruleCount: totalRules + ' rules in ' + s.groups.length + ' groups',
       q: s.q, setQ: function (ev) { set({ q: ev.target.value }); },
       kpis: [
