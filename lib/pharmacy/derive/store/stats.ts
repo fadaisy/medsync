@@ -1,3 +1,4 @@
+import type { TypeFilter } from "@/content/pharmacy-supplies";
 import type { StoreMed, StoreWorld, WeekFlow } from "./types";
 import type { ColDatum, LinePoint, LineRef, SegKey } from "@/components/pharmacy/charts/geometry";
 import type { StoreSection } from "@/content/pharmacy-store";
@@ -472,10 +473,16 @@ const stateChip = {
   ok: { text: ST.state.chipOk, tone: "ok" },
 } as const;
 
-function mosChart(w: StoreWorld, span: ChartSpec["span"], tall = false): ChartSpec {
+function mosChart(
+  w: StoreWorld,
+  span: ChartSpec["span"],
+  tall = false,
+  itemType: TypeFilter = "all",
+): ChartSpec {
   const color = { out: SB.bad, still: SB.still, short: SB.warn, over: SB.over, ok: SB.ok };
   const r = w.rules;
   const rows = w.meds
+    .filter((m) => itemType === "all" || m.itemType === itemType)
     .map((m) => {
       const mos = mosOf(w, m);
       const finite = Number.isFinite(mos) ? mos : 99;
@@ -622,6 +629,8 @@ export function sectionStats(
     orderQty?: Map<string, number>;
     budget?: number;
     order?: { supplier: string } | null;
+    /** The type switch on Stock health (SUPPLIES.md §D). */
+    itemType?: TypeFilter;
   } = {},
 ): { tiles: Tile[]; charts: ChartSpec[] } {
   const r = w.rules;
@@ -1006,7 +1015,7 @@ export function sectionStats(
           good: null,
         },
       ],
-      charts: [mosChart(w, 4), venChart(w)],
+      charts: [mosChart(w, 4, false, opts.itemType), venChart(w)],
     };
   }
 

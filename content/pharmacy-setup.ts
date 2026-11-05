@@ -19,6 +19,8 @@ export type ItemKey =
   | "places"
   | "levels"
   | "prices"
+  | "supplies"
+  | "suplevels"
   | "opening"
   | "sensor"
   | "supp"
@@ -173,6 +175,28 @@ export const CHECKLIST: readonly ChecklistItem[] = [
     "auto",
     "medicines",
     { unit: "medicines" },
+  ),
+  I(
+    "supplies",
+    1,
+    "Health and lab supplies loaded from EMHSLU 2023",
+    "Sections B and D: gloves, syringes, cannulas, dressings, sutures and test kits, each with its level of care.",
+    "Store keeper",
+    false,
+    "auto",
+    "medicines",
+    { unit: "items" },
+  ),
+  I(
+    "suplevels",
+    1,
+    "Top-up levels for health and lab supplies",
+    "Wards run out of gloves and cannulas before medicines. Issue suggests amounts from these levels.",
+    "Store keeper",
+    false,
+    "auto",
+    "medicines",
+    { unit: "items" },
   ),
   I(
     "opening",

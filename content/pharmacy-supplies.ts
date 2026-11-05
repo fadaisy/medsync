@@ -30,10 +30,10 @@ export const TYPE_WORD: Record<ItemType, string> = {
   lab_supply: "Laboratory supply",
 };
 export const TYPE_SUB: Record<TypeFilter, string> = {
-  all: "",
-  medicine: "· medicines",
-  health_supply: "· health supplies",
-  lab_supply: "· lab supplies",
+  all: "everything",
+  medicine: "medicines",
+  health_supply: "health supplies",
+  lab_supply: "lab supplies",
 };
 /** The grid's name column follows the switch (§C). */
 export const NAME_HEAD: Record<TypeFilter, string> = {
@@ -92,6 +92,8 @@ export const SUPPLY_CLASSES = [
   "Laboratory: test strips",
 ] as const;
 
+export const levelWarn = (level: string) => `Above this hospital's level: from ${level}`;
+
 export const SECTION_C = {
   title: "Specialist supplies (EMHSLU Section C)",
   body: "Dental, ENT, eye, orthopaedic, renal and radiology items. Off until this hospital uses them.",
@@ -111,8 +113,10 @@ export const RECEIVE_SUPPLY = {
   },
   seal: {
     label: "Packaging and sterile seal on the packs",
-    ok: "Intact, dry and in date",
-    broken: "Broken, wet or torn",
+    options: [
+      { value: "ok", label: "Intact, dry and in date" },
+      { value: "broken", label: "Broken, wet or torn" },
+    ],
     word: "Sterile seal broken",
     note: "A broken, wet or torn sterile pack is not sterile. Tick Some are not accepted, count the broken packs as damaged, and give them back to the driver.",
     missing: (no: number) => `Line ${no}: check the packaging and sterile seal on the packs.`,
@@ -121,8 +125,10 @@ export const RECEIVE_SUPPLY = {
   },
   kit: {
     label: `Were the test kits kept at ${KIT_RANGE} on the way?`,
-    ok: `Yes, ${KIT_RANGE}`,
-    hot: "No, it got hot",
+    options: [
+      { value: "ok", label: `Yes, ${KIT_RANGE}` },
+      { value: "hot", label: "No, it got hot" },
+    ],
     word: `Kits kept ${kitAbove}`,
     note: `Test kits kept ${kitAbove} can give false results. Keep them apart and ask the supplier, or reject them.`,
     missing: (no: number) => `Line ${no}: confirm the test kits were kept at ${KIT_RANGE}.`,
@@ -138,10 +144,9 @@ export const RECEIVE_SUPPLY = {
     none: "Nothing by that name in your medicines and supplies.",
     kitSub: `Kit, ${KIT_RANGE}`,
   },
-};
+} as const;
 
-export const STORE_SUPPLY = {
-  pick: "Medicine or supply",
-  prefix: { health_supply: "[Supply]", lab_supply: "[Lab]" },
-  firstCol: "Item",
-};
+const PICK_PREFIX = { health_supply: "[Supply]", lab_supply: "[Lab]" };
+/** A picker option in the store's dialogs (§D). */
+export const pickLabel = (name: string, type: ItemType) =>
+  type === "medicine" ? name : `${PICK_PREFIX[type]} ${name}`;

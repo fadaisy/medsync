@@ -22,6 +22,7 @@ import {
 } from "@/components/pharmacy/store/places/parts";
 import { newKey } from "@/components/pharmacy/store/shared";
 import { LabButton } from "@/components/tide/work/button";
+import { NO_EXPIRY_WORD, RECEIVE_SUPPLY as RS } from "@/content/pharmacy-supplies";
 import { RC } from "@/content/pharmacy-receive";
 import { RA } from "@/content/pharmacy-receive-after";
 import {
@@ -139,10 +140,12 @@ export function AfterView({ delivery: d }: { delivery: ReceiveDelivery }) {
                             <Tag>{RA.put.cold(world.rules.tempLow, world.rules.tempHigh)}</Tag>
                           ) : null}
                           {i.m.controlled ? <Tag>{RA.put.controlled}</Tag> : null}
+                          {i.m.sterile ? <Tag>{RS.tag.keepSealed}</Tag> : null}
+                          {i.m.kit ? <Tag>{RS.tag.kit}</Tag> : null}
                         </span>
                         <span className={rowSub}>
                           <span className="font-mono">{l.batch}</span>
-                          {` · exp ${expText(normExp(l.exp), l.exp)} · ${plural(p.qty, i.m.unit)}${p.sent > 0 ? RA.put.sentOn(p.sent) : ""}`}
+                          {` · exp ${i.m.noExpiry ? NO_EXPIRY_WORD : expText(normExp(l.exp), l.exp)} · ${plural(p.qty, i.m.unit)}${p.sent > 0 ? RA.put.sentOn(p.sent) : ""}`}
                         </span>
                         {!p.done ? (
                           <span className={rowSub}>

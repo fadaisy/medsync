@@ -365,7 +365,7 @@ export const MEDICINES = {
   },
   tilesAria: "Stock at a glance",
   tiles: {
-    medicines: ["Medicines", "stocked"],
+    medicines: ["Items", "stocked"],
     ok: ["Places OK", "medicine × place"],
     low: ["Low", "places below half"],
     out: ["Out", "places with none"],

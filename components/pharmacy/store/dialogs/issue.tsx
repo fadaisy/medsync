@@ -8,6 +8,7 @@ import { FormDialog, inputCls, labelCls } from "@/components/pharmacy/roster/swa
 import { newKey, useStoreAct, useWitness } from "@/components/pharmacy/store/shared";
 import { STORE_SAYS } from "@/content/pharmacy-store";
 import { LA } from "@/content/pharmacy-store-lookafter";
+import { pickLabel } from "@/content/pharmacy-supplies";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { fmtExp, num, units } from "@/lib/pharmacy/derive/store/format";
 import { batchesOf, fefo, medOf, onHand, placeName } from "@/lib/pharmacy/derive/store/stock";
@@ -118,7 +119,7 @@ function IssueForm({
             <option value="">{LA.dlg.chooseMed}</option>
             {w.meds.map((x) => (
               <option key={x.id} value={x.id}>
-                {x.name}
+                {pickLabel(x.name, x.itemType)}
               </option>
             ))}
           </select>

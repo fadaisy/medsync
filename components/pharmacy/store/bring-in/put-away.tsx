@@ -14,6 +14,7 @@ import { fieldSm } from "@/components/pharmacy/medicines/shared";
 import { LabButton } from "@/components/tide/work/button";
 import { STORE_SAYS } from "@/content/pharmacy-store";
 import { STB } from "@/content/pharmacy-store-bringin";
+import { RECEIVE_SUPPLY } from "@/content/pharmacy-supplies";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { fmtExp, num, units } from "@/lib/pharmacy/derive/store/format";
 import { daysAt, needAt } from "@/lib/pharmacy/derive/store/places";
@@ -130,6 +131,8 @@ export function PutAway({ world: w }: { world: StoreWorld }) {
               <span className="flex min-w-0 flex-[1_1_260px] flex-col gap-px">
                 <span className="flex flex-wrap items-center gap-1.5">
                   <span className={rowTitle}>{m.name}</span>
+                  {m.sterile ? <Chip tone="teal">{RECEIVE_SUPPLY.tag.keepSealed}</Chip> : null}
+                  {m.kit ? <Chip tone="info">{RECEIVE_SUPPLY.tag.kit}</Chip> : null}
                   {m.cold ? <Chip tone="info">{P.cold}</Chip> : null}
                 </span>
                 <span className={rowSub}>{fill(P.sub, { no: b.no, exp: fmtExp(b.exp) })}</span>

@@ -1,16 +1,20 @@
 "use client";
 
 import type { ChipTone } from "@/components/pharmacy/charts/chip";
+import type { TypeFilter } from "@/content/pharmacy-supplies";
 import type { StockState } from "@/lib/pharmacy/derive/store/stock";
 import type { StoreMed, StoreWorld } from "@/lib/pharmacy/derive/store/types";
 import Link from "next/link";
 
 import { Chip } from "@/components/pharmacy/charts/chip";
 import { linkBtn } from "@/components/pharmacy/medicines/shared";
+import { TypeSwitch } from "@/components/pharmacy/medicines/type-switch";
 import { DOT } from "@/components/pharmacy/medicines/tones";
 import { LA } from "@/content/pharmacy-store-lookafter";
+import { TYPE_SUB, typeTag } from "@/content/pharmacy-supplies";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { num, units } from "@/lib/pharmacy/derive/store/format";
+import { matchesType, typeCounts } from "@/lib/pharmacy/derive/medicines";
 import { mosOf, onHand, stateOf } from "@/lib/pharmacy/derive/store/stock";
 import { cn } from "@/lib/utils";
 import { card, Empty, Head, rowLine, Table } from "./shared";
@@ -27,9 +31,21 @@ const moved = (m: StoreMed) =>
   m.moved === null ? H.never : m.moved <= 1 ? H.today : fill(H.daysAgo, { n: m.moved });
 
 /** §F1. The tiles filter it: out, under the short line, too much or not moving. Lowest months of stock first. */
-export function StoreStock({ world: w, filter }: { world: StoreWorld; filter: string | null }) {
+export function StoreStock({
+  world: w,
+  filter,
+  itemType,
+  onItemType,
+}: {
+  world: StoreWorld;
+  filter: string | null;
+  itemType: TypeFilter;
+  onItemType: (t: TypeFilter) => void;
+}) {
   const r = w.rules;
+  const counts = typeCounts(w.meds);
   const rows = w.meds
+    .filter((m) => matchesType(m, itemType))
     .map((m) => ({ m, mo: mosOf(w, m), st: stateOf(w, m) }))
     .filter(({ st }) =>
       filter === "out"
@@ -41,14 +57,16 @@ export function StoreStock({ world: w, filter }: { world: StoreWorld; filter: st
             : true,
     )
     .sort((a, b) => (a.mo === b.mo ? 0 : a.mo - b.mo));
-  const sub =
+  const tileSub =
     filter === "out"
       ? H.sub.out
       : filter === "low"
         ? fill(H.sub.low, { n: r.shortUnder })
         : filter === "over"
           ? H.sub.over
-          : H.sub.all;
+          : "";
+  const sub =
+    [tileSub, itemType === "all" && tileSub ? "" : TYPE_SUB[itemType]].filter(Boolean).join(" · ");
   const state: Record<StockState, string> = {
     ...H.state,
     short: fill(H.state.short, { n: r.shortUnder }),
@@ -57,6 +75,7 @@ export function StoreStock({ world: w, filter }: { world: StoreWorld; filter: st
   return (
     <section className={card}>
       <Head
+        action={<TypeSwitch value={itemType} counts={counts} onChange={onItemType} />}
         title={
           <>
             {H.title} <span className="text-ink-600 font-normal">· {sub}</span>
@@ -76,6 +95,11 @@ export function StoreStock({ world: w, filter }: { world: StoreWorld; filter: st
                 >
                   {m.name}
                 </Link>
+                {m.itemType !== "medicine" ? (
+                  <Chip tone={m.itemType === "lab_supply" ? "info" : "teal"} className="mt-0.5 flex w-fit">
+                    {typeTag(m.itemType, m)}
+                  </Chip>
+                ) : null}
               </td>
               <td className="pr-3">{m.ven ? <Chip>{m.ven}</Chip> : null}</td>
               <td className="pr-3 whitespace-nowrap tabular-nums">

@@ -1,5 +1,6 @@
 "use client";
 
+import type { TypeFilter } from "@/content/pharmacy-supplies";
 import type { ColKey, Cond, Row, RuleGroup, SortKey, Ven } from "@/lib/pharmacy/derive/medicines";
 import type { MedicinesPayload } from "@/lib/pharmacy/medicines/read";
 import { useRouter } from "next/navigation";
@@ -21,7 +22,9 @@ import {
   deleteViewAction,
   requestTopUpsAction,
   setLineCellAction,
+  setSectionCAction,
 } from "@/app/pharmacy/medicines-actions";
+import { Switch } from "@/components/pharmacy/receive/shared";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { LabButton } from "@/components/tide/work/button";
 import { DialogTitle } from "@/components/ui/dialog";
@@ -44,6 +47,7 @@ import {
   ugx,
   VEN,
 } from "@/content/pharmacy-medicines";
+import { itemsCount, NAME_HEAD, SECTION_C } from "@/content/pharmacy-supplies";
 import { LASA_PAIRS } from "@/data/pharmacy/lasa";
 import {
   condText,
@@ -54,6 +58,7 @@ import {
   lineIdentityKey,
   lineMetrics,
   matchesSearch,
+  matchesType,
   newCond,
   qcChecks,
   ruleApplies,
@@ -61,6 +66,7 @@ import {
   SEVERE,
   sortLines,
   topUpSuggestion,
+  typeCounts,
   validConds,
 } from "@/lib/pharmacy/derive/medicines";
 import { cn } from "@/lib/utils";
@@ -70,6 +76,7 @@ import { OpenRow } from "./open-row";
 import { flagFilterWord, RulesDialog } from "./rules";
 import { Dot, field, fieldSm, newKey, pillBtn, Tip, useToast } from "./shared";
 import { DOT, near } from "./tones";
+import { TypeSwitch } from "./type-switch";
 import { useStockLive } from "./use-stock-live";
 
 const M = MEDICINES;
@@ -200,7 +207,8 @@ export function MedicinesGrid({
     }),
     [data],
   );
-  const rows: Row[] = useMemo(() => {
+  const [itemType, setItemType] = useState<TypeFilter>("all");
+  const allRows: Row[] = useMemo(() => {
     const keys = new Map<string, number>();
     for (const l of data.lines)
       keys.set(lineIdentityKey(l), (keys.get(lineIdentityKey(l)) ?? 0) + 1);
@@ -209,6 +217,11 @@ export function MedicinesGrid({
       return { l, mx, qc: qcChecks(l, mx, ctx, keys, localWord) };
     });
   }, [data, ctx]);
+  const counts = useMemo(() => typeCounts(data.lines), [data.lines]);
+  const rows = useMemo(
+    () => allRows.filter((r) => matchesType(r.l, itemType)),
+    [allRows, itemType],
+  );
 
   const valid = validConds(conds);
   const shown = useMemo(
@@ -279,23 +292,24 @@ export function MedicinesGrid({
   return (
     <div className="bg-card shadow-tide-card flex min-w-0 flex-col gap-3 rounded-[22px] p-4">
       {/* Header (MEDICINES-TAB §2): no intro sentence in Set-up; Add from the catalogue, right-aligned. */}
-      {!edit || data.can.edit ? (
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          {!edit ? (
-            <p className="text-ink-600 m-0 mt-0.5 flex-[1_1_320px] text-[13px] leading-[17px] font-medium">
-              {M.leadOperate}
-            </p>
-          ) : null}
-          {edit ? (
-            <LabButton
-              variant="primary"
-              className="ml-auto h-11 px-5 text-[16px]"
-              onClick={() => setPicker((n) => Math.abs(n) + 1)}
-            >
-              {M.add}
-            </LabButton>
-          ) : null}
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <TypeSwitch
+          value={itemType}
+          counts={counts}
+          onChange={(t) => (setItemType(t), setPage(0), setOpenId(null))}
+        />
+        {edit && data.can.edit ? (
+          <LabButton
+            variant="primary"
+            className="ml-auto h-11 px-5 text-[16px]"
+            onClick={() => setPicker((n) => Math.abs(n) + 1)}
+          >
+            {M.add}
+          </LabButton>
+        ) : null}
+      </div>
+      {!edit ? (
+        <p className="text-ink-600 m-0 text-[13px] leading-[17px] font-medium">{M.leadOperate}</p>
       ) : null}
 
       {/* Toolbar */}
@@ -492,7 +506,14 @@ export function MedicinesGrid({
               <span className="text-foreground text-[22px] leading-7 font-semibold tabular-nums">
                 {tiles[t]}
               </span>
-              <span className="text-ink-600 text-[11px]">{sub}</span>
+              <span className="text-ink-600 text-[11px]">
+                {t === "medicines"
+                  ? itemsCount(
+                      rows.filter((r) => r.l.itemType === "medicine").length,
+                      rows.filter((r) => r.l.itemType !== "medicine").length,
+                    )
+                  : sub}
+              </span>
             </button>
           );
         })}
@@ -551,7 +572,7 @@ export function MedicinesGrid({
                     />
                   </th>
                   <Head
-                    label={G.medicine}
+                    label={NAME_HEAD[itemType]}
                     col="name"
                     sort={sort}
                     sortBy={sortBy}
@@ -783,6 +804,7 @@ export function MedicinesGrid({
         }}
         toast={toast}
       />
+      {edit && data.can.edit ? <SectionCRow on={data.sectionC} toast={toast} /> : null}
       {edit ? (
         <CatalogueDialog
           key={`picker-${Math.abs(picker)}`}
@@ -794,6 +816,35 @@ export function MedicinesGrid({
         />
       ) : null}
       {toastNode}
+    </div>
+  );
+}
+
+/** One switch for the specialist list (SUPPLIES.md §A), off by default. */
+function SectionCRow({ on, toast }: { on: boolean; toast: (m: string) => void }) {
+  const [checked, setChecked] = useState(on);
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  return (
+    <div className="bg-ink-50 flex items-center justify-between gap-3 rounded-2xl px-3.5 py-2.5">
+      <span className="min-w-0">
+        <span className="text-foreground block text-[13px] font-semibold">{SECTION_C.title}</span>
+        <span className="text-ink-600 block text-[12px] leading-4">{SECTION_C.body}</span>
+      </span>
+      <Switch
+        checked={checked}
+        label={SECTION_C.title}
+        onChange={(v) => {
+          if (pending) return;
+          setChecked(v);
+          start(async () => {
+            const r = await setSectionCAction({ on: v });
+            if (!r.ok) return setChecked(!v), toast(r.error);
+            toast(v ? SECTION_C.on : SECTION_C.off);
+            router.refresh();
+          });
+        }}
+      />
     </div>
   );
 }

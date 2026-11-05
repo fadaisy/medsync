@@ -8,6 +8,7 @@ import { askApprovalAction } from "@/app/pharmacy/stock/store/receive-actions";
 import { LabButton } from "@/components/tide/work/button";
 import { RC } from "@/content/pharmacy-receive";
 import { RCT } from "@/content/pharmacy-receive-count";
+import { RECEIVE_SUPPLY as RS } from "@/content/pharmacy-supplies";
 import { expText, normExp, num } from "@/lib/pharmacy/derive/receive";
 import { cn } from "@/lib/utils";
 import { useReceive } from "../provider";
@@ -62,13 +63,24 @@ export function LineEdit({
   const needsDecision = i.short && !i.expired && i.packs > 0;
   const needsApproval =
     i.short && !i.expired && (l.decision === "accept" || l.decision === "accept_tell");
-  const canRejectAll = (i.expired || i.tempBad || !!i.rc || i.vvmBad || i.frozen) && i.acc > 0;
+  const canRejectAll =
+    (i.expired || i.tempBad || !!i.rc || i.vvmBad || i.frozen || i.sealBad || i.kitHot) &&
+    i.acc > 0;
   const rejectAll = () =>
     set({
       rejOn: true,
       rejPacks: String(i.packs),
-      rejWhy: i.expired ? "expired" : i.rc ? "recall" : i.tempBad ? "cold_chain" : "other",
-      rejFate: "quarantine",
+      rejWhy: i.expired
+        ? "expired"
+        : i.rc
+          ? "recall"
+          : i.tempBad
+            ? "cold_chain"
+            : i.sealBad
+              ? "damaged"
+              : "other",
+      // Broken sterile packs go back to the driver; hot kits are kept apart until the supplier answers (§E).
+      rejFate: i.sealBad ? "driver" : "quarantine",
     });
 
   const ask = async () => {
@@ -105,6 +117,9 @@ export function LineEdit({
       warn: true,
       text: RCT.note.price(Number(l.cost), i.priceDiff.fromOrder, i.priceDiff.ref, i.priceDiff.pct),
     });
+  if (i.sealBad) notes.push({ warn: true, text: RS.seal.note });
+  if (i.kitHot) notes.push({ warn: true, text: RS.kit.note });
+  if (m.noExpiry) notes.push({ warn: false, text: RS.noExpiry.note });
   if (m.vaccine && i.counted && (i.vvmBad || i.frozen))
     notes.push({ warn: true, text: i.vvmBad ? RCT.note.vvmBad : RCT.note.frozen });
 
@@ -123,14 +138,18 @@ export function LineEdit({
             />
           )}
         </Field>
-        <Field label={E.exp} error={bad(P.exp(l.no), P.badExp(l.no), P.expired(l.no))}>
+        <Field
+          label={m.noExpiry ? RS.noExpiry.label : E.exp}
+          error={bad(P.exp(l.no), P.badExp(l.no), P.expired(l.no))}
+        >
           {(a) => (
             <input
               {...a}
               className={inputCls(!!a["aria-invalid"])}
               autoComplete="off"
-              placeholder={E.expPh}
-              value={l.exp}
+              disabled={m.noExpiry}
+              placeholder={m.noExpiry ? "" : E.expPh}
+              value={m.noExpiry ? "" : l.exp}
               onChange={text("exp")}
             />
           )}
@@ -210,6 +229,25 @@ export function LineEdit({
             ),
           )}
         </div>
+      ) : null}
+
+      {m.sterile ? (
+        <ChipRadio
+          label={RS.seal.label}
+          value={l.seal}
+          onChange={(v) => set({ seal: v })}
+          options={RS.seal.options}
+          error={bad(RS.seal.missing(l.no), RS.seal.problem(l.no))}
+        />
+      ) : null}
+      {m.kit ? (
+        <ChipRadio
+          label={RS.kit.label}
+          value={l.kitTemp}
+          onChange={(v) => set({ kitTemp: v })}
+          options={RS.kit.options}
+          error={bad(RS.kit.missing(l.no), RS.kit.problem(l.no))}
+        />
       ) : null}
 
       {m.cold || m.vaccine ? (

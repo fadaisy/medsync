@@ -47,7 +47,7 @@ export const SECTION_LABEL: Record<StoreSection, string> = {
 
 export const ST = {
   shell: {
-    line: "{n} medicines · {value} on hand",
+    line: "{items} · {value} on hand",
     countShelf: "Count a shelf",
     issueNoReq: "Issue without a requisition",
     receive: "Receive a delivery",
@@ -266,13 +266,13 @@ export const ST = {
       V: "Vital",
       E: "Essential",
       N: "Necessary",
-      medicine: "{n} medicine",
-      medicines: "{n} medicines",
+      medicine: "{n} item",
+      medicines: "{n} items",
     },
     mos: {
       title: "Months of stock in the store",
       sub: "Here ÷ use per month. Short is under {a}, too much is over {b} (Rules › Ordering). Bars stop at 12. Click a line for its stock card.",
-      cols: ["Medicine", "Months", "State"],
+      cols: ["Item", "Months", "State"],
       mark: "{n} months",
       tip: "{name}: {m} of stock · {state}",
       unit: "mo",

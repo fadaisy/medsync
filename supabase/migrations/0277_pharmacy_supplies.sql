@@ -212,3 +212,90 @@ REVOKE ALL ON FUNCTION private.pharmacy_batch_no_expiry() FROM PUBLIC;
 DROP TRIGGER IF EXISTS pb_a_no_expiry ON public.pharmacy_batches;
 CREATE TRIGGER pb_a_no_expiry BEFORE INSERT ON public.pharmacy_batches
   FOR EACH ROW EXECUTE FUNCTION private.pharmacy_batch_no_expiry();
+
+-- ─── 7. Rules and Going live (SUPPLIES.md §F, §G) ───────────────────────
+-- 'recv' (0276) and 'sup' can now be signed.
+ALTER TABLE public.pharmacy_rule_group_signatures DROP CONSTRAINT IF EXISTS pharmacy_rule_group_signatures_group_key_check;
+ALTER TABLE public.pharmacy_rule_group_signatures ADD CONSTRAINT pharmacy_rule_group_signatures_group_key_check
+  CHECK (group_key IN ('cd','ho','inv','rx','cold','ord','price','roster','swap','msg','recv','sup'));
+ALTER TABLE public.pharmacy_golive_items DROP CONSTRAINT IF EXISTS pgi_auto;
+ALTER TABLE public.pharmacy_golive_items ADD CONSTRAINT pgi_auto CHECK (key NOT IN
+  ('mfa','places','levels','prices','supplies','suplevels','opening','sensor','roster','lic','train','rules')
+  OR (status = 'todo' AND answer IS NULL));
+-- Levels and prices now count medicines; supplies have their own two items, and a supply needs no price.
+CREATE OR REPLACE FUNCTION private.pharmacy_golive_auto(p_hospital uuid)
+RETURNS TABLE (key text, done integer, total integer)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE today date := (now() AT TIME ZONE 'Africa/Kampala')::date; target date; mon date; mfa int := 0;
+BEGIN
+  SELECT s.target_date INTO target FROM public.pharmacy_golive_state s WHERE s.hospital_id = p_hospital;
+  mon := coalesce(target, today) - ((extract(isodow FROM coalesce(target, today))::int + 6) % 7);
+  -- Pharmacy accounts: the people listed for the roster.
+  IF to_regclass('auth.mfa_factors') IS NOT NULL THEN
+    EXECUTE 'SELECT count(DISTINCT p.user_id)::int FROM public.pharmacy_roster_people p
+       JOIN auth.mfa_factors f ON f.user_id = p.user_id AND f.status = ''verified''
+      WHERE p.hospital_id = $1 AND p.ended_at IS NULL' INTO mfa USING p_hospital;
+  END IF;
+  RETURN QUERY
+  WITH open_places AS (
+    SELECT l.* FROM public.pharmacy_locations l
+     WHERE l.hospital_id = p_hospital AND l.closed_at IS NULL AND l.archived_at IS NULL
+       AND l.kind IN ('store','dispensing_point','ward','clinic','theatre')),
+  products AS (SELECT p.id FROM public.pharmacy_products p WHERE p.hospital_id = p_hospital AND p.active AND p.item_type = 'medicine'),
+  supplies AS (SELECT p.id FROM public.pharmacy_products p WHERE p.hospital_id = p_hospital AND p.active AND p.item_type <> 'medicine'),
+  stocked AS (
+    SELECT DISTINCT b.product_id, coalesce(b.location_id, b.dispensing_point_id) AS place
+      FROM public.pharmacy_batches b JOIN public.pharmacy_stock_movements m ON m.batch_id = b.id
+     WHERE b.hospital_id = p_hospital GROUP BY b.id HAVING sum(m.quantity) > 0),
+  levels AS (
+    SELECT DISTINCT ON (r.product_id, r.location_id) r.product_id, r.location_id, r.level
+      FROM public.pharmacy_reorder_levels r WHERE r.hospital_id = p_hospital AND r.product_id IS NOT NULL
+     ORDER BY r.product_id, r.location_id, r.set_at DESC),
+  staff AS (SELECT p.user_id, p.cadre FROM public.pharmacy_roster_people p
+             WHERE p.hospital_id = p_hospital AND p.ended_at IS NULL)
+  SELECT 'mfa', mfa, (SELECT count(*)::int FROM staff)
+  UNION ALL
+  SELECT 'places', (SELECT count(*)::int FROM open_places o WHERE o.device_label IS NOT NULL
+                      AND cardinality(o.handover_slots) > 0), (SELECT count(*)::int FROM open_places)
+  UNION ALL
+  SELECT 'levels', (SELECT count(*)::int FROM products p WHERE NOT EXISTS (
+                      SELECT 1 FROM stocked s JOIN open_places o ON o.id = s.place WHERE s.product_id = p.id
+                         AND NOT EXISTS (SELECT 1 FROM levels v WHERE v.product_id = p.id AND v.location_id = s.place
+                                           AND v.level IS NOT NULL))),
+                   (SELECT count(*)::int FROM products)
+  UNION ALL
+  SELECT 'prices', (SELECT count(*)::int FROM products p WHERE EXISTS (
+                      SELECT 1 FROM public.pharmacy_product_prices pp
+                        JOIN public.pharmacy_payers py ON py.id = pp.payer_id AND py.code = 'cash'
+                       WHERE pp.product_id = p.id AND pp.from_date <= today)),
+                   (SELECT count(*)::int FROM products)
+  UNION ALL
+  SELECT 'supplies', (SELECT count(*)::int FROM supplies), (SELECT count(*)::int FROM supplies)
+  UNION ALL
+  SELECT 'suplevels', (SELECT count(*)::int FROM supplies p WHERE EXISTS (
+                         SELECT 1 FROM levels v WHERE v.product_id = p.id AND v.level IS NOT NULL)),
+                      (SELECT count(*)::int FROM supplies)
+  UNION ALL
+  SELECT 'opening', (SELECT count(*)::int FROM open_places o WHERE EXISTS (
+                       SELECT 1 FROM public.pharmacy_count_sheets c WHERE c.location_id = o.id AND c.status = 'done')),
+                    (SELECT count(*)::int FROM open_places)
+  UNION ALL
+  SELECT 'sensor', (SELECT count(*)::int FROM public.pharmacy_fridges f WHERE f.hospital_id = p_hospital
+                      AND f.archived_at IS NULL AND (f.sensor_id IS NOT NULL OR f.sensor_key_hash IS NOT NULL)),
+                   (SELECT count(*)::int FROM public.pharmacy_fridges f WHERE f.hospital_id = p_hospital
+                      AND f.archived_at IS NULL)
+  UNION ALL
+  SELECT 'roster', ((private.pharmacy_week_published(p_hospital, mon))::int
+                    + (private.pharmacy_week_published(p_hospital, mon + 7))::int), 2
+  UNION ALL
+  SELECT 'lic', (SELECT count(*)::int FROM staff s WHERE s.cadre IN ('pharmacist','technician','dispenser')
+                   AND (SELECT l.expires_on FROM public.pharmacy_staff_licences l WHERE l.hospital_id = p_hospital
+                          AND l.user_id = s.user_id ORDER BY l.recorded_at DESC LIMIT 1) >= today),
+                (SELECT count(*)::int FROM staff s WHERE s.cadre IN ('pharmacist','technician','dispenser'))
+  UNION ALL
+  SELECT 'train', (SELECT count(*)::int FROM staff s JOIN public.pharmacy_practice_trained t
+                     ON t.hospital_id = p_hospital AND t.user_id = s.user_id), (SELECT count(*)::int FROM staff)
+  UNION ALL
+  SELECT 'rules', (SELECT count(*)::int FROM (SELECT g.group_key FROM public.pharmacy_rule_group_signatures g
+                     WHERE g.hospital_id = p_hospital GROUP BY g.group_key HAVING count(*) = 2) x), 12;
+END $$;

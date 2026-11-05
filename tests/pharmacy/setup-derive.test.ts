@@ -66,8 +66,8 @@ describe("Going live", () => {
     expect(G.countdownUrgent(3, 0)).toBe(false);
     expect(G.countdownUrgent(4, 2)).toBe(false);
   });
-  it("the checklist is 20 items in 4 groups, 12 blocking", () => {
-    expect(CHECKLIST).toHaveLength(20);
+  it("the checklist is 22 items in 4 groups, 12 blocking", () => {
+    expect(CHECKLIST).toHaveLength(22);
     expect(new Set(CHECKLIST.map((i) => i.group)).size).toBe(4);
     expect(CHECKLIST.filter((i) => i.blocks)).toHaveLength(12);
   });
@@ -194,7 +194,7 @@ describe("Rules", () => {
     expect(R.applyProposal(90, { n: 120, applied: false })).toBe(90);
   });
   it("searchRules by name, wording, applies-to and group", () => {
-    expect(R.searchRules(RULE_REGISTRY, "").length).toBe(11);
+    expect(R.searchRules(RULE_REGISTRY, "").length).toBe(12);
     expect(
       R.searchRules(RULE_REGISTRY, "expiry").flatMap((g) => g.rules.map((r) => r.key)),
     ).toContain("expiry_warning");

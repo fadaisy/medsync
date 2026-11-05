@@ -14,13 +14,12 @@ export const LA = {
   health: {
     title: "Stock health",
     sub: {
-      all: "all medicines",
       out: "out of stock",
       low: "under {n} months",
       over: "too much or not moving",
     },
     note: "Months of stock = here ÷ use per month. Under {short} is short, over {over} is too much (Rules › Ordering).",
-    cols: ["Medicine", "VEN", "Here", "Use / month", "Months of stock", "Last moved", "State"],
+    cols: ["Item", "VEN", "Here", "Use / month", "Months of stock", "Last moved", "State"],
     state: {
       out: "Out",
       still: "No movement",
@@ -177,8 +176,8 @@ export const LA = {
     cancel: "Cancel",
     done: "Done",
     how: "How many",
-    medicine: "Medicine",
-    chooseMed: "Choose a medicine",
+    medicine: "Medicine or supply",
+    chooseMed: "Choose a medicine or supply",
     count: {
       pick: "Count a shelf",
       pickLead: "Pick the shelf. The counts are blind: the record shows only after you save.",

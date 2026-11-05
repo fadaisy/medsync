@@ -1,5 +1,6 @@
 "use client";
 
+import type { TypeFilter } from "@/content/pharmacy-supplies";
 import type { Line } from "@/lib/pharmacy/derive/medicines";
 import type { CatalogueItem } from "@/lib/pharmacy/medicines/store";
 import { useRouter } from "next/navigation";
@@ -25,9 +26,12 @@ import {
   UNIT_BY_FORM,
   UNITS,
 } from "@/content/pharmacy-medicines";
-import { lineIdentityKey } from "@/lib/pharmacy/derive/medicines";
+import { levelWarn } from "@/content/pharmacy-supplies";
+import { lineIdentityKey, matchesType, typeCounts } from "@/lib/pharmacy/derive/medicines";
+import { levelTooLow } from "@/lib/pharmacy/supplies/defaults";
 import { cn } from "@/lib/utils";
 import { field, linkBtn, newKey, pillBtn } from "./shared";
+import { TypeSwitch } from "./type-switch";
 
 const C = MEDICINES.catalogue;
 const L = MEDICINES.local;
@@ -52,6 +56,8 @@ export function CatalogueDialog({
 }) {
   const router = useRouter();
   const [items, setItems] = useState<CatalogueItem[] | null>(null);
+  const [level, setLevel] = useState<string | null>(null);
+  const [itemType, setItemType] = useState<TypeFilter>("all");
   const [mode, setMode] = useState<"list" | "local">("list");
   const [q, setQ] = useState("");
   const [src, setSrc] = useState("all");
@@ -79,7 +85,10 @@ export function CatalogueDialog({
   // Remounted (a new key) on each open: it starts in list mode with nothing ticked and reads the catalogue fresh.
   useEffect(() => {
     if (open && !items)
-      void catalogueAction().then((r) => setItems(r.ok ? (r.data?.items ?? []) : []));
+      void catalogueAction().then((r) => {
+        setItems(r.ok ? (r.data?.items ?? []) : []);
+        setLevel(r.ok ? (r.data?.level ?? null) : null);
+      });
   }, [open, items]);
 
   const stocked = useMemo(() => {
@@ -92,6 +101,7 @@ export function CatalogueDialog({
     const s = q.trim().toLowerCase();
     return (items ?? []).filter(
       (i) =>
+        matchesType(i, itemType) &&
         (src === "all" || i.sources.includes(src)) &&
         (!atc || i.atc === atc) &&
         (!cls || i.cls === cls) &&
@@ -101,7 +111,7 @@ export function CatalogueDialog({
           (i.cls ?? "").toLowerCase().includes(s) ||
           (i.group ?? "").toLowerCase().includes(s)),
     );
-  }, [items, q, src, atc, cls, sale]);
+  }, [items, itemType, q, src, atc, cls, sale]);
   // A filter offers only what the catalogue carries; one with nothing behind it is not shown.
   const has = useMemo(() => {
     const all = items ?? [];
@@ -111,6 +121,16 @@ export function CatalogueDialog({
       sale: new Set(all.map((i) => i.sale).filter(Boolean)),
     };
   }, [items]);
+  // The medicine classes in their order, then the EMHSLU headings (§C).
+  const classOptions = useMemo(
+    () => [
+      ...CLASSES.filter((c) => has.cls.has(c)),
+      ...[...has.cls]
+        .filter((c): c is string => !!c && !(CLASSES as readonly string[]).includes(c))
+        .sort(),
+    ],
+    [has.cls],
+  );
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: items?.length ?? 0 };
     for (const i of items ?? []) for (const s of i.sources) c[s] = (c[s] ?? 0) + 1;
@@ -224,6 +244,11 @@ export function CatalogueDialog({
       {mode === "list" ? (
         <>
           <div className="flex flex-col gap-3 px-6 pt-4">
+            <TypeSwitch
+              value={itemType}
+              onChange={setItemType}
+              counts={typeCounts(items ?? [])}
+            />
             <label className="border-ink-300 bg-card flex h-11 items-center gap-2 rounded-full border px-4 sm:h-10">
               <SearchIcon aria-hidden className="text-ink-600 size-4" />
               <input
@@ -269,7 +294,7 @@ export function CatalogueDialog({
                   {C.cls}
                   <select value={cls} onChange={(e) => setCls(e.target.value)} className={input}>
                     <option value="">{C.allClasses}</option>
-                    {CLASSES.filter((c) => has.cls.has(c)).map((c) => (
+                    {classOptions.map((c) => (
                       <option key={c}>{c}</option>
                     ))}
                   </select>
@@ -344,6 +369,11 @@ export function CatalogueDialog({
                             i.unit,
                           )}
                         </span>
+                        {levelTooLow(i.level, level) ? (
+                          <span className="bg-tide-sunken text-foreground mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold">
+                            {levelWarn(i.level!)}
+                          </span>
+                        ) : null}
                         <span className="mt-1 flex flex-wrap gap-1">
                           {(i.sources.length ? i.sources : [C.masterOnly]).map((s) => (
                             <span

@@ -338,9 +338,9 @@ describe("rules registry", async () => {
     expect(validateParam("90", p, 90)).toBe("same");
     expect(validateParam("120", p, 90)).toBeNull();
   });
-  it("83 rules in 11 groups; a signed number wins over the default", () => {
-    expect(RULE_REGISTRY).toHaveLength(11);
-    expect(RULE_REGISTRY.reduce((n, g) => n + g.rules.length, 0)).toBe(83);
+  it("88 rules in 12 groups; a signed number wins over the default", () => {
+    expect(RULE_REGISTRY).toHaveLength(12);
+    expect(RULE_REGISTRY.reduce((n, g) => n + g.rules.length, 0)).toBe(88);
     const n = ruleNumbers([
       { rule_group: "roster", key: "shifts_week", text: "", params: { n: 5 } },
     ]);

@@ -1,15 +1,19 @@
 "use client";
 
 import type { useCount } from "../use-count";
+import type { TypeFilter } from "@/content/pharmacy-supplies";
 import type { ReceiveDelivery, ReceiveLine } from "@/lib/pharmacy/derive/receive";
 import { useState } from "react";
 
 import { addLocalMedicineAction } from "@/app/pharmacy/stock/store/receive-actions";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { TypeSwitch } from "@/components/pharmacy/medicines/type-switch";
 import { LabButton } from "@/components/tide/work/button";
 import { DialogTitle } from "@/components/ui/dialog";
 import { RC } from "@/content/pharmacy-receive";
 import { RCT } from "@/content/pharmacy-receive-count";
+import { RECEIVE_SUPPLY as RS, TYPE_WORD } from "@/content/pharmacy-supplies";
+import { matchesType } from "@/lib/pharmacy/derive/medicines";
 import { blankLine, plural } from "@/lib/pharmacy/derive/receive";
 import { cn } from "@/lib/utils";
 import { useReceive } from "../provider";
@@ -44,7 +48,10 @@ export function Picker({
   const [err, setErr] = useState("");
 
   const needle = q.trim().toLowerCase();
-  const items = world.meds.filter((m) => !needle || m.name.toLowerCase().includes(needle));
+  const [itemType, setItemType] = useState<TypeFilter>("all");
+  const items = world.meds.filter(
+    (m) => matchesType(m, itemType) && (!needle || m.name.toLowerCase().includes(needle)),
+  );
   const chosen = world.meds.filter((m) => ticks[m.id]);
 
   const add = () => {
@@ -92,7 +99,8 @@ export function Picker({
         <DialogTitle>{K.title}</DialogTitle>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-6 py-4">
-        <Field label={K.find}>
+        <TypeSwitch value={itemType} onChange={setItemType} className="self-start" />
+        <Field label={RS.picker.find}>
           {(a) => (
             <input
               {...a}
@@ -127,6 +135,9 @@ export function Picker({
                     <b className="text-foreground text-[14px] leading-5 font-semibold">{m.name}</b>
                     <span className="text-ink-600 text-[12.5px] leading-[18px]">
                       {[
+                        m.itemType === "medicine" ? null : TYPE_WORD[m.itemType],
+                        m.sterile ? RS.tag.sterile : null,
+                        m.kit ? RS.picker.kitSub : null,
                         K.pack(m.per),
                         K.here(plural(m.hand, m.unit)),
                         m.controlled ? K.controlled : null,
@@ -141,7 +152,7 @@ export function Picker({
             );
           })}
         </ul>
-        {items.length === 0 ? <p className="text-ink-600 m-0 text-[13px]">{K.none}</p> : null}
+        {items.length === 0 ? <p className="text-ink-600 m-0 text-[13px]">{RS.picker.none}</p> : null}
         {!local ? (
           <div>
             <button

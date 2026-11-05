@@ -169,8 +169,15 @@ export const LineDoc = z.object({
   rejFate: z.enum(["driver", "quarantine"]),
   vvm: z.enum(["", "1", "2", "3", "4"]).transform((v) => (v ? Number(v) : null)),
   freeze: z.enum(["", "ok", "tripped"]).transform((v) => v || null),
-  seal: z.enum(["", "ok", "broken"]).transform((v) => v || null),
-  kitTemp: z.enum(["", "ok", "hot"]).transform((v) => v || null),
+  // Lines queued on a device before this field have none: nothing answered.
+  seal: z
+    .enum(["", "ok", "broken"])
+    .default("")
+    .transform((v) => v || null),
+  kitTemp: z
+    .enum(["", "ok", "hot"])
+    .default("")
+    .transform((v) => v || null),
 });
 
 const SaveLines = z.object({

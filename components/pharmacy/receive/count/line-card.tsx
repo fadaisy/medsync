@@ -5,6 +5,7 @@ import type { LineInfo, ReceiveDelivery, ReceiveLine } from "@/lib/pharmacy/deri
 
 import { Tag } from "@/components/medsync/tag";
 import { RCT } from "@/content/pharmacy-receive-count";
+import { RECEIVE_SUPPLY as RS } from "@/content/pharmacy-supplies";
 import { expText, normExp, plural } from "@/lib/pharmacy/derive/receive";
 import { cn } from "@/lib/utils";
 import { wrapTag } from "../../store/places/parts";
@@ -35,6 +36,11 @@ export function LineCard({
   const m = i.m;
   const R = world.rules;
   const tags = [
+    m.itemType === "health_supply" ? RS.tag.health : null,
+    m.itemType === "lab_supply" ? RS.tag.lab : null,
+    m.sterile ? RS.tag.sterile : null,
+    m.kit ? RS.tag.kit : null,
+    m.noExpiry ? RS.tag.noExpiry : null,
     m.cold ? L.tag.cold(R.tempLow, R.tempHigh) : null,
     m.controlled ? L.tag.controlled : null,
     m.regLapsed ? L.tag.regLapsed : null,

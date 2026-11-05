@@ -190,7 +190,7 @@ export function lineMetrics(l: Line, places: Place[], cashPayerId: string | null
     cover: l.usePerDay > 0 ? Math.floor(have / l.usePerDay) : null,
     price: l.free ? 0 : cashOf(l, cashPayerId),
     sev: cnt.Out ? 0 : cnt.Low ? 1 : !lvl ? 2 : cnt.Over && !cnt.OK ? 4 : 3,
-    exp: live.length ? Math.min(...live.map((b) => b.days)) : null,
+    exp: live.length && !l.noExpiry ? Math.min(...live.map((b) => b.days)) : null,
   };
 }
 
@@ -526,13 +526,21 @@ const VENR: Record<string, number> = { V: 0, E: 1, N: 2 };
 const SALER = ["controlled", "prescription_only", "pharmacy_only", "over_the_counter", "supply"];
 const BLANK = 1e12;
 
+const CLASS_ORDER: readonly string[] = [...CLASSES, ...SUPPLY_CLASSES];
+/** Medicines' classes first, then the EMHSLU headings; a laboratory heading off the list sorts just after them. */
+const classRank = (c: string | null) => {
+  if (!c) return 99;
+  const i = CLASS_ORDER.indexOf(c);
+  return i >= 0 ? i : CLASS_ORDER.length;
+};
+
 function sortKey(r: Row, k: SortKey): number | string {
   const { l, mx } = r;
   switch (k) {
     case "ven":
       return l.ven ? VENR[l.ven]! : 3;
     case "cls":
-      return l.cls ? CLASSES.indexOf(l.cls as never) : 99;
+      return classRank(l.cls);
     case "group":
       return (l.group ?? "").toLowerCase();
     case "sale":
@@ -586,7 +594,7 @@ export function sortLines(rows: Row[], key: SortKey, dir: 1 | -1, group: boolean
     return c * dir || a.l.name.localeCompare(b.l.name, undefined, { numeric: true });
   });
   if (group) {
-    const ci = (r: Row) => (r.l.cls ? CLASSES.indexOf(r.l.cls as never) : 99);
+    const ci = (r: Row) => classRank(r.l.cls);
     out.sort((a, b) => ci(a) - ci(b));
   }
   return out;

@@ -40,6 +40,30 @@ const med = (id: string, name: string, x: Partial<ReceiveMed> = {}): ReceiveMed 
 });
 
 const meds: ReceiveMed[] = [
+  med(uid(17), "Cannula IV with inj port and wings (green), 18G", {
+    unit: "piece",
+    per: 50,
+    cost: 60000,
+    shelf: "E-03",
+    itemType: "health_supply",
+    sterile: true,
+  }),
+  med(uid(18), "Malaria Antigen P.f/Pan Kit (dipstick), 25 tests", {
+    unit: "test",
+    per: 25,
+    cost: 45000,
+    shelf: "L-01",
+    itemType: "lab_supply",
+    kit: true,
+  }),
+  med(uid(19), "Safety box for syringes & needles", {
+    unit: "piece",
+    per: 25,
+    cost: 30000,
+    shelf: "E-05",
+    itemType: "health_supply",
+    noExpiry: true,
+  }),
   med(uid(11), "Amoxicillin 500 mg capsule", {
     unit: "capsule",
     gtin: "06009876543210",
@@ -236,6 +260,9 @@ export const fixtureWorld = (): ReceiveWorld => ({
           approvalAsked: true,
         }),
         line(6, uid(16), { batch: "", exp: "", packs: "", source: "catalogue" }),
+        line(7, uid(17), { batch: "CN-2711", exp: "2027-11", packs: "10", per: "50", source: "catalogue" }),
+        line(8, uid(18), { batch: "RD-2706", exp: "2027-06", packs: "20", per: "25", source: "catalogue" }),
+        line(9, uid(19), { batch: "SB-114", exp: "", packs: "4", per: "25", source: "catalogue" }),
       ],
     }),
     delivery({

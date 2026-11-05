@@ -84,7 +84,7 @@ describe.skipIf(!laneOn)("Pharmacy set-up tabs: database invariants (0274)", () 
       `SELECT pg_get_constraintdef(oid) AS c FROM pg_constraint WHERE conname = 'pharmacy_rule_group_signatures_group_key_check'`,
     );
     for (const g of RULE_REGISTRY) expect(r.rows[0]!.c).toContain(`'${g.key}'`);
-    expect(RULE_REGISTRY).toHaveLength(10);
+    expect(RULE_REGISTRY).toHaveLength(12);
   });
 
   it("an automatic go-live item is never ticked by hand", async () => {

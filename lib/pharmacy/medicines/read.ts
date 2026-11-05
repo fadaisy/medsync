@@ -373,7 +373,7 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
       reviewedDays: num(r.reviewed_days),
       batches: [...batches.values()].filter((b) => b.qty > 0),
       batchRows: (stock.get(id) ?? [])
-        .filter((x) => x.qty > 0)
+        .filter((x) => x.qty > 0 && r.no_expiry !== true)
         .map((x) => ({
           id: x.batch_id,
           no: x.batch,

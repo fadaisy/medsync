@@ -1,5 +1,6 @@
 "use client";
 
+import type { TypeFilter } from "@/content/pharmacy-supplies";
 import type { StoreSection } from "@/content/pharmacy-store";
 import type { OpenTarget } from "@/lib/pharmacy/derive/store/stats";
 import type { StoreWorld } from "@/lib/pharmacy/derive/store/types";
@@ -14,6 +15,7 @@ import { ST } from "@/content/pharmacy-store";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { ugx } from "@/lib/pharmacy/derive/store/format";
 import { planFor } from "@/lib/pharmacy/derive/store/orders";
+import { itemsCount } from "@/content/pharmacy-supplies";
 import { navGroups, sectionStats } from "@/lib/pharmacy/derive/store/stats";
 import { storeValue } from "@/lib/pharmacy/derive/store/stock";
 import { Orders, PutAway } from "../bring-in";
@@ -48,6 +50,7 @@ export function MainStore({
 }) {
   useStockLive(world.hospitalId, live);
   const [filter, setFilter] = useState<string | null>(null);
+  const [itemType, setItemType] = useState<TypeFilter>("all");
   const [count, setCount] = useState(false);
   const [issue, setIssue] = useState(false);
   const asked = useSearchParams().get("supplier");
@@ -63,7 +66,7 @@ export function MainStore({
             0,
           order: { supplier: supplier.name },
         }
-      : undefined,
+      : { itemType },
   );
   return (
     <div className="flex flex-col gap-4">
@@ -71,7 +74,14 @@ export function MainStore({
         <h2 className="text-foreground m-0 text-[17px] leading-6 font-semibold">
           {world.storeName}{" "}
           <span className="text-ink-600 text-[14px] font-normal">
-            · {fill(ST.shell.line, { n: world.meds.length, value: ugx(storeValue(world)) })}
+            ·{" "}
+            {fill(ST.shell.line, {
+              items: itemsCount(
+                world.meds.filter((m) => m.itemType === "medicine").length,
+                world.meds.filter((m) => m.itemType !== "medicine").length,
+              ),
+              value: ugx(storeValue(world)),
+            })}
           </span>
         </h2>
         <div className="flex flex-wrap gap-2">
@@ -93,7 +103,7 @@ export function MainStore({
       {section === "books" ? <PlaceBalances world={world} /> : null}
       {section === "order" ? <Orders world={world} /> : null}
       {section === "put" ? <PutAway world={world} /> : null}
-      {section === "health" ? <StoreStock world={world} filter={filter} /> : null}
+      {section === "health" ? <StoreStock world={world} filter={filter} itemType={itemType} onItemType={setItemType} /> : null}
       {section === "exp" ? <Expiry world={world} /> : null}
       {section === "card" ? <StockCards world={world} /> : null}
       {section === "count" ? <Counts world={world} shelfId={shelfId} /> : null}

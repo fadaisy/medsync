@@ -1,3 +1,4 @@
+import { NO_EXPIRY_WORD } from "@/content/pharmacy-supplies";
 import { RC } from "@/content/pharmacy-receive";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -20,6 +21,7 @@ export const atText = (s: string) => {
 /** `2028-06` → `Jun 2028`, `2028-06-30` → `30 Jun 2028`. */
 export const expText = (norm: string | null, raw: string) => {
   if (!norm) return raw || RC.dash;
+  if (norm.startsWith("2099")) return NO_EXPIRY_WORD;
   const [y, m, d] = norm.split("-");
   return `${d ? `${Number(d)} ` : ""}${MONTHS[Number(m) - 1]} ${y}`;
 };
