@@ -86,7 +86,7 @@ export function Groups({
                 <Link
                   key={w}
                   href={SHOWS_ON_HREF[w] ?? "/pharmacy/setup"}
-                  className="bg-tide-sunken text-primary focus-visible:shadow-focus inline-flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold outline-none hover:underline"
+                  className="bg-tide-sunken text-foreground focus-visible:shadow-focus inline-flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold outline-none hover:underline"
                 >
                   {w}
                 </Link>

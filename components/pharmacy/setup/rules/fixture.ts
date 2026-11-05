@@ -5,14 +5,14 @@ import { ruleText } from "@/lib/pharmacy/derive/setup/rules";
 
 /**
  * A synthetic Rules view for the styleguide and tests (SETUP-TABS §J: sample proposals and history never ship as
- * data). Generic names only. Prescription checks and Ordering are unsigned; one proposal is by `me`, so the
+ * data). Generic names only. Prescription checks, Ordering and Health and lab supplies are unsigned; one proposal is by `me`, so the
  * second-sign block shows; one rejected history entry.
  */
 const ME = "u-a";
 const A = "Pharmacist A";
 const B = "Pharmacist B";
 const C = "Pharmacist C";
-const UNSIGNED = ["rx", "ord"];
+const UNSIGNED = ["rx", "ord", "sup"];
 const at = (d: string) => `2026-${d}:00+03:00`;
 
 export function rulesFixture(): RulesView {
