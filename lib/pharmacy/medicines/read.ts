@@ -4,10 +4,12 @@ import type { Cond, Line, Place } from "@/lib/pharmacy/derive/medicines";
 import type { PharmacyActor } from "@/lib/pharmacy/write";
 import { sql } from "drizzle-orm";
 
+import { emhsluGroup } from "@/content/pharmacy-supplies";
 import nationalList from "@/data/pharmacy/national-list/controlled.v1.json";
 import { appDb, rowsOf } from "@/lib/pharmacy/audit/read";
 import { lastUnitCosts, ruleOn } from "@/lib/pharmacy/prices/store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
+import { supplyFormOf } from "@/lib/pharmacy/supplies/defaults";
 
 /**
  * The medicine master's payload (MEDICINES-TAB.md §12, §14): every stocked line with its stock, levels, batches,
@@ -60,6 +62,8 @@ export interface MedicinesPayload {
   storeId: string | null;
   payers: Payer[];
   cashPayerId: string | null;
+  /** EMHSLU Section C is on for this hospital (§A). */
+  sectionC: boolean;
   rulePct: number | null;
   rules: RuleRow[];
   proposals: Proposal[];
@@ -163,18 +167,20 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
          AND l.kind IN ('store','dispensing_point','ward')
        ORDER BY CASE l.kind WHEN 'store' THEN 0 WHEN 'dispensing_point' THEN 1 ELSE 2 END, l.created_at, l.name`),
     q<Record<string, unknown>>(sql`
-      SELECT p.id, p.name, p.issue_unit, p.strength, p.controlled_class, p.hand_added, p.local_reason,
-             coalesce(p.generic, cm.generic, p.name) AS generic, coalesce(p.form, cm.form_label) AS form,
-             coalesce(p.route, cm.route_label) AS route, coalesce(p.therapeutic_class, cm.therapeutic_class) AS cls,
+      SELECT p.id, p.name, p.issue_unit, coalesce(p.strength, si.specification) AS strength, p.controlled_class, p.hand_added, p.local_reason,
+             coalesce(p.generic, cm.generic, si.name, p.name) AS generic, coalesce(p.form, cm.form_label) AS form,
+             coalesce(p.route, cm.route_label) AS route, coalesce(p.therapeutic_class, cm.therapeutic_class, si.category) AS cls,
              coalesce(p.pharm_group, cm.pharm_group) AS grp, coalesce(p.sale_category, cm.sale_category) AS sale,
              p.ven, p.high_risk, p.cold_chain, p.freeze_sensitive, p.cytotoxic, p.packs, p.loose, p.gtin,
+             p.item_type, p.level_of_care, p.sterile, p.test_kit, p.no_expiry, p.free_issue,
              coalesce(cm.national_controlled, false) AS national,
              (${today}::date - coalesce(p.reviewed_at, p.created_at)::date) AS reviewed_days,
              (${today}::date - p.created_at::date) AS age_days
         FROM public.pharmacy_products p
         LEFT JOIN public.cat_medicines cm ON cm.id = p.catalogue_medicine_id
-       WHERE p.hospital_id = ${h} AND p.active AND p.item_kind <> 'health_supply'
-       ORDER BY 8, p.strength
+        LEFT JOIN public.cat_supply_items si ON si.id = p.supply_item_id
+       WHERE p.hospital_id = ${h} AND p.active
+       ORDER BY 8, 4
        LIMIT 5000`),
     q<{ product_id: string; payer_id: string; price: number | null; free: boolean }>(sql`
       SELECT DISTINCT ON (product_id, payer_id) product_id, payer_id, price_ugx AS price, free
@@ -316,7 +322,11 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
     }
     const u = use.get(id);
     const generic = String(r.generic);
-    const form = (r.form as string | null) ?? null;
+    const itemType = String(r.item_type) as Line["itemType"];
+    const supply = itemType !== "medicine";
+    const level = (r.level_of_care as string | null) ?? null;
+    const form =
+      (r.form as string | null) ?? (supply ? supplyFormOf(generic, r.cls as string | null) : null);
     return {
       id,
       name: String(r.name),
@@ -326,8 +336,10 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
       route: (r.route as string | null) ?? null,
       unit: String(r.issue_unit),
       cls: (r.cls as string | null) ?? null,
-      group: (r.grp as string | null) ?? null,
-      sale: (r.sale as Line["sale"]) ?? null,
+      group: supply && level ? emhsluGroup(level) : ((r.grp as string | null) ?? null),
+      sale: supply ? "supply" : ((r.sale as Line["sale"]) ?? null),
+      itemType,
+      noExpiry: r.no_expiry === true,
       ven: (r.ven as Line["ven"]) ?? null,
       flags: {
         controlled: r.controlled_class !== null,
@@ -335,11 +347,13 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
         cold: r.cold_chain === true,
         freeze: r.freeze_sensitive === true,
         cyto: r.cytotoxic === true,
+        sterile: r.sterile === true,
+        kit: r.test_kit === true,
       },
       packs: ((r.packs as number[] | null) ?? []).map(Number),
       gtin: (r.gtin as string | null) ?? null,
       loose: r.loose === true,
-      free: !!cash && p.some((x) => x.payer_id === cash && x.free),
+      free: r.free_issue === true || (!!cash && p.some((x) => x.payer_id === cash && x.free)),
       prices: Object.fromEntries(
         p.filter((x) => !x.free && x.price !== null).map((x) => [x.payer_id, Number(x.price)]),
       ),
@@ -387,6 +401,12 @@ async function load(actor: PharmacyActor, manages: boolean, db: ReturnType<typeo
     storeId: places.find((p) => p.isStore)?.id ?? null,
     payers: payerRows.map(({ id, name, kind }) => ({ id, name, kind })),
     cashPayerId: cash,
+    sectionC:
+      (
+        await q<{ section_c: boolean }>(
+          sql`SELECT section_c FROM public.pharmacy_hospital_settings WHERE hospital_id = ${h}`,
+        )
+      )[0]?.section_c ?? false,
     rulePct: rule ? Math.round((rule.multiplier - 1) * 100) : null,
     rules: ruleRows.map((r) => ({
       group: r.rule_group,

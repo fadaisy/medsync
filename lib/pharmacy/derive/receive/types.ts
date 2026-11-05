@@ -1,3 +1,4 @@
+import type { ItemType } from "@/content/pharmacy-supplies";
 import type { RuleNumbers } from "@/lib/pharmacy/rules/registry";
 
 /** RECEIVE §J: every number from the registry. */
@@ -58,6 +59,11 @@ export interface ReceiveMed {
   regLapsed: boolean;
   local: boolean;
   ownCode: boolean;
+  itemType: ItemType;
+  sterile: boolean;
+  /** A lab kit, stored in the range the rules give. */
+  kit: boolean;
+  noExpiry: boolean;
   /** A place short of it, for "Send n straight to". */
   short: { place: string; placeName: string; n: number } | null;
 }
@@ -87,6 +93,8 @@ export interface ReceiveLine {
   rejFate: "driver" | "quarantine";
   vvm: "" | "1" | "2" | "3" | "4";
   freeze: "" | "ok" | "tripped";
+  seal: "" | "ok" | "broken";
+  kitTemp: "" | "ok" | "hot";
   rank: number;
   owedFrozen: number | null;
   witnessName: string;

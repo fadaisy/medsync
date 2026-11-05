@@ -23,8 +23,10 @@ export function expRows(w: StoreWorld): ExpRow[] {
   const out: ExpRow[] = [];
   for (const b of w.batches) {
     const months = monthsTo(b.exp, w.today);
-    if (months > w.rules.expiryWindow) continue;
     const med = medOf(w, b.medId);
+    if (med.noExpiry) continue;
+    // A test kit has its own warning, in days (SUPPLIES.md §F).
+    if (months > (med.kit ? w.rules.kitWarn / 30.4 : w.rules.expiryWindow)) continue;
     const risk = riskQty(b.qty, med.use, months);
     out.push({
       batch: b,

@@ -9,6 +9,7 @@ import type {
 } from "./types";
 
 import { RC } from "@/content/pharmacy-receive";
+import { RECEIVE_SUPPLY as RS } from "@/content/pharmacy-supplies";
 import { num, plural } from "./format";
 
 /** 2028-06, 2028-06-30, 06/2028 or 30/06/2028, as ISO; null when it is none of them. */
@@ -52,6 +53,8 @@ export interface LineInfo {
   priceDiff: PriceDiff | null;
   vvmBad: boolean;
   frozen: boolean;
+  sealBad: boolean;
+  kitHot: boolean;
   m: ReceiveMed;
   packs: number;
   per: number;
@@ -95,8 +98,10 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
     fate = "driver";
   }
   const acc = Math.max(0, packs - rej);
-  const days = l.exp ? daysLeft(l.exp, w.today) : null;
-  const badExp = !!l.exp && days === null;
+  // A no-expiry item takes the batch or lot only, whatever a replayed line still holds.
+  const exp = m.noExpiry ? "" : l.exp;
+  const days = exp ? daysLeft(exp, w.today) : null;
+  const badExp = !!exp && days === null;
   const expired = days !== null && days < 0;
   const short = days !== null && days >= 0 && days < w.rules.look;
   const temp = String(l.temp).trim() === "" ? null : Number(l.temp);
@@ -131,6 +136,8 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
   }
   const vvmBad = m.vaccine && (l.vvm === "3" || l.vvm === "4");
   const frozen = m.vaccine && l.freeze === "tripped";
+  const sealBad = m.sterile && l.seal === "broken";
+  const kitHot = m.kit && l.kitTemp === "hot";
   const words: Word[] = [];
   const problems: string[] = [];
   const no = l.no;
@@ -157,11 +164,13 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
       words.push({ word: RC.word.price(priceDiff.pct, priceDiff.fromOrder), caution: true });
     if (vvmBad) words.push({ word: RC.word.vvm(l.vvm), caution: true });
     if (frozen) words.push({ word: RC.word.frozen, caution: true });
+    if (sealBad) words.push({ word: RS.seal.word, caution: true });
+    if (kitHot) words.push({ word: RS.kit.word, caution: true });
     if (!words.length) words.push({ word: RC.word.matches, caution: false });
     if (per <= 0) problems.push(P.per(no, m.unit));
     if (acc > 0 || (rej > 0 && fate === "quarantine")) {
       if (!has(l.batch)) problems.push(P.batch(no));
-      if (!l.exp) problems.push(P.exp(no));
+      if (!exp && !m.noExpiry) problems.push(P.exp(no));
       else if (badExp) problems.push(P.badExp(no));
     }
     if (expired && acc > 0) problems.push(P.expired(no));
@@ -183,6 +192,14 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
       if (!l.freeze) problems.push(P.freeze(no));
       else if (frozen) problems.push(P.frozen(no));
     }
+    if (m.sterile && acc > 0) {
+      if (!l.seal) problems.push(RS.seal.missing(no));
+      else if (sealBad) problems.push(RS.seal.problem(no));
+    }
+    if (m.kit && acc > 0) {
+      if (!l.kitTemp) problems.push(RS.kit.missing(no));
+      else if (kitHot) problems.push(RS.kit.problem(no));
+    }
     if (m.regLapsed && acc > 0) {
       if (!l.regReason) problems.push(P.reg(no));
       else if (l.regReason === "other" && !has(l.regNote)) problems.push(P.regNote(no));
@@ -197,6 +214,8 @@ export function lineInfo(l: ReceiveLine, d: ReceiveDelivery, w: LineWorld): Line
     priceDiff,
     vvmBad,
     frozen,
+    sealBad,
+    kitHot,
     m,
     packs,
     per,

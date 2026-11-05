@@ -89,11 +89,15 @@ export const saveViewAction = async (raw: unknown) =>
 export const deleteViewAction = async (raw: unknown) =>
   act("deleteView", m.LineInput, raw, V, m.deleteView);
 
+export const setSectionCAction = async (raw: unknown) =>
+  act("setSectionC", m.SectionCInput, raw, N, m.setSectionC);
+
 /** Reads for the dialogs: the master catalogue and one line's history. */
 export async function catalogueAction() {
   return act("catalogue", m.BulkFreeInput.partial(), {}, V, async (ctx) => ({
     id: ctx.actor.hospitalId,
     items: await m.catalogueItems(ctx),
+    level: await m.hospitalLevel(ctx),
   }));
 }
 

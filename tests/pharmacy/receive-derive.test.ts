@@ -28,12 +28,12 @@ const rules: ReceiveRules = {
 const today = "2026-11-04";
 const med = (over: Partial<ReceiveMed> = {}): ReceiveMed => ({
   id: "m1", name: "Amoxicillin 500 mg", unit: "capsule", per: 100, cost: 1000, price: 0, hand: 0, shelf: "A-03", gtin: "", cold: false,
-  controlled: false, vaccine: false, regLapsed: false, local: false, ownCode: false, short: null, ...over,
+  controlled: false, vaccine: false, regLapsed: false, local: false, itemType: "medicine" as const, sterile: false, kit: false, noExpiry: false, ownCode: false, short: null, ...over,
 });
 const line = (over: Partial<ReceiveLine> = {}): ReceiveLine => ({
   id: "l1", no: 1, medId: "m1", source: "typed", orderLineId: null, batch: "B1", exp: "2028-06", packs: "10", per: "100",
   notePacks: "", cost: "", temp: "", decision: "", approvedBy: "", approvalAsked: false, regReason: "", regNote: "",
-  rejOn: false, rejPacks: "", rejWhy: "", rejFate: "driver", vvm: "", freeze: "", rank: 0, owedFrozen: null, witnessName: "", ...over,
+  seal: "" as const, kitTemp: "" as const, rejOn: false, rejPacks: "", rejWhy: "", rejFate: "driver", vvm: "", freeze: "", rank: 0, owedFrozen: null, witnessName: "", ...over,
 });
 const delivery = (lines: ReceiveLine[], over: Partial<ReceiveDelivery> = {}): ReceiveDelivery => ({
   id: "d1", kind: "supplier", supplierId: "s1", source: "NMS", from: "", fromPlace: null, orderId: null, note: "DN-1", place: "p1",

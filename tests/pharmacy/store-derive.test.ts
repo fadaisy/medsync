@@ -42,9 +42,14 @@ const rules = {
   expiryBad: 3,
   balanceCase: 200_000,
   coldNear: 0.5,
+  kitWarn: 60,
 } satisfies StoreRules;
 
 const med = (id: string, over = {}) => ({
+  itemType: "medicine" as const,
+  sterile: false,
+  kit: false,
+  noExpiry: false,
   id,
   medicineId: id,
   name: id,

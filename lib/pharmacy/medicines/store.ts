@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
+import type { ItemType } from "@/content/pharmacy-supplies";
 import type { PharmacyCtx, PharmacyNeed } from "@/lib/pharmacy/write";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
@@ -17,12 +18,14 @@ import {
   VEN,
 } from "@/content/pharmacy-medicines";
 import { STOCK_UP_POLISH } from "@/content/pharmacy-stock-up-polish";
+import { emhsluGroup, SECTION_C } from "@/content/pharmacy-supplies";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { rowsOf } from "@/lib/pharmacy/audit/read";
 import { lineIdentityKey } from "@/lib/pharmacy/derive/medicines";
 import { catalogueKey } from "@/lib/pharmacy/shared-catalogue/store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { productForPick } from "@/lib/pharmacy/stores/receiving-store";
+import { supplyFormOf } from "@/lib/pharmacy/supplies/defaults";
 import { onNationalList, permissionsFor } from "./read";
 
 /**
@@ -92,6 +95,8 @@ interface Stored {
   cold_chain: boolean;
   freeze_sensitive: boolean;
   cytotoxic: boolean;
+  sterile: boolean;
+  test_kit: boolean;
   packs: number[];
   loose: boolean;
   national: boolean;
@@ -102,7 +107,7 @@ async function stored(ctx: PharmacyCtx, id: string): Promise<Stored> {
     await ctx.tx.execute(sql`
       SELECT p.id, p.name, coalesce(p.generic, cm.generic, p.name) AS generic, coalesce(p.form, cm.form_label) AS form,
              p.issue_unit AS unit, p.medicine_id, p.ven, coalesce(p.therapeutic_class, cm.therapeutic_class) AS cls,
-             p.controlled_class, p.high_risk, p.cold_chain, p.freeze_sensitive, p.cytotoxic, p.packs, p.loose,
+             p.controlled_class, p.high_risk, p.cold_chain, p.freeze_sensitive, p.cytotoxic, p.sterile, p.test_kit, p.packs, p.loose,
              coalesce(cm.national_controlled, false) AS national
         FROM public.pharmacy_products p LEFT JOIN public.cat_medicines cm ON cm.id = p.catalogue_medicine_id
        WHERE p.id = ${id} AND p.hospital_id = ${ctx.actor.hospitalId} AND p.active
@@ -202,6 +207,8 @@ export const SaveLineInput = z.object({
     cold: z.boolean(),
     freeze: z.boolean(),
     cyto: z.boolean(),
+    sterile: z.boolean(),
+    kit: z.boolean(),
   }),
   packs: z.array(z.number().int().min(1).max(1_000_000)).max(20),
   loose: z.boolean(),
@@ -236,6 +243,8 @@ export async function saveLine(ctx: PharmacyCtx, input: z.infer<typeof SaveLineI
     cold: p.cold_chain,
     freeze: p.freeze_sensitive,
     cyto: p.cytotoxic,
+    sterile: p.sterile,
+    kit: p.test_kit,
   };
   const flagsChanged = (Object.keys(wasFlags) as (keyof typeof wasFlags)[]).some(
     (k) => wasFlags[k] !== input.flags[k],
@@ -268,7 +277,7 @@ export async function saveLine(ctx: PharmacyCtx, input: z.infer<typeof SaveLineI
     UPDATE public.pharmacy_products SET ven = ${input.ven}, therapeutic_class = ${input.cls},
       controlled_class = CASE WHEN ${input.flags.controlled} THEN coalesce(controlled_class, 'controlled') ELSE NULL END,
       high_risk = ${input.flags.high}, cold_chain = ${input.flags.cold}, freeze_sensitive = ${input.flags.freeze},
-      cytotoxic = ${input.flags.cyto}, packs = ${intArray(packsNow)}::int[], loose = ${input.loose}, updated_at = now()
+      cytotoxic = ${input.flags.cyto}, sterile = ${input.flags.sterile}, test_kit = ${input.flags.kit}, packs = ${intArray(packsNow)}::int[], loose = ${input.loose}, updated_at = now()
      WHERE id = ${p.id}`);
 
   // Levels per place.
@@ -452,7 +461,7 @@ export async function setLineCell(ctx: PharmacyCtx, input: z.infer<typeof LineCe
       UPDATE public.pharmacy_products SET
         controlled_class = CASE WHEN ${f.controlled} THEN coalesce(controlled_class, 'controlled') ELSE NULL END,
         high_risk = ${f.high}, cold_chain = ${f.cold}, freeze_sensitive = ${f.freeze}, cytotoxic = ${f.cyto},
-        updated_at = now()
+        sterile = ${f.sterile}, test_kit = ${f.kit}, updated_at = now()
        WHERE id = ${p.id}`);
     await history(ctx, p.id, "handling", H.handling(flagsText(f)), null);
   }
@@ -536,7 +545,20 @@ export async function addLinesFromCatalogue(
   const who = await actorLabel(ctx);
   const added: string[] = [];
   const refused: string[] = [];
+  const sectionC = await sectionCOn(ctx);
   for (const id of input.ids) {
+    const [si] = rowsOf<SupplyItem>(
+      await ctx.tx.execute(sql`SELECT * FROM public.cat_supply_items WHERE id = ${id}`),
+    );
+    if (si) {
+      const r = await addSupply(ctx, si, sectionC);
+      if (r.refused) refused.push(r.refused);
+      else if ("id" in r) {
+        await history(ctx, r.id, "added", H.added, null, false, who);
+        added.push(r.id);
+      }
+      continue;
+    }
     const [m] = rowsOf<{
       name: string;
       generic: string | null;
@@ -587,6 +609,77 @@ export async function addLinesFromCatalogue(
     added.push(r.id);
   }
   return { id: ctx.actor.hospitalId, added: added.length, refused };
+}
+
+interface SupplyItem {
+  id: string;
+  section: string;
+  name: string;
+  specification: string | null;
+  issue_unit: string;
+  ven: string | null;
+  sterile: boolean;
+  test_kit: boolean;
+  no_expiry: boolean;
+  free_issue: boolean;
+}
+
+const sectionCOn = async (ctx: PharmacyCtx) =>
+  !!rowsOf<{ section_c: boolean }>(
+    await ctx.tx.execute(sql`SELECT section_c FROM public.pharmacy_hospital_settings
+      WHERE hospital_id = ${ctx.actor.hospitalId}`),
+  )[0]?.section_c;
+
+/** The hospital's own level, so the catalogue can warn about items above it (§B). */
+export const hospitalLevel = async (ctx: PharmacyCtx) =>
+  rowsOf<{ level: string }>(
+    await ctx.tx.execute(
+      sql`SELECT level FROM public.hospitals WHERE id = ${ctx.actor.hospitalId}`,
+    ),
+  )[0]?.level ?? null;
+
+/** One EMHSLU row into this hospital's items. Its type, level and identity come from the row (0277). */
+async function addSupply(
+  ctx: PharmacyCtx,
+  si: SupplyItem,
+  sectionC: boolean,
+): Promise<{ id: string; refused?: undefined } | { refused: string }> {
+  const name = [si.name, si.specification].filter(Boolean).join(", ").slice(0, 160);
+  if (si.section === "C" && !sectionC)
+    return { refused: M.catalogue.refused(name, SECTION_C.off) };
+  const [had] = rowsOf<{ id: string; name: string; active: boolean }>(
+    await ctx.tx.execute(sql`SELECT id, name, active FROM public.pharmacy_products
+      WHERE hospital_id = ${ctx.actor.hospitalId} AND supply_item_id = ${si.id}`),
+  );
+  if (had?.active) return { refused: M.catalogue.refused(name, M.catalogue.alreadyAs(had.name)) };
+  if (had) {
+    await ctx.tx.execute(
+      sql`UPDATE public.pharmacy_products SET active = true, updated_at = now() WHERE id = ${had.id}`,
+    );
+    return { id: had.id };
+  }
+  const [p] = rowsOf<{ id: string }>(
+    await ctx.tx.execute(sql`
+      INSERT INTO public.pharmacy_products (hospital_id, medicine_id, name, issue_unit, created_by, supply_item_id,
+        ven, sterile, test_kit, no_expiry, free_issue, loose)
+      VALUES (${ctx.actor.hospitalId}, ${`cat_sup_${si.id.replaceAll("-", "_")}`}, ${name}, ${si.issue_unit},
+        ${ctx.actor.userId}, ${si.id}, ${si.ven}, ${si.sterile}, ${si.test_kit}, ${si.no_expiry}, ${si.free_issue}, true)
+      RETURNING id`),
+  );
+  return { id: p!.id };
+}
+
+export const SectionCInput = z.object({ on: z.boolean() });
+
+/** One switch for this hospital (§A); off by default, and turning it off keeps what is already stocked. */
+export async function setSectionC(ctx: PharmacyCtx, input: z.infer<typeof SectionCInput>) {
+  if (!can(ctx).edit) throw new EmrWriteError("forbidden", SECTION_C.refused);
+  await ctx.tx.execute(sql`
+    INSERT INTO public.pharmacy_hospital_settings (hospital_id, section_c, updated_by)
+    VALUES (${ctx.actor.hospitalId}, ${input.on}, ${ctx.actor.userId})
+    ON CONFLICT (hospital_id) DO UPDATE SET section_c = EXCLUDED.section_c,
+      updated_by = EXCLUDED.updated_by, updated_at = now()`);
+  return { id: ctx.actor.hospitalId };
 }
 
 export const LocalInput = z.object({
@@ -946,6 +1039,10 @@ export interface CatalogueItem {
   group: string | null;
   sale: string | null;
   sources: string[];
+  itemType: ItemType;
+  /** The lowest EMHSLU level allowed to hold a supply. */
+  level: string | null;
+  section: string | null;
 }
 
 export async function catalogueItems(ctx: PharmacyCtx): Promise<CatalogueItem[]> {
@@ -959,7 +1056,7 @@ export async function catalogueItems(ctx: PharmacyCtx): Promise<CatalogueItem[]>
         FROM public.cat_medicines WHERE status = 'active' AND kind = 'medicine'
        ORDER BY 3, strength_text LIMIT 5000`),
   );
-  return rows.map((r) => ({
+  const meds = rows.map((r) => ({
     id: String(r.id),
     name: String(r.display_name),
     generic: String(r.generic),
@@ -973,5 +1070,36 @@ export async function catalogueItems(ctx: PharmacyCtx): Promise<CatalogueItem[]>
     group: (r.pharm_group as string | null) ?? null,
     sale: (r.sale_category as string | null) ?? null,
     sources: ((r.sources as string[] | null) ?? []).map(String),
+    itemType: "medicine" as const,
+    level: null,
+    section: null,
   }));
+  const on = await sectionCOn(ctx);
+  const sup = rowsOf<SupplyItem & { category: string; level_of_care: string | null }>(
+    await ctx.tx.execute(sql`
+      SELECT * FROM public.cat_supply_items WHERE section <> 'C' OR ${on} ORDER BY section, category, name, specification`),
+  );
+  return [
+    ...meds,
+    ...sup.map(
+      (s): CatalogueItem => ({
+        id: s.id,
+        name: [s.name, s.specification].filter(Boolean).join(", "),
+        generic: s.name,
+        strength: s.specification,
+        form: supplyFormOf(s.name, s.category),
+        route: null,
+        unit: s.issue_unit,
+        formCode: null,
+        atc: null,
+        cls: s.category,
+        group: s.level_of_care ? emhsluGroup(s.level_of_care) : null,
+        sale: "supply",
+        sources: ["EMHSLU"],
+        itemType: s.section === "D" ? "lab_supply" : "health_supply",
+        level: s.level_of_care,
+        section: s.section,
+      }),
+    ),
+  ];
 }

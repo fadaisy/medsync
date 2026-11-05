@@ -44,6 +44,11 @@ const R = (
   param: p ? { n: p[0], unit: p[1], min: p[2], max: p[3], step: p[4] ?? 1 } : null,
 });
 
+/** The one place the test-kit range is written (SUPPLIES.md §F); every word about kits is built from it. */
+const KIT_TEMP = { low: 2, high: 30 };
+export const KIT_RANGE = `${KIT_TEMP.low}–${KIT_TEMP.high} °C`;
+export const kitAbove = `above ${KIT_TEMP.high} °C`;
+
 export const RULE_REGISTRY: readonly RegistryGroup[] = [
   {
     key: "cd",
@@ -485,6 +490,44 @@ export const RULE_REGISTRY: readonly RegistryGroup[] = [
         "Stop sending at {n} of the monthly SMS budget",
         "Every SMS",
         [100, "%", 50, 100, 5],
+      ),
+    ],
+  },
+  {
+    key: "sup",
+    title: "Health and lab supplies",
+    showsOn: ["Medicines", "Stock"],
+    rules: [
+      R(
+        "sterile",
+        "Sterile packs",
+        "A broken, wet or torn sterile pack is rejected as damaged, never stocked",
+        "Sterile health supplies",
+      ),
+      R(
+        "kits",
+        "Test kits",
+        `Kept at ${KIT_RANGE}; kits that got hotter are kept apart until the supplier answers`,
+        "Laboratory test kits",
+      ),
+      R(
+        "kit_warn",
+        "Kit expiry warning",
+        "Warn {n} before a test kit expires",
+        "Laboratory test kits",
+        [60, "days", 30, 180, 15],
+      ),
+      R(
+        "no_expiry",
+        "No expiry",
+        "Received by batch or lot only, with no expiry date",
+        "Safety boxes and items marked no expiry",
+      ),
+      R(
+        "issued",
+        "Issued, not sold",
+        "Go out to places on requisition; patients are billed only when a price is set",
+        "Health and lab supplies",
       ),
     ],
   },

@@ -1,3 +1,5 @@
+import type { SUPPLY_FORMS } from "@/content/pharmacy-supplies";
+
 /**
  * What a row of the EMHSLU list means for the item (SUPPLIES.md §A, §B). Pure, used by the generated migration and its
  * test. Each flag is a starting point the store keeper can change on the item; the PDF states none of them.
@@ -73,5 +75,47 @@ export function supplyDefaults(r: SupplyRow) {
 }
 
 /** The type comes from the section, never from a person (§A). */
+/** EMHSLU prints no form: the filter's supply forms come from the name and heading. */
+const FORM_RULES: [RegExp, (typeof SUPPLY_FORMS)[number]][] = [
+  [/rapid|screening kit|test kit|\bkit\b/i, "Test kit"],
+  [/strips?\b/i, "Test strips"],
+  [/syringe/i, "Syringe"],
+  [/cannula/i, "Cannula"],
+  [/\bset\b|giving/i, "Set"],
+  [/glove/i, "Gloves"],
+  [/suture|thread|polyglycolic|catgut/i, "Suture"],
+  [/gauze/i, "Gauze swab"],
+  [/swab/i, "Swab"],
+  [/cotton/i, "Cotton wool"],
+  [/plaster/i, "Adhesive plaster"],
+  [/catheter/i, "Catheter"],
+  [/tube/i, "Tube"],
+  [/\bbags?\b|liner/i, "Bag"],
+  [/safety box|container/i, "Container"],
+  [/mask/i, "Mask"],
+  [/clamp/i, "Clamp"],
+];
+export function supplyFormOf(name: string, category: string | null) {
+  if (category?.startsWith("Laboratory: test strips")) return "Test strips";
+  if (category?.startsWith("Laboratory: rapid")) return "Test kit";
+  const hit = FORM_RULES.find(([re]) => re.test(name));
+  if (hit) return hit[1];
+  return category?.startsWith("Antiseptics") ? "Disinfectant" : null;
+}
+
+const RANK = ["HC1", "HC2", "HC3", "HC4", "H", "RR", "NR"];
+const HOSPITAL_LEVEL: Record<string, string> = {
+  hc3: "HC3",
+  hc4: "HC4",
+  district: "H",
+  regional: "RR",
+  national_referral: "NR",
+};
+/** §B: true when the item's lowest level sits above this hospital's. A private hospital has no level to compare. */
+export const levelTooLow = (itemLevel: string | null, hospitalLevel: string | null) => {
+  const h = hospitalLevel ? HOSPITAL_LEVEL[hospitalLevel] : undefined;
+  return !!h && !!itemLevel && RANK.indexOf(itemLevel) > RANK.indexOf(h);
+};
+
 export const typeOfSection = (s: SupplyRow["section"]) =>
   s === "D" ? ("lab_supply" as const) : ("health_supply" as const);

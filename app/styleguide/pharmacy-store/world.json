@@ -35,7 +35,8 @@
       "expiryWindow": 6,
       "expiryBad": 3,
       "balanceCase": 100000,
-      "coldNear": 0.5
+      "coldNear": 0.5,
+      "kitWarn": 60
     },
     "meds": [
       {
@@ -52,7 +53,11 @@
         "use": 311,
         "moved": 7,
         "onOrder": 0,
-        "bin": "A-03"
+        "bin": "A-03",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
@@ -68,7 +73,11 @@
         "use": 5224,
         "moved": 0,
         "onOrder": 10200,
-        "bin": "A-01"
+        "bin": "A-01",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "5704c434-c907-428a-b0fc-cc282b40f2ff",
@@ -84,7 +93,11 @@
         "use": 2912,
         "moved": 0,
         "onOrder": 0,
-        "bin": "A-02"
+        "bin": "A-02",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
@@ -100,7 +113,11 @@
         "use": 104,
         "moved": 7,
         "onOrder": 0,
-        "bin": "D-01"
+        "bin": "D-01",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "3af202bd-fea0-4616-a45c-c84a152c9b66",
@@ -116,7 +133,11 @@
         "use": 720,
         "moved": 0,
         "onOrder": 1000,
-        "bin": "B-01"
+        "bin": "B-01",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
@@ -132,7 +153,11 @@
         "use": 31,
         "moved": 0,
         "onOrder": 0,
-        "bin": "CR-01"
+        "bin": "CR-01",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "e84341d6-874a-4b09-adb1-7eda187d1bae",
@@ -148,7 +173,11 @@
         "use": 9706,
         "moved": 7,
         "onOrder": 0,
-        "bin": "C-01"
+        "bin": "C-01",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "eea24a40-722a-47bd-bbcb-439e9b11db64",
@@ -164,7 +193,11 @@
         "use": 4,
         "moved": 0,
         "onOrder": 0,
-        "bin": "CD-1"
+        "bin": "CD-1",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "7979efed-9500-4a66-85c6-af6445e6abf2",
@@ -180,7 +213,11 @@
         "use": 0,
         "moved": 84,
         "onOrder": 0,
-        "bin": "C-03"
+        "bin": "C-03",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "b37a8e68-2f48-4145-bb58-5be4871c9612",
@@ -196,7 +233,11 @@
         "use": 1071,
         "moved": 7,
         "onOrder": 0,
-        "bin": null
+        "bin": null,
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
@@ -212,7 +253,11 @@
         "use": 11647,
         "moved": 7,
         "onOrder": 0,
-        "bin": "C-02"
+        "bin": "C-02",
+        "itemType": "medicine",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
       },
       {
         "id": "0f5883b2-07c7-58c0-981c-6f55bb5b0d52",

@@ -46,6 +46,8 @@ export function blankLine(
     rejFate: "driver",
     vvm: "",
     freeze: "",
+    seal: "",
+    kitTemp: "",
     rank: 0,
     owedFrozen: null,
     witnessName: "",

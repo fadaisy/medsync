@@ -56,7 +56,7 @@ export const RW = {
     outpatients: "Outpatients",
     immunisation: "Immunisation",
     reminders: "Reminders",
-    medicines: "Medicines",
+    medicines: "Medicines and supplies",
     store: "Store",
     recall: "Recall",
     cd: "Controlled drugs",
@@ -107,7 +107,7 @@ export const RW = {
     setup: {
       "going-live": "Going live",
       places: "Places",
-      medicines: "Medicines",
+      medicines: "Medicines and supplies",
       rules: "Rules",
       people: "People and roster",
       messages: "Messages",

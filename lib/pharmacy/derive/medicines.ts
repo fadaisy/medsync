@@ -3,6 +3,7 @@
  * `renderVals` behaviour for behaviour. No I/O: the server loads the payload, the grid and the checks read it.
  */
 import type { FlagKey, QcName } from "@/content/pharmacy-medicines";
+import type { ItemType, TypeFilter } from "@/content/pharmacy-supplies";
 
 import {
   CLASSES,
@@ -13,6 +14,7 @@ import {
   SALE,
   VEN,
 } from "@/content/pharmacy-medicines";
+import { SUPPLY_CLASSES, SUPPLY_FORMS, TYPE_WORD } from "@/content/pharmacy-supplies";
 
 export type Ven = "V" | "E" | "N";
 export type Status = "Out" | "Low" | "OK" | "Over";
@@ -45,6 +47,9 @@ export interface Line {
   sale: keyof typeof SALE | null;
   ven: Ven | null;
   flags: Flags;
+  /** From the EMHSLU section, never typed (SUPPLIES.md §A). */
+  itemType: ItemType;
+  noExpiry: boolean;
   packs: number[];
   /** The pack's GS1 GTIN, when one is linked (a scan finds the line by it). */
   gtin?: string | null;
@@ -109,8 +114,22 @@ export function placeStatus(onHand: number, level: number | null | undefined): S
 export const topUpSuggestion = (level: number, onHand: number) => Math.max(level - onHand, 0);
 
 export const flagList = (f: Flags): FlagKey[] =>
-  (["controlled", "cold", "high", "freeze", "cyto"] as FlagKey[]).filter((k) => f[k]);
+  (["controlled", "cold", "high", "freeze", "cyto", "sterile", "kit"] as FlagKey[]).filter((k) => f[k]);
 export const flagNames = (f: Flags) => flagList(f).map((k) => FLAGS[k][0]);
+
+export const matchesType = (l: Pick<Line, "itemType">, t: TypeFilter) =>
+  t === "all" || l.itemType === t;
+/** The type switch's counts (§C). */
+export function typeCounts(lines: readonly Pick<Line, "itemType">[]) {
+  const c: Record<TypeFilter, number> = {
+    all: lines.length,
+    medicine: 0,
+    health_supply: 0,
+    lab_supply: 0,
+  };
+  for (const l of lines) c[l.itemType]++;
+  return c;
+}
 
 export const cashOf = (l: Line, cashPayerId: string | null) =>
   cashPayerId && (l.prices[cashPayerId] ?? 0) > 0 ? l.prices[cashPayerId]! : null;
@@ -267,7 +286,8 @@ export function qcChecks(
   const cash = cashOf(l, ctx.cashPayerId);
   if (!l.ven) miss.push(W.ven);
   if (!mx.lvl) miss.push(W.level);
-  if (!l.free && !cash) miss.push(W.price);
+  // A supply is billed only when a price is set (§B), so no price is not a gap.
+  if (!l.free && !cash && l.itemType === "medicine") miss.push(W.price);
   if (!l.packs.length && !l.loose) miss.push(W.pack);
   if (miss.length) iss.push({ k: "Missing details", t: QC.missing(miss) });
   if ((dupKeys.get(lineIdentityKey(l)) ?? 0) > 1)
@@ -324,7 +344,8 @@ export const OPS: Record<ColType, string[]> = {
 };
 
 export const FCOLS = {
-  name: { label: "Medicine name", type: "text" },
+  name: { label: "Name", type: "text" },
+  itype: { label: "Type", type: "enum", opts: Object.values(TYPE_WORD) },
   strength: { label: "Strength", type: "text" },
   form: {
     label: "Form",
@@ -342,6 +363,7 @@ export const FCOLS = {
       "Powder for injection",
       "Suspension for injection",
       "Infusion",
+      ...SUPPLY_FORMS,
     ],
   },
   route: {
@@ -349,7 +371,7 @@ export const FCOLS = {
     type: "route",
     opts: ["Oral", "IV", "IM", "SC", "Intradermal", "Rectal"],
   },
-  cls: { label: "Class", type: "enum", opts: [...CLASSES] },
+  cls: { label: "Class", type: "enum", opts: [...CLASSES, ...SUPPLY_CLASSES] },
   group: { label: "Pharmacological group", type: "text" },
   sale: { label: "Sale category", type: "enum", opts: Object.values(SALE) },
   ven: { label: "VEN", type: "enum", opts: ["Vital", "Essential", "Necessary", "Not set"] },
@@ -435,6 +457,8 @@ export function evalCond(c: Cond, r: Row): boolean {
       return has(l.strength, v) === pos;
     case "group":
       return has(l.group, v) === pos;
+    case "itype":
+      return (TYPE_WORD[l.itemType] === v) === pos;
     case "form":
       return (l.form === v) === pos;
     case "cls":
@@ -499,7 +523,7 @@ export const matchesSearch = (l: Line, q: string) => {
 
 export type SortKey = ColKey | "stock" | "expiry";
 const VENR: Record<string, number> = { V: 0, E: 1, N: 2 };
-const SALER = ["controlled", "prescription_only", "pharmacy_only", "over_the_counter"];
+const SALER = ["controlled", "prescription_only", "pharmacy_only", "over_the_counter", "supply"];
 const BLANK = 1e12;
 
 function sortKey(r: Row, k: SortKey): number | string {

@@ -1,3 +1,4 @@
+import type { ItemType } from "@/content/pharmacy-supplies";
 import "server-only";
 
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
@@ -63,7 +64,7 @@ export async function loadRules(db: Db, h: string): Promise<ReceiveRules> {
 export async function loadMeds(db: Db, h: string): Promise<ReceiveMed[]> {
   const [rows, costs] = await Promise.all([
     db.execute(sql`
-      SELECT p.id, p.name, p.issue_unit AS unit, p.packs, p.pack_size, p.gtin, p.usual_shelf,
+      SELECT p.item_type, p.sterile, p.test_kit, p.no_expiry, p.id, p.name, p.issue_unit AS unit, p.packs, p.pack_size, p.gtin, p.usual_shelf,
              coalesce(p.cold_chain, false) AS cold, private.pharmacy_product_controlled(p.id) AS controlled,
              p.vaccine, p.own_code, p.medicine_id LIKE 'cat_local_%' AS local,
              (SELECT s.shelf FROM public.pharmacy_batches b
@@ -91,6 +92,10 @@ export async function loadMeds(db: Db, h: string): Promise<ReceiveMed[]> {
     vaccine: boolean;
     own_code: boolean;
     local: boolean;
+    item_type: ItemType;
+    sterile: boolean;
+    test_kit: boolean;
+    no_expiry: boolean;
     on_shelf: string | null;
     price: number | null;
   }>(rows).map((p) => {
@@ -108,6 +113,10 @@ export async function loadMeds(db: Db, h: string): Promise<ReceiveMed[]> {
       gtin: p.gtin ?? "",
       cold: p.cold,
       controlled: p.controlled,
+      itemType: p.item_type,
+      sterile: p.sterile,
+      kit: p.test_kit,
+      noExpiry: p.no_expiry,
       vaccine: p.vaccine,
       regLapsed: !!facts.get(p.id)?.registration,
       local: p.local,
@@ -239,6 +248,8 @@ interface LineRow {
   rej_fate: string | null;
   vvm_stage: number | null;
   freeze_check: string | null;
+  seal: string | null;
+  kit_temp: string | null;
   owed_frozen: number | null;
   witness: string | null;
   accepted_quantity: number;
@@ -276,6 +287,8 @@ export function lineFromRow(r: LineRow): ReceiveLine {
       (r.rejected_kept_quantity ? "quarantine" : "driver")) as ReceiveLine["rejFate"],
     vvm: (r.vvm_stage ? String(r.vvm_stage) : "") as ReceiveLine["vvm"],
     freeze: (r.freeze_check ?? "") as ReceiveLine["freeze"],
+    seal: (r.seal ?? "") as ReceiveLine["seal"],
+    kitTemp: (r.kit_temp ?? "") as ReceiveLine["kitTemp"],
     rank: 0,
     owedFrozen: r.owed_frozen,
     witnessName: r.witness ?? "",
@@ -290,7 +303,7 @@ export async function loadLines(db: Db, deliveryIds: readonly string[]) {
              l.expiry::text AS expiry, l.expiry_month_only, l.counted_packs, l.pack_contents, l.note_packs, l.note_quantity,
              l.cost_per_pack, l.unit_cost, l.temp_c, l.short_dated_decision, coalesce(a.full_name, a.email) AS approver,
              l.approval_asked_at IS NOT NULL AS asked, l.registration_reason, l.registration_note, l.rej_packs,
-             l.reject_reason, l.rej_fate, l.vvm_stage, l.freeze_check, l.owed_frozen, coalesce(w.full_name, w.email) AS witness,
+             l.reject_reason, l.rej_fate, l.vvm_stage, l.freeze_check, l.seal, l.kit_temp, l.owed_frozen, coalesce(w.full_name, w.email) AS witness,
              l.accepted_quantity, l.rejected_kept_quantity, l.rejected_returned_quantity
         FROM public.pharmacy_delivery_lines l
         LEFT JOIN public.users a ON a.id = l.approved_by

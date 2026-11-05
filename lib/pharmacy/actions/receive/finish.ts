@@ -34,6 +34,7 @@ const FinishInput = z.object({
 });
 
 /** `2028-06` is stored as the month's last day, month-only; `2028-06-30` as itself. */
+const NO_EXPIRY_DATE = "2099-12-31";
 const expiryColumns = (norm: string) => {
   const [y, m, d] = norm.split("-").map(Number);
   if (d) return { expiry: norm, monthOnly: false };
@@ -144,7 +145,12 @@ export const finishDelivery = act(FinishInput, NEED, async (ctx: Ctx, i) => {
   );
   for (const { l, i: info } of counted) {
     const norm = normExp(l.exp);
-    const when = norm ? expiryColumns(norm) : null;
+    // A no-expiry item's far date is the one the batch guard (0277) holds it to.
+    const when = info.m.noExpiry
+      ? { expiry: NO_EXPIRY_DATE, monthOnly: false }
+      : norm
+        ? expiryColumns(norm)
+        : null;
     const cost = l.cost === "" ? null : num(l.cost);
     const unitCost = cost === null ? null : (cost / info.per).toFixed(2);
     await ctx.tx.execute(sql`

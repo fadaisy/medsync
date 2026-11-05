@@ -112,7 +112,7 @@ export const GL = {
     status: { done: "Done", doing: "In progress", overdue: "Overdue", todo: "To do" },
     open: {
       places: ["Open Places", "places"],
-      medicines: ["Open Medicines", "medicines"],
+      medicines: ["Open Medicines and supplies", "medicines"],
       rules: ["Open Rules", "rules"],
       people: ["Open People and roster", "people"],
       messages: ["Open Messages", "messages"],

@@ -1,3 +1,4 @@
+import type { ItemType } from "@/content/pharmacy-supplies";
 import type { RuleNumbers } from "@/lib/pharmacy/rules/registry";
 
 /**
@@ -33,6 +34,8 @@ export interface StoreRules {
   expiryBad: number;
   balanceCase: number;
   coldNear: number;
+  /** Days before a test kit's expiry that it shows (SUPPLIES.md §F). */
+  kitWarn: number;
 }
 
 /** Every threshold, from the signed rules (the registry default until one is signed). */
@@ -62,6 +65,7 @@ export const storeRules = (n: RuleNumbers): StoreRules => ({
   expiryBad: n("cold", "expiry_bad"),
   balanceCase: n("inv", "balance_case"),
   coldNear: n("cold", "near_limit"),
+  kitWarn: n("sup", "kit_warn"),
 });
 
 export interface StoreMed {
@@ -74,6 +78,10 @@ export interface StoreMed {
   pack: number;
   cold: boolean;
   controlled: boolean;
+  itemType: ItemType;
+  sterile: boolean;
+  kit: boolean;
+  noExpiry: boolean;
   cost: number;
   /** Store issues a month: the last 3 months, adjusted for days out of stock. */
   use: number;

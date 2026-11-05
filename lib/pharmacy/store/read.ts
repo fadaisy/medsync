@@ -1,3 +1,4 @@
+import type { ItemType } from "@/content/pharmacy-supplies";
 import "server-only";
 
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
@@ -173,8 +174,12 @@ export async function loadStoreWorld(
     pack_size: string | null;
     cold: boolean;
     controlled: boolean;
+    item_type: ItemType;
+    sterile: boolean;
+    test_kit: boolean;
+    no_expiry: boolean;
   }>(sql`
-    SELECT p.id, p.medicine_id, p.name, p.strength, p.issue_unit AS unit, p.ven, p.packs, p.pack_size, coalesce(p.cold_chain, false) AS cold,
+    SELECT p.item_type, p.sterile, p.test_kit, p.no_expiry, p.id, p.medicine_id, p.name, p.strength, p.issue_unit AS unit, p.ven, p.packs, p.pack_size, coalesce(p.cold_chain, false) AS cold,
            p.controlled_class IS NOT NULL AS controlled
       FROM public.pharmacy_products p
      WHERE p.hospital_id = ${h}::uuid AND p.active
@@ -214,6 +219,10 @@ export async function loadStoreWorld(
       pack: p.packs?.[0] ?? Math.max(1, Number.parseInt(p.pack_size ?? "1", 10) || 1),
       cold: p.cold,
       controlled: p.controlled,
+      itemType: p.item_type,
+      sterile: p.sterile,
+      kit: p.test_kit,
+      noExpiry: p.no_expiry,
       cost: costOf(p.id),
       // Last 3 months, adjusted for days out of stock (Rules › Ordering).
       use: Math.round((issued / Math.max(1, 90 - out)) * 30),

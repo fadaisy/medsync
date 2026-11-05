@@ -169,6 +169,8 @@ export const LineDoc = z.object({
   rejFate: z.enum(["driver", "quarantine"]),
   vvm: z.enum(["", "1", "2", "3", "4"]).transform((v) => (v ? Number(v) : null)),
   freeze: z.enum(["", "ok", "tripped"]).transform((v) => v || null),
+  seal: z.enum(["", "ok", "broken"]).transform((v) => v || null),
+  kitTemp: z.enum(["", "ok", "hot"]).transform((v) => v || null),
 });
 
 const SaveLines = z.object({
@@ -202,16 +204,16 @@ export async function saveLinesCore(ctx: Ctx, i: z.infer<typeof SaveLines>) {
       await ctx.tx.execute(sql`
         INSERT INTO public.pharmacy_delivery_lines AS t (id, delivery_id, line_no, product_id, order_line_id, identity_source, batch_number, expiry_text,
           counted_packs, pack_contents, note_packs, cost_per_pack, temp_c, short_dated_decision, registration_reason, registration_note,
-          rej_packs, reject_reason, rej_fate, vvm_stage, freeze_check)
+          rej_packs, reject_reason, rej_fate, vvm_stage, freeze_check, seal, kit_temp)
         VALUES (${l.id}::uuid, ${i.deliveryId}::uuid, ${l.no}, ${l.medId}::uuid, ${l.orderLineId}::uuid, ${l.source}, ${l.batch}, ${l.exp},
           ${l.packs}, ${l.per}, ${l.notePacks}, ${l.cost}, ${l.temp}, ${l.decision}, ${l.regReason}, ${l.regNote},
-          ${l.rejOn ? l.rejPacks : null}, ${l.rejOn ? l.rejWhy : null}, ${l.rejOn ? l.rejFate : null}, ${l.vvm}, ${l.freeze})
+          ${l.rejOn ? l.rejPacks : null}, ${l.rejOn ? l.rejWhy : null}, ${l.rejOn ? l.rejFate : null}, ${l.vvm}, ${l.freeze}, ${l.seal}, ${l.kitTemp})
         ON CONFLICT (id) DO UPDATE SET line_no = EXCLUDED.line_no, identity_source = EXCLUDED.identity_source, order_line_id = EXCLUDED.order_line_id,
           batch_number = EXCLUDED.batch_number, expiry_text = EXCLUDED.expiry_text, counted_packs = EXCLUDED.counted_packs,
           pack_contents = EXCLUDED.pack_contents, note_packs = EXCLUDED.note_packs, cost_per_pack = EXCLUDED.cost_per_pack, temp_c = EXCLUDED.temp_c,
           short_dated_decision = EXCLUDED.short_dated_decision, registration_reason = EXCLUDED.registration_reason,
           registration_note = EXCLUDED.registration_note, rej_packs = EXCLUDED.rej_packs, reject_reason = EXCLUDED.reject_reason,
-          rej_fate = EXCLUDED.rej_fate, vvm_stage = EXCLUDED.vvm_stage, freeze_check = EXCLUDED.freeze_check, updated_at = now(),
+          rej_fate = EXCLUDED.rej_fate, vvm_stage = EXCLUDED.vvm_stage, freeze_check = EXCLUDED.freeze_check, seal = EXCLUDED.seal, kit_temp = EXCLUDED.kit_temp, updated_at = now(),
           approved_by = CASE WHEN t.batch_number IS DISTINCT FROM EXCLUDED.batch_number OR t.expiry_text IS DISTINCT FROM EXCLUDED.expiry_text
                              OR coalesce(EXCLUDED.short_dated_decision, '') NOT IN ('accept','accept_tell') THEN NULL ELSE t.approved_by END,
           approved_at = CASE WHEN t.batch_number IS DISTINCT FROM EXCLUDED.batch_number OR t.expiry_text IS DISTINCT FROM EXCLUDED.expiry_text

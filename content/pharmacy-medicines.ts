@@ -1,5 +1,8 @@
 import type { SignedCopy } from "@/content/signed-copy";
 
+import { KIT_RANGE } from "@/content/pharmacy-rules";
+import { SUPPLY_SALE, SUPPLY_UNITS } from "@/content/pharmacy-supplies";
+
 /**
  * Set-up › Medicines and Stock › Medicines (docs/pharmacy/rework/MEDICINES-TAB.md): the medicine master. Wording is
  * the spec's and the prototype's, verbatim. Draft until the Clinical Safety Officer and a registered pharmacist sign it;
@@ -74,6 +77,7 @@ export const SALE = {
   prescription_only: "Prescription only",
   pharmacy_only: "Pharmacy only",
   over_the_counter: "Over the counter",
+  supply: SUPPLY_SALE,
 } as const;
 
 export const VEN = { V: "Vital", E: "Essential", N: "Necessary" } as const;
@@ -129,6 +133,7 @@ export const UNITS = [
   "suppository",
   "bag",
   "patch",
+  ...SUPPLY_UNITS.filter((u) => u !== "bottle"),
 ];
 
 /** The unit a catalogue form is issued in, when the catalogue does not say; only the obvious ones, the rest are chosen. */
@@ -185,6 +190,13 @@ export const FLAGS = {
     "Cytotoxic",
     "Cytotoxic",
     "PPE, designated area, cytotoxic waste and spill kit.",
+  ],
+  sterile: ["Sterile", "Sterile, single use", "Sterile", "Packaging checked at receipt and before use."],
+  kit: [
+    `Kit, ${KIT_RANGE}`,
+    `Test kit, ${KIT_RANGE}`,
+    `Kit · ${KIT_RANGE}`,
+    "Kept out of the sun, never frozen; each new lot checked.",
   ],
 } as const;
 export type FlagKey = keyof typeof FLAGS;
@@ -249,6 +261,26 @@ export const RULE_GROUPS = [
     ],
   },
   {
+    id: "sterile",
+    scope: "Sterile supplies",
+    flag: "sterile",
+    rules: [
+      "Packaging checked at receipt and before use: a torn, wet or opened pack is rejected",
+      "Single use: never re-sterilised or re-used",
+      "First expiry, first out, as for medicines",
+    ],
+  },
+  {
+    id: "kit",
+    scope: "Test kits",
+    flag: "kit",
+    rules: [
+      `Kept at ${KIT_RANGE}, out of direct sun; never frozen`,
+      "Each new lot checked with a known positive and a known negative before use",
+      "An opened kit is used within the time on its insert",
+    ],
+  },
+  {
     id: "vax",
     scope: "Vaccines",
     cls: "Vaccines",
@@ -306,7 +338,7 @@ export const MEDICINES = {
   leadOperate:
     "Every stocked medicine, with its stock at each place. Request a top-up from the store or add a line to the next order; set-up changes are made in Set-up › Medicines.",
   add: "Add from the catalogue",
-  find: "Find a medicine or class",
+  find: "Find a medicine, supply or class",
   findAria: "Find a medicine",
   filters: (n: number) => (n ? `Filters · ${n}` : "Filters"),
   columns: "Columns",
@@ -321,7 +353,7 @@ export const MEDICINES = {
   clear: "Clear",
   removeCond: (t: string) => `Remove the condition ${t}`,
   viewNames: {
-    all: "All medicines",
+    all: "Everything",
     lowout: "Low or out",
     cover: "Under 14 days of cover",
     vitallow: "Vital and low",

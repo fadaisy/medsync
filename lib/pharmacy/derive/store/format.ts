@@ -1,3 +1,5 @@
+import { NO_EXPIRY_WORD } from "@/content/pharmacy-supplies";
+
 /** Numbers, money and dates as the store reads them (en-GB). Pure. */
 export const num = (n: number) => Math.round(n).toLocaleString("en-GB");
 export const units = (n: number, u: string) => `${num(n)} ${u}${Math.round(n) === 1 ? "" : "s"}`;
@@ -12,7 +14,8 @@ export const compact = (n: number) => {
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export const monthOf = (iso: string) => MON[+iso.slice(5, 7) - 1]!;
-export const fmtExp = (iso: string) => `${monthOf(iso)} ${iso.slice(0, 4)}`;
+export const fmtExp = (iso: string) =>
+  iso.startsWith("2099") ? NO_EXPIRY_WORD : `${monthOf(iso)} ${iso.slice(0, 4)}`;
 export const fmtDay = (iso: string) => `${+iso.slice(8, 10)} ${monthOf(iso)}`;
 /** "Tue 3 Nov". */
 export const fmtDow = (iso: string) => {
