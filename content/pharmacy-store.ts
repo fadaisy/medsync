@@ -57,7 +57,11 @@ export const ST = {
     notReadyWhy: "This hospital has no store among its places.",
     notReadyAdd: "Add the main store",
     notReadyAsk: "Ask the pharmacy in charge to add it under Set-up, Places.",
-    tabs: { main: "Main store", receive: "Receive a delivery", medicines: "Medicines and supplies" },
+    tabs: {
+      main: "Main store",
+      receive: "Receive a delivery",
+      medicines: "Medicines and supplies",
+    },
     statsHome: "Store at a glance",
     statsOther: "Figures for this section",
     groups: {

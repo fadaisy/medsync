@@ -49,7 +49,15 @@ const line = (over: Partial<Line> = {}): Line => ({
   group: "Calcium channel blocker",
   sale: "prescription_only",
   ven: "E",
-  flags: { controlled: false, high: false, cold: false, freeze: false, cyto: false, sterile: false, kit: false },
+  flags: {
+    controlled: false,
+    high: false,
+    cold: false,
+    freeze: false,
+    cyto: false,
+    sterile: false,
+    kit: false,
+  },
   itemType: "medicine",
   noExpiry: false,
   packs: [100],
@@ -157,7 +165,15 @@ describe("quality checks fire on fixtures and clear when fixed (acceptance 7)", 
   });
   it("no fridge for a cold-chain line at a place without one", () => {
     const cold = line({
-      flags: { controlled: false, high: false, cold: true, freeze: false, cyto: false, sterile: false, kit: false },
+      flags: {
+        controlled: false,
+        high: false,
+        cold: true,
+        freeze: false,
+        cyto: false,
+        sterile: false,
+        kit: false,
+      },
     });
     expect(rowOf(cold).qc.find((q) => q.k === "No fridge")!.t).toBe(
       "Kept at a place with no fridge: Ward 3",
@@ -232,7 +248,15 @@ describe("LASA, rules, fridges", () => {
     expect(lasaPartners(line(), [line(), a10], LASA_PAIRS).map((l) => l.id)).toEqual(["a10"]);
   });
   it("a cytotoxic line gets the cytotoxic group, shared by n", () => {
-    const f = { controlled: false, high: true, cold: false, freeze: false, cyto: true, sterile: false, kit: false };
+    const f = {
+      controlled: false,
+      high: true,
+      cold: false,
+      freeze: false,
+      cyto: true,
+      sterile: false,
+      kit: false,
+    };
     const ids = rulesFor(f, "Antineoplastics (anticancer)", "Cyclophosphamide", [
       { flags: f, cls: null, generic: "x" },
     ]);

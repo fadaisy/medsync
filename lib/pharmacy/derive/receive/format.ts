@@ -1,5 +1,5 @@
-import { NO_EXPIRY_WORD } from "@/content/pharmacy-supplies";
 import { RC } from "@/content/pharmacy-receive";
+import { NO_EXPIRY_WORD } from "@/content/pharmacy-supplies";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 

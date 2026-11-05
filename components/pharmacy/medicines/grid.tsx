@@ -24,8 +24,8 @@ import {
   setLineCellAction,
   setSectionCAction,
 } from "@/app/pharmacy/medicines-actions";
-import { Switch } from "@/components/pharmacy/receive/shared";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { Switch } from "@/components/pharmacy/receive/shared";
 import { LabButton } from "@/components/tide/work/button";
 import { DialogTitle } from "@/components/ui/dialog";
 import {
@@ -839,7 +839,7 @@ function SectionCRow({ on, toast }: { on: boolean; toast: (m: string) => void })
           setChecked(v);
           start(async () => {
             const r = await setSectionCAction({ on: v });
-            if (!r.ok) return setChecked(!v), toast(r.error);
+            if (!r.ok) return (setChecked(!v), toast(r.error));
             toast(v ? SECTION_C.on : SECTION_C.off);
             router.refresh();
           });

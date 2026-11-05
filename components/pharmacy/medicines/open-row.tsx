@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { CheckIcon } from "lucide-react";
 
-import { NO_EXPIRY_WORD } from "@/content/pharmacy-supplies";
 import {
   addPayerAction,
   lineHistoryAction,
@@ -29,6 +28,7 @@ import {
   ugx,
   VEN,
 } from "@/content/pharmacy-medicines";
+import { NO_EXPIRY_WORD } from "@/content/pharmacy-supplies";
 import {
   dateIn,
   fridgeLines,
@@ -659,8 +659,8 @@ export function OpenRow({
                         {l.noExpiry
                           ? NO_EXPIRY_WORD
                           : b.days < 0
-                          ? R.expired(dateIn(data.today, b.days))
-                          : R.expires(dateIn(data.today, b.days), b.days)}
+                            ? R.expired(dateIn(data.today, b.days))
+                            : R.expires(dateIn(data.today, b.days), b.days)}
                       </span>
                     </div>
                   ))}

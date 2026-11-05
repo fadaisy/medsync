@@ -21,7 +21,10 @@ export function TypeSwitch({
     <div
       role="group"
       aria-label={TYPE_SWITCH.aria}
-      className={cn("bg-ink-100 inline-flex flex-wrap items-center gap-1 rounded-[22px] p-1", className)}
+      className={cn(
+        "bg-ink-100 inline-flex flex-wrap items-center gap-1 rounded-[22px] p-1",
+        className,
+      )}
     >
       {TYPE_SWITCH.order.map((t) => {
         const on = value === t;
@@ -41,7 +44,7 @@ export function TypeSwitch({
               <span
                 className={cn(
                   "inline-flex h-5 items-center rounded-full px-[7px] text-[11px] font-bold tabular-nums",
-                  on ? "bg-white/60 text-tide-on-lagoon" : "bg-card text-ink-700",
+                  on ? "bg-card/60 text-tide-on-lagoon" : "bg-card text-ink-700",
                 )}
               >
                 {counts[t]}

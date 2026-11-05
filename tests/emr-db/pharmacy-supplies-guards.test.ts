@@ -1,6 +1,6 @@
 /** SUPPLIES.md invariants, in the database (0277): one guard test each. Runs with EMR_PGLITE=1. */
-import type { Lane, Pg } from "./_pglite";
 import { randomUUID } from "node:crypto";
+import type { Lane, Pg } from "./_pglite";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { bootLane, hospital, laneOn, staff } from "./_pglite";
@@ -33,7 +33,14 @@ describe.skipIf(!laneOn)("Supplies guards (0277)", () => {
         `INSERT INTO public.pharmacy_products (hospital_id, medicine_id, name, issue_unit, created_by, supply_item_id, item_type${keys.map((k) => `, ${k}`).join("")})
          VALUES ($1,$2,$3,'piece',$4,$5,'medicine'${keys.map((_, i) => `, $${i + 6}`).join("")})
          RETURNING id, item_type, item_kind, level_of_care`,
-        [h, `cat_sup_${randomUUID().replaceAll("-", "_")}`, name, keeper, si, ...Object.values(flags)],
+        [
+          h,
+          `cat_sup_${randomUUID().replaceAll("-", "_")}`,
+          name,
+          keeper,
+          si,
+          ...Object.values(flags),
+        ],
       )
     ).rows[0]!;
   };

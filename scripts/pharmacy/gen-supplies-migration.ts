@@ -5,10 +5,11 @@
  *
  *   npx tsx scripts/pharmacy/gen-supplies-migration.ts
  */
-import type { SupplyRow } from "../../lib/pharmacy/supplies/defaults";
 import { readFileSync, writeFileSync } from "node:fs";
-import { supplyDefaults } from "../../lib/pharmacy/supplies/defaults";
+import type { SupplyRow } from "../../lib/pharmacy/supplies/defaults";
+
 import { parseCsv } from "../../lib/pharmacy/supplies/csv";
+import { supplyDefaults } from "../../lib/pharmacy/supplies/defaults";
 
 const q = (s: string) => `'${s.replaceAll("'", "''")}'`;
 const rows = parseCsv(readFileSync("data/emhslu-2023-supplies.csv", "utf8"));

@@ -247,7 +247,7 @@ describe.skipIf(!laneOn)("Pharmacy set-up tabs: database invariants (0274)", () 
         "train",
       ].sort(),
     );
-    expect(auto.rows.find((r) => r.key === "rules")).toMatchObject({ done: 0, total: 10 });
+    expect(auto.rows.find((r) => r.key === "rules")).toMatchObject({ done: 0, total: 12 });
   });
 
   it("a store is never supplied from itself; a place with stock or an open handover is never closed", async () => {

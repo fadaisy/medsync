@@ -1,7 +1,7 @@
 "use client";
 
-import type { TypeFilter } from "@/content/pharmacy-supplies";
 import type { StoreSection } from "@/content/pharmacy-store";
+import type { TypeFilter } from "@/content/pharmacy-supplies";
 import type { OpenTarget } from "@/lib/pharmacy/derive/store/stats";
 import type { StoreWorld } from "@/lib/pharmacy/derive/store/types";
 import Link from "next/link";
@@ -12,10 +12,10 @@ import { ChartGrid, FigureTiles } from "@/components/pharmacy/charts/card";
 import { useStockLive } from "@/components/pharmacy/medicines/use-stock-live";
 import { LabButton } from "@/components/tide/work/button";
 import { ST } from "@/content/pharmacy-store";
+import { itemsCount } from "@/content/pharmacy-supplies";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { ugx } from "@/lib/pharmacy/derive/store/format";
 import { planFor } from "@/lib/pharmacy/derive/store/orders";
-import { itemsCount } from "@/content/pharmacy-supplies";
 import { navGroups, sectionStats } from "@/lib/pharmacy/derive/store/stats";
 import { storeValue } from "@/lib/pharmacy/derive/store/stock";
 import { Orders, PutAway } from "../bring-in";
@@ -87,7 +87,11 @@ export function MainStore({
         <div className="flex flex-wrap gap-2">
           <LabButton onClick={() => setCount(true)}>{ST.shell.countShelf}</LabButton>
           <LabButton onClick={() => setIssue(true)}>{ST.shell.issueNoReq}</LabButton>
-          <LabButton variant="primary" render={<Link href="?tab=receive&start=1" />} nativeButton={false}>
+          <LabButton
+            variant="primary"
+            render={<Link href="?tab=receive&start=1" />}
+            nativeButton={false}
+          >
             {ST.shell.receive}
           </LabButton>
         </div>
@@ -103,7 +107,9 @@ export function MainStore({
       {section === "books" ? <PlaceBalances world={world} /> : null}
       {section === "order" ? <Orders world={world} /> : null}
       {section === "put" ? <PutAway world={world} /> : null}
-      {section === "health" ? <StoreStock world={world} filter={filter} itemType={itemType} onItemType={setItemType} /> : null}
+      {section === "health" ? (
+        <StoreStock world={world} filter={filter} itemType={itemType} onItemType={setItemType} />
+      ) : null}
       {section === "exp" ? <Expiry world={world} /> : null}
       {section === "card" ? <StockCards world={world} /> : null}
       {section === "count" ? <Counts world={world} shelfId={shelfId} /> : null}

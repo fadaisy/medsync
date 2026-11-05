@@ -247,3 +247,45 @@ Built: the stage board, the one start dialog, order detail, edit and chase, coun
 **The owner still supplies:** supplier lead days; receiving targets and limits (registry defaults until signed); HMIS 087 columns; the recall feed source; label printer and label size; the in-house code prefix (`200` now).
 
 **TODO:** send chase and claim through the Messages integration. They are drafted and copied only.
+
+## Health and lab supplies (SUPPLIES.md, branch `feat/pharmacy-supplies`, cut from `feat/pharmacy-receive`)
+
+Supplies are items: same table, ledger and screens as medicines, no parallel module. All copy is `draft`. Nothing is deployed.
+
+**Built**
+- **Data:** `data/emhslu-2023-supplies.csv` (1,917 rows parsed from the PDF: B 512, C 243, D 1,162; never hand-typed), loaded by `0278` into `cat_supply_items` (1,914 distinct items). `0277` adds the item columns, `seal` and `kit_temp`, and the guards. Seed: `scripts/seed-pharmacy-dev/supplies.ts` (28 supplies, shelves E and L, ward requisitions with supply lines).
+- **Guards in the database, each tested in `tests/emr-db/pharmacy-supplies-guards.test.ts`:** type derived from the section, Section C behind the switch, sterile seal, kit temperature, no supplied movement (Dispense), no bill line without a price or for a free item, `no_expiry` batches held at the far date.
+- **Screens:** Set-up › Medicines and supplies (shared type switch, Items tile, flags, EMHSLU row group, Section C switch, catalogue under EMHSLU categories), Main store (switch filters table and chart, tags, E and L, pickers), Receive (tags, seal, kit, no expiry, picker chips), Rules (group `sup`, 5 rules, unsigned), Going live (`supplies`, `suplevels`).
+
+**Apply:** `0276` (Receive) first, then:
+
+```bash
+cd /Users/airm1/Desktop/medsync-supplies && npm run db:migrate
+```
+
+**Defaults taken**
+- The master list is loaded by migration, not through curator proposals.
+- No expiry is stored as the sentinel 2099-12-31; every screen shows "no expiry", and Expiry and At risk skip it.
+- Sections B and C print no unit, so the issue unit starts at piece (surgical gloves at pair). It stays editable.
+- Flags start from a name rule, all editable except the type: sterile; test kit for rapid tests and strips; safety box no expiry; HIV and malaria rapid tests free.
+- Section D's other headings are kept as "Laboratory: <heading>". Levels map HC IV to HC4, GH to H, RRH to RR, NTRL/NRTL/UBTS to NR.
+- Supply form is derived by name rule for the filter, not stored.
+- The PDF's summary tables (738 B+C, 1,350 D) disagree with its own lists (755, 1,162). The lists were used. 2 rows have no VEN and 1 has no level; these stay blank.
+- The kit range text lives once in `content/pharmacy-rules.ts` (`KIT_RANGE`, `kitAbove`). The 60-day warning comes from rule `sup.kit_warn`.
+- Going live: levels and prices now count medicines only; supplies need no price. `rules` needs 12 groups. `0277` also adds `recv` to the signature check, which `0276` missed.
+- A kit counts in Expiry only inside its warning days. The Section C switch sits at the foot of the Set-up grid, for editors.
+- The kit's `prototype/` Receive has no supply strings, so Receive uses SUPPLIES.md §E wording.
+
+**Not done or not proved**
+- No Playwright in this repo. §H is covered by Vitest, the PGlite lane and axe, plus a manual browser pass at 1440 and 390 px on the fixtures (axe clean, no horizontal scroll; the only console error is the fixture's realtime socket with no local Supabase).
+- Nothing has run against a real database yet. The catalogue dialog needs one, so only the lane covers it.
+- There is a bill-line table with its guard, but no screen bills a supply yet.
+- `tests/emr-db/pharmacy-stores-data.test.ts` has one failure ("a saved order's lines change only by closing"). It fails the same way on `feat/pharmacy-receive`, so it is not from this work and was not touched.
+- `pharmacy-store-actions.test.ts` failed two tests in one crowded parallel run and passed alone and on the rerun, so treat those as a flake under load.
+
+**The owner supplies**
+- The EMHSLU PDF, committed at `docs/pharmacy/rework/EMHSLU-2023.pdf` (parsed from your copy).
+- Whether Section C is used (off by default).
+- Supply prices, if any are billed.
+- Supply top-up levels.
+- Signatures: the copy, and the rules group.

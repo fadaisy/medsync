@@ -8,13 +8,13 @@ import Link from "next/link";
 
 import { Chip } from "@/components/pharmacy/charts/chip";
 import { linkBtn } from "@/components/pharmacy/medicines/shared";
-import { TypeSwitch } from "@/components/pharmacy/medicines/type-switch";
 import { DOT } from "@/components/pharmacy/medicines/tones";
+import { TypeSwitch } from "@/components/pharmacy/medicines/type-switch";
 import { LA } from "@/content/pharmacy-store-lookafter";
 import { TYPE_SUB, typeTag } from "@/content/pharmacy-supplies";
 import { fill } from "@/content/pharmacy-workspace-v2";
-import { num, units } from "@/lib/pharmacy/derive/store/format";
 import { matchesType, typeCounts } from "@/lib/pharmacy/derive/medicines";
+import { num, units } from "@/lib/pharmacy/derive/store/format";
 import { mosOf, onHand, stateOf } from "@/lib/pharmacy/derive/store/stock";
 import { cn } from "@/lib/utils";
 import { card, Empty, Head, rowLine, Table } from "./shared";
@@ -65,8 +65,9 @@ export function StoreStock({
         : filter === "over"
           ? H.sub.over
           : "";
-  const sub =
-    [tileSub, itemType === "all" && tileSub ? "" : TYPE_SUB[itemType]].filter(Boolean).join(" · ");
+  const sub = [tileSub, itemType === "all" && tileSub ? "" : TYPE_SUB[itemType]]
+    .filter(Boolean)
+    .join(" · ");
   const state: Record<StockState, string> = {
     ...H.state,
     short: fill(H.state.short, { n: r.shortUnder }),
@@ -96,7 +97,10 @@ export function StoreStock({
                   {m.name}
                 </Link>
                 {m.itemType !== "medicine" ? (
-                  <Chip tone={m.itemType === "lab_supply" ? "info" : "teal"} className="mt-0.5 flex w-fit">
+                  <Chip
+                    tone={m.itemType === "lab_supply" ? "info" : "teal"}
+                    className="mt-0.5 flex w-fit"
+                  >
                     {typeTag(m.itemType, m)}
                   </Chip>
                 ) : null}

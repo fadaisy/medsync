@@ -244,11 +244,7 @@ export function CatalogueDialog({
       {mode === "list" ? (
         <>
           <div className="flex flex-col gap-3 px-6 pt-4">
-            <TypeSwitch
-              value={itemType}
-              onChange={setItemType}
-              counts={typeCounts(items ?? [])}
-            />
+            <TypeSwitch value={itemType} onChange={setItemType} counts={typeCounts(items ?? [])} />
             <label className="border-ink-300 bg-card flex h-11 items-center gap-2 rounded-full border px-4 sm:h-10">
               <SearchIcon aria-hidden className="text-ink-600 size-4" />
               <input

@@ -114,7 +114,9 @@ export function placeStatus(onHand: number, level: number | null | undefined): S
 export const topUpSuggestion = (level: number, onHand: number) => Math.max(level - onHand, 0);
 
 export const flagList = (f: Flags): FlagKey[] =>
-  (["controlled", "cold", "high", "freeze", "cyto", "sterile", "kit"] as FlagKey[]).filter((k) => f[k]);
+  (["controlled", "cold", "high", "freeze", "cyto", "sterile", "kit"] as FlagKey[]).filter(
+    (k) => f[k],
+  );
 export const flagNames = (f: Flags) => flagList(f).map((k) => FLAGS[k][0]);
 
 export const matchesType = (l: Pick<Line, "itemType">, t: TypeFilter) =>

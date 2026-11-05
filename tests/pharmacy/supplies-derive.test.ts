@@ -74,7 +74,13 @@ describe("§E receiving a supply", () => {
     expect(info(8).problems).toContain(RS.kit.missing(8));
     expect(info(8, { kitTemp: "hot" }).problems).toContain(RS.kit.problem(8));
     expect(info(8, { kitTemp: "hot" }).words.map((x) => x.word)).toContain(RS.kit.word);
-    const apart = { kitTemp: "hot", rejOn: true, rejPacks: "20", rejWhy: "other", rejFate: "quarantine" };
+    const apart = {
+      kitTemp: "hot",
+      rejOn: true,
+      rejPacks: "20",
+      rejWhy: "other",
+      rejFate: "quarantine",
+    };
     expect(info(8, apart).problems).toEqual([]);
     expect(info(8, { kitTemp: "ok" }).problems).toEqual([]);
   });

@@ -50,7 +50,8 @@ export function medicinesFixture(over: Partial<MedicinesPayload> = {}): Medicine
         sale: r.section ? "supply" : flags.controlled ? "controlled" : "prescription_only",
         ven: r.ven as Line["ven"],
         flags,
-        itemType: r.section === "D" ? "lab_supply" : r.section === "B" ? "health_supply" : "medicine",
+        itemType:
+          r.section === "D" ? "lab_supply" : r.section === "B" ? "health_supply" : "medicine",
         noExpiry,
         packs: r.packs,
         loose: r.loose,
@@ -64,7 +65,9 @@ export function medicinesFixture(over: Partial<MedicinesPayload> = {}): Medicine
         usePerDay: r.use,
         lastMovedDays: 3,
         reviewedDays: 30,
-        batches: [{ no: `${r.key.toUpperCase()}-1`, days: noExpiry ? 26_000 : 400, qty: r.use * 30 }],
+        batches: [
+          { no: `${r.key.toUpperCase()}-1`, days: noExpiry ? 26_000 : 400, qty: r.use * 30 },
+        ],
         batchRows: [],
         levels: Object.fromEntries(r.places.map((p) => [p, level(p)])),
         stock: Object.fromEntries(r.places.map((p) => [p, Math.round(level(p) * 0.7)])),

@@ -191,7 +191,12 @@ export const FLAGS = {
     "Cytotoxic",
     "PPE, designated area, cytotoxic waste and spill kit.",
   ],
-  sterile: ["Sterile", "Sterile, single use", "Sterile", "Packaging checked at receipt and before use."],
+  sterile: [
+    "Sterile",
+    "Sterile, single use",
+    "Sterile",
+    "Packaging checked at receipt and before use.",
+  ],
   kit: [
     `Kit, ${KIT_RANGE}`,
     `Test kit, ${KIT_RANGE}`,

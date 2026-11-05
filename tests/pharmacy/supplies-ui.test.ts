@@ -7,8 +7,8 @@ import axe from "axe-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import snapshot from "@/app/styleguide/pharmacy-store/world.json";
-import { MedicinesGrid } from "@/components/pharmacy/medicines/grid";
 import { medicinesFixture } from "@/components/pharmacy/medicines/fixture";
+import { MedicinesGrid } from "@/components/pharmacy/medicines/grid";
 import { StoreStock } from "@/components/pharmacy/store/look-after";
 import { pickLabel } from "@/content/pharmacy-supplies";
 import { sectionStats } from "@/lib/pharmacy/derive/store/stats";
@@ -60,7 +60,9 @@ describe("Medicines and supplies tab (§C, H1)", () => {
     const sw = host.querySelector('[role="group"][aria-label="What to show"]')!;
     expect(sw.textContent).toBe("Everything75Medicines47Health supplies21Lab supplies7");
     expect(host.textContent).toContain("47 medicines · 28 supplies");
-    expect(host.querySelector("th[aria-sort], th")!.closest("table")!.textContent).toContain("Item");
+    expect(host.querySelector("th[aria-sort], th")!.closest("table")!.textContent).toContain(
+      "Item",
+    );
     press(/^Lab supplies/);
     expect(host.textContent).toContain("0 medicines · 7 supplies");
     expect(host.querySelector("table")!.textContent).toContain("Supply");
@@ -74,7 +76,7 @@ describe("Medicines and supplies tab (§C, H1)", () => {
   it("Everything is the first view, and search and Section C read as specified", () => {
     expect(host.textContent).toContain("Everything");
     expect(host.textContent).not.toContain("All medicines");
-    expect((host.querySelector('input[placeholder]') as HTMLInputElement).placeholder).toBe(
+    expect((host.querySelector("input[placeholder]") as HTMLInputElement).placeholder).toBe(
       "Find a medicine, supply or class",
     );
     const sw = host.querySelector('[role="switch"]')!;

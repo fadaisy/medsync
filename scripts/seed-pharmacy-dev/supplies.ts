@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 
+import { KIT_RANGE } from "@/content/pharmacy-rules";
 import items from "@/lib/pharmacy/supplies/seed-items.json";
 
 /**
@@ -69,7 +70,7 @@ export async function seedSupplies(db: Db, h: string) {
 
   for (const [code, name] of [
     ["E", "Health supplies (sterile consumables, PPE)"],
-    ["L", "Laboratory supplies, kept 2–30 °C"],
+    ["L", `Laboratory supplies, kept ${KIT_RANGE}`],
   ] as const)
     await db.execute(sql`INSERT INTO public.pharmacy_shelves (hospital_id, location_id, code, name, controlled, created_by)
       VALUES (${h}, ${store.id}::uuid, ${code}, ${name}, false, ${who.u}::uuid) ON CONFLICT DO NOTHING`);

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { MedicinesGrid } from "@/components/pharmacy/medicines/grid";
 import { medicinesFixture } from "@/components/pharmacy/medicines/fixture";
+import { MedicinesGrid } from "@/components/pharmacy/medicines/grid";
 
 /** Development fixture: Set-up › Medicines and supplies on the prototype's sample list. 404 outside development. Actions fail here. */
 export const metadata: Metadata = { title: "Medicines fixture", robots: { index: false } };

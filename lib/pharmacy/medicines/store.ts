@@ -645,8 +645,7 @@ async function addSupply(
   sectionC: boolean,
 ): Promise<{ id: string; refused?: undefined } | { refused: string }> {
   const name = [si.name, si.specification].filter(Boolean).join(", ").slice(0, 160);
-  if (si.section === "C" && !sectionC)
-    return { refused: M.catalogue.refused(name, SECTION_C.off) };
+  if (si.section === "C" && !sectionC) return { refused: M.catalogue.refused(name, SECTION_C.off) };
   const [had] = rowsOf<{ id: string; name: string; active: boolean }>(
     await ctx.tx.execute(sql`SELECT id, name, active FROM public.pharmacy_products
       WHERE hospital_id = ${ctx.actor.hospitalId} AND supply_item_id = ${si.id}`),

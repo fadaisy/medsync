@@ -1,7 +1,7 @@
-import type { TypeFilter } from "@/content/pharmacy-supplies";
 import type { StoreMed, StoreWorld, WeekFlow } from "./types";
 import type { ColDatum, LinePoint, LineRef, SegKey } from "@/components/pharmacy/charts/geometry";
 import type { StoreSection } from "@/content/pharmacy-store";
+import type { TypeFilter } from "@/content/pharmacy-supplies";
 
 import { niceStep } from "@/components/pharmacy/charts/geometry";
 import { SECTION_LABEL, ST } from "@/content/pharmacy-store";

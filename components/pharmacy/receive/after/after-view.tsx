@@ -22,9 +22,9 @@ import {
 } from "@/components/pharmacy/store/places/parts";
 import { newKey } from "@/components/pharmacy/store/shared";
 import { LabButton } from "@/components/tide/work/button";
-import { NO_EXPIRY_WORD, RECEIVE_SUPPLY as RS } from "@/content/pharmacy-supplies";
 import { RC } from "@/content/pharmacy-receive";
 import { RA } from "@/content/pharmacy-receive-after";
+import { NO_EXPIRY_WORD, RECEIVE_SUPPLY as RS } from "@/content/pharmacy-supplies";
 import {
   atText,
   expText,

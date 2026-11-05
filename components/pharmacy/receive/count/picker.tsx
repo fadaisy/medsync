@@ -152,7 +152,9 @@ export function Picker({
             );
           })}
         </ul>
-        {items.length === 0 ? <p className="text-ink-600 m-0 text-[13px]">{RS.picker.none}</p> : null}
+        {items.length === 0 ? (
+          <p className="text-ink-600 m-0 text-[13px]">{RS.picker.none}</p>
+        ) : null}
         {!local ? (
           <div>
             <button
