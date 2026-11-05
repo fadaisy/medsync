@@ -91,7 +91,7 @@ describe.skipIf(!laneOn)("Set-up › Medicines (0270)", () => {
       fromDate: new Date(L.s.now.getTime() + 3 * 3_600_000).toISOString().slice(0, 10),
       ven: "V",
       cls: null,
-      flags: { controlled: false, high: false, cold: false, freeze: false, cyto: false },
+      flags: { controlled: false, high: false, cold: false, freeze: false, cyto: false, sterile: false, kit: false },
       packs: [10],
       loose: false,
       free: false,
@@ -261,5 +261,55 @@ describe.skipIf(!laneOn)("Set-up › Medicines (0270)", () => {
     if (!data.ok) throw new Error("migration");
     expect(data.lines.some((l) => l.generic === "Testamol" && l.local)).toBe(true);
     expect(data.rules.some((r) => r.group === "all" && r.key === "0")).toBe(true);
+  });
+
+  it("H6 Section C items show only after the switch; a supply takes its type and level from EMHSLU", async () => {
+    const { catalogueItems } = M;
+    const list = () =>
+      L.s.db.transaction((tx: never) =>
+        catalogueItems({ tx, actor: chief } as never),
+      ) as Promise<Awaited<ReturnType<typeof catalogueItems>>>;
+    const before = await list();
+    expect(before.some((i) => i.section === "C")).toBe(false);
+    expect(before.some((i) => i.section === "B")).toBe(true);
+    expect(before.some((i) => i.section === "D" && i.itemType === "lab_supply")).toBe(true);
+    const c = (
+      await rows<{ id: string }>(`SELECT id FROM public.cat_supply_items WHERE section = 'C' LIMIT 1`)
+    )[0]!.id;
+    const refused = await run(chief, M.CatalogueAddInput, M.addLinesFromCatalogue, { ids: [c] });
+    expect(refused.added).toBe(0);
+    await run(chief, M.SectionCInput, M.setSectionC, { on: true });
+    expect((await list()).some((i) => i.section === "C")).toBe(true);
+    const added = await run(chief, M.CatalogueAddInput, M.addLinesFromCatalogue, { ids: [c] });
+    expect(added.added).toBe(1);
+    const again = await run(chief, M.CatalogueAddInput, M.addLinesFromCatalogue, { ids: [c] });
+    expect((again.refused as string[])[0]).toBeTruthy();
+    const [p] = await rows<{ item_type: string; level_of_care: string }>(
+      `SELECT item_type, level_of_care FROM public.pharmacy_products WHERE supply_item_id = $1`,
+      [c],
+    );
+    expect(p!.item_type).toBe("health_supply");
+    expect(p!.level_of_care).toBeTruthy();
+    await run(chief, M.SectionCInput, M.setSectionC, { on: false });
+    expect((await list()).some((i) => i.section === "C")).toBe(false);
+  });
+
+  it("a supply reads back with its type, group, sale and flags, and never needs a price", async () => {
+    const { qcChecks, lineMetrics } = await import("@/lib/pharmacy/derive/medicines");
+    const b = (
+      await rows<{ id: string }>(
+        `SELECT id FROM public.cat_supply_items WHERE section = 'B' AND sterile LIMIT 1`,
+      )
+    )[0]!.id;
+    await run(chief, M.CatalogueAddInput, M.addLinesFromCatalogue, { ids: [b] });
+    const { loadMedicinesMaster } = await import("@/lib/pharmacy/medicines/read");
+    const data = await loadMedicinesMaster(chief, true, L.s.db as never);
+    if (!data.ok) throw new Error("migration");
+    const l = data.lines.find((x) => x.itemType === "health_supply" && x.flags.sterile)!;
+    expect(l.group).toMatch(/^EMHSLU 2023 · from /);
+    expect(l.sale).toBe("supply");
+    const ctx = { places: data.places, lines: data.lines, cashPayerId: data.cashPayerId, namedLasa: [] };
+    const q = qcChecks(l, lineMetrics(l, data.places, data.cashPayerId), ctx, new Map(), (r) => r ?? "");
+    expect(q.find((x) => x.k === "Missing details")?.t ?? "").not.toMatch(/price/i);
   });
 });

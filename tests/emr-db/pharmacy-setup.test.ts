@@ -235,6 +235,8 @@ describe.skipIf(!laneOn)("Pharmacy set-up tabs: database invariants (0274)", () 
       [
         "lic",
         "levels",
+        "supplies",
+        "suplevels",
         "mfa",
         "opening",
         "places",

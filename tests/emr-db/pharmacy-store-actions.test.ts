@@ -724,4 +724,76 @@ describe.skipIf(!laneOn)("Main store actions (0275)", () => {
       w.requisitions.filter((r) => r.state === "open" || r.state === "partial").length,
     );
   });
+
+  it("H3 a ward requisition with gloves and RDTs is shared, issued and confirmed like any medicine line", async () => {
+    const w = await load();
+    const place = w.places[0]!;
+    const make = async (section: "B" | "D", name: string) => {
+      const si = (
+        await pg.query<{ id: string }>(
+          `INSERT INTO public.cat_supply_items (section, category, name, issue_unit, level_of_care, ven)
+           VALUES ($1,'Gloves',$2,'piece','HC3','V') RETURNING id`,
+          [section, `${name} ${randomUUID()}`],
+        )
+      ).rows[0]!.id;
+      const id = (
+        await pg.query<{ id: string }>(
+          `INSERT INTO public.pharmacy_products (hospital_id, medicine_id, name, issue_unit, created_by, supply_item_id)
+           VALUES ($1,$2,$3,'piece',$4,$5) RETURNING id`,
+          [h, `cat_sup_${randomUUID().replaceAll("-", "_")}`, name, keeper, si],
+        )
+      ).rows[0]!.id;
+      const b = (
+        await pg.query<{ id: string }>(
+          `INSERT INTO public.pharmacy_batches (hospital_id, location_id, product_id, batch_number, first_batch_number, expiry, first_expiry, created_by)
+           VALUES ($1,$2,$3,'S1','S1','2030-01-31','2030-01-31',$4) RETURNING id`,
+          [h, w.storeId, id, keeper],
+        )
+      ).rows[0]!.id;
+      await pg.query(
+        `INSERT INTO public.pharmacy_stock_movements (hospital_id, location_id, batch_id, kind, quantity, effective_at, actor_user_id, source_kind)
+         VALUES ($1,$2,$3,'received',1000,now() - interval '1 minute',$4,'opening')`,
+        [h, w.storeId, b, keeper],
+      );
+      return id;
+    };
+    const gloves = await make("B", "Examination gloves");
+    const rdt = await make("D", "Malaria RDT");
+    const req = (
+      await pg.query<{ id: string }>(
+        `INSERT INTO public.pharmacy_requisitions (hospital_id, requesting_location_id, issuing_location_id, raised_by, raised_at)
+         VALUES ($1,$2,$3,$4,now()) RETURNING id`,
+        [h, place.id, w.storeId, keeper],
+      )
+    ).rows[0]!.id;
+    for (const id of [gloves, rdt])
+      await pg.query(
+        `INSERT INTO public.pharmacy_requisition_lines (requisition_id, product_id, quantity_asked) VALUES ($1,$2,50)`,
+        [req, id],
+      );
+    const { shareMed } = await import("@/lib/pharmacy/derive/store/requisitions");
+    const w2 = await load();
+    expect(w2.meds.find((m) => m.id === gloves)!.itemType).toBe("health_supply");
+    expect(w2.meds.find((m) => m.id === rdt)!.itemType).toBe("lab_supply");
+    const open = w2.requisitions.find((r) => r.id === req)!;
+    expect(open.lines.map((l) => l.medId).sort()).toEqual([gloves, rdt].sort());
+    expect(shareMed(w2, gloves, 1).give[req]).toBeGreaterThan(0);
+    const clientKey = randomUUID();
+    const issued = await ok<{ state: string }>(
+      S.issueRequisition(keeperA, {
+        clientKey,
+        requisitionId: req,
+        lines: [
+          { productId: gloves, quantity: 50 },
+          { productId: rdt, quantity: 50 },
+        ],
+      }),
+    );
+    expect(issued.state).toBe("issued");
+    expect(await hereAt(gloves, place.id)).toBe(0);
+    const d = (await load()).dispatches.find((x) => x.lines.some((l) => l.medId === gloves))!;
+    await ok(S.confirmDispatch(actor(keeper, place.id), { issueId: d.id }));
+    expect(await hereAt(gloves, place.id)).toBe(50);
+    expect(await hereAt(rdt, place.id)).toBe(50);
+  });
 });

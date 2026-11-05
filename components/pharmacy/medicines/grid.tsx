@@ -1299,13 +1299,15 @@ function Cell({
     case "strength":
       return <span className="font-semibold">{l.strength ?? "—"}</span>;
     case "form":
-      return editable ? (
+      // A supply's identity comes from the EMHSLU row.
+      return editable && l.itemType === "medicine" ? (
         <PickCell r={r} field="form" options={LOCAL_FORMS} toast={toast!} />
       ) : (
         <>{l.form ?? "—"}</>
       );
     case "route":
-      return editable ? (
+      // A supply's identity comes from the EMHSLU row.
+      return editable && l.itemType === "medicine" ? (
         <PickCell r={r} field="route" options={LOCAL_ROUTES} toast={toast!} />
       ) : (
         <>{l.route ?? "—"}</>

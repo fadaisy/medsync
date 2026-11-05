@@ -45,7 +45,7 @@ export const NAME_HEAD: Record<TypeFilter, string> = {
 export const itemsCount = (medicines: number, supplies: number) =>
   `${medicines} ${medicines === 1 ? "medicine" : "medicines"} · ${supplies} ${supplies === 1 ? "supply" : "supplies"}`;
 
-/** "Health supply · sterile" and "Lab supply · 2–30 °C" under a name (§D). */
+/** The chip under a supply's name (§D). */
 export const typeTag = (type: ItemType, f: { sterile?: boolean; kit?: boolean }) =>
   type === "lab_supply"
     ? `Lab supply${f.kit ? ` · ${KIT_RANGE}` : ""}`

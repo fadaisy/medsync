@@ -395,4 +395,66 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const open = await pg.query<{ t: string }>(`SELECT coalesce(sum(total), 0) AS t FROM public.pharmacy_supplier_claims WHERE hospital_id = $1 AND state <> 'credit'`, [h]);
     expect(f[3]!.value).toBe(`UGX ${Number(open.rows[0]!.t).toLocaleString("en-GB")}`);
   });
+
+  /* ─── SUPPLIES.md §H4 ─── */
+  const supply = async (section: "B" | "D", flags: Record<string, boolean>) => {
+    const name = `Supply ${randomUUID()}`;
+    const si = (
+      await pg.query<{ id: string }>(
+        `INSERT INTO public.cat_supply_items (section, category, name, issue_unit, level_of_care, ven)
+         VALUES ($1,'Gloves',$2,'piece','HC3','V') RETURNING id`,
+        [section, name],
+      )
+    ).rows[0]!.id;
+    const keys = Object.keys(flags);
+    const id = (
+      await pg.query<{ id: string }>(
+        `INSERT INTO public.pharmacy_products (hospital_id, medicine_id, name, issue_unit, created_by, supply_item_id${keys.map((k) => `, ${k}`).join("")})
+         VALUES ($1,$2,$3,'piece',$4,$5${keys.map((_, i) => `, $${i + 6}`).join("")}) RETURNING id`,
+        [h, `cat_sup_${randomUUID().replaceAll("-", "_")}`, name, boss, si, ...Object.values(flags)],
+      )
+    ).rows[0]!.id;
+    return (await load()).meds.find((m) => m.id === id)!;
+  };
+  const resave = (deliveryId: string, line: ReceiveLine) =>
+    ok(D.saveLines(keeperA, { deliveryId, lines: [saved(line)], removed: [] }));
+
+  it("H4 a sterile line needs the seal answered, and a broken seal blocks until rejected", async () => {
+    const m = await supply("B", { sterile: true });
+    const before = await hand(m.id);
+    const l = docLine(m, { packs: "2", per: "10" });
+    const id = await started([l]);
+    expect(await refusal(done(id))).toMatch(/check the packaging and sterile seal/);
+    await resave(id, { ...l, seal: "broken" });
+    expect(await refusal(done(id))).toMatch(/sterile seal is broken/);
+    await resave(id, { ...l, seal: "broken", rejOn: true, rejPacks: "2", rejWhy: "damaged" });
+    await ok(done(id));
+    expect(await hand(m.id)).toBe(before);
+    const good = docLine(m, { packs: "2", per: "10", seal: "ok" });
+    await ok(done(await started([good])));
+    expect(await hand(m.id)).toBe(before + 20);
+  });
+
+  it("H4 a kit marked hot blocks until rejected or kept apart", async () => {
+    const m = await supply("D", { test_kit: true });
+    const l = docLine(m, { packs: "2", per: "10" });
+    const id = await started([l]);
+    expect(await refusal(done(id))).toMatch(/confirm the test kits/);
+    await resave(id, { ...l, kitTemp: "hot" });
+    expect(await refusal(done(id))).toMatch(/kept above/);
+    await resave(id, { ...l, kitTemp: "hot", rejOn: true, rejPacks: "2", rejWhy: "other", rejFate: "quarantine" });
+    await ok(done(id));
+  });
+
+  it("H4 a safety box needs no expiry, and its batch never shows one", async () => {
+    const m = await supply("B", { no_expiry: true });
+    const before = await hand(m.id);
+    await ok(done(await started([docLine(m, { packs: "1", per: "25", exp: "" })])));
+    expect(await hand(m.id)).toBe(before + 25);
+    const b = await pg.query<{ expiry: string }>(
+      `SELECT expiry::text FROM public.pharmacy_batches WHERE product_id = $1`,
+      [m.id],
+    );
+    expect(b.rows).toEqual([{ expiry: "2099-12-31" }]);
+  });
 });
