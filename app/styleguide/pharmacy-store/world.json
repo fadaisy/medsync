@@ -213,6 +213,146 @@
         "moved": 7,
         "onOrder": 0,
         "bin": "C-02"
+      },
+      {
+        "id": "0f5883b2-07c7-58c0-981c-6f55bb5b0d52",
+        "medicineId": "store_glex",
+        "name": "Examination gloves, latex, non-sterile, medium",
+        "short": "Exam gloves (M)",
+        "unit": "piece",
+        "ven": "N",
+        "pack": 100,
+        "cold": false,
+        "controlled": false,
+        "cost": 60,
+        "use": 12000,
+        "moved": 1,
+        "onOrder": 0,
+        "bin": "E-01",
+        "itemType": "health_supply",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": false
+      },
+      {
+        "id": "3d463018-453c-5c2b-b04a-81ac731c93f1",
+        "medicineId": "store_sad5",
+        "name": "Syringe AD + needle, disposable detached, 5 ml",
+        "short": "AD syringe 5 ml",
+        "unit": "piece",
+        "ven": "V",
+        "pack": 100,
+        "cold": false,
+        "controlled": false,
+        "cost": 250,
+        "use": 5400,
+        "moved": 1,
+        "onOrder": 0,
+        "bin": "E-02",
+        "itemType": "health_supply",
+        "sterile": true,
+        "kit": false,
+        "noExpiry": false
+      },
+      {
+        "id": "93f312dc-5530-567f-97aa-f97947f233a1",
+        "medicineId": "store_can18",
+        "name": "Cannula IV with inj port and wings (green), 18G",
+        "short": "IV cannula 18G",
+        "unit": "piece",
+        "ven": "V",
+        "pack": 50,
+        "cold": false,
+        "controlled": false,
+        "cost": 1200,
+        "use": 750,
+        "moved": 1,
+        "onOrder": 0,
+        "bin": "E-03",
+        "itemType": "health_supply",
+        "sterile": true,
+        "kit": false,
+        "noExpiry": false
+      },
+      {
+        "id": "441f98e1-f8b8-5fee-8037-75a69c5ffbbf",
+        "medicineId": "store_gswab",
+        "name": "Gauze swabs, WOW, sterile 12 ply, 10 x 10 cm",
+        "short": "Gauze swabs, sterile",
+        "unit": "packet",
+        "ven": "E",
+        "pack": 10,
+        "cold": false,
+        "controlled": false,
+        "cost": 2500,
+        "use": 450,
+        "moved": 1,
+        "onOrder": 0,
+        "bin": "E-04",
+        "itemType": "health_supply",
+        "sterile": true,
+        "kit": false,
+        "noExpiry": false
+      },
+      {
+        "id": "42680cc1-d59f-55c6-a314-9a72b57707d7",
+        "medicineId": "store_sbox",
+        "name": "Safety box for syringes & needles, disposable",
+        "short": "Safety box",
+        "unit": "piece",
+        "ven": "V",
+        "pack": 25,
+        "cold": false,
+        "controlled": false,
+        "cost": 3000,
+        "use": 120,
+        "moved": 1,
+        "onOrder": 0,
+        "bin": "E-05",
+        "itemType": "health_supply",
+        "sterile": false,
+        "kit": false,
+        "noExpiry": true
+      },
+      {
+        "id": "59195cd8-08af-538b-88b0-e5c8c415d2af",
+        "medicineId": "store_mrdt",
+        "name": "Malaria Antigen P.f/Pan Kit (dipstick), 25 tests",
+        "short": "Malaria RDT",
+        "unit": "test",
+        "ven": "V",
+        "pack": 25,
+        "cold": false,
+        "controlled": false,
+        "cost": 1800,
+        "use": 2400,
+        "moved": 1,
+        "onOrder": 0,
+        "bin": "L-01",
+        "itemType": "lab_supply",
+        "sterile": false,
+        "kit": true,
+        "noExpiry": false
+      },
+      {
+        "id": "455e7e85-638a-564b-ade4-f0db6a64103a",
+        "medicineId": "store_hivd",
+        "name": "HIV 1/2, Determine Complete HIV Kit, 100 tests",
+        "short": "HIV test (Determine)",
+        "unit": "test",
+        "ven": "V",
+        "pack": 100,
+        "cold": false,
+        "controlled": false,
+        "cost": 3500,
+        "use": 900,
+        "moved": 1,
+        "onOrder": 0,
+        "bin": "L-02",
+        "itemType": "lab_supply",
+        "sterile": false,
+        "kit": true,
+        "noExpiry": false
       }
     ],
     "batches": [
@@ -383,13 +523,113 @@
         "grn": "GRN-0001",
         "receivedAt": "2026-11-04T03:25:43.526Z",
         "blocked": false
+      },
+      {
+        "id": "4ccd0e32-d271-5339-a259-340f6f515f91",
+        "medId": "0f5883b2-07c7-58c0-981c-6f55bb5b0d52",
+        "no": "GL-2709",
+        "exp": "2027-09-30",
+        "bin": "E-01",
+        "qty": 30000,
+        "waiting": false,
+        "grn": null,
+        "receivedAt": "2026-10-06T06:00:00.000Z",
+        "blocked": false
+      },
+      {
+        "id": "19920f05-240d-567a-b8d1-643321b0e787",
+        "medId": "3d463018-453c-5c2b-b04a-81ac731c93f1",
+        "no": "AD-2803",
+        "exp": "2028-03-31",
+        "bin": "E-02",
+        "qty": 12000,
+        "waiting": false,
+        "grn": null,
+        "receivedAt": "2026-10-06T06:00:00.000Z",
+        "blocked": false
+      },
+      {
+        "id": "5fbe7781-f6ce-54ba-a96d-c596de67b3fe",
+        "medId": "93f312dc-5530-567f-97aa-f97947f233a1",
+        "no": "CN-2711",
+        "exp": "2027-11-30",
+        "bin": "E-03",
+        "qty": 900,
+        "waiting": false,
+        "grn": null,
+        "receivedAt": "2026-10-06T06:00:00.000Z",
+        "blocked": false
+      },
+      {
+        "id": "f33b0bb5-2662-5f61-bfe8-36b2a83888e4",
+        "medId": "441f98e1-f8b8-5fee-8037-75a69c5ffbbf",
+        "no": "GZ-2701",
+        "exp": "2027-01-31",
+        "bin": "E-04",
+        "qty": 1500,
+        "waiting": false,
+        "grn": null,
+        "receivedAt": "2026-10-06T06:00:00.000Z",
+        "blocked": false
+      },
+      {
+        "id": "779c74dc-15d3-5340-b8c7-07f9a0972798",
+        "medId": "42680cc1-d59f-55c6-a314-9a72b57707d7",
+        "no": "SB-NOEXP",
+        "exp": "2099-12-31",
+        "bin": "E-05",
+        "qty": 300,
+        "waiting": false,
+        "grn": null,
+        "receivedAt": "2026-10-06T06:00:00.000Z",
+        "blocked": false
+      },
+      {
+        "id": "94a5b6b7-083b-5313-8f73-eec72090ca0d",
+        "medId": "59195cd8-08af-538b-88b0-e5c8c415d2af",
+        "no": "RD-2706",
+        "exp": "2027-06-30",
+        "bin": "L-01",
+        "qty": 3000,
+        "waiting": false,
+        "grn": null,
+        "receivedAt": "2026-10-06T06:00:00.000Z",
+        "blocked": false
+      },
+      {
+        "id": "44a336d2-c1bd-5ef5-b4fd-22f27f53db71",
+        "medId": "455e7e85-638a-564b-ade4-f0db6a64103a",
+        "no": "HV-2704",
+        "exp": "2027-04-30",
+        "bin": "L-02",
+        "qty": 1200,
+        "waiting": false,
+        "grn": null,
+        "receivedAt": "2026-10-06T06:00:00.000Z",
+        "blocked": false
       }
     ],
     "places": [
-      { "id": "e8d00c33-38bb-473e-ba15-fcc681950bdd", "name": "Maternity", "kind": "clinic" },
-      { "id": "1b8244cf-cf51-4962-b91a-421bb78c3bca", "name": "OPD dispensary", "kind": "clinic" },
-      { "id": "611a11d3-d28e-4cb4-9729-03aa2d98dec0", "name": "Paediatrics", "kind": "clinic" },
-      { "id": "652ef3a3-eed6-4390-b24b-83751ace883b", "name": "Ward 3 · Medical", "kind": "clinic" }
+      {
+        "id": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
+        "name": "Maternity",
+        "kind": "clinic"
+      },
+      {
+        "id": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "name": "OPD dispensary",
+        "kind": "clinic"
+      },
+      {
+        "id": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "name": "Paediatrics",
+        "kind": "clinic"
+      },
+      {
+        "id": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "name": "Ward 3 · Medical",
+        "kind": "clinic"
+      }
     ],
     "placeStock": [
       {
@@ -489,6 +729,125 @@
         "here": 80,
         "use": 267,
         "level": 400
+      },
+      {
+        "medId": "0f5883b2-07c7-58c0-981c-6f55bb5b0d52",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "here": 4000,
+        "use": 6000,
+        "level": 8000
+      },
+      {
+        "medId": "0f5883b2-07c7-58c0-981c-6f55bb5b0d52",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "here": 1500,
+        "use": 3000,
+        "level": 4000
+      },
+      {
+        "medId": "0f5883b2-07c7-58c0-981c-6f55bb5b0d52",
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
+        "here": 600,
+        "use": 2500,
+        "level": 3000
+      },
+      {
+        "medId": "0f5883b2-07c7-58c0-981c-6f55bb5b0d52",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "here": 800,
+        "use": 1500,
+        "level": 2000
+      },
+      {
+        "medId": "3d463018-453c-5c2b-b04a-81ac731c93f1",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "here": 900,
+        "use": 2400,
+        "level": 3000
+      },
+      {
+        "medId": "3d463018-453c-5c2b-b04a-81ac731c93f1",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "here": 400,
+        "use": 1200,
+        "level": 1500
+      },
+      {
+        "medId": "3d463018-453c-5c2b-b04a-81ac731c93f1",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "here": 150,
+        "use": 900,
+        "level": 1200
+      },
+      {
+        "medId": "93f312dc-5530-567f-97aa-f97947f233a1",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "here": 60,
+        "use": 300,
+        "level": 400
+      },
+      {
+        "medId": "93f312dc-5530-567f-97aa-f97947f233a1",
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
+        "here": 40,
+        "use": 200,
+        "level": 250
+      },
+      {
+        "medId": "441f98e1-f8b8-5fee-8037-75a69c5ffbbf",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "here": 60,
+        "use": 200,
+        "level": 250
+      },
+      {
+        "medId": "441f98e1-f8b8-5fee-8037-75a69c5ffbbf",
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
+        "here": 15,
+        "use": 150,
+        "level": 200
+      },
+      {
+        "medId": "42680cc1-d59f-55c6-a314-9a72b57707d7",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "here": 6,
+        "use": 40,
+        "level": 50
+      },
+      {
+        "medId": "42680cc1-d59f-55c6-a314-9a72b57707d7",
+        "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
+        "here": 10,
+        "use": 30,
+        "level": 40
+      },
+      {
+        "medId": "59195cd8-08af-538b-88b0-e5c8c415d2af",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "here": 600,
+        "use": 1800,
+        "level": 2000
+      },
+      {
+        "medId": "59195cd8-08af-538b-88b0-e5c8c415d2af",
+        "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
+        "here": 100,
+        "use": 500,
+        "level": 700
+      },
+      {
+        "medId": "455e7e85-638a-564b-ade4-f0db6a64103a",
+        "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
+        "here": 300,
+        "use": 600,
+        "level": 800
+      },
+      {
+        "medId": "455e7e85-638a-564b-ade4-f0db6a64103a",
+        "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
+        "here": 80,
+        "use": 250,
+        "level": 300
       }
     ],
     "dispatches": [
@@ -503,7 +862,13 @@
         "note": null,
         "receivedAt": null,
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 20 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 20
+          }
+        ]
       },
       {
         "id": "2a2085e1-75f5-48ee-bd53-083f413fe90d",
@@ -517,7 +882,11 @@
         "receivedAt": null,
         "requisitionId": null,
         "lines": [
-          { "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64", "no": "MORPH-2607", "qty": 10 }
+          {
+            "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64",
+            "no": "MORPH-2607",
+            "qty": 10
+          }
         ]
       },
       {
@@ -532,7 +901,11 @@
         "receivedAt": null,
         "requisitionId": "7c918b0d-5cf6-4c7a-b49f-a2a53f4d4817",
         "lines": [
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 200 }
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -546,7 +919,13 @@
         "note": null,
         "receivedAt": null,
         "requisitionId": "c787ca88-0ea4-4b90-9879-3b6b0681ef3a",
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 60 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 60
+          }
+        ]
       },
       {
         "id": "e4efd0e6-6802-4399-b1b6-b3e650357855",
@@ -560,7 +939,11 @@
         "receivedAt": "2026-10-30T12:00:00.000Z",
         "requisitionId": "46a3c5bc-028f-4e2f-8032-20b0361f3a69",
         "lines": [
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 500 }
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 500
+          }
         ]
       },
       {
@@ -575,11 +958,31 @@
         "receivedAt": "2026-10-28T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -594,10 +997,26 @@
         "receivedAt": "2026-10-28T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -611,7 +1030,13 @@
         "note": null,
         "receivedAt": "2026-10-28T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "c2faf6dc-2d8a-4747-932a-a6b408e0b316",
@@ -625,9 +1050,21 @@
         "receivedAt": "2026-10-28T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -641,7 +1078,13 @@
         "note": "Two bottles cracked in the box",
         "receivedAt": "2026-10-28T12:00:00.000Z",
         "requisitionId": "0f779d8b-24bc-431c-9be1-b47022e4d455",
-        "lines": [{ "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 20 }]
+        "lines": [
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 20
+          }
+        ]
       },
       {
         "id": "8aa6d4a0-f9e8-4f42-a5b3-b63d39c36ef4",
@@ -655,11 +1098,31 @@
         "receivedAt": "2026-10-21T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -674,10 +1137,26 @@
         "receivedAt": "2026-10-21T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -691,7 +1170,13 @@
         "note": null,
         "receivedAt": "2026-10-21T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "0646349c-3ff0-4a06-94b7-7960e51845a2",
@@ -705,9 +1190,21 @@
         "receivedAt": "2026-10-21T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -722,11 +1219,31 @@
         "receivedAt": "2026-10-14T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -741,10 +1258,26 @@
         "receivedAt": "2026-10-14T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -758,7 +1291,13 @@
         "note": null,
         "receivedAt": "2026-10-14T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "92013543-eabd-473e-a48b-acdb3c1bd10b",
@@ -772,9 +1311,21 @@
         "receivedAt": "2026-10-14T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -789,11 +1340,31 @@
         "receivedAt": "2026-10-07T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -808,10 +1379,26 @@
         "receivedAt": "2026-10-07T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -825,7 +1412,13 @@
         "note": null,
         "receivedAt": "2026-10-07T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "81c730b3-f62c-440f-99bb-1c95d6002341",
@@ -839,9 +1432,21 @@
         "receivedAt": "2026-10-07T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -856,11 +1461,31 @@
         "receivedAt": "2026-09-30T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -875,10 +1500,26 @@
         "receivedAt": "2026-09-30T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -892,7 +1533,13 @@
         "note": null,
         "receivedAt": "2026-09-30T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "9d9b75f3-3984-43a1-9137-5c3042b1f953",
@@ -906,9 +1553,21 @@
         "receivedAt": "2026-09-30T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -923,11 +1582,31 @@
         "receivedAt": "2026-09-23T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -942,10 +1621,26 @@
         "receivedAt": "2026-09-23T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -959,7 +1654,13 @@
         "note": null,
         "receivedAt": "2026-09-23T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "b0e86f9f-4e09-4f8c-9643-195a100a793d",
@@ -973,9 +1674,21 @@
         "receivedAt": "2026-09-23T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -990,11 +1703,31 @@
         "receivedAt": "2026-09-16T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -1009,10 +1742,26 @@
         "receivedAt": "2026-09-16T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -1026,7 +1775,13 @@
         "note": null,
         "receivedAt": "2026-09-16T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "15eac3a1-2e04-4bbc-8eac-8655e33a467a",
@@ -1040,9 +1795,21 @@
         "receivedAt": "2026-09-16T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -1057,11 +1824,31 @@
         "receivedAt": "2026-09-09T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -1076,10 +1863,26 @@
         "receivedAt": "2026-09-09T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -1093,7 +1896,13 @@
         "note": null,
         "receivedAt": "2026-09-09T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "9de58f7c-8e07-43be-a328-7885a5868eea",
@@ -1107,9 +1916,21 @@
         "receivedAt": "2026-09-09T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -1124,11 +1945,31 @@
         "receivedAt": "2026-09-02T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -1143,10 +1984,26 @@
         "receivedAt": "2026-09-02T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -1160,7 +2017,13 @@
         "note": null,
         "receivedAt": "2026-09-02T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "059b3844-49cc-4145-b207-5c59f66145c8",
@@ -1174,9 +2037,21 @@
         "receivedAt": "2026-09-02T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -1191,11 +2066,31 @@
         "receivedAt": "2026-08-26T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -1210,10 +2105,26 @@
         "receivedAt": "2026-08-26T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -1227,7 +2138,13 @@
         "note": null,
         "receivedAt": "2026-08-26T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "f45b1315-bd31-4d83-bfc9-8a173d387303",
@@ -1241,9 +2158,21 @@
         "receivedAt": "2026-08-26T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       },
       {
@@ -1258,11 +2187,31 @@
         "receivedAt": "2026-08-19T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 500 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "no": "PARA-2607", "qty": 3000 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "no": "ORS-2607", "qty": 250 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 1000 },
-          { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "no": "MET-2607", "qty": 2500 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 500
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "no": "PARA-2607",
+            "qty": 3000
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "no": "ORS-2607",
+            "qty": 250
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 1000
+          },
+          {
+            "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+            "no": "MET-2607",
+            "qty": 2500
+          }
         ]
       },
       {
@@ -1277,10 +2226,26 @@
         "receivedAt": "2026-08-19T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "no": "INS-2607", "qty": 8 },
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 120 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 100 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "no": "COAMOX-2607", "qty": 80 }
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "no": "INS-2607",
+            "qty": 8
+          },
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 120
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 100
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "no": "COAMOX-2607",
+            "qty": 80
+          }
         ]
       },
       {
@@ -1294,7 +2259,13 @@
         "note": null,
         "receivedAt": "2026-08-19T12:00:00.000Z",
         "requisitionId": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "no": "CEFT-2607", "qty": 40 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "no": "CEFT-2607",
+            "qty": 40
+          }
+        ]
       },
       {
         "id": "320eaa3f-f3e2-4d4e-ad32-bf6a40bc334d",
@@ -1308,9 +2279,21 @@
         "receivedAt": "2026-08-19T12:00:00.000Z",
         "requisitionId": null,
         "lines": [
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "no": "AL-2607", "qty": 250 },
-          { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "no": "AZIS-2607", "qty": 25 },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "no": "AMOX-2607", "qty": 200 }
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "no": "AL-2607",
+            "qty": 250
+          },
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "no": "AZIS-2607",
+            "qty": 25
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "no": "AMOX-2607",
+            "qty": 200
+          }
         ]
       }
     ],
@@ -1327,8 +2310,21 @@
         "diffNote": null,
         "receivedAt": null,
         "lines": [
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "asked": 800, "issued": 0 },
-          { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "asked": 1200, "issued": 0 }
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "asked": 800,
+            "issued": 0
+          },
+          {
+            "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+            "asked": 1200,
+            "issued": 0
+          },
+          {
+            "medId": "3d463018-453c-5c2b-b04a-81ac731c93f1",
+            "asked": 600,
+            "issued": 0
+          }
         ]
       },
       {
@@ -1343,9 +2339,31 @@
         "diffNote": null,
         "receivedAt": null,
         "lines": [
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "asked": 3000, "issued": 0 },
-          { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "asked": 8000, "issued": 0 },
-          { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "asked": 600, "issued": 0 }
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "asked": 3000,
+            "issued": 0
+          },
+          {
+            "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+            "asked": 8000,
+            "issued": 0
+          },
+          {
+            "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+            "asked": 600,
+            "issued": 0
+          },
+          {
+            "medId": "0f5883b2-07c7-58c0-981c-6f55bb5b0d52",
+            "asked": 4000,
+            "issued": 0
+          },
+          {
+            "medId": "59195cd8-08af-538b-88b0-e5c8c415d2af",
+            "asked": 1000,
+            "issued": 0
+          }
         ]
       },
       {
@@ -1359,7 +2377,13 @@
         "voucher": null,
         "diffNote": null,
         "receivedAt": null,
-        "lines": [{ "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "asked": 60, "issued": 0 }]
+        "lines": [
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "asked": 60,
+            "issued": 0
+          }
+        ]
       },
       {
         "id": "2afd20b1-7a9b-45c3-8d1d-0ed7db4f4853",
@@ -1372,7 +2396,18 @@
         "voucher": null,
         "diffNote": null,
         "receivedAt": null,
-        "lines": [{ "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "asked": 40, "issued": 0 }]
+        "lines": [
+          {
+            "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+            "asked": 40,
+            "issued": 0
+          },
+          {
+            "medId": "93f312dc-5530-567f-97aa-f97947f233a1",
+            "asked": 200,
+            "issued": 0
+          }
+        ]
       },
       {
         "id": "7c918b0d-5cf6-4c7a-b49f-a2a53f4d4817",
@@ -1386,8 +2421,16 @@
         "diffNote": null,
         "receivedAt": null,
         "lines": [
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "asked": 300, "issued": 200 },
-          { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "asked": 200, "issued": 0 }
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "asked": 300,
+            "issued": 200
+          },
+          {
+            "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+            "asked": 200,
+            "issued": 0
+          }
         ]
       },
       {
@@ -1401,7 +2444,13 @@
         "voucher": "RIV-0046",
         "diffNote": null,
         "receivedAt": null,
-        "lines": [{ "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "asked": 60, "issued": 60 }]
+        "lines": [
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "asked": 60,
+            "issued": 60
+          }
+        ]
       },
       {
         "id": "46a3c5bc-028f-4e2f-8032-20b0361f3a69",
@@ -1414,7 +2463,13 @@
         "voucher": "RIV-0047",
         "diffNote": null,
         "receivedAt": "2026-10-30T12:00:00.000Z",
-        "lines": [{ "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "asked": 500, "issued": 500 }]
+        "lines": [
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "asked": 500,
+            "issued": 500
+          }
+        ]
       },
       {
         "id": "0f779d8b-24bc-431c-9be1-b47022e4d455",
@@ -1427,35 +2482,55 @@
         "voucher": "RIV-0048",
         "diffNote": "Two bottles cracked in the box",
         "receivedAt": "2026-10-28T12:00:00.000Z",
-        "lines": [{ "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "asked": 20, "issued": 20 }]
+        "lines": [
+          {
+            "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+            "asked": 20,
+            "issued": 20
+          }
+        ]
       }
     ],
     "runs": [
       {
         "id": "27e8a903-22da-497e-9982-eb240369b846",
         "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
-        "weekdays": [1, 2, 3, 4, 5, 6, 7],
+        "weekdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
         "at": "08:30",
         "sentVoucher": null
       },
       {
         "id": "447a7331-5f8b-402d-9e03-185fcc0cf5e0",
         "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
-        "weekdays": [3],
+        "weekdays": [
+          3
+        ],
         "at": "10:00",
         "sentVoucher": null
       },
       {
         "id": "815676ac-c7e1-48ac-8956-899083a7f14d",
         "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
-        "weekdays": [4],
+        "weekdays": [
+          4
+        ],
         "at": "10:00",
         "sentVoucher": null
       },
       {
         "id": "4901da8d-73aa-4b84-92f9-cbed4e4b5ab5",
         "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
-        "weekdays": [3],
+        "weekdays": [
+          3
+        ],
         "at": "10:30",
         "sentVoucher": "RIV-0050"
       }
@@ -1498,8 +2573,16 @@
         "ordered": 13000,
         "closedAt": null,
         "lines": [
-          { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "qty": 1000, "trimmed": false },
-          { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "qty": 12000, "trimmed": false }
+          {
+            "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+            "qty": 1000,
+            "trimmed": false
+          },
+          {
+            "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+            "qty": 12000,
+            "trimmed": false
+          }
         ]
       }
     ],
@@ -1509,7 +2592,9 @@
         "name": "NMS",
         "ordered": 13000,
         "received": 1800,
-        "leadDays": [30],
+        "leadDays": [
+          30
+        ],
         "promisedDays": 7,
         "openOrder": true
       }
@@ -1551,6 +2636,26 @@
         "name": "Controlled cupboard (double lock)",
         "controlled": true,
         "days": 1,
+        "countedToday": false,
+        "waitingSign": false,
+        "inStocktake": false
+      },
+      {
+        "id": "cfca4209-3b50-5b73-ba55-acf081739046",
+        "code": "E",
+        "name": "Health supplies (sterile consumables, PPE)",
+        "controlled": false,
+        "days": 9,
+        "countedToday": false,
+        "waitingSign": false,
+        "inStocktake": false
+      },
+      {
+        "id": "e5cfbdd2-447c-52f2-a3c9-a20e188a7a80",
+        "code": "L",
+        "name": "Laboratory supplies, kept 2–30 °C",
+        "controlled": false,
+        "days": 20,
         "countedToday": false,
         "waitingSign": false,
         "inStocktake": false
@@ -1710,19 +2815,71 @@
       }
     ],
     "room": [
-      { "at": "2026-10-29T05:00:00.000Z", "temp": 23.7, "humidity": 50 },
-      { "at": "2026-10-29T11:00:00.000Z", "temp": 24.2, "humidity": 52 },
-      { "at": "2026-10-30T05:00:00.000Z", "temp": 23.6, "humidity": 50 },
-      { "at": "2026-10-30T11:00:00.000Z", "temp": 24.8, "humidity": 52 },
-      { "at": "2026-10-31T05:00:00.000Z", "temp": 23.5, "humidity": 50 },
-      { "at": "2026-10-31T11:00:00.000Z", "temp": 24.5, "humidity": 52 },
-      { "at": "2026-11-01T05:00:00.000Z", "temp": 23.4, "humidity": 50 },
-      { "at": "2026-11-01T11:00:00.000Z", "temp": 24.2, "humidity": 52 },
-      { "at": "2026-11-02T05:00:00.000Z", "temp": 23.3, "humidity": 50 },
-      { "at": "2026-11-02T11:00:00.000Z", "temp": 24.8, "humidity": 58 },
-      { "at": "2026-11-03T05:00:00.000Z", "temp": 23.2, "humidity": 50 },
-      { "at": "2026-11-03T11:00:00.000Z", "temp": 24.5, "humidity": 52 },
-      { "at": "2026-11-04T03:25:43.587Z", "temp": 23.1, "humidity": 50 }
+      {
+        "at": "2026-10-29T05:00:00.000Z",
+        "temp": 23.7,
+        "humidity": 50
+      },
+      {
+        "at": "2026-10-29T11:00:00.000Z",
+        "temp": 24.2,
+        "humidity": 52
+      },
+      {
+        "at": "2026-10-30T05:00:00.000Z",
+        "temp": 23.6,
+        "humidity": 50
+      },
+      {
+        "at": "2026-10-30T11:00:00.000Z",
+        "temp": 24.8,
+        "humidity": 52
+      },
+      {
+        "at": "2026-10-31T05:00:00.000Z",
+        "temp": 23.5,
+        "humidity": 50
+      },
+      {
+        "at": "2026-10-31T11:00:00.000Z",
+        "temp": 24.5,
+        "humidity": 52
+      },
+      {
+        "at": "2026-11-01T05:00:00.000Z",
+        "temp": 23.4,
+        "humidity": 50
+      },
+      {
+        "at": "2026-11-01T11:00:00.000Z",
+        "temp": 24.2,
+        "humidity": 52
+      },
+      {
+        "at": "2026-11-02T05:00:00.000Z",
+        "temp": 23.3,
+        "humidity": 50
+      },
+      {
+        "at": "2026-11-02T11:00:00.000Z",
+        "temp": 24.8,
+        "humidity": 58
+      },
+      {
+        "at": "2026-11-03T05:00:00.000Z",
+        "temp": 23.2,
+        "humidity": 50
+      },
+      {
+        "at": "2026-11-03T11:00:00.000Z",
+        "temp": 24.5,
+        "humidity": 52
+      },
+      {
+        "at": "2026-11-04T03:25:43.587Z",
+        "temp": 23.1,
+        "humidity": 50
+      }
     ],
     "coldRoom": {
       "code": "CR-01",
@@ -1733,21 +2890,59 @@
       "min": 4,
       "max": 6,
       "history": [
-        { "at": "2026-11-03T05:26:43.535Z", "temp": 6 },
-        { "at": "2026-11-03T07:26:43.535Z", "temp": 5 },
-        { "at": "2026-11-03T09:26:43.536Z", "temp": 4 },
-        { "at": "2026-11-03T11:26:43.537Z", "temp": 6 },
-        { "at": "2026-11-03T13:26:43.537Z", "temp": 5 },
-        { "at": "2026-11-03T15:26:43.538Z", "temp": 4 },
-        { "at": "2026-11-03T17:26:43.539Z", "temp": 6 },
-        { "at": "2026-11-03T19:26:43.539Z", "temp": 5 },
-        { "at": "2026-11-03T21:26:43.540Z", "temp": 4 },
-        { "at": "2026-11-03T23:26:43.540Z", "temp": 6 },
-        { "at": "2026-11-04T01:26:43.541Z", "temp": 5 },
-        { "at": "2026-11-04T03:26:43.541Z", "temp": 4 }
+        {
+          "at": "2026-11-03T05:26:43.535Z",
+          "temp": 6
+        },
+        {
+          "at": "2026-11-03T07:26:43.535Z",
+          "temp": 5
+        },
+        {
+          "at": "2026-11-03T09:26:43.536Z",
+          "temp": 4
+        },
+        {
+          "at": "2026-11-03T11:26:43.537Z",
+          "temp": 6
+        },
+        {
+          "at": "2026-11-03T13:26:43.537Z",
+          "temp": 5
+        },
+        {
+          "at": "2026-11-03T15:26:43.538Z",
+          "temp": 4
+        },
+        {
+          "at": "2026-11-03T17:26:43.539Z",
+          "temp": 6
+        },
+        {
+          "at": "2026-11-03T19:26:43.539Z",
+          "temp": 5
+        },
+        {
+          "at": "2026-11-03T21:26:43.540Z",
+          "temp": 4
+        },
+        {
+          "at": "2026-11-03T23:26:43.540Z",
+          "temp": 6
+        },
+        {
+          "at": "2026-11-04T01:26:43.541Z",
+          "temp": 5
+        },
+        {
+          "at": "2026-11-04T03:26:43.541Z",
+          "temp": 4
+        }
       ],
       "outOfRange7d": 0,
-      "lines": ["Insulin (soluble) 100 IU/mL injection"]
+      "lines": [
+        "Insulin (soluble) 100 IU/mL injection"
+      ]
     },
     "balances": [
       {
@@ -1870,146 +3065,698 @@
     ],
     "balanceCases": [],
     "weeks": [
-      { "start": "2026-08-17", "inValue": 0, "outValue": 1056500 },
-      { "start": "2026-08-24", "inValue": 0, "outValue": 1056500 },
-      { "start": "2026-08-31", "inValue": 432000, "outValue": 1056500 },
-      { "start": "2026-09-07", "inValue": 0, "outValue": 1056500 },
-      { "start": "2026-09-14", "inValue": 0, "outValue": 1056500 },
-      { "start": "2026-09-21", "inValue": 0, "outValue": 1056500 },
-      { "start": "2026-09-28", "inValue": 0, "outValue": 1056500 },
-      { "start": "2026-10-05", "inValue": 720000, "outValue": 1056500 },
-      { "start": "2026-10-12", "inValue": 0, "outValue": 1056500 },
-      { "start": "2026-10-19", "inValue": 0, "outValue": 1056500 },
-      { "start": "2026-10-26", "inValue": 0, "outValue": 1206500 },
-      { "start": "2026-11-02", "inValue": 798000, "outValue": 539000 }
+      {
+        "start": "2026-08-17",
+        "inValue": 0,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-08-24",
+        "inValue": 0,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-08-31",
+        "inValue": 432000,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-09-07",
+        "inValue": 0,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-09-14",
+        "inValue": 0,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-09-21",
+        "inValue": 0,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-09-28",
+        "inValue": 0,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-10-05",
+        "inValue": 720000,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-10-12",
+        "inValue": 0,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-10-19",
+        "inValue": 0,
+        "outValue": 1056500
+      },
+      {
+        "start": "2026-10-26",
+        "inValue": 0,
+        "outValue": 1206500
+      },
+      {
+        "start": "2026-11-02",
+        "inValue": 798000,
+        "outValue": 539000
+      }
     ],
     "storeDays": [
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-08-12", "delta": 128 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-08-19", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-08-26", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-02", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-09", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-16", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-23", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-09-30", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-10-07", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-10-14", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-10-21", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-10-28", "delta": -8 },
-      { "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f", "day": "2026-11-04", "delta": 10 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-08-12", "delta": 2944 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-08-19", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-08-26", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-02", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-05", "delta": 150 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-09", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-16", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-23", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-09-30", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-10-07", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-10-14", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-10-21", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-10-28", "delta": -160 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-11-02", "delta": -150 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-11-03", "delta": -264 },
-      { "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66", "day": "2026-11-04", "delta": -20 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-08-12", "delta": 13250 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-08-19", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-08-26", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-02", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-09", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-16", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-23", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-09-30", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-10-07", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-10-14", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-10-21", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-10-28", "delta": -750 },
-      { "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff", "day": "2026-11-04", "delta": 2000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-08-12", "delta": 83800 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-08-19", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-08-26", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-02", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-09", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-16", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-23", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-25", "delta": -800 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-09-30", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-10-07", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-10-14", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-10-21", "delta": -3000 },
-      { "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b", "day": "2026-10-28", "delta": -3000 },
-      { "medId": "7979efed-9500-4a66-85c6-af6445e6abf2", "day": "2026-08-12", "delta": 800 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-08-12", "delta": 795 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-08-19", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-08-26", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-02", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-09", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-16", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-23", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-09-30", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-10-07", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-10-14", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-10-21", "delta": -25 },
-      { "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245", "day": "2026-10-28", "delta": -45 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-08-12", "delta": 2750 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-08-19", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-08-26", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-02", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-09", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-16", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-23", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-09-30", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-10-07", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-10-14", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-10-21", "delta": -250 },
-      { "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612", "day": "2026-10-28", "delta": -250 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-08-12", "delta": 24000 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-08-19", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-08-26", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-02", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-05", "delta": 1200 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-09", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-16", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-23", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-09-30", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-05", "delta": 12000 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-07", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-14", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-15", "delta": -200 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-21", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-28", "delta": -1300 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-10-30", "delta": -500 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-11-02", "delta": -1200 },
-      { "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292", "day": "2026-11-04", "delta": 1800 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-08-12", "delta": 57500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-08-19", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-08-26", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-02", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-09", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-16", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-23", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-09-30", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-10-07", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-10-14", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-10-21", "delta": -2500 },
-      { "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae", "day": "2026-10-28", "delta": -2500 },
-      { "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64", "day": "2026-08-12", "delta": 50 },
-      { "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64", "day": "2026-11-04", "delta": -10 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-08-12", "delta": 1780 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-08-19", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-08-26", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-02", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-05", "delta": 200 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-09", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-16", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-23", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-09-30", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-10-07", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-10-14", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-10-21", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-10-28", "delta": -80 },
-      { "medId": "f09bda42-d37c-4973-bc5f-20379aae678a", "day": "2026-11-02", "delta": -200 }
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-08-12",
+        "delta": 128
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-08-19",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-08-26",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-09-02",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-09-09",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-09-16",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-09-23",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-09-30",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-10-07",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-10-14",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-10-21",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-10-28",
+        "delta": -8
+      },
+      {
+        "medId": "3297e4aa-7158-4ae6-9d98-92ac57feef2f",
+        "day": "2026-11-04",
+        "delta": 10
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-08-12",
+        "delta": 2944
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-08-19",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-08-26",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-09-02",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-09-05",
+        "delta": 150
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-09-09",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-09-16",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-09-23",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-09-30",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-10-07",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-10-14",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-10-21",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-10-28",
+        "delta": -160
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-11-02",
+        "delta": -150
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-11-03",
+        "delta": -264
+      },
+      {
+        "medId": "3af202bd-fea0-4616-a45c-c84a152c9b66",
+        "day": "2026-11-04",
+        "delta": -20
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-08-12",
+        "delta": 13250
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-08-19",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-08-26",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-09-02",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-09-09",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-09-16",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-09-23",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-09-30",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-10-07",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-10-14",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-10-21",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-10-28",
+        "delta": -750
+      },
+      {
+        "medId": "5704c434-c907-428a-b0fc-cc282b40f2ff",
+        "day": "2026-11-04",
+        "delta": 2000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-08-12",
+        "delta": 83800
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-08-19",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-08-26",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-09-02",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-09-09",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-09-16",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-09-23",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-09-25",
+        "delta": -800
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-09-30",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-10-07",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-10-14",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-10-21",
+        "delta": -3000
+      },
+      {
+        "medId": "69ebd770-59bb-47c9-b8f1-b6e30256df7b",
+        "day": "2026-10-28",
+        "delta": -3000
+      },
+      {
+        "medId": "7979efed-9500-4a66-85c6-af6445e6abf2",
+        "day": "2026-08-12",
+        "delta": 800
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-08-12",
+        "delta": 795
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-08-19",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-08-26",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-09-02",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-09-09",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-09-16",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-09-23",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-09-30",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-10-07",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-10-14",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-10-21",
+        "delta": -25
+      },
+      {
+        "medId": "8722aa42-9dc9-4bf7-b8a0-32ce79cde245",
+        "day": "2026-10-28",
+        "delta": -45
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-08-12",
+        "delta": 2750
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-08-19",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-08-26",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-09-02",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-09-09",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-09-16",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-09-23",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-09-30",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-10-07",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-10-14",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-10-21",
+        "delta": -250
+      },
+      {
+        "medId": "b37a8e68-2f48-4145-bb58-5be4871c9612",
+        "day": "2026-10-28",
+        "delta": -250
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-08-12",
+        "delta": 24000
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-08-19",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-08-26",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-09-02",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-09-05",
+        "delta": 1200
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-09-09",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-09-16",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-09-23",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-09-30",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-10-05",
+        "delta": 12000
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-10-07",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-10-14",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-10-15",
+        "delta": -200
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-10-21",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-10-28",
+        "delta": -1300
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-10-30",
+        "delta": -500
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-11-02",
+        "delta": -1200
+      },
+      {
+        "medId": "d19156fc-e0c4-4413-b1fe-cd6715fae292",
+        "day": "2026-11-04",
+        "delta": 1800
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-08-12",
+        "delta": 57500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-08-19",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-08-26",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-09-02",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-09-09",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-09-16",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-09-23",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-09-30",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-10-07",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-10-14",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-10-21",
+        "delta": -2500
+      },
+      {
+        "medId": "e84341d6-874a-4b09-adb1-7eda187d1bae",
+        "day": "2026-10-28",
+        "delta": -2500
+      },
+      {
+        "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64",
+        "day": "2026-08-12",
+        "delta": 50
+      },
+      {
+        "medId": "eea24a40-722a-47bd-bbcb-439e9b11db64",
+        "day": "2026-11-04",
+        "delta": -10
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-08-12",
+        "delta": 1780
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-08-19",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-08-26",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-09-02",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-09-05",
+        "delta": 200
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-09-09",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-09-16",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-09-23",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-09-30",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-10-07",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-10-14",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-10-21",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-10-28",
+        "delta": -80
+      },
+      {
+        "medId": "f09bda42-d37c-4973-bc5f-20379aae678a",
+        "day": "2026-11-02",
+        "delta": -200
+      }
     ],
     "placeDays": [
       {
@@ -3540,6 +5287,34 @@
           "isCount": false
         }
       ]
+    },
+    "0f5883b2-07c7-58c0-981c-6f55bb5b0d52": {
+      "medId": "0f5883b2-07c7-58c0-981c-6f55bb5b0d52",
+      "rows": []
+    },
+    "3d463018-453c-5c2b-b04a-81ac731c93f1": {
+      "medId": "3d463018-453c-5c2b-b04a-81ac731c93f1",
+      "rows": []
+    },
+    "93f312dc-5530-567f-97aa-f97947f233a1": {
+      "medId": "93f312dc-5530-567f-97aa-f97947f233a1",
+      "rows": []
+    },
+    "441f98e1-f8b8-5fee-8037-75a69c5ffbbf": {
+      "medId": "441f98e1-f8b8-5fee-8037-75a69c5ffbbf",
+      "rows": []
+    },
+    "42680cc1-d59f-55c6-a314-9a72b57707d7": {
+      "medId": "42680cc1-d59f-55c6-a314-9a72b57707d7",
+      "rows": []
+    },
+    "59195cd8-08af-538b-88b0-e5c8c415d2af": {
+      "medId": "59195cd8-08af-538b-88b0-e5c8c415d2af",
+      "rows": []
+    },
+    "455e7e85-638a-564b-ade4-f0db6a64103a": {
+      "medId": "455e7e85-638a-564b-ade4-f0db6a64103a",
+      "rows": []
     }
   }
 }

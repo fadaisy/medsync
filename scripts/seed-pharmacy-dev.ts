@@ -18,6 +18,7 @@ import { seedRoster } from "./seed-pharmacy-dev/roster";
 import { seedSetup } from "./seed-pharmacy-dev/setup";
 import { seedReceive } from "./seed-pharmacy-dev/receive";
 import { seedStore } from "./seed-pharmacy-dev/store";
+import { seedSupplies } from "./seed-pharmacy-dev/supplies";
 
 for (const f of [".env", ".env.local"]) if (existsSync(f)) process.loadEnvFile(f);
 
@@ -40,6 +41,7 @@ try {
     ["roster", seedRoster],
     ["setup", seedSetup],
     ["store", seedStore],
+    ["supplies", seedSupplies],
     ["receive", seedReceive],
   ] as const) {
     await seed(db, hospitalId);
