@@ -83,7 +83,7 @@ const versionCols = {
 };
 type VersionRow = Awaited<ReturnType<typeof versionFor>>;
 
-async function versionFor(ctx: WriteCtx, versionId: string) {
+export async function versionFor(ctx: WriteCtx, versionId: string) {
   const [row] = await ctx.tx
     .select(versionCols)
     .from(protocolVersions)
