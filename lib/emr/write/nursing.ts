@@ -267,6 +267,7 @@ export async function recordDose(
   if (!rx) throw new EmrWriteError("not_found", "No such prescription line.");
   if (rx.state !== "active") throw conflict("This line is stopped.");
   if (!chartableLine(rx)) throw conflict(C.notHere);
+  if (rx.protocolVersionId) throw conflict("This line is given on its protocol chart.");
   // One live record per due time: a second needs the first undone.
   const same = await ctx.tx
     .select({

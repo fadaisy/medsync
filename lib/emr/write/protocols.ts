@@ -141,7 +141,7 @@ export async function listProtocols(
     source: r.source,
     slotMinutes: r.slotMinutes,
     slotCount: r.slotCount,
-    startable: canStart(r, process.env.VERCEL_ENV),
+    startable: canStart(r),
     signedByMe: r.signer1UserId === ctx.actor.userId || r.signer2UserId === ctx.actor.userId,
   }));
   return { items, canSign: PROTOCOL_SIGNER_CADRES.includes(ctx.actor.cadreCode) };
@@ -282,7 +282,7 @@ async function prepare(ctx: WriteCtx, input: ProtocolInput, clientKey: string) {
     pregnant: facts.pregnancy ? facts.pregnancy.state === "pregnant" : null,
   };
   const start = await startValues(ctx, input.patientUserId, rules, input.typed);
-  const startable = canStart(v, process.env.VERCEL_ENV);
+  const startable = canStart(v);
   const checks: ProtoCheck[] = protocolChecks(rules, {
     facts: pf,
     start: start.values,

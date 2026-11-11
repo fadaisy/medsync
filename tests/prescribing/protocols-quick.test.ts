@@ -137,16 +137,17 @@ describe("quick protocols", () => {
     expect(g.bands.find((b) => b.range === "14.1 to 18")!.text).toBe("6 units.");
   });
 
-  it("canStart: only a signed version starts in production; a draft starts elsewhere", () => {
-    expect(canStart({ status: "draft" }, "production")).toBe(false);
-    expect(canStart({ status: "signed" }, "production")).toBe(true);
-    expect(canStart({ status: "draft" }, "preview")).toBe(true);
-    expect(canStart({ status: "draft" }, undefined)).toBe(true);
-    const draft = protocolChecks(
-      seeds.dka!,
-      ctx({ start: { k: "4" }, signed: false, startable: false }),
-    );
-    expect(draft[0]).toMatchObject({ id: "signed", hard: true });
+  it("canStart: a draft starts only in local dev and tests, never on Vercel or in production", () => {
+    expect(canStart({ status: "signed" }, { NODE_ENV: "production", VERCEL: "1" })).toBe(true);
+    expect(canStart({ status: "draft" }, { NODE_ENV: "production" })).toBe(false);
+    expect(
+      canStart({ status: "draft" }, { NODE_ENV: "production", VERCEL_ENV: "production" }),
+    ).toBe(false);
+    // A Vercel preview may use the real database: never, whatever NODE_ENV says.
+    expect(canStart({ status: "draft" }, { NODE_ENV: "development", VERCEL: "1" })).toBe(false);
+    expect(canStart({ status: "draft" }, { NODE_ENV: "test", VERCEL_ENV: "preview" })).toBe(false);
+    expect(canStart({ status: "draft" }, { NODE_ENV: "development" })).toBe(true);
+    expect(canStart({ status: "draft" }, { NODE_ENV: "test" })).toBe(true);
   });
 
   it("the builder makes a draft's rules: steps, ranges, supply one a dose", () => {

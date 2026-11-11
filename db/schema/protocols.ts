@@ -1,8 +1,19 @@
 import { sql } from "drizzle-orm";
-import { check, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  check,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { authUsers } from "./_auth";
 import { hospitals } from "./hospitals";
+import { encounters } from "./scheduling";
 
 /**
  * Quick protocols (prescribing kit P3, F6; migration 0282, GATED). A protocol and its versions: the
@@ -90,5 +101,107 @@ export const protocolVersions = pgTable(
       "protocol_versions_signer_order",
       sql`${t.signer2UserId} IS NULL OR ${t.signer1UserId} IS NOT NULL`,
     ),
+  ],
+);
+
+/**
+ * Protocol charts (prescribing kit P4, F7; migration 0283, GATED). A running protocol for one
+ * patient. The events are the record; `endedAt` / `endReason` / `reopenedAt` mirror the latest end or
+ * reopen event for the "running" lists. A chart starts only from a signed version (trigger), except
+ * where the server marks the transaction for local development (`canStart`).
+ */
+export const protocolCharts = pgTable(
+  "protocol_charts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    hospitalId: uuid("hospital_id")
+      .notNull()
+      .references(() => hospitals.id, { onDelete: "restrict" }),
+    patientUserId: uuid("patient_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "restrict" }),
+    encounterId: uuid("encounter_id").references(() => encounters.id, { onDelete: "restrict" }),
+    protocolId: text("protocol_id")
+      .notNull()
+      .references(() => protocols.id, { onDelete: "restrict" }),
+    protocolVersionId: uuid("protocol_version_id")
+      .notNull()
+      .references(() => protocolVersions.id, { onDelete: "restrict" }),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    startedByUserId: uuid("started_by_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "restrict" }),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    endReason: text("end_reason"),
+    reopenedAt: timestamp("reopened_at", { withTimezone: true }),
+    clientKey: text("client_key"),
+  },
+  (t) => [
+    check(
+      "protocol_charts_end_reason_check",
+      sql`${t.endReason} IS NULL OR length(${t.endReason}) BETWEEN 2 AND 300`,
+    ),
+    check("protocol_charts_end_whole", sql`(${t.endedAt} IS NULL) = (${t.endReason} IS NULL)`),
+    uniqueIndex("protocol_charts_client_key")
+      .on(t.clientKey)
+      .where(sql`${t.clientKey} IS NOT NULL`),
+    uniqueIndex("protocol_charts_one_running")
+      .on(t.patientUserId, t.protocolId)
+      .where(sql`${t.endedAt} IS NULL`),
+    index("protocol_charts_running")
+      .on(t.hospitalId, t.startedAt)
+      .where(sql`${t.endedAt} IS NULL`),
+  ],
+);
+
+/** What was done on a chart: append-only (trigger); a mistake is a `reverse` event with a reason. */
+export const protocolChartEvents = pgTable(
+  "protocol_chart_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    chartId: uuid("chart_id")
+      .notNull()
+      .references(() => protocolCharts.id, { onDelete: "restrict" }),
+    hospitalId: uuid("hospital_id")
+      .notNull()
+      .references(() => hospitals.id, { onDelete: "restrict" }),
+    patientUserId: uuid("patient_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "restrict" }),
+    protocolVersionId: uuid("protocol_version_id")
+      .notNull()
+      .references(() => protocolVersions.id, { onDelete: "restrict" }),
+    type: text("type").notNull(),
+    payload: jsonb("payload")
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    actorUserId: uuid("actor_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "restrict" }),
+    actorRole: text("actor_role").notNull(),
+    actorCadre: text("actor_cadre").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+    reversesId: uuid("reverses_id"),
+    reason: text("reason"),
+    clientKey: text("client_key"),
+  },
+  (t) => [
+    check(
+      "protocol_chart_events_type_check",
+      sql`${t.type} IN ('start','end','reopen','mark','give','set','toggle','inv','value','weight','iv','order','send','slot','vitals','param_add','param_remove','note','reverse')`,
+    ),
+    check("protocol_chart_events_payload_check", sql`jsonb_typeof(${t.payload}) = 'object'`),
+    check("protocol_chart_events_actor_role_check", sql`${t.actorRole} IN ('dr','rn','ph')`),
+    check(
+      "protocol_chart_events_reverse_shape",
+      sql`(${t.type} = 'reverse') = (${t.reversesId} IS NOT NULL) AND (${t.type} <> 'reverse' OR length(btrim(coalesce(${t.reason}, ''))) >= 3)`,
+    ),
+    index("protocol_chart_events_chart").on(t.chartId, t.at),
+    uniqueIndex("protocol_chart_events_client_key")
+      .on(t.clientKey)
+      .where(sql`${t.clientKey} IS NOT NULL`),
+    uniqueIndex("protocol_chart_events_reversed_once")
+      .on(t.reversesId)
+      .where(sql`${t.reversesId} IS NOT NULL`),
   ],
 );

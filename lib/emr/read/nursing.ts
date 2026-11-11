@@ -2,7 +2,7 @@ import "server-only";
 
 import type { MarRow } from "@/lib/emr/charts/payload";
 import type { EmrTx } from "@/lib/emr/db";
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, ne } from "drizzle-orm";
 
 import { medicationAdministrationRecords, nurseTasks } from "@/db/schema/nurse-workspace";
 import { prescriptions } from "@/db/schema/prescribing";
@@ -94,6 +94,8 @@ export async function loadNurseMar(
         eq(prescriptions.isEmergency, false),
         ne(prescriptions.state, "cancelled"),
         eq(encounters.state, "in_progress"),
+        // Protocol lines are given on their protocol chart (kit P4), not on the MAR.
+        isNull(prescriptions.protocolVersionId),
       ),
     )
     .orderBy(prescriptions.createdAt);

@@ -483,12 +483,17 @@ export function verifyProtocol(
 
 /* ─── Starting (P1, P4) ──────────────────────────────────────────── */
 
+/** The environment `canStart` reads (a subset of `process.env`). */
+export type StartEnv = Partial<Record<"NODE_ENV" | "VERCEL" | "VERCEL_ENV", string>>;
+
 /**
- * Only a signed version starts in production (two clinician signatures, P1). Elsewhere (dev, Vercel
- * preview) a draft may start so the flow can be tried, still labelled "prototype values".
+ * Only a signed version starts (two clinician signatures, P1). An unsigned draft starts ONLY in
+ * local development and tests: not a production build, and not on any Vercel deployment (previews
+ * included, which may use the real database). Elsewhere it previews, labelled "prototype values".
  */
-export function canStart(version: { status: string }, vercelEnv: string | undefined): boolean {
-  return version.status === "signed" || vercelEnv !== "production";
+export function canStart(version: { status: string }, env: StartEnv = process.env): boolean {
+  if (version.status === "signed") return true;
+  return env.NODE_ENV !== "production" && !env.VERCEL && !env.VERCEL_ENV;
 }
 
 /* ─── The builder ────────────────────────────────────────────────── */

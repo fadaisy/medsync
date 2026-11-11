@@ -20,7 +20,7 @@ export const PROTOCOLS_COPY = {
   draft: "Draft",
   draftWarn: "Prototype values, need local sign-off. It can be previewed, but not started.",
   draftDev:
-    "Prototype values, need local sign-off. Not signed: it starts here only because this is not production.",
+    "Prototype values, need local sign-off. Not signed: it starts here only because this is local development.",
   back: "All protocols",
   source: "Source: {source}",
   slot: "Chart time slot: {slot}",
