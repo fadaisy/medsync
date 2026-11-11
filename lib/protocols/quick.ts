@@ -496,6 +496,9 @@ export function canStart(version: { status: string }, env: StartEnv = process.en
   return env.NODE_ENV !== "production" && !env.VERCEL && !env.VERCEL_ENV;
 }
 
+/** Local development and tests only (never production or a Vercel preview): the chart's dev clock. */
+export const isLocalDev = (env: StartEnv = process.env) => canStart({ status: "draft" }, env);
+
 /* ─── The builder ────────────────────────────────────────────────── */
 
 export const BuilderStep = z.object({

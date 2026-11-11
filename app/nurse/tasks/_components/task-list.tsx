@@ -8,6 +8,7 @@ import { Tag } from "@/components/medsync/tag";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NURSE_TASKS_COPY as C } from "@/content/nurse-tasks";
+import { CHART_COPY } from "@/content/protocol-charts";
 import { doneCannulaTask, saveTaskResult } from "@/lib/emr/actions/nursing";
 
 export interface TaskView {
@@ -20,6 +21,8 @@ export interface TaskView {
   asked: string;
   unit: string | null;
   doneLine: string | null;
+  /** A protocol chart's task: done on its chart (P4). */
+  href?: string | null;
 }
 
 const SELECT =
@@ -128,6 +131,10 @@ function OpenTask({ t }: { t: TaskView }) {
             {C.saveResult}
           </Button>
         </div>
+      ) : t.href ? (
+        <Link href={t.href} className="w-fit">
+          <Button className="h-11 w-full sm:w-auto">{CHART_COPY.openChart}</Button>
+        </Link>
       ) : null}
       {msg ? (
         <p role="alert" className="text-body-s text-foreground">

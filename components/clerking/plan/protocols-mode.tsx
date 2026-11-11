@@ -5,9 +5,11 @@ import type { ProtocolItem } from "@/lib/emr/write/protocols";
 import type { PrescribePlace } from "@/lib/prescribing/places";
 import type { BuilderStep, ProtoAnswer, ProtoCheck, StepKind } from "@/lib/protocols/quick";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CHART_COPY } from "@/content/protocol-charts";
 import { PROTOCOLS_COPY as C, fill, PROTOCOL_GROUPS } from "@/content/protocols";
 import {
   openProtocols,
@@ -404,6 +406,14 @@ function ProtocolView({
           </section>
 
           <PlanList plan={view.plan} />
+          {input.surface === "doctor" ? (
+            <Link
+              href={`/doctor/patients/${input.patientUserId}/protocols`}
+              className="text-teal-text text-body-s w-fit underline-offset-[3px] hover:underline"
+            >
+              {CHART_COPY.openFull}
+            </Link>
+          ) : null}
 
           <section aria-labelledby="pr-supply" className="flex flex-col gap-2">
             <h4 id="pr-supply" className="text-label text-foreground">

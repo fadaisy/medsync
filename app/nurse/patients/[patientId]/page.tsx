@@ -16,10 +16,11 @@ import { PatientClinicalRecordPanel } from "@/components/encounter/patient-clini
 import { Button } from "@/components/ui/button";
 import { fill } from "@/content/lab-workspace-v2";
 import { NURSE_TASKS_COPY } from "@/content/nurse-tasks";
+import { CHART_COPY } from "@/content/protocol-charts";
 import { db } from "@/db";
 import { clinicalObservations, medicationAdministrationRecords } from "@/db/schema/nurse-workspace";
 import { asClinicalReader } from "@/lib/emr/db";
-import { emrV1Live, emrV1LiveFor, nurseTasksLiveFor } from "@/lib/emr/feature";
+import { emrV1Live, emrV1LiveFor, nurseTasksLiveFor, protocolsLiveFor } from "@/lib/emr/feature";
 import { loadChart } from "@/lib/emr/read/chart";
 import { ivLinesFor } from "@/lib/emr/read/nursing";
 import { loadCfcVitals } from "@/lib/emr/read/vitals";
@@ -96,6 +97,15 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
     return (
       <>
         <EmrChart chart={chart} surface="nurse" orders={orders} />
+        {protocolsLiveFor(scope.hospitalId) ? (
+          <div className="mx-auto w-full max-w-[1200px] px-4 pb-2 md:px-8">
+            <Link href={`/nurse/patients/${chart.patientUserId}/protocols`}>
+              <Button type="button" variant="secondary" className="tap">
+                {CHART_COPY.areaTitle}
+              </Button>
+            </Link>
+          </div>
+        ) : null}
         {lines ? (
           <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-3 px-4 pb-4 md:px-8">
             <p className="text-body-s text-foreground">

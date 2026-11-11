@@ -19,6 +19,7 @@ import {
   undoChartEvent,
 } from "@/lib/emr/write/protocol-charts";
 import { PRESCRIBE_PLACES } from "@/lib/prescribing/places";
+import { isLocalDev } from "@/lib/protocols/quick";
 
 /**
  * Protocol charts (prescribing kit P4, F7–F8), behind PRESCRIBE_V2 (`protocolsLiveFor`). Zod →
@@ -33,6 +34,8 @@ const base = {
   patientUserId: uuid,
   chartId: uuid,
   clientKey,
+  /** Local development only: the chart clock moved this many minutes ahead (ignored elsewhere). */
+  devAt: z.number().int().min(0).max(100_000).optional(),
 };
 
 const gated =
@@ -40,7 +43,11 @@ const gated =
   (ctx: WriteCtx, input: I) => {
     if (!protocolsLiveFor(ctx.actor.hospitalId))
       throw new EmrWriteError("config", "Protocols are not switched on here.");
-    return write(ctx, input);
+    const devAt = (input as { devAt?: number }).devAt;
+    return write(
+      devAt && isLocalDev() ? { ...ctx, now: new Date(ctx.now.getTime() + devAt * 60_000) } : ctx,
+      input,
+    );
   };
 
 const key = z.string().min(1).max(60);

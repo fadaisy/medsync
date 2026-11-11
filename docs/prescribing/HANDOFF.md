@@ -241,3 +241,64 @@ change is a new draft version (signed versions are frozen).
   in production, sign-off rules in the server and [DB], sign and send, already running) and the builder draft.
 - Re-run green: prescribe-scenarios (3), prescribe-handoff (4), nurse-tasks-scenarios (3); unit `tests/prescribing`
   (138). drizzle-parity: the same 12 old failures; `protocols`, `protocol_versions`, `prescriptions` pass.
+
+---
+
+# P4 Protocol chart engine (F7–F8)
+
+Behind **`PRESCRIBE_V2`** (`protocolsLiveFor`), like P3. Flag off: no Protocols button, routes 404, the nurse Tasks
+page has no "Protocols running" section; protocol lines are off the MAR either way (they are given on the chart).
+
+## Owner to do
+
+1. Apply **0283** (GATED, after 0282): `cd /Users/airm1/Desktop/medsync-rx && npm run db:migrate`. Tables
+   `protocol_charts` and append-only `protocol_chart_events` (RLS forced, scoped SELECT, audited; reversal events
+   only; a chart is never deleted; [DB] P1: a chart starts only from a signed version unless the server marks the
+   transaction for local development), and the DKA seed's named numbers (§2.1) into `protocol_versions.seed`
+   (still DRAFT, unsigned).
+2. Sign the draft copy: `content/protocol-charts.ts` (`CHART_COPY`) and `content/protocol-charts-rules.ts`
+   (`STEPS_COPY`, `DKA_COPY`).
+3. Sign the DKA version in the app (two consultants, P3), after checking the seed numbers in 0283.
+
+## Where it landed
+
+| Item                     | Where                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Engine (pure, no I/O)    | `lib/protocols/engine/`: `fold` (events → state; reversals drop), `kit` (the prototype's `K`), `derive` (`deriveChart(version, chart, events, facts, now)` → phases, steps with To do/Needs you/Done, briefs, flow path, nurse tasks with due times, aims, grid with dashed due cells, trend panels with thresholds and target lines, vitals card, pharmacy rows, drug lines, log; `offeredActs`/`isOffered` = the P2 role gates and P6 blocks), `keys` (chart key ↔ record concept, lab groups)                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Rule modules             | `lib/protocols/rules/<id>.ts`, chosen by `rules.module`: **dka complete** (full `dkView` port, every number from the version's seed, zod-checked); **generic step engine complete** (`steps.ts`, the `pcView` path over the version's P3 step list: Given with checks, Started, result bands, check times, rules); **stubbed** (chart their 0282 step list through `steps.ts` until P5 ports their sheets): `hhs`, `hyperk`, `htn`, `mgso4`, `art`, `se`, `op`, `nac`, `ssi`. A version its module cannot read is shown blocked, nothing offered                                                                                                                                                                                                                                                                                                                                                                                 |
+| Server                   | `lib/emr/write/protocol-charts.ts`: `loadChart` (facts: plan facts, eGFR, problems, results by chart key, IV lines and open cannula task), `startChart` (prescribing cadre, `canStart`, one running per protocol), `chartAct` (re-derives, accepts only `isOffered` for the signed-in role; `iv` → `raiseNurseTask` iv_cannula; `order` → `placeOrders`; `weight` → `recordObservations` obs.weight), `recordSlot` (nurse; form keys only; required keys), `recordVitals` (nurse; GCS E/V/M ranges, total on the server), `changeParam` (doctor), `addChartNote`, `endChart` (doctor; reason; reopen), `undoChartEvent` (reversal with a reason, by the author or a doctor), `sendChartOrder` (doctor; through P3 `startProtocol` → `sendPrescribed(…, protocol)`), `syncTasks` (nurse_tasks type `protocol_step` follow the chart after every write; closed when the chart ends). Actions: `lib/emr/actions/protocol-charts.ts` |
+| Screens                  | Patient record › **Protocols** button (doctor, nurse) → `/{doctor,nurse}/patients/[id]/protocols` (running and ended charts, start picker for doctors) → `/…/protocols/[chartId]`: `components/protocols/chart-screen.tsx` (role from the cadre: doctor "Steps and orders", nurse "Tasks and recording", both "Monitoring chart"; pharmacy cadre: drug orders read-only), flow chart and list views, the open step in a centred `EditorDialog`, record form, vitals card with mini trends, trend panels on the EMR graph frame (`components/protocols/trends.tsx`), time grid, medicines with live stock (`stockLinesFor` → `stockLineWords`), notes, recent log with undo, end/reopen                                                                                                                                                                                                                                           |
+| Ward "Protocols running" | nurse Tasks page section (`loadRunningCharts`, `lib/emr/read/protocol-charts.ts`); protocol tasks show "Open the chart"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| P3 links                 | Prescribe › Protocols: "Open the full chart" (doctor surface)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| MAR                      | protocol lines (`protocol_version_id`) are not on the nurse's MAR; `recordDose` refuses them                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| canStart (safety fix)    | a draft starts only when `NODE_ENV` is not production and no `VERCEL`/`VERCEL_ENV` is set (so never on a Vercel preview)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+
+## Defaults taken
+
+- Role = cadre: ordering cadres → doctor, nurse cadres → nurse, any other clinical cadre → pharmacy (read-only). The
+  pharmacy workspace has no EMR access, so a pharmacist sees a chart only through a clinical surface.
+- The "+1 h / +6 h" prototype clock is a dev-only `?at=` minutes offset (`isLocalDev`); the actions take `devAt`
+  only there. Production ignores both.
+- Nurse tasks are raised on chart writes only (`ponytail:` a timed job would raise "Record hour n" without a write).
+- "Ordered, waiting" comes from the chart's own orders (`ponytail:` in `chartFacts`).
+- Slot and vitals values stay on the chart's events; only a weight goes to the record (`obs.weight`). Writing chart
+  values to results (and closing their orders) is P5 (`labKeys` is ready).
+- Send to the pharmacy uses place "ward" and the answers the server asks for in P3's dialog: from the chart, any
+  check that needs an answer refuses the send with its reason (use Prescribe › Protocols for those).
+
+## Not done, and why
+
+- Rule sheets for the nine stubbed modules: P5.
+- Browser check at 390/1440 px: needs 0282+0283 on a database and a doctor and nurse sign-in. Layouts are single
+  column under `lg`, tables and graphs scroll inside their own frame; render tests cover each role.
+- Chart values to results / closing orders, and the pharmacy workspace view of charts: P5.
+
+## Tests
+
+- `tests/prescribing/protocol-charts-engine.test.ts` (unit, 11): every one of the 10 seeds charts from its version;
+  stubs offer Given to the nurse only and refuse a dose without every check; a blocked version offers nothing; DKA:
+  confirm/severe/anion gap/start rate, IV line gate, K < 3.3 holds insulin, lines-checked before a raise + pump
+  task + lock, hypo task, resolution → end → no tasks, trends/gas due cells/GCS E/V/M/added SpO₂, undo.
+- `tests/prescribing/protocol-charts-ui.test.ts` (unit, 4): each role's screen renders; design rules on the files.
+- `tests/emr-db/protocol-charts-s7.test.ts` (PGlite, 2): S7 + S8 end to end through the server writes; S9 monitoring
+  chart and undo. `tests/emr-db/protocol-charts-db.test.ts` (PGlite, 3): seed numbers, P1 [DB], P3 append-only.
