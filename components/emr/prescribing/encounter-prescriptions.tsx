@@ -3,6 +3,7 @@ import "server-only";
 import type { PrescriptionItem } from "./views";
 import { and, eq } from "drizzle-orm";
 
+import { PharmacyCount } from "@/components/clerking/plan/pharmacy";
 import { PrescribeButton } from "@/components/clerking/plan/prescribe-session";
 import { encounters } from "@/db/schema/scheduling";
 import { resolveEmrAccess } from "@/lib/emr/access";
@@ -11,6 +12,8 @@ import { asClinicalWriter } from "@/lib/emr/db";
 import { emrPrescribingLive, prescribeV2LiveFor } from "@/lib/emr/feature";
 import { encounterPrescriptions, loadPrescribePatient } from "@/lib/emr/write/prescriptions";
 import { decrypt } from "@/lib/encryption";
+import { pharmacyDispensingLiveFor } from "@/lib/pharmacy/feature";
+import { loadPrescriberPharmacy } from "@/lib/pharmacy/review/prescriber-read";
 import { placeOfEncounter } from "@/lib/prescribing/places";
 import { PrescriptionsPanel } from "./panel";
 
@@ -59,15 +62,27 @@ export async function EncounterPrescriptions({
     },
   );
   if (!load) return null;
-  if (load.v2)
+  if (load.v2) {
+    // Kit F4: "n from the pharmacy" beside Prescribe, so a question is seen before the dialog opens.
+    const pharmacy = pharmacyDispensingLiveFor(actor.hospitalId)
+      ? await loadPrescriberPharmacy(actor, {
+          patientUserId: load.patientUserId,
+          encounterId,
+          now: new Date(),
+        }).catch(() => null)
+      : null;
     return (
-      <PrescribeButton
-        surface="doctor"
-        patientUserId={load.patientUserId}
-        encounterId={encounterId}
-        place={placeOfEncounter(load.type)}
-      />
+      <div className="flex flex-wrap items-start gap-2">
+        <PrescribeButton
+          surface="doctor"
+          patientUserId={load.patientUserId}
+          encounterId={encounterId}
+          place={placeOfEncounter(load.type)}
+        />
+        <PharmacyCount view={pharmacy} />
+      </div>
     );
+  }
   const items: PrescriptionItem[] = load.rows.map((r) => ({
     id: r.id,
     drugName: r.drugName,

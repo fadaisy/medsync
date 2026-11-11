@@ -1,4 +1,8 @@
 import type { AvailabilityOrigin } from "./pharmacy";
+import type { LineStatus } from "@/lib/pharmacy/lines";
+
+import { PRESCRIBE_HANDOFF_COPY } from "@/content/pharmacy-prescriber";
+import { keyOf } from "@/lib/pharmacy/lines";
 
 /**
  * The places that prescribe (prescribing kit F1). Each sets where the medicines are collected: the
@@ -34,15 +38,23 @@ export const PLACE: Record<
 export const placeOfEncounter = (encounterType: string | null): PrescribePlace =>
   encounterType === "inpatient" ? "ward" : "clinic";
 
-/** The prescriber's word for a placed line (kit F1). The pharmacy's own states arrive with P2. */
+/**
+ * The prescriber's word for a placed line (kit F1, F4). With the pharmacy's folded stage or outcome
+ * (lib/pharmacy/lines.ts, read where pharmacy dispensing is on) the kit's line states: Waiting at
+ * pharmacy, Pharmacy asks you, Owed, Handed over, Stopped. A resus line is given from the cart and
+ * never dispensed, so the pharmacy's fold does not apply to it.
+ */
 export function rxWord(
   r: { state: string; awaitingCosign: boolean; cosignWithheld: boolean },
   place: PrescribePlace,
+  pharmacy?: LineStatus | null,
 ): string {
   if (r.cosignWithheld) return "Co-sign withheld";
+  if (place === "resus") return r.state === "cancelled" ? "Stopped" : "Given from the cart";
+  if (pharmacy) return PRESCRIBE_HANDOFF_COPY.line[keyOf(pharmacy)];
   if (r.awaitingCosign) return "Waiting for co-sign";
   if (r.state === "cancelled") return "Stopped";
   if (r.state === "administered") return "Given";
   if (r.state === "completed") return "Completed";
-  return place === "resus" ? "Given from the cart" : "Waiting at pharmacy";
+  return "Waiting at pharmacy";
 }

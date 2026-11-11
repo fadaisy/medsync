@@ -4,6 +4,7 @@ import type { PlanBasketRx } from "@/lib/clerking/plan/draft";
 import type { WriteCtx } from "@/lib/emr/write/context";
 import type { PlanFacts } from "@/lib/emr/write/plan";
 import type { InteractionContext } from "@/lib/pharmacy/clinical/read";
+import type { PrescriberPharmacyView } from "@/lib/pharmacy/review/prescriber-read";
 import type { PrescribePlace } from "@/lib/prescribing/places";
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
 
@@ -18,7 +19,12 @@ import { loadPlanFacts } from "@/lib/emr/write/plan";
 import { encounterPrescriptions, prescribeRequirement } from "@/lib/emr/write/prescriptions";
 import { decrypt } from "@/lib/encryption";
 import { interactionContextFor } from "@/lib/pharmacy/clinical/read";
-import { pharmacyInteractionsLiveFor, pharmacyStockAnswerLiveFor } from "@/lib/pharmacy/feature";
+import {
+  pharmacyDispensingLiveFor,
+  pharmacyInteractionsLiveFor,
+  pharmacyStockAnswerLiveFor,
+} from "@/lib/pharmacy/feature";
+import { prescriberViewIn } from "@/lib/pharmacy/review/prescriber-read";
 import { readStock } from "@/lib/pharmacy/stock/availability-read";
 import { drugById } from "@/lib/prescribing/formulary";
 import { PLACE, rxWord } from "@/lib/prescribing/places";
@@ -55,6 +61,8 @@ export interface PrescribeSession {
   /** Draft order sets show outside production only. */
   production: boolean;
   placed: PlacedLine[];
+  /** Kit F4: the pharmacy's questions and each line's stage, where dispensing is on (doctor surface). */
+  pharmacy: PrescriberPharmacyView | null;
   home: string[];
   draft: { lines: PlanBasketRx[]; at: string } | null;
 }
@@ -135,6 +143,16 @@ export async function loadPrescribeSession(
       ),
     );
   const point = await collectPoint(ctx, input.place).catch(() => null);
+  // Kit F4: the line states and the pharmacy's questions, answered from "already prescribed".
+  const pharmacy =
+    actor.surface === "doctor" && pharmacyDispensingLiveFor(actor.hospitalId)
+      ? await prescriberViewIn(tx, actor, {
+          patientUserId: input.patientUserId,
+          encounterId: enc.id,
+          now,
+          lineIds: rows.map((r) => r.id),
+        })
+      : null;
   const name = profile
     ? [profile.first, profile.surname]
         .map((x) => (x ? decrypt(x) : ""))
@@ -164,9 +182,14 @@ export async function loadPrescribeSession(
       display: [r.drugName, r.dose, r.route, r.frequency, r.duration, r.quantity]
         .filter(Boolean)
         .join(" · "),
-      word: rxWord(r, (r.prescribePlace as PrescribePlace | null) ?? input.place),
+      word: rxWord(
+        r,
+        (r.prescribePlace as PrescribePlace | null) ?? input.place,
+        pharmacy?.lineStatus[r.id],
+      ),
       stoppable: r.state === "active",
     })),
+    pharmacy,
     home: home.flatMap((h) => {
       const d = h.code ? drugById(h.code) : undefined;
       return d ? [d.generic] : [];

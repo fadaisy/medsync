@@ -1,6 +1,7 @@
 "use client";
 
 import type { AllergyItems } from "./medicines";
+import type { PharmacyHandlers } from "./pharmacy";
 import type { PrescribeEnv, Target } from "./prescribe-dialog";
 import type { PlanBasketRx } from "@/lib/clerking/plan/draft";
 import type { PrescribeSession } from "@/lib/emr/read/prescribe";
@@ -25,6 +26,7 @@ import { PLACE } from "@/lib/prescribing/places";
 import { planChecks } from "@/lib/prescribing/plan-checks";
 import { FactChips } from "./medicines";
 import { Caution, inputClass, Tag } from "./parts";
+import { PharmacyCount, PharmacyItemBlock } from "./pharmacy";
 import { PlanPrescribeDialog } from "./prescribe-dialog";
 
 /**
@@ -140,6 +142,8 @@ export function PrescribeSessionDialog({
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [stopping, setStopping] = useState<{ id: string; reason: string } | null>(null);
+  // Kit F4: the line a pharmacy question is being answered "Change it" for.
+  const [replacing, setReplacing] = useState<PlanBasketRx["replaces"] | null>(null);
   const reasonId = useId();
   const s = session;
   const who = { surface, patientUserId: s.patientUserId, place: s.place };
@@ -167,6 +171,34 @@ export function PrescribeSessionDialog({
     const r = await openPrescribe({ ...who, encounterId: s.encounterId }).catch(() => null);
     if (r?.ok && r.data) setSession(r.data.session);
   };
+
+  // Kit F4: the pharmacy's questions, answered Keep / Change / Stop where the line is listed.
+  const pharmacy = s.pharmacy;
+  const placedIds = new Set(s.placed.map((p) => p.id));
+  const homeOf = (i: { lines: { id: string }[] }) =>
+    i.lines.find((l) => placedIds.has(l.id))?.id ?? null;
+  const elsewhere = pharmacy?.items.filter((i) => !homeOf(i)) ?? [];
+  const handlers: PharmacyHandlers = {
+    canChange: true,
+    inBasket: new Set(lines.flatMap((l) => (l.replaces ? [l.replaces.lineId] : []))),
+    onChange: (item, line) => {
+      setReplacing({
+        lineId: line.id,
+        ref: item.id,
+        kind: item.kind === "query" ? "query" : "notice",
+      });
+      setEditing({ target: { drugId: line.drugId }, at: null });
+    },
+    onDone: () => void reload(),
+  };
+  const asked = (lineId: string | null) =>
+    pharmacy
+      ? pharmacy.items
+          .filter((i) => homeOf(i) === lineId)
+          .map((i) => (
+            <PharmacyItemBlock key={i.id} item={i} view={pharmacy} canWrite handlers={handlers} />
+          ))
+      : null;
 
   const close = () => {
     // Kit F2: the basket is kept when the dialog closes unsent; "Resume" brings it back.
@@ -274,12 +306,15 @@ export function PrescribeSessionDialog({
         onClose={() => {
           setEditing(null);
           setQueue([]);
+          setReplacing(null);
         }}
-        onAdd={(rx) => {
+        onAdd={(added) => {
+          const rx = replacing ? { ...added, replaces: replacing } : added;
           setLines((x) =>
             editing.at == null ? [...x, rx] : x.map((l, i) => (i === editing.at ? rx : l)),
           );
           setEditing(null);
+          setReplacing(null);
           openNext(queue);
         }}
       />
@@ -448,9 +483,13 @@ export function PrescribeSessionDialog({
             </section>
 
             <section aria-labelledby="rx-already" className="flex flex-col gap-2">
-              <h3 id="rx-already" className="text-label text-foreground">
-                {C.already}
-              </h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 id="rx-already" className="text-label text-foreground">
+                  {C.already}
+                </h3>
+                <PharmacyCount view={pharmacy} />
+              </div>
+              {elsewhere.length ? asked(null) : null}
               {s.placed.length ? (
                 <ul className="flex flex-col">
                   {s.placed.map((p) => (
@@ -508,6 +547,7 @@ export function PrescribeSessionDialog({
                           </Button>
                         </div>
                       ) : null}
+                      {asked(p.id)}
                     </li>
                   ))}
                 </ul>

@@ -25,7 +25,7 @@ import { computeAgeYears } from "@/lib/age";
 import { DX_CATALOGUE, DX_TERM_IDS, TEST_UUIDS } from "@/lib/clerking/impression/load";
 import { chartsToOpen } from "@/lib/emr/charts/rules";
 import { readAsClinician } from "@/lib/emr/db";
-import { prescribeV2LiveFor } from "@/lib/emr/feature";
+import { nurseTasksLiveFor, prescribeV2LiveFor } from "@/lib/emr/feature";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { unitWords } from "@/lib/emr/unit-words";
 import { encrypt } from "@/lib/encryption";
@@ -41,6 +41,7 @@ import { supplyQuantity } from "@/lib/prescribing/supply";
 import { EmrWriteError, stampActivity } from "./context";
 import { loadEncounterDiagnoses } from "./diagnoses";
 import { recordMedicationStatements } from "./facts";
+import { raiseIvTaskOnSend } from "./nursing";
 import { openEncounter, placeOrders, replayed, requireCadre } from "./orders";
 import { answerQuery, chooseAlternative } from "./pharmacy-answers";
 import { prescribeRequirement, PRESCRIBING_CADRES, statementRoute } from "./prescriptions";
@@ -669,7 +670,11 @@ export async function placePlan(
   const facts = await loadPlanFacts(ctx.tx, input.patientUserId, ctx.now);
   // Already prescribed: this visit's prescriptions, then each one placed before it in this basket.
   const visit = await ctx.tx
-    .select({ drugId: prescriptions.drugId, drugName: prescriptions.drugName })
+    .select({
+      id: prescriptions.id,
+      drugId: prescriptions.drugId,
+      drugName: prescriptions.drugName,
+    })
     .from(prescriptions)
     .where(
       and(
@@ -678,6 +683,10 @@ export async function placePlan(
         eq(prescriptions.state, "active"),
       ),
     );
+  // A line placed to change one the pharmacy asked about is not "already prescribed" against that line.
+  const replaced = new Set(
+    input.prescriptions.flatMap((rx) => (rx.replaces ? [rx.replaces.lineId] : [])),
+  );
   const admission = await ctx.tx
     .select({ drugCode: medicationStatements.drugCode })
     .from(medicationStatements)
@@ -688,12 +697,14 @@ export async function placePlan(
       ),
     );
   const others: OtherMedicine[] = [
-    ...visit.map((v) => ({
-      drugId: v.drugId,
-      classId: drugById(v.drugId)?.class,
-      display: v.drugName,
-      source: "this_visit" as const,
-    })),
+    ...visit
+      .filter((v) => !replaced.has(v.id))
+      .map((v) => ({
+        drugId: v.drugId,
+        classId: drugById(v.drugId)?.class,
+        display: v.drugName,
+        source: "this_visit" as const,
+      })),
     ...admission.flatMap((a) => {
       const d = a.drugCode ? drugById(a.drugCode) : undefined;
       return d
@@ -822,6 +833,14 @@ export async function sendPrescribed(
     place: input.place,
   });
   await ctx.tx.delete(prescriptionDrafts).where(draftOf(ctx, input.encounterId, input.place));
+  // P2 (b): IV lines for a patient with no line give the nurses "Insert an IV cannula".
+  if (nurseTasksLiveFor(ctx.actor.hospitalId))
+    await raiseIvTaskOnSend(ctx, {
+      patientUserId: input.patientUserId,
+      encounterId: input.encounterId,
+      lines: input.lines,
+      prescriptionIds: placed.prescriptionIds,
+    });
   return placed;
 }
 
