@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { fillCatalogueFromResearchAction } from "@/lib/lab/measures-actions";
 import { LabButton } from "@/components/tide/work/button";
+import { fillCatalogueFromResearchAction } from "@/lib/lab/measures-actions";
 
 /**
  * Fill every component that has no unit yet from the MedSync catalogue research: the standard UCUM unit, its

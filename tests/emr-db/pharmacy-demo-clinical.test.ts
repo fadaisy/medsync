@@ -7,8 +7,8 @@ import type { DemoLane } from "./_pharmacy-demo";
 import { and, eq } from "drizzle-orm";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { demoLane } from "./_pharmacy-demo";
 import { laneOn } from "./_pglite";
+import { demoLane } from "./_pharmacy-demo";
 
 vi.mock("server-only", () => ({}));
 const held = vi.hoisted(() => ({ db: undefined as unknown }));
@@ -27,7 +27,8 @@ describe.skipIf(!laneOn)("Pharmacy demo: the clinical section (ADR 0450)", () =>
   };
   // Stewardship, reaction detail and reconciliation read on the app connection, as their pages now do (see "why
   // these pages leave the reader" below); the owner's transaction stands in for it here.
-  const owner = async <T>(fn: (tx: import("@/lib/emr/db").EmrTx) => Promise<T>) => d.lane.db.transaction(fn);
+  const owner = async <T>(fn: (tx: import("@/lib/emr/db").EmrTx) => Promise<T>) =>
+    d.lane.db.transaction(fn);
 
   beforeAll(async () => {
     d = await demoLane((db) => (held.db = db));
@@ -42,9 +43,21 @@ describe.skipIf(!laneOn)("Pharmacy demo: the clinical section (ADR 0450)", () =>
     expect(c.reaction_reports).toBe(6);
     expect(c.reconciliations).toBe(5);
     expect(c.ams_reviews).toBe(4);
-    const mine = ["content_entries", "content_signatures", "clinical_prescriptions", "mar_doses", "culture_orders", "ams_reviews",
-      "reaction_reports", "reaction_events", "admissions", "medication_statements", "reconciliations", "home_decisions",
-      "reconciliation_events"].reduce((n, k) => n + (c[k] ?? 0), 0);
+    const mine = [
+      "content_entries",
+      "content_signatures",
+      "clinical_prescriptions",
+      "mar_doses",
+      "culture_orders",
+      "ams_reviews",
+      "reaction_reports",
+      "reaction_events",
+      "admissions",
+      "medication_statements",
+      "reconciliations",
+      "home_decisions",
+      "reconciliation_events",
+    ].reduce((n, k) => n + (c[k] ?? 0), 0);
     expect(mine).toBeLessThan(400);
   });
 
@@ -59,13 +72,26 @@ describe.skipIf(!laneOn)("Pharmacy demo: the clinical section (ADR 0450)", () =>
   it("/clinical/content: every pack, in force, one signature, drafts and withdrawn; every source says Demo", async () => {
     const { pharmacyContentEntries } = await import("@/db/schema/pharmacy-clinical");
     const { PACKS } = await import("@/lib/pharmacy/clinical/content");
-    const rows = await read((tx) => tx.select().from(pharmacyContentEntries).where(and(eq(pharmacyContentEntries.hospitalId, d.h))));
-    for (const pack of PACKS) expect(rows.some((r) => r.pack === pack), pack).toBe(true);
-    expect(new Set(rows.map((r) => r.status))).toEqual(new Set(["in_force", "reviewer_signed", "draft", "withdrawn"]));
+    const rows = await read((tx) =>
+      tx
+        .select()
+        .from(pharmacyContentEntries)
+        .where(and(eq(pharmacyContentEntries.hospitalId, d.h))),
+    );
+    for (const pack of PACKS)
+      expect(
+        rows.some((r) => r.pack === pack),
+        pack,
+      ).toBe(true);
+    expect(new Set(rows.map((r) => r.status))).toEqual(
+      new Set(["in_force", "reviewer_signed", "draft", "withdrawn"]),
+    );
     expect(rows.every((r) => r.source?.startsWith("Demo"))).toBe(true);
     expect(rows.filter((r) => r.status === "in_force")).toHaveLength(9);
     const pairs = rows.filter((r) => r.pack === "interaction_pair");
-    expect(pairs.every((r) => String((r.payload as { effect: string }).effect).startsWith("Demo pair"))).toBe(true);
+    expect(
+      pairs.every((r) => String((r.payload as { effect: string }).effect).startsWith("Demo pair")),
+    ).toBe(true);
   });
 
   it("/clinical/interventions: the check-worth-signing minimum in force (version 2)", async () => {
@@ -93,7 +119,16 @@ describe.skipIf(!laneOn)("Pharmacy demo: the clinical section (ADR 0450)", () =>
     expect(f.byGroup.Watch.numerator).toBeGreaterThan(0);
     expect(f.noCulture!.numerator).toBeGreaterThan(0);
     const due = data.courses.filter(
-      (c) => !c.endedAt && reviewDue(c, groupOf(data.tags, c.medicineId, c.route) ?? "unknown", data.settings, data.reviews, now, "Africa/Kampala").due,
+      (c) =>
+        !c.endedAt &&
+        reviewDue(
+          c,
+          groupOf(data.tags, c.medicineId, c.route) ?? "unknown",
+          data.settings,
+          data.reviews,
+          now,
+          "Africa/Kampala",
+        ).due,
     );
     expect(due.length).toBeGreaterThan(0);
   });
@@ -102,7 +137,9 @@ describe.skipIf(!laneOn)("Pharmacy demo: the clinical section (ADR 0450)", () =>
     const { listReports, reportFor } = await import("@/lib/pharmacy/clinical/reaction-read");
     const list = await read((tx) => listReports(tx, d.h, new Date()));
     expect(list).toHaveLength(6);
-    expect(new Set(list.map((r) => r.state))).toEqual(new Set(["to_submit", "submitted", "closed_not_submitted"]));
+    expect(new Set(list.map((r) => r.state))).toEqual(
+      new Set(["to_submit", "submitted", "closed_not_submitted"]),
+    );
     expect(list.some((r) => r.pastDue)).toBe(true);
     expect(list.filter((r) => r.assessed)).toHaveLength(2);
     expect(list.every((r) => r.medicine !== "Not known")).toBe(true);
@@ -110,17 +147,28 @@ describe.skipIf(!laneOn)("Pharmacy demo: the clinical section (ADR 0450)", () =>
     const one = (await owner((tx) => reportFor(tx, d.h, submitted.id)))!;
     expect(one.causality).toBe("probable");
     expect(one.medicines[0]!.name).toBeTruthy();
-    expect(one.events.map((e) => e.kind)).toEqual(expect.arrayContaining(["causality", "submitted"]));
+    expect(one.events.map((e) => e.kind)).toEqual(
+      expect.arrayContaining(["causality", "submitted"]),
+    );
     expect(one.report.reactionText.startsWith("Demo note")).toBe(true);
   });
 
   it("/clinical/reconciliation (+ [id]): five admissions, open, confirmed, reopened and closed, with signed rules", async () => {
-    const { factsFor, listReconciliations, rulesFor } = await import("@/lib/pharmacy/clinical/reconciliation-read");
+    const { factsFor, listReconciliations, rulesFor } =
+      await import("@/lib/pharmacy/clinical/reconciliation-read");
     const now = new Date();
-    const [list, rules] = await owner((tx) => Promise.all([listReconciliations(tx, d.h, now), rulesFor(tx, d.h)]));
+    const [list, rules] = await owner((tx) =>
+      Promise.all([listReconciliations(tx, d.h, now), rulesFor(tx, d.h)]),
+    );
     expect(rules.signed).toBe(true);
     expect(list).toHaveLength(5);
-    expect(list.map((r) => r.state).sort()).toEqual(["closed", "confirmed", "open", "open", "reopened"]);
+    expect(list.map((r) => r.state).sort()).toEqual([
+      "closed",
+      "confirmed",
+      "open",
+      "open",
+      "reopened",
+    ]);
     for (const r of list) {
       expect(r.facts.before.length).toBeGreaterThanOrEqual(3);
       expect(r.facts.home.length).toBeGreaterThanOrEqual(2);
@@ -137,7 +185,10 @@ describe.skipIf(!laneOn)("Pharmacy demo: the clinical section (ADR 0450)", () =>
     const { reportFor, listReports } = await import("@/lib/pharmacy/clinical/reaction-read");
     const { listReconciliations } = await import("@/lib/pharmacy/clinical/reconciliation-read");
     // accessible_patient_ids() gives a pharmacist no ward patient: the courses are filtered out.
-    expect((await read((tx) => stewardshipData(tx, d.h, new Date(Date.now() - 30 * 86_400_000)))).courses).toHaveLength(0);
+    expect(
+      (await read((tx) => stewardshipData(tx, d.h, new Date(Date.now() - 30 * 86_400_000))))
+        .courses,
+    ).toHaveLength(0);
     // patient_profiles grants the reader no name columns; admissions grants the reader nothing.
     const [first] = await read((tx) => listReports(tx, d.h, new Date()));
     await expect(read((tx) => reportFor(tx, d.h, first!.id))).rejects.toThrow();
@@ -149,7 +200,9 @@ describe.skipIf(!laneOn)("Pharmacy demo: the clinical section (ADR 0450)", () =>
     const { reportFor, listReports } = await import("@/lib/pharmacy/clinical/reaction-read");
     const { listReconciliations } = await import("@/lib/pharmacy/clinical/reconciliation-read");
     const db = d.lane.db;
-    expect((await stewardshipData(db, d.h, new Date(Date.now() - 30 * 86_400_000))).courses.length).toBeGreaterThan(0);
+    expect(
+      (await stewardshipData(db, d.h, new Date(Date.now() - 30 * 86_400_000))).courses.length,
+    ).toBeGreaterThan(0);
     const [first] = await read((tx) => listReports(tx, d.h, new Date()));
     expect((await reportFor(db, d.h, first!.id))?.patient.fullName).toMatch(/^Demo patient/);
     expect(await listReconciliations(db, d.h, new Date())).toHaveLength(5);

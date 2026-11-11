@@ -16,9 +16,12 @@ const count = (pattern: string) =>
   );
 
 describe("Tide guards", () => {
-  it("no new native date inputs", () => expect(count('type="(date|datetime-local)"')).toBeLessThanOrEqual(37));
-  it("no new left-edge state bars", () => expect(count("border-l-(2|4|\\[)")).toBeLessThanOrEqual(4));
-  it("no new raw hex in components", () => expect(count("#[0-9a-fA-F]{6}\\b")).toBeLessThanOrEqual(15));
+  it("no new native date inputs", () =>
+    expect(count('type="(date|datetime-local)"')).toBeLessThanOrEqual(37));
+  it("no new left-edge state bars", () =>
+    expect(count("border-l-(2|4|\\[)")).toBeLessThanOrEqual(4));
+  it("no new raw hex in components", () =>
+    expect(count("#[0-9a-fA-F]{6}\\b")).toBeLessThanOrEqual(15));
 });
 
 describe("TIDE_SURFACES", () => {

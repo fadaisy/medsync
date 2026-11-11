@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { LABWS2_DOWNTIME } from "@/content/lab-workspace-v2-downtime";
 import {
@@ -9,7 +10,6 @@ import {
   recordPeriodAction,
   reserveFormsAction,
 } from "@/lib/lab/downtime-actions";
-import { LabButton } from "@/components/tide/work/button";
 import { DateField, DateTimeField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 

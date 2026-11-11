@@ -13,7 +13,10 @@ import { fail } from "@/lib/pharmacy/stores/write";
 
 /** Outpatient follow-up: the pill count before a refill and the antibiotic course check-in. Both append-only. */
 type Opts = { database?: EmrDb; now?: Date };
-export const OP_NEED: PharmacyNeed = { permission: ["pharmacy.dispense", "pharmacy.review"], point: "none" };
+export const OP_NEED: PharmacyNeed = {
+  permission: ["pharmacy.dispense", "pharmacy.review"],
+  point: "none",
+};
 
 async function lineAt(ctx: PharmacyCtx, rxId: string) {
   const [p] = await ctx.tx
@@ -30,14 +33,28 @@ export const PillCountInput = z.object({
 });
 
 export const recordPillCount = (actor: PharmacyActor, raw: unknown, o?: Opts) =>
-  runPatientsWrite(PillCountInput, raw, actor, OP_NEED, async (ctx, i) => {
-    await lineAt(ctx, i.rxId);
-    await ctx.tx
-      .insert(pharmacyOpPillCounts)
-      .values({ id: i.clientKey, hospitalId: ctx.actor.hospitalId, prescriptionId: i.rxId, broughtBack: i.back, countedBy: ctx.actor.userId, countedAt: ctx.now })
-      .onConflictDoNothing();
-    return { id: i.clientKey };
-  }, o);
+  runPatientsWrite(
+    PillCountInput,
+    raw,
+    actor,
+    OP_NEED,
+    async (ctx, i) => {
+      await lineAt(ctx, i.rxId);
+      await ctx.tx
+        .insert(pharmacyOpPillCounts)
+        .values({
+          id: i.clientKey,
+          hospitalId: ctx.actor.hospitalId,
+          prescriptionId: i.rxId,
+          broughtBack: i.back,
+          countedBy: ctx.actor.userId,
+          countedAt: ctx.now,
+        })
+        .onConflictDoNothing();
+      return { id: i.clientKey };
+    },
+    o,
+  );
 
 export const CheckInInput = z
   .object({
@@ -51,21 +68,28 @@ export const CheckInInput = z
   .refine((v) => v.status !== "taking" || v.missed === 0);
 
 export const recordCheckIn = (actor: PharmacyActor, raw: unknown, o?: Opts) =>
-  runPatientsWrite(CheckInInput, raw, actor, OP_NEED, async (ctx, i) => {
-    await lineAt(ctx, i.rxId);
-    await ctx.tx
-      .insert(pharmacyOpCheckins)
-      .values({
-        id: i.clientKey,
-        hospitalId: ctx.actor.hospitalId,
-        prescriptionId: i.rxId,
-        how: i.how,
-        status: i.status,
-        missed: i.missed,
-        sideEffects: i.sideEffects.filter((s) => s !== "None"),
-        checkedBy: ctx.actor.userId,
-        checkedAt: ctx.now,
-      })
-      .onConflictDoNothing();
-    return { id: i.clientKey };
-  }, o);
+  runPatientsWrite(
+    CheckInInput,
+    raw,
+    actor,
+    OP_NEED,
+    async (ctx, i) => {
+      await lineAt(ctx, i.rxId);
+      await ctx.tx
+        .insert(pharmacyOpCheckins)
+        .values({
+          id: i.clientKey,
+          hospitalId: ctx.actor.hospitalId,
+          prescriptionId: i.rxId,
+          how: i.how,
+          status: i.status,
+          missed: i.missed,
+          sideEffects: i.sideEffects.filter((s) => s !== "None"),
+          checkedBy: ctx.actor.userId,
+          checkedAt: ctx.now,
+        })
+        .onConflictDoNothing();
+      return { id: i.clientKey };
+    },
+    o,
+  );

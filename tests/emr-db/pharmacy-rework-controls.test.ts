@@ -30,7 +30,8 @@ const refusal = async (p: Promise<unknown>) => {
     return `${err.message} ${err.cause?.message ?? ""}`;
   }
 };
-const id = async (pg: Pg, q: string, p?: unknown[]) => (await pg.query<{ id: string }>(q, p)).rows[0]!.id;
+const id = async (pg: Pg, q: string, p?: unknown[]) =>
+  (await pg.query<{ id: string }>(q, p)).rows[0]!.id;
 
 describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–7)", () => {
   let lane: Lane;
@@ -81,13 +82,30 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
     lane = await bootLane();
     pg = lane.pg;
     f.h = await hospital(pg, "Rework controls");
-    for (const k of ["incharge", "tech", "nightTech", "nurse", "nurse2", "prescriber"]) f[k] = await authUser(pg, k);
+    for (const k of ["incharge", "tech", "nightTech", "nurse", "nurse2", "prescriber"])
+      f[k] = await authUser(pg, k);
     const pharmacy = await department(pg, f.h, "Pharmacy");
     const paeds = await department(pg, f.h, "Paediatrics");
-    f.store = await id(pg, `INSERT INTO public.pharmacy_locations (hospital_id, kind, department_id, name) VALUES ($1, 'store', $2, 'Main store') RETURNING id`, [f.h, pharmacy]);
-    f.opd = await id(pg, `INSERT INTO public.pharmacy_locations (hospital_id, kind, department_id, name) VALUES ($1, 'store', $2, 'OPD dispensary') RETURNING id`, [f.h, await department(pg, f.h, "OPD")]);
-    const ward = await id(pg, `INSERT INTO public.hospital_wards (hospital_id, department_id, name, slug) VALUES ($1, $2, 'Paediatrics', $3) RETURNING id`, [f.h, paeds, `peds-${randomUUID().slice(0, 6)}`]);
-    f.peds = await id(pg, `INSERT INTO public.pharmacy_locations (hospital_id, kind, ward_id, department_id, name, ward_supply_model, live_at) VALUES ($1, 'ward', $2, $3, 'Paediatrics', 'stocked', now()) RETURNING id`, [f.h, ward, paeds]);
+    f.store = await id(
+      pg,
+      `INSERT INTO public.pharmacy_locations (hospital_id, kind, department_id, name) VALUES ($1, 'store', $2, 'Main store') RETURNING id`,
+      [f.h, pharmacy],
+    );
+    f.opd = await id(
+      pg,
+      `INSERT INTO public.pharmacy_locations (hospital_id, kind, department_id, name) VALUES ($1, 'store', $2, 'OPD dispensary') RETURNING id`,
+      [f.h, await department(pg, f.h, "OPD")],
+    );
+    const ward = await id(
+      pg,
+      `INSERT INTO public.hospital_wards (hospital_id, department_id, name, slug) VALUES ($1, $2, 'Paediatrics', $3) RETURNING id`,
+      [f.h, paeds, `peds-${randomUUID().slice(0, 6)}`],
+    );
+    f.peds = await id(
+      pg,
+      `INSERT INTO public.pharmacy_locations (hospital_id, kind, ward_id, department_id, name, ward_supply_model, live_at) VALUES ($1, 'ward', $2, $3, 'Paediatrics', 'stocked', now()) RETURNING id`,
+      [f.h, ward, paeds],
+    );
     await roster(f.incharge!, null, "in_charge", "call");
     await roster(f.tech!, f.opd!, "technician", "call");
     await roster(f.nightTech!, f.opd!, "technician", "night");
@@ -132,7 +150,9 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
     expect(Number(row.residue_mg)).toBe(5);
     expect(row.disposed).toBe(true);
     const data = await cdRead.loadCd(lane.db, f.h!);
-    const reg = cdDerive.cdRegisters(data.moves).find((x) => x.medicineId === "fx_morphine" && x.placeId === f.peds);
+    const reg = cdDerive
+      .cdRegisters(data.moves)
+      .find((x) => x.medicineId === "fx_morphine" && x.placeId === f.peds);
     expect(reg?.balance).toBe(9);
     expect(data.moves.find((m) => m.dose?.id === r.id)?.witness).not.toBeUndefined();
   });
@@ -172,7 +192,14 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
     await as(f.tech!, (w) => cases.takeCase(w, { caseId: c.id }));
     expect(
       await refusal(
-        as(f.tech!, (w) => cases.submitFindings(w, { caseId: c.id, cause: "Given, not recorded", actions: ["Late entry made"], prevent: ["Extra daily count"] })),
+        as(f.tech!, (w) =>
+          cases.submitFindings(w, {
+            caseId: c.id,
+            cause: "Given, not recorded",
+            actions: ["Late entry made"],
+            prevent: ["Extra daily count"],
+          }),
+        ),
       ),
     ).toMatch(/fix the number/);
     const late = async (at: Date) => {
@@ -211,34 +238,65 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
       [earlier, check.id],
     );
     expect(mv).toEqual({ kind: "ward_used", late: true, inside: true });
-    expect((await one<{ fixed: boolean }>(`SELECT fixed_at IS NOT NULL AS fixed FROM public.pharmacy_cases WHERE id = $1`, [c.id])).fixed).toBe(true);
+    expect(
+      (
+        await one<{ fixed: boolean }>(
+          `SELECT fixed_at IS NOT NULL AS fixed FROM public.pharmacy_cases WHERE id = $1`,
+          [c.id],
+        )
+      ).fixed,
+    ).toBe(true);
 
     // Sign-off: not before submission, never by a non-in-charge; the in-charge signs off the owner's findings.
-    expect(await refusal(as(f.incharge!, (w) => cases.signOffCase(w, { caseId: c.id })))).toMatch(/pcs_signed|sign-off needs/);
-    await as(f.tech!, (w) => cases.submitFindings(w, { caseId: c.id, cause: "Given, not recorded", actions: ["Late entry made"], prevent: ["Extra daily count"] }));
-    expect(await refusal(as(f.tech!, (w) => cases.signOffCase(w, { caseId: c.id })))).toMatch(/only the in-charge/);
+    expect(await refusal(as(f.incharge!, (w) => cases.signOffCase(w, { caseId: c.id })))).toMatch(
+      /pcs_signed|sign-off needs/,
+    );
+    await as(f.tech!, (w) =>
+      cases.submitFindings(w, {
+        caseId: c.id,
+        cause: "Given, not recorded",
+        actions: ["Late entry made"],
+        prevent: ["Extra daily count"],
+      }),
+    );
+    expect(await refusal(as(f.tech!, (w) => cases.signOffCase(w, { caseId: c.id })))).toMatch(
+      /only the in-charge/,
+    );
     await as(f.incharge!, (w) => cases.signOffCase(w, { caseId: c.id }));
     const done = await one<{ closed: boolean; self: boolean }>(
       `SELECT signed_off_at IS NOT NULL AS closed, self_signed AS self FROM public.pharmacy_cases WHERE id = $1`,
       [c.id],
     );
     expect(done).toEqual({ closed: true, self: false });
-    const kinds = (await pg.query<{ kind: string }>(`SELECT kind FROM public.pharmacy_case_events WHERE case_id = $1 ORDER BY created_at, kind`, [c.id])).rows.map((r) => r.kind);
-    expect(kinds).toEqual(expect.arrayContaining(["opened", "taken", "fixed", "submitted", "signed_off"]));
-    await expect(pg.query(`DELETE FROM public.pharmacy_case_events WHERE case_id = $1`, [c.id])).rejects.toThrow(/append-only/);
+    const kinds = (
+      await pg.query<{ kind: string }>(
+        `SELECT kind FROM public.pharmacy_case_events WHERE case_id = $1 ORDER BY created_at, kind`,
+        [c.id],
+      )
+    ).rows.map((r) => r.kind);
+    expect(kinds).toEqual(
+      expect.arrayContaining(["opened", "taken", "fixed", "submitted", "signed_off"]),
+    );
+    await expect(
+      pg.query(`DELETE FROM public.pharmacy_case_events WHERE case_id = $1`, [c.id]),
+    ).rejects.toThrow(/append-only/);
   });
 
   it("test 6 and scenario 7: own station only; a 17:00 handover with a controlled line writes a balance check once accepted", async () => {
     await stock(f.morphine!, f.opd!, 6);
     await stock(f.morphine!, f.store!, 20);
     const now = Date.now();
-    const slot = hoDerive.slotsBetween(now - 24 * HOUR, now + 24 * HOUR).find((s) => hoDerive.localHour(s) === 17)!;
+    const slot = hoDerive
+      .slotsBetween(now - 24 * HOUR, now + 24 * HOUR)
+      .find((s) => hoDerive.localHour(s) === 17)!;
     const input = (locationId: string, toUserId = f.nightTech!) => ({
       clientKey: randomUUID(),
       locationId,
       toUserId,
       slotAt: new Date(slot),
-      counts: [{ medicineId: "fx_morphine", counted: locationId === f.opd ? 6 : 20, highRisk: false }],
+      counts: [
+        { medicineId: "fx_morphine", counted: locationId === f.opd ? 6 : 20, highRisk: false },
+      ],
       keys: true as const,
       sealNo: null,
       sealNew: false,
@@ -246,14 +304,32 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
       notes: null,
     });
     // The app refuses another station; so does the database, even when the app is bypassed.
-    expect(await refusal(as(f.tech!, (w) => ho.handOverStation({ ...w, station: f.opd! }, input(f.store!))))).toMatch(/station you are working at/);
-    expect(await refusal(as(f.tech!, (w) => ho.handOverStation({ ...w, station: f.store! }, input(f.store!, f.incharge!))))).toMatch(/only your own station/);
+    expect(
+      await refusal(
+        as(f.tech!, (w) => ho.handOverStation({ ...w, station: f.opd! }, input(f.store!))),
+      ),
+    ).toMatch(/station you are working at/);
+    expect(
+      await refusal(
+        as(f.tech!, (w) =>
+          ho.handOverStation({ ...w, station: f.store! }, input(f.store!, f.incharge!)),
+        ),
+      ),
+    ).toMatch(/only your own station/);
     // The in-charge may hand over any station.
     await as(f.incharge!, (w) => ho.handOverStation({ ...w, station: null }, input(f.opd!)));
 
-    const h = await as(f.tech!, (w) => ho.handOverStation({ ...w, station: f.opd! }, input(f.opd!)));
-    expect(await pg.query(`SELECT 1 FROM public.pharmacy_cd_checks WHERE shift_handover_id = $1`, [h.id]).then((r) => r.rows.length)).toBe(0);
-    expect(await refusal(as(f.tech!, (w) => ho.acceptHandover(w, { handoverId: h.id })))).toMatch(/not waiting for you/);
+    const h = await as(f.tech!, (w) =>
+      ho.handOverStation({ ...w, station: f.opd! }, input(f.opd!)),
+    );
+    expect(
+      await pg
+        .query(`SELECT 1 FROM public.pharmacy_cd_checks WHERE shift_handover_id = $1`, [h.id])
+        .then((r) => r.rows.length),
+    ).toBe(0);
+    expect(await refusal(as(f.tech!, (w) => ho.acceptHandover(w, { handoverId: h.id })))).toMatch(
+      /not waiting for you/,
+    );
     await as(f.nightTech!, (w) => ho.acceptHandover(w, { handoverId: h.id }));
     const check = await one<{ n: number; expected: number; counted: number }>(
       `SELECT count(*)::int AS n, max(l.expected) AS expected, max(l.counted) AS counted
@@ -265,7 +341,11 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
     // The check counts as the place's last check.
     const data = await cdRead.loadCd(lane.db, f.h!);
     expect(cdDerive.lastCheck(data.checks, f.opd!)?.handover).toBe(true);
-    await expect(pg.query(`UPDATE public.pharmacy_shift_handovers SET notes = 'changed' WHERE id = $1`, [h.id])).rejects.toThrow(/accepted once/);
+    await expect(
+      pg.query(`UPDATE public.pharmacy_shift_handovers SET notes = 'changed' WHERE id = $1`, [
+        h.id,
+      ]),
+    ).rejects.toThrow(/accepted once/);
   });
 
   it("test 6: a missed slot is flagged 2 h after it, and only the in-charge sees another station's miss", async () => {
@@ -274,7 +354,9 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
       { id: "w3", name: "Ward 3", kind: "ward" },
     ];
     const now = Date.now();
-    const s8 = hoDerive.slotsBetween(now - 30 * HOUR, now).find((s) => hoDerive.localHour(s) === 8)!;
+    const s8 = hoDerive
+      .slotsBetween(now - 30 * HOUR, now)
+      .find((s) => hoDerive.localHour(s) === 8)!;
     const handover = (placeId: string, slot: number) => ({
       id: `${placeId}${slot}`,
       placeId,
@@ -293,7 +375,8 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
     const all = hoDerive.slotsBetween(now - 40 * HOUR, now + HOUR);
     const opdDone = all.map((s) => handover("opd", s));
     const w3Done = all.filter((s) => s !== s8).map((s) => handover("w3", s));
-    const at = (t: number) => hoDerive.hoFlags({ places, handovers: [...opdDone, ...w3Done], misses: [], now: t });
+    const at = (t: number) =>
+      hoDerive.hoFlags({ places, handovers: [...opdDone, ...w3Done], misses: [], now: t });
     expect(at(s8 + HOUR).filter((x) => x.k === "miss")).toEqual([]);
     const flags = at(s8 + 2 * HOUR + 60_000);
     expect(flags.filter((x) => x.k === "miss").map((x) => x.placeId)).toEqual(["w3"]);
@@ -306,9 +389,19 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
     const dept = await department(pg, h, "Medicine");
     await staff(pg, { hospitalId: h, departmentId: dept, cadre: "PHARMACIST" });
     const b = await staff(pg, { hospitalId: h, departmentId: dept, cadre: "NURSE" });
-    await pg.query(`INSERT INTO public.pharmacy_locations (hospital_id, kind, department_id, name) VALUES ($1, 'store', $2, 'Seed store')`, [h, dept]);
-    const ward = await id(pg, `INSERT INTO public.hospital_wards (hospital_id, department_id, name, slug) VALUES ($1, $2, 'Ward 3', $3) RETURNING id`, [h, dept, `w3-${randomUUID().slice(0, 6)}`]);
-    await pg.query(`INSERT INTO public.pharmacy_locations (hospital_id, kind, ward_id, department_id, name, ward_supply_model, live_at) VALUES ($1, 'ward', $2, $3, 'Ward 3', 'stocked', now())`, [h, ward, dept]);
+    await pg.query(
+      `INSERT INTO public.pharmacy_locations (hospital_id, kind, department_id, name) VALUES ($1, 'store', $2, 'Seed store')`,
+      [h, dept],
+    );
+    const ward = await id(
+      pg,
+      `INSERT INTO public.hospital_wards (hospital_id, department_id, name, slug) VALUES ($1, $2, 'Ward 3', $3) RETURNING id`,
+      [h, dept, `w3-${randomUUID().slice(0, 6)}`],
+    );
+    await pg.query(
+      `INSERT INTO public.pharmacy_locations (hospital_id, kind, ward_id, department_id, name, ward_supply_model, live_at) VALUES ($1, 'ward', $2, $3, 'Ward 3', 'stocked', now())`,
+      [h, ward, dept],
+    );
     const { seedControls } = await import("@/scripts/seed-pharmacy-dev/controls");
     const r = await seedControls(lane.db, h);
     expect(r).toMatchObject({ doses: 4, cases: 2 });
@@ -324,15 +417,25 @@ describe.skipIf(!laneOn)("Pharmacy rework: Controls (tests 5–6, scenarios 5–
       ["manual", "high", true],
     ]);
     const { controlsTodayItems } = await import("@/lib/pharmacy/cd/today");
-    const items = await controlsTodayItems({ hospitalId: h, userId: b.userId, station: null }, lane.db);
+    const items = await controlsTodayItems(
+      { hospitalId: h, userId: b.userId, station: null },
+      lane.db,
+    );
     expect(items.map((i) => i.kind)).toContain("case");
     expect(items.map((i) => i.kind)).toContain("cd");
-    const detail = await (await import("@/lib/pharmacy/cases/read")).caseDetail(lane.db, h, caseRows.find((c) => c.sourceType === "cd_check")!.id);
+    const detail = await (
+      await import("@/lib/pharmacy/cases/read")
+    ).caseDetail(lane.db, h, caseRows.find((c) => c.sourceType === "cd_check")!.id);
     expect(detail.events.map((e) => e.kind)).toEqual(["opened", "assigned"]);
     const hos = await (await import("@/lib/pharmacy/handover/read")).loadHandovers(lane.db, h);
     expect(hos.handovers[0]?.acceptedAt).not.toBeNull();
-    const draft = await (await import("@/lib/pharmacy/handover/read")).handoverDraft(lane.db, h, hos.handovers[0]!.placeId, new Date());
-    expect(draft.items.map((i) => [i.medicineId, i.expected])).toEqual([["proto_diaz", 20], ["proto_morph", 20]]);
+    const draft = await (
+      await import("@/lib/pharmacy/handover/read")
+    ).handoverDraft(lane.db, h, hos.handovers[0]!.placeId, new Date());
+    expect(draft.items.map((i) => [i.medicineId, i.expected])).toEqual([
+      ["proto_diaz", 20],
+      ["proto_morph", 20],
+    ]);
     expect(draft.people.map((p) => p.userId)).toContain(b.userId);
   });
 });

@@ -9,7 +9,14 @@ import { CTL } from "@/content/pharmacy-rework-controls";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
-import { CASE_FILTERS, caseFilter, caseList, caseStatus, dur, isOverdue } from "@/lib/pharmacy/cases/derive";
+import {
+  CASE_FILTERS,
+  caseFilter,
+  caseList,
+  caseStatus,
+  dur,
+  isOverdue,
+} from "@/lib/pharmacy/cases/derive";
 import { caseDetail, loadCases } from "@/lib/pharmacy/cases/read";
 import { when } from "@/lib/pharmacy/cd/sql";
 import { isInCharge } from "@/lib/pharmacy/cd/store";
@@ -34,7 +41,9 @@ const casesPage = cache(async (hospitalId: string, userId: string, caseId: strin
 
 const durWords = (ms: number) => {
   const x = dur(ms);
-  return fill(CTL.common[x.unit === "min" ? "minutes" : x.unit === "h" ? "hours" : "days"], { n: x.n });
+  return fill(CTL.common[x.unit === "min" ? "minutes" : x.unit === "h" ? "hours" : "days"], {
+    n: x.n,
+  });
 };
 
 /**
@@ -44,7 +53,9 @@ const durWords = (ms: number) => {
 export default async function CasesPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
   const actor = await requirePharmacyActor();
-  const f = (CASE_FILTERS as readonly string[]).includes(one(sp.f) ?? "") ? (one(sp.f) as CaseFilter) : "open";
+  const f = (CASE_FILTERS as readonly string[]).includes(one(sp.f) ?? "")
+    ? (one(sp.f) as CaseFilter)
+    : "open";
   const wanted = one(sp.case);
   const caseId = wanted && /^[0-9a-f-]{36}$/.test(wanted) ? wanted : null;
   const data = await casesPage(actor.hospitalId, actor.userId, caseId);
@@ -53,17 +64,34 @@ export default async function CasesPage({ searchParams }: { searchParams: Promis
   const shown = all.filter(caseFilter(f, actor.userId, now));
   const closed = all.filter((c) => c.signedOffAt);
   const avg = closed.length
-    ? closed.reduce((a, c) => a + (c.signedOffAt!.getTime() - c.createdAt.getTime()), 0) / closed.length
+    ? closed.reduce((a, c) => a + (c.signedOffAt!.getTime() - c.createdAt.getTime()), 0) /
+      closed.length
     : null;
   const selected = caseId ? all.find((c) => c.id === caseId) : undefined;
   const href = (k: string) => `/pharmacy/controls/cases?f=${k}`;
   return (
     <div className="flex flex-col gap-4">
       <KeyFigureGrid>
-        <KeyFigure label={C.kpiOpen} value={all.filter(caseFilter("open", actor.userId, now)).length} href={href("open")} />
-        <KeyFigure label={C.kpiNew} value={all.filter(caseFilter("new", actor.userId, now)).length} href={href("new")} />
-        <KeyFigure label={C.kpiOverdue} value={all.filter(caseFilter("overdue", actor.userId, now)).length} href={href("overdue")} />
-        <KeyFigure label={C.kpiAvg} value={avg === null ? null : durWords(avg)} sub={fill(C.kpiAvgSub, { n: closed.length })} />
+        <KeyFigure
+          label={C.kpiOpen}
+          value={all.filter(caseFilter("open", actor.userId, now)).length}
+          href={href("open")}
+        />
+        <KeyFigure
+          label={C.kpiNew}
+          value={all.filter(caseFilter("new", actor.userId, now)).length}
+          href={href("new")}
+        />
+        <KeyFigure
+          label={C.kpiOverdue}
+          value={all.filter(caseFilter("overdue", actor.userId, now)).length}
+          href={href("overdue")}
+        />
+        <KeyFigure
+          label={C.kpiAvg}
+          value={avg === null ? null : durWords(avg)}
+          sub={fill(C.kpiAvgSub, { n: closed.length })}
+        />
       </KeyFigureGrid>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <FilterChips
@@ -132,7 +160,8 @@ function CaseCard({ c, now, href }: { c: CaseRow; now: Date; href: string }) {
         </span>
         <span className="text-caption text-ink-600">
           {c.what ?? fill(c.qty < 0 ? C.short : C.over, { n: Math.abs(c.qty) })} ·{" "}
-          {C.src[c.fromHandover ? "cd_handover" : c.sourceType]} · {fill(C.found, { when: when(c.createdAt) })}
+          {C.src[c.fromHandover ? "cd_handover" : c.sourceType]} ·{" "}
+          {fill(C.found, { when: when(c.createdAt) })}
           {c.sourceType !== "manual" ? ` · ${c.fixedAt ? C.numberFixed : C.stillDiffers}` : ""}
           {c.escalated ? ` · ${C.escalated}` : ""}
         </span>
@@ -140,9 +169,13 @@ function CaseCard({ c, now, href }: { c: CaseRow; now: Date; href: string }) {
       <span className="flex items-center gap-2 text-[13px]">
         <span>{c.owner ?? C.notAssigned}</span>
         {late ? (
-          <Pill tone="caution">{fill(C.overdueBy, { t: durWords(now.getTime() - c.dueAt.getTime()) })}</Pill>
+          <Pill tone="caution">
+            {fill(C.overdueBy, { t: durWords(now.getTime() - c.dueAt.getTime()) })}
+          </Pill>
         ) : s === "closed" ? null : (
-          <span className="text-ink-600">{fill(C.dueIn, { t: durWords(c.dueAt.getTime() - now.getTime()) })}</span>
+          <span className="text-ink-600">
+            {fill(C.dueIn, { t: durWords(c.dueAt.getTime() - now.getTime()) })}
+          </span>
         )}
       </span>
     </Link>

@@ -6,7 +6,14 @@ import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_FIND as W } from "@/content/pharmacy-workspace-v2-find";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 
-export type FindGroup = "patient" | "prescription" | "batch" | "supplied" | "slip" | "delivery" | "page";
+export type FindGroup =
+  | "patient"
+  | "prescription"
+  | "batch"
+  | "supplied"
+  | "slip"
+  | "delivery"
+  | "page";
 
 export interface FindRow {
   group: FindGroup;
@@ -24,7 +31,12 @@ export interface FindHit {
 /** At most this many patients supplied from a batch. */
 export const SUPPLIED_MAX = 10;
 
-const day = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: DEFAULT_TIME_ZONE });
+const day = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: DEFAULT_TIME_ZONE,
+});
 const dayTime = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
@@ -42,7 +54,10 @@ export function prescriptionKey(p: {
   prescriberUserId: string;
   createdAt: Date;
 }): string {
-  return p.placementId ?? `t:${p.encounterId ?? "none"}:${p.prescriberUserId}:${p.createdAt.toISOString()}`;
+  return (
+    p.placementId ??
+    `t:${p.encounterId ?? "none"}:${p.prescriberUserId}:${p.createdAt.toISOString()}`
+  );
 }
 
 export interface BatchMatch {
@@ -59,8 +74,12 @@ export function batchRows(batches: readonly BatchMatch[]): FindRow[] {
   return batches.map((b) => {
     const expiry = day.format(asDate(b.expiry));
     const sub = [
-      b.placeName ? fill(W.batchSub, { place: b.placeName, expiry }) : fill(W.batchSubNoPlace, { expiry }),
-      b.firstBatchNumber !== b.batchNumber ? fill(W.firstNumber, { first: b.firstBatchNumber }) : null,
+      b.placeName
+        ? fill(W.batchSub, { place: b.placeName, expiry })
+        : fill(W.batchSubNoPlace, { expiry }),
+      b.firstBatchNumber !== b.batchNumber
+        ? fill(W.firstNumber, { first: b.firstBatchNumber })
+        : null,
     ]
       .filter(Boolean)
       .join(" · ");
@@ -95,7 +114,9 @@ export function suppliedRows(
 ): FindRow[] {
   const seen = new Set<string>();
   const out: FindRow[] = [];
-  for (const s of [...supplies].filter((x) => !x.reversed).sort((a, b) => +b.suppliedAt - +a.suppliedAt)) {
+  for (const s of [...supplies]
+    .filter((x) => !x.reversed)
+    .sort((a, b) => +b.suppliedAt - +a.suppliedAt)) {
     if (seen.has(s.patientUserId) || out.length >= SUPPLIED_MAX) continue;
     const who = ids.get(s.patientUserId);
     if (!who) continue;
@@ -103,7 +124,11 @@ export function suppliedRows(
     out.push({
       group: "supplied",
       label: who.name,
-      sub: fill(W.supplied, { mrn: who.mrn, medicine: s.medicine, at: dayTime.format(s.suppliedAt) }),
+      sub: fill(W.supplied, {
+        mrn: who.mrn,
+        medicine: s.medicine,
+        at: dayTime.format(s.suppliedAt),
+      }),
       href: s.key
         ? `/pharmacy/prescriptions/${encodeURIComponent(s.key)}`
         : `/pharmacy/stock/${encodeURIComponent(s.medicineId)}`,
@@ -115,19 +140,31 @@ export function suppliedRows(
 /** Patients to ask identities for: the same filter as suppliedRows, so nobody else is revealed (and audited). */
 export function suppliedPatientIds(supplies: readonly SupplyMatch[]): string[] {
   const out: string[] = [];
-  for (const s of [...supplies].filter((x) => !x.reversed).sort((a, b) => +b.suppliedAt - +a.suppliedAt))
+  for (const s of [...supplies]
+    .filter((x) => !x.reversed)
+    .sort((a, b) => +b.suppliedAt - +a.suppliedAt))
     if (!out.includes(s.patientUserId) && out.length < SUPPLIED_MAX) out.push(s.patientUserId);
   return out;
 }
 
 /** Delivery rows by note number, each linking to the delivery. */
 export function deliveryRows(
-  ds: readonly { id: string; noteNumber: string; supplier: string; placeName: string; arrivedAt: Date }[],
+  ds: readonly {
+    id: string;
+    noteNumber: string;
+    supplier: string;
+    placeName: string;
+    arrivedAt: Date;
+  }[],
 ): FindRow[] {
   return ds.map((d) => ({
     group: "delivery",
     label: d.noteNumber,
-    sub: fill(W.delivery, { supplier: d.supplier, place: d.placeName, at: dayTime.format(d.arrivedAt) }),
+    sub: fill(W.delivery, {
+      supplier: d.supplier,
+      place: d.placeName,
+      at: dayTime.format(d.arrivedAt),
+    }),
     href: `/pharmacy/stock/store?tab=receive&delivery=${d.id}`,
     mono: true,
   }));

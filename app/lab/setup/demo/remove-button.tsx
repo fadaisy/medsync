@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { LabButton } from "@/components/tide/work/button";
 import {
   SheetBody,
   SheetDescription,
@@ -11,7 +12,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { LAB_DEMO_REMOVE as C } from "@/content/lab-demo";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../criticals/_components/setup-forms";
 import { removeDemoAction } from "./actions";
 

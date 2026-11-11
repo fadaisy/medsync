@@ -40,8 +40,8 @@ import { loadEncounterDiagnoses } from "./diagnoses";
 import { recordMedicationStatements } from "./facts";
 import { openEncounter, placeOrders, replayed, requireCadre } from "./orders";
 import { answerQuery, chooseAlternative } from "./pharmacy-answers";
-import { authoriseRepeats, renewFrom } from "./repeats";
 import { prescribeRequirement, PRESCRIBING_CADRES, statementRoute } from "./prescriptions";
+import { authoriseRepeats, renewFrom } from "./repeats";
 
 /**
  * Placing the Plan (ADRs 0184, 0186, 0189): the basket's orders and prescriptions in one

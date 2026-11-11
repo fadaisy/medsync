@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CRITICALS_COPY } from "@/content/lab-criticals";
@@ -13,7 +14,6 @@ import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { saveRangeDraftAction, signRangeAsLeadAction } from "@/lib/lab/measures-actions";
 import { resolveRange } from "@/lib/lab/ranges";
 import { toDays } from "../_lib/ages";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =

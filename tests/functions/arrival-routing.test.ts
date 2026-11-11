@@ -280,7 +280,9 @@ describe("one live ticket per patient per day, held by the database (migration 0
 
   it("both writers answer the clash with a 409, not a 500", () => {
     const intake = stripComments(read("supabase/functions/_shared/intake.ts"));
-    expect(intake).toMatch(/insertError\.code === "23505" && insertError\.message\?\.includes\(ONE_LIVE_PER_DAY\)/);
+    expect(intake).toMatch(
+      /insertError\.code === "23505" && insertError\.message\?\.includes\(ONE_LIVE_PER_DAY\)/,
+    );
     const declare = stripComments(fn("pt-declare-intake"));
     expect(declare).toContain("includes(ONE_LIVE_PER_DAY)");
   });

@@ -1,4 +1,5 @@
 import type { ReviewLane, ReviewStage } from "@/lib/pharmacy/queue";
+
 import { computeReviewQueue, servesRow } from "@/lib/pharmacy/queue";
 import {
   localDateKey,
@@ -40,7 +41,12 @@ export interface TodayRows {
   handovers: readonly { pointId: string; at: string }[];
   /** `owed` and `buying_outside` line events. */
   notOnShelf: readonly { pointId: string | null; at: string; kind: string }[];
-  stockouts: readonly { pointId: string; medicineId: string; startedAt: string; endedAt: string | null }[];
+  stockouts: readonly {
+    pointId: string;
+    medicineId: string;
+    startedAt: string;
+    endedAt: string | null;
+  }[];
   /** VEN `V` medicine ids; null while no national list is imported ("Not set"). */
   vital: ReadonlySet<string> | null;
   /** Flagged look-backs; `open` while no "looked" row follows. */
@@ -50,7 +56,12 @@ export interface TodayRows {
   refills: readonly { pointId: string | null }[] | null;
 }
 
-export const STAGE_ORDER: readonly ReviewStage[] = ["to_review", "ready", "queried", "awaiting_cosign"];
+export const STAGE_ORDER: readonly ReviewStage[] = [
+  "to_review",
+  "ready",
+  "queried",
+  "awaiting_cosign",
+];
 
 export interface Figure {
   /** null: "No data" or, for vital, "Not set". */
@@ -80,7 +91,9 @@ export const pointState = (p: Pick<PointIn, "liveAt" | "switchedOffAt">): PointS
 
 /** Eight local day keys, oldest first: the same weekday last week, then the seven bars ending today. */
 export function dayKeys(now: Date, timeZone: string): string[] {
-  return Array.from({ length: 8 }, (_, i) => localDateKey(new Date(now.getTime() - (7 - i) * DAY_MS), timeZone));
+  return Array.from({ length: 8 }, (_, i) =>
+    localDateKey(new Date(now.getTime() - (7 - i) * DAY_MS), timeZone),
+  );
 }
 
 // ponytail: day ends by key + 1 day of ms; exact for Africa/Kampala (no DST). Use endOfLocalDay for a DST zone.
@@ -98,7 +111,11 @@ function series(keys: readonly string[], ats: readonly string[], timeZone: strin
   return keys.map((k) => n.get(k) ?? 0);
 }
 
-const dayFigure = (s: number[]): Figure => ({ value: s[7]!, week: s.slice(1), change: s[7]! - s[0]! });
+const dayFigure = (s: number[]): Figure => ({
+  value: s[7]!,
+  week: s.slice(1),
+  change: s[7]! - s[0]!,
+});
 
 export function todayFigures(
   rows: TodayRows,
@@ -111,27 +128,38 @@ export function todayFigures(
   const at = (pointId: string | null) =>
     point ? pointId === point.id : pointId === null || ids.has(pointId);
 
-  const q = computeReviewQueue(rows.queue, { lane: "all", stage: "all", serves: point?.serves ?? null });
+  const q = computeReviewQueue(rows.queue, {
+    lane: "all",
+    stage: "all",
+    serves: point?.serves ?? null,
+  });
   const inScope = [...q.today, ...q.earlier];
   const stages = STAGE_ORDER.map((stage) => {
     const here = inScope.filter((r) => r.stage === stage);
-    const since = here.map((r) => ms(stage === "queried" ? (r.queriedSince ?? r.writtenAt) : r.writtenAt));
+    const since = here.map((r) =>
+      ms(stage === "queried" ? (r.queriedSince ?? r.writtenAt) : r.writtenAt),
+    );
     const oldest = min(since);
     return {
       stage,
       n: q.stageCounts[stage],
-      oldestMin: oldest === null ? null : Math.max(0, Math.floor((now.getTime() - oldest) / 60_000)),
+      oldestMin:
+        oldest === null ? null : Math.max(0, Math.floor((now.getTime() - oldest) / 60_000)),
       late: here.some((r) => r.earlier),
     };
   });
 
   const todayKey = localDateKey(now, timeZone);
-  const hourOf = (a: string) => Math.floor(localWeekdayAndMinutes(new Date(a), timeZone).minutesOfDay / 60);
-  const isToday = (a: string) => localDateKey(new Date(a), timeZone) === todayKey && ms(a) <= now.getTime();
+  const hourOf = (a: string) =>
+    Math.floor(localWeekdayAndMinutes(new Date(a), timeZone).minutesOfDay / 60);
+  const isToday = (a: string) =>
+    localDateKey(new Date(a), timeZone) === todayKey && ms(a) <= now.getTime();
   const arrived = rows.arrivals
     .filter((a) => isToday(a.at) && servesRow(point?.serves ?? null, a.origin))
     .map((a) => hourOf(a.at));
-  const supplied = rows.handovers.filter((h) => at(h.pointId) && isToday(h.at)).map((h) => hourOf(h.at));
+  const supplied = rows.handovers
+    .filter((h) => at(h.pointId) && isToday(h.at))
+    .map((h) => hourOf(h.at));
   const nowHour = hourOf(now.toISOString());
   const first = Math.min(8, nowHour, ...arrived, ...supplied);
   const hours = Array.from({ length: Math.max(0, nowHour - first + 1) }, (_, i) => {
@@ -166,9 +194,25 @@ export function todayFigures(
   const flagged = rows.lookBacks.filter((l) => at(l.pointId));
   const diffs = rows.differences.filter((d) => at(d.pointId));
   const figures = {
-    supplied: dayFigure(series(keys, rows.handovers.filter((h) => at(h.pointId)).map((h) => h.at), timeZone)),
-    notOnShelf: dayFigure(series(keys, shelf.map((e) => e.at), timeZone)),
-    boughtOutside: series(keys, shelf.filter((e) => e.kind === "buying_outside").map((e) => e.at), timeZone)[7]!,
+    supplied: dayFigure(
+      series(
+        keys,
+        rows.handovers.filter((h) => at(h.pointId)).map((h) => h.at),
+        timeZone,
+      ),
+    ),
+    notOnShelf: dayFigure(
+      series(
+        keys,
+        shelf.map((e) => e.at),
+        timeZone,
+      ),
+    ),
+    boughtOutside: series(
+      keys,
+      shelf.filter((e) => e.kind === "buying_outside").map((e) => e.at),
+      timeZone,
+    )[7]!,
     vitalOut:
       rows.vital === null
         ? ({ value: null, week: null, change: null } satisfies Figure)
@@ -179,12 +223,20 @@ export function todayFigures(
           } satisfies Figure),
     lookBack: {
       value: flagged.filter((l) => l.open).length,
-      week: series(keys, flagged.map((l) => l.at), timeZone).slice(1),
+      week: series(
+        keys,
+        flagged.map((l) => l.at),
+        timeZone,
+      ).slice(1),
       change: null,
     } satisfies Figure,
     controlled: {
       value: diffs.filter((d) => d.closedAt === null).length,
-      week: series(keys, diffs.map((d) => d.recordedAt), timeZone).slice(1),
+      week: series(
+        keys,
+        diffs.map((d) => d.recordedAt),
+        timeZone,
+      ).slice(1),
       change: null,
     } satisfies Figure,
     refills: {
@@ -207,4 +259,3 @@ export function todayFigures(
 }
 
 export type TodayFigures = ReturnType<typeof todayFigures>;
-

@@ -1,18 +1,33 @@
 "use client";
 
 import type { SmsRule } from "@/db/schema/pharmacy-rework-patients";
-import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
 import { ActionDialog, Field, inputCls } from "@/app/pharmacy/patients/_components/kit";
-import { smsBuildAction, smsMessageAction, smsRuleAction, smsSendAllAction } from "@/app/pharmacy/patients/actions";
+import {
+  smsBuildAction,
+  smsMessageAction,
+  smsRuleAction,
+  smsSendAllAction,
+} from "@/app/pharmacy/patients/actions";
 import { LabButton } from "@/components/tide/work/button";
 import { fill, PRW } from "@/content/pharmacy-rework-patients";
 
 const S = PRW.sms;
 
 /** A one-tap action button: runs, shows a refusal in words beside it, refreshes on success. */
-function Run({ label, run, variant = "secondary", blocked }: { label: string; run: () => Promise<{ ok: boolean; error?: string }>; variant?: "primary" | "secondary" | "text"; blocked?: string | null }) {
+function Run({
+  label,
+  run,
+  variant = "secondary",
+  blocked,
+}: {
+  label: string;
+  run: () => Promise<{ ok: boolean; error?: string }>;
+  variant?: "primary" | "secondary" | "text";
+  blocked?: string | null;
+}) {
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const router = useRouter();
@@ -46,14 +61,26 @@ export function BuildButton() {
   return <Run variant="primary" label={S.build} run={() => smsBuildAction()} />;
 }
 
-export function MessageActions({ id, status, connected }: { id: string; status: string; connected: boolean }) {
+export function MessageActions({
+  id,
+  status,
+  connected,
+}: {
+  id: string;
+  status: string;
+  connected: boolean;
+}) {
   const off = connected ? null : S.notConnected;
   if (status === "scheduled")
     return (
       <span className="flex flex-wrap gap-1">
         <Run label={S.sendNow} blocked={off} run={() => smsMessageAction({ id, act: "send" })} />
         <Run variant="text" label={S.skip} run={() => smsMessageAction({ id, act: "skip" })} />
-        <Run variant="text" label={S.recordOptOut} run={() => smsMessageAction({ id, act: "optout" })} />
+        <Run
+          variant="text"
+          label={S.recordOptOut}
+          run={() => smsMessageAction({ id, act: "optout" })}
+        />
       </span>
     );
   if (status === "failed")
@@ -68,10 +95,27 @@ export function MessageActions({ id, status, connected }: { id: string; status: 
 
 export function SendAll({ ids, connected }: { ids: string[]; connected: boolean }) {
   if (!ids.length) return null;
-  return <Run variant="primary" label={S.sendAll} blocked={connected ? null : S.notConnected} run={() => smsSendAllAction({ ids })} />;
+  return (
+    <Run
+      variant="primary"
+      label={S.sendAll}
+      blocked={connected ? null : S.notConnected}
+      run={() => smsSendAllAction({ ids })}
+    />
+  );
 }
 
-export function RuleRow({ rule, enabled, en, lg }: { rule: SmsRule; enabled: boolean; en: string | null; lg: string | null }) {
+export function RuleRow({
+  rule,
+  enabled,
+  en,
+  lg,
+}: {
+  rule: SmsRule;
+  enabled: boolean;
+  en: string | null;
+  lg: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const [e, setE] = useState(en ?? S.templates[rule]!.en);
   const [l, setL] = useState(lg ?? S.templates[rule]!.lg);
@@ -98,10 +142,22 @@ export function RuleRow({ rule, enabled, en, lg }: { rule: SmsRule; enabled: boo
       >
         <p className="text-body-s">{S.slots}</p>
         <Field label={`${S.english} · ${e.length}/160`}>
-          <textarea className={`${inputCls} h-auto py-2`} rows={3} maxLength={160} value={e} onChange={(x) => setE(x.target.value)} />
+          <textarea
+            className={`${inputCls} h-auto py-2`}
+            rows={3}
+            maxLength={160}
+            value={e}
+            onChange={(x) => setE(x.target.value)}
+          />
         </Field>
         <Field label={`${S.luganda} · ${l.length}/160`}>
-          <textarea className={`${inputCls} h-auto py-2`} rows={3} maxLength={160} value={l} onChange={(x) => setL(x.target.value)} />
+          <textarea
+            className={`${inputCls} h-auto py-2`}
+            rows={3}
+            maxLength={160}
+            value={l}
+            onChange={(x) => setL(x.target.value)}
+          />
         </Field>
         <p className="text-caption text-muted-foreground">{S.lugandaDraft}</p>
       </ActionDialog>

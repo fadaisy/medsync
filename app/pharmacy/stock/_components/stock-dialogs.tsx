@@ -1,21 +1,18 @@
 "use client";
 
+import type { PharmacyDialogProps } from "../../_components/pharmacy-dialog";
 import type { StockResult } from "@/lib/pharmacy/stock/store";
 import type { ReactNode } from "react";
 import { useId, useState } from "react";
 
+import { CataloguePicker } from "@/app/pharmacy/_components/catalogue-picker";
 import { StatusWord } from "@/components/emr/status-word";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  ADJUSTMENT_REASONS,
-  COUNT_DIFFERENCE_REASONS,
-  STOCK,
-} from "@/content/pharmacy-stock";
-import { CataloguePicker } from "@/app/pharmacy/_components/catalogue-picker";
 import { CATALOGUE } from "@/content/pharmacy-catalogue";
+import { ADJUSTMENT_REASONS, COUNT_DIFFERENCE_REASONS, STOCK } from "@/content/pharmacy-stock";
+import { PharmacyDialog } from "../../_components/pharmacy-dialog";
 import * as actions from "../actions";
-import { PharmacyDialog, type PharmacyDialogProps } from "../../_components/pharmacy-dialog";
 
 /**
  * The stock dialogs (5.8, wireframe §8.2): each a centred EditorDialog (ADR 0161) opened by its own
@@ -98,8 +95,6 @@ function ExpiryField({ name, defaultValue }: { name: string; defaultValue?: stri
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const int = (f: FormData, k: string) => Number(str(f, k));
-
-
 
 /* ─── Count (blind) ───────────────────────────────────────────────────── */
 
@@ -546,12 +541,22 @@ function ProductFields({ prefix = "", fill = {} }: { prefix?: string; fill?: Pro
         />
       </Field>
       <Field label={STOCK.product.strength} id={ids.strength}>
-        <Input id={ids.strength} name={`${prefix}strength`}
-          defaultValue={fill.strength} maxLength={80} className={TARGET} />
+        <Input
+          id={ids.strength}
+          name={`${prefix}strength`}
+          defaultValue={fill.strength}
+          maxLength={80}
+          className={TARGET}
+        />
       </Field>
       <Field label={STOCK.product.packSize} id={ids.pack}>
-        <Input id={ids.pack} name={`${prefix}packSize`}
-          defaultValue={fill.packSize} maxLength={80} className={TARGET} />
+        <Input
+          id={ids.pack}
+          name={`${prefix}packSize`}
+          defaultValue={fill.packSize}
+          maxLength={80}
+          className={TARGET}
+        />
       </Field>
       <Field label={STOCK.product.issueUnit} id={ids.unit}>
         <Input

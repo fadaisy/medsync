@@ -2,6 +2,7 @@ import type { SP } from "@/lib/lab/redirects";
 import { notFound } from "next/navigation";
 import { and, eq, inArray } from "drizzle-orm";
 
+import { PillTabs } from "@/components/tide/work/space";
 import { fill } from "@/content/lab-workspace-v2";
 import { LABWS2_REPORTS } from "@/content/lab-workspace-v2-reports";
 import { db } from "@/db";
@@ -10,7 +11,6 @@ import { hmisReminder } from "@/lib/lab/hmis105";
 import { dayShort } from "@/lib/lab/period";
 import { addDays, dayOf } from "@/lib/lab/stock";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
-import { PillTabs } from "@/components/tide/work/space";
 import { one, pillTabs } from "../../_lib/place-tabs";
 import { labV2 } from "../../_lib/places";
 import { DownloadsView } from "./downloads";

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { PillTabs } from "@/components/tide/work/space";
 import { HospitalProfiles } from "@/components/lab/test-menu/profiles";
 import { TestMenu } from "@/components/lab/test-menu/test-menu";
+import { PillTabs } from "@/components/tide/work/space";
 import { LAB } from "@/content/lab";
 import { LAB_TEST_MENU } from "@/content/lab-test-menu";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";

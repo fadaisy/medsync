@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
-import { Input } from "@/components/ui/input";
 import { LabButton } from "@/components/tide/work/button";
+import { Input } from "@/components/ui/input";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 
 type Result = { ok: true } | { ok: false; error: string };

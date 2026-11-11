@@ -18,6 +18,7 @@ Status: **signed** (see the end). The build follows this document; where it diff
   - `stated_turnaround_minutes`. `stated_tat` stays as the words the ordering contract reads; the menu writes both.
 
   No new offering table (DX-1: one store). `section_id` stays only for legacy rows that are not in the catalogue (LW-3).
+
 - `lab_settings.hidden_sections text[]` (TM-5).
 - `lab_order_profiles` (TM-10):
   - columns: hospital, name, note, `test_codes text[]` in order, active, audit columns, `client_key`;
@@ -77,6 +78,7 @@ Status: **signed** (see the end). The build follows this document; where it diff
   - navy bulk bar.
 
   A row opens Test detail.
+
 - **Board 14:** level cards → section ticks → hours choice → the preview when the menu is not empty → "Add {n} tests".
 - **Board 15:** search across the catalogue, section chips, "Often ordered with these", and Add / On your menu /
   Not yet signed.
@@ -122,31 +124,31 @@ Appendix A, verbatim, in `content/lab-test-menu.ts`, status `draft`.
 
 ## 8. Decisions (Section 10)
 
-| # | Decision | Signed as |
-|---|---|---|
-| TM-D01 | What a hospital sets up | Orderable tests only |
-| TM-D02 | Section | Inherited from the catalogue; override per test, shown as "Changed from …" |
-| TM-D03 | Level templates | TM-6 rules; national menu 2017 first, judgement for the rest, labelled |
-| TM-D04 | Table versus narrative (33 tests) | Use the lower level, show both |
-| TM-D05 | Low-value tests | In the catalogue with an advisory; off by default in templates |
-| TM-D06 | New restricted-class proposals | As in the research notes; the CSO signs |
-| TM-D07 | Hospital profiles | Allowed, as an ordering shortcut over menu tests |
-| TM-D08 | Missing tests | Catalogue requests only; no free-text tests |
-| TM-D09 | Who edits the menu | Hospital admin and laboratory lead; no signing; audited |
-| TM-D10 | Migration conflicts | Most common value, reported, never silently resolved |
-| TM-D11 | Referral values | Add `MAK_PATH` (Makerere/Mulago pathology) to `refer_to` |
-| TM-D12 | `obs.tb_xpert_rif` LOINC | Replace TRIAL 89372-7 with ACTIVE 89489-9 in the addendum |
+| #      | Decision                          | Signed as                                                                  |
+| ------ | --------------------------------- | -------------------------------------------------------------------------- |
+| TM-D01 | What a hospital sets up           | Orderable tests only                                                       |
+| TM-D02 | Section                           | Inherited from the catalogue; override per test, shown as "Changed from …" |
+| TM-D03 | Level templates                   | TM-6 rules; national menu 2017 first, judgement for the rest, labelled     |
+| TM-D04 | Table versus narrative (33 tests) | Use the lower level, show both                                             |
+| TM-D05 | Low-value tests                   | In the catalogue with an advisory; off by default in templates             |
+| TM-D06 | New restricted-class proposals    | As in the research notes; the CSO signs                                    |
+| TM-D07 | Hospital profiles                 | Allowed, as an ordering shortcut over menu tests                           |
+| TM-D08 | Missing tests                     | Catalogue requests only; no free-text tests                                |
+| TM-D09 | Who edits the menu                | Hospital admin and laboratory lead; no signing; audited                    |
+| TM-D10 | Migration conflicts               | Most common value, reported, never silently resolved                       |
+| TM-D11 | Referral values                   | Add `MAK_PATH` (Makerere/Mulago pathology) to `refer_to`                   |
+| TM-D12 | `obs.tb_xpert_rif` LOINC          | Replace TRIAL 89372-7 with ACTIVE 89489-9 in the addendum                  |
 
 ## 9. ADR drafts
 
-| ADR | Title |
-|---|---|
-| 0350 | The menu is per test; results inherit |
-| 0351 | Catalogue v2 and its addendum (CFC v1.7) |
+| ADR  | Title                                                |
+| ---- | ---------------------------------------------------- |
+| 0350 | The menu is per test; results inherit                |
+| 0351 | Catalogue v2 and its addendum (CFC v1.7)             |
 | 0352 | Level templates from the national standard test menu |
-| 0353 | Hospital profiles |
-| 0354 | Catalogue requests |
-| 0355 | `loinc_codes` is a code reference only |
+| 0353 | Hospital profiles                                    |
+| 0354 | Catalogue requests                                   |
+| 0355 | `loinc_codes` is a code reference only               |
 
 ## Signature
 

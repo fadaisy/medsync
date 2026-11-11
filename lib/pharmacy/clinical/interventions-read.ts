@@ -88,7 +88,9 @@ export async function nameWards(
   const rows = await database
     .select({ id: hospitalDepartments.id, name: hospitalDepartments.name })
     .from(hospitalDepartments)
-    .where(and(eq(hospitalDepartments.hospitalId, hospitalId), inArray(hospitalDepartments.id, ids)));
+    .where(
+      and(eq(hospitalDepartments.hospitalId, hospitalId), inArray(hospitalDepartments.id, ids)),
+    );
   const name = new Map(rows.map((d) => [d.id, d.name]));
   return facts.map((q) => ({ ...q, ward: (q.ward && name.get(q.ward)) || null }));
 }

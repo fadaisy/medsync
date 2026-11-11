@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
@@ -18,7 +19,6 @@ import {
   setContactsAction,
   signResponseAsLeadAction,
 } from "@/lib/lab/criticals/setup-actions";
-import { LabButton } from "@/components/tide/work/button";
 
 /**
  * Critical-results set-up forms (§5.8). Every value is typed by the hospital: no field ships with a

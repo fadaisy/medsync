@@ -37,7 +37,11 @@ const paper = (w: W) => ("paper" in w ? w.paper : null);
 
 const one = async <T>(tx: EmrTx, query: ReturnType<typeof sql>) => (await q<T>(tx, query))[0];
 
-export async function isInCharge(tx: EmrTx | Parameters<typeof q>[0], userId: string, hospitalId: string) {
+export async function isInCharge(
+  tx: EmrTx | Parameters<typeof q>[0],
+  userId: string,
+  hospitalId: string,
+) {
   const r = await one<{ ok: boolean }>(
     tx as EmrTx,
     sql`SELECT private.pharmacy_is_in_charge(${userId}::uuid, ${hospitalId}::uuid) AS ok`,
@@ -82,11 +86,24 @@ function allocate(batches: { id: string; bal: number }[], n: number) {
 }
 
 /** The ledger figure of a medicine at a place (Law 2: summed, never stored). */
-export async function balanceAt(tx: EmrTx, hospitalId: string, locationId: string, medicineId: string) {
-  return (await batchesFor(tx, hospitalId, locationId, medicineId)).reduce((a, b) => a + Number(b.bal), 0);
+export async function balanceAt(
+  tx: EmrTx,
+  hospitalId: string,
+  locationId: string,
+  medicineId: string,
+) {
+  return (await batchesFor(tx, hospitalId, locationId, medicineId)).reduce(
+    (a, b) => a + Number(b.bal),
+    0,
+  );
 }
 
-async function prescriberAllowed(tx: EmrTx, hospitalId: string, userId: string, medicineId: string) {
+async function prescriberAllowed(
+  tx: EmrTx,
+  hospitalId: string,
+  userId: string,
+  medicineId: string,
+) {
   const r = await one<{ ok: boolean }>(
     tx,
     sql`SELECT coalesce((SELECT cd_allowed AND (cardinality(only_medicines) = 0 OR ${medicineId} = ANY (only_medicines))
@@ -118,23 +135,41 @@ export const DoseInput = z.object({
  */
 export async function recordDose(
   who: Who,
-  input: z.infer<typeof DoseInput> & { effectiveAt?: Date; givenByUserId?: string | null; lateEntry?: boolean; units?: number },
+  input: z.infer<typeof DoseInput> & {
+    effectiveAt?: Date;
+    givenByUserId?: string | null;
+    lateEntry?: boolean;
+    units?: number;
+  },
 ) {
-  const done = await one<{ id: string }>(who.tx, sql`SELECT id FROM public.pharmacy_cd_doses WHERE id = ${input.clientKey}::uuid`);
+  const done = await one<{ id: string }>(
+    who.tx,
+    sql`SELECT id FROM public.pharmacy_cd_doses WHERE id = ${input.clientKey}::uuid`,
+  );
   if (done) return { id: done.id, units: 0 };
   const place = await loadLocation(who.tx, who.hospitalId, input.locationId);
   const med = await medicine(who.tx, who.hospitalId, input.medicineId);
   if (!med.controlled) throw fail("invalid", "That medicine is not controlled here.");
   const unit = cdUnit(med.name);
-  if (!unit) throw fail("config", "The strength of this medicine is not set, so the ampoules cannot be worked out.");
+  if (!unit)
+    throw fail(
+      "config",
+      "The strength of this medicine is not set, so the ampoules cannot be worked out.",
+    );
   const { units, residueMg } = doseUnits(input.doseMg, unit);
   if (input.units !== undefined && input.units !== units)
     throw fail("invalid", "That dose does not account for the units missing.");
   if (residueMg > 0 && !input.residueDisposed && !input.lateEntry)
     throw fail("invalid", "Tick that the residue was discarded in front of the witness.");
   if (!(await prescriberAllowed(who.tx, who.hospitalId, input.prescriberUserId, input.medicineId)))
-    throw fail("forbidden", "That person is not on the list of controlled-drug prescribers for this medicine.");
-  const parts = allocate(await batchesFor(who.tx, who.hospitalId, place.id, input.medicineId), units);
+    throw fail(
+      "forbidden",
+      "That person is not on the list of controlled-drug prescribers for this medicine.",
+    );
+  const parts = allocate(
+    await batchesFor(who.tx, who.hospitalId, place.id, input.medicineId),
+    units,
+  );
   await who.tx.insert(pharmacyCdDoses).values({
     id: input.clientKey,
     hospitalId: who.hospitalId,
@@ -176,7 +211,9 @@ export async function recordDose(
 export const CheckInput = z.object({
   clientKey: z.uuid(),
   locationId: z.uuid(),
-  counts: z.array(z.object({ medicineId: z.string().min(1).max(120), counted: z.number().int().min(0) })).min(1),
+  counts: z
+    .array(z.object({ medicineId: z.string().min(1).max(120), counted: z.number().int().min(0) }))
+    .min(1),
   witness: Witness,
 });
 
@@ -185,7 +222,10 @@ export const CheckInput = z.object({
  * A line that does not match opens a High case in the database (0267). The client key is the check's id.
  */
 export async function cdBalanceCheck(who: Who, input: z.infer<typeof CheckInput>) {
-  const done = await one<{ id: string }>(who.tx, sql`SELECT id FROM public.pharmacy_cd_checks WHERE id = ${input.clientKey}::uuid`);
+  const done = await one<{ id: string }>(
+    who.tx,
+    sql`SELECT id FROM public.pharmacy_cd_checks WHERE id = ${input.clientKey}::uuid`,
+  );
   if (done) return { id: done.id, mismatches: 0 };
   const place = await loadLocation(who.tx, who.hospitalId, input.locationId);
   const lines = [];
@@ -251,8 +291,14 @@ export async function resolveCdCheck(who: Who, input: z.infer<typeof ResolveInpu
   let movementId: string | null = null;
   if (input.how === "late_entry") {
     if (!input.late || diff >= 0) throw fail("invalid", "A late entry explains a shortfall only.");
-    const w = missingWindow({ check, medicineId: input.medicineId, checks: data.checks, moves: data.moves });
-    if (!inWindow(input.late.at, w)) throw fail("invalid", "Set when it was given, inside the window.");
+    const w = missingWindow({
+      check,
+      medicineId: input.medicineId,
+      checks: data.checks,
+      moves: data.moves,
+    });
+    if (!inWindow(input.late.at, w))
+      throw fail("invalid", "Set when it was given, inside the window.");
     const r = await recordDose(who, {
       ...input.late,
       locationId: check.placeId,
@@ -268,11 +314,14 @@ export async function resolveCdCheck(who: Who, input: z.infer<typeof ResolveInpu
     if (!(await isInCharge(who.tx, who.userId, who.hospitalId)))
       throw fail("forbidden", "Only the in-charge pharmacist can sign a loss.");
     if (!input.incidentRef) throw fail("invalid", "Type the incident report number.");
-    if ((input.how === "loss") !== diff < 0) throw fail("invalid", "That does not explain this difference.");
+    if ((input.how === "loss") !== diff < 0)
+      throw fail("invalid", "That does not explain this difference.");
     const place = await loadLocation(who.tx, who.hospitalId, check.placeId);
     const batches = await batchesFor(who.tx, who.hospitalId, place.id, input.medicineId);
     const parts =
-      diff < 0 ? allocate(batches, -diff).map((p) => ({ ...p, qty: -p.qty })) : [{ batchId: batches[0]!.id, qty: diff }];
+      diff < 0
+        ? allocate(batches, -diff).map((p) => ({ ...p, qty: -p.qty }))
+        : [{ batchId: batches[0]!.id, qty: diff }];
     for (const p of parts) {
       const [m] = await who.tx
         .insert(pharmacyStockMovements)

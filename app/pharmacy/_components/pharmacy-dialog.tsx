@@ -121,7 +121,12 @@ export function PharmacyDialog({
           <Refusal id={errorId} error={error} />
         </SheetBody>
         <SheetFooter>
-          <Button type="button" variant="secondary" className={TARGET} onClick={() => setOpen(false)}>
+          <Button
+            type="button"
+            variant="secondary"
+            className={TARGET}
+            onClick={() => setOpen(false)}
+          >
             {done ? doneLabel : cancelLabel}
           </Button>
           {done ? null : (

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { and, desc, eq, gte, inArray } from "drizzle-orm";
 
+import { EmptyState } from "@/components/tide/work/kit";
 import { db } from "@/db";
 import { devices, labControlChecks, labQcRuns } from "@/db/schema";
 import { emrV1LiveFor } from "@/lib/emr/feature";
@@ -9,7 +10,6 @@ import { labStockLiveFor } from "@/lib/lab/feature";
 import { analyteName } from "@/lib/lab/qc-store";
 import { loadStock } from "@/lib/lab/stock-read";
 import { FocusLot } from "../_components/focus-lot";
-import { EmptyState } from "@/components/tide/work/kit";
 import { dateWords, timeWords } from "../../_lib/days";
 import { AcceptCard, DeliveryForm } from "../../stock/_components/receive-forms";
 import { RECEIVE as C } from "../../stock/_lib/copy";

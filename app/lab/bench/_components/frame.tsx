@@ -2,9 +2,9 @@ import type { loadBench } from "../_lib/bench";
 import type { labV2 } from "../../_lib/places";
 import type { ReactNode } from "react";
 
+import { FilterChips, PillTabs, SecondaryLink, SpaceHeader } from "@/components/tide/work/space";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { BENCH_STAGES } from "../_lib/bench";
-import { FilterChips, PillTabs, SecondaryLink, SpaceHeader } from "@/components/tide/work/space";
 import { Queue } from "./queue";
 
 const B = LABWS2.bench;

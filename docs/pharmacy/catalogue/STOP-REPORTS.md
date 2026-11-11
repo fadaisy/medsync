@@ -8,22 +8,24 @@ No product code changed. Next free numbers on every local and remote branch: **m
 
 ### Q1. The five layers today
 
-| Layer | Table (migration) | What it holds |
-|---|---|---|
-| Medicine | none: an id from the prescribing list, `data/prescribing/drug-catalogue.v0.json` (192), mirrored in `lib/prescribing/reference/general-formulary.ts` | `medicine_id text ^[a-z0-9_]{2,80}$` on the product |
-| Product | `pharmacy_products` (0123:17-34, 0180:138-141) | Per hospital. Holds name, plus free-text manufacturer, strength, pack_size, registration_number and issue_unit. Also `price_ugx numeric(14,2)` (nullable) and `gtin ^[0-9]{14}$`, unique per hospital among active products (`pp_gtin`). |
-| Product at a place | `pharmacy_product_points` PK (product, point); `pharmacy_product_locations` PK (product, location) | Reorder level and the place link |
-| Batch | `pharmacy_batches` (0124:31-45, 0180:155-162) | Batch number and expiry. Unique `pb_place_batch`, plus the old UNIQUE (point, product, batch). **No cost column.** |
-| Movement | `pharmacy_stock_movements` (kinds final in 0230:261-283) | The append-only ledger. `unit_cost` is allowed only on `received` (`psm_cost`). Also `pair_id`, `allocated`, `counterparty_id`. |
+| Layer              | Table (migration)                                                                                                                                    | What it holds                                                                                                                                                                                                                            |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Medicine           | none: an id from the prescribing list, `data/prescribing/drug-catalogue.v0.json` (192), mirrored in `lib/prescribing/reference/general-formulary.ts` | `medicine_id text ^[a-z0-9_]{2,80}$` on the product                                                                                                                                                                                      |
+| Product            | `pharmacy_products` (0123:17-34, 0180:138-141)                                                                                                       | Per hospital. Holds name, plus free-text manufacturer, strength, pack_size, registration_number and issue_unit. Also `price_ugx numeric(14,2)` (nullable) and `gtin ^[0-9]{14}$`, unique per hospital among active products (`pp_gtin`). |
+| Product at a place | `pharmacy_product_points` PK (product, point); `pharmacy_product_locations` PK (product, location)                                                   | Reorder level and the place link                                                                                                                                                                                                         |
+| Batch              | `pharmacy_batches` (0124:31-45, 0180:155-162)                                                                                                        | Batch number and expiry. Unique `pb_place_batch`, plus the old UNIQUE (point, product, batch). **No cost column.**                                                                                                                       |
+| Movement           | `pharmacy_stock_movements` (kinds final in 0230:261-283)                                                                                             | The append-only ledger. `unit_cost` is allowed only on `received` (`psm_cost`). Also `pair_id`, `allocated`, `counterparty_id`.                                                                                                          |
 
 - **GTIN:** one per product, per hospital, set only by `setGtin` (`lib/pharmacy/stores/location-store.ts:443`, an UPDATE).
 - **Price:** `pharmacy_products.price_ugx`, set only by `setProductPrice` (an UPDATE, no history). It is snapshotted on each supply as `pharmacy_supplies.price_ugx` (0126:79).
 - **Unit cost:** on `pharmacy_delivery_lines.unit_cost` (0181:124) and on `received` movements only.
 
 **Write paths that create a product:**
+
 - `newProduct` (`lib/pharmacy/stock/store.ts:407`), called by `addProduct` (:830) and `addBatchFoundOnShelf` (:478).
 
 **Write paths that create a batch:**
+
 - `batchFor` (store.ts:320), from `receiveStock` (:448), `addBatchFoundOnShelf` and `transferStock` (:719).
 - `batchAtLocation` (`lib/pharmacy/stores/write.ts:174`), from:
   - `receiveDelivery` (receiving-store.ts:323)
@@ -36,6 +38,7 @@ No Edge Function touches these tables. Migration 0183 does not exist (released u
 ### Q2. The GS1 parser (`lib/pharmacy/stores/scan.ts`)
 
 **Handles:**
+
 - AIs 01 and 17 (fixed length), 10 (variable) and 21 (variable, read and dropped);
 - the GS separator (ASCII 29, or a set substitute);
 - the AIM prefixes `]d2` and `]C1` (`^\][A-Za-z]\d`), and the bracketed human-readable form;
@@ -43,6 +46,7 @@ No Edge Function touches these tables. Migration 0183 does not exist (released u
 - day `00` in an expiry, read as the month's last day (flagged `monthOnly`). Years are always read as 20YY.
 
 **Does not handle:**
+
 - **AI 11** (production date).
 - **Any unknown AI:** it fails the whole scan, where Appendix B wants it skipped.
 - **8-, 12- or 13-digit GTINs** are not padded to 14, so an EAN-13 or UPC-A pack does not match.
@@ -52,6 +56,7 @@ No Edge Function touches these tables. Migration 0183 does not exist (released u
 **Tests:** `tests/pharmacy/stores/scan.test.ts` (SC-1, SC-2, SC-3). `scan-fill.ts` has none.
 
 **Resolution:**
+
 - `productForGtin` (scan.ts:108) works over the list already loaded in the browser.
 - `productByText` (scan-fill.ts:47) matches a unique name substring.
 - An unknown GTIN offers `setGtin` (delivery-dialogs.tsx:233, :390).
@@ -60,13 +65,13 @@ No Edge Function touches these tables. Migration 0183 does not exist (released u
 
 `data/pharmacy/national-list/emhslu-2023.csv` has 2,721 rows.
 
-| Rows | Count |
-|---|---|
-| Medicines (Section A) | 802 |
-| Health supplies (B 512, C 243, D 1,164) | 1,919 |
-| Marked specialist | 249 |
-| Flagged "not read with confidence" | 26 (20 medicines, 6 supplies) |
-| Fixed-dose combinations | about 69 (63 with "+", 7 with "/"). One "/" row is a name variant (Hartmann's/Ringer's), not a combination. |
+| Rows                                    | Count                                                                                                       |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Medicines (Section A)                   | 802                                                                                                         |
+| Health supplies (B 512, C 243, D 1,164) | 1,919                                                                                                       |
+| Marked specialist                       | 249                                                                                                         |
+| Flagged "not read with confidence"      | 26 (20 medicines, 6 supplies)                                                                               |
+| Fixed-dose combinations                 | about 69 (63 with "+", 7 with "/"). One "/" row is a name variant (Hartmann's/Ringer's), not a combination. |
 
 There is no ingredient column, so a combination is one free-text name.
 
@@ -80,16 +85,16 @@ Nothing ties a link to one row: `pharmacy_medicine_links` is UNIQUE(edition, med
 
 ### Q4. Sources and licences (checked 27 Oct 2026)
 
-nda.or.ug, edqm.eu and gs1.org refused automated fetches (403 or a bot check). That was not bypassed, so the points marked *unconfirmed* rest on search snippets or secondary sources.
+nda.or.ug, edqm.eu and gs1.org refused automated fetches (403 or a bot check). That was not bypassed, so the points marked _unconfirmed_ rest on search snippets or secondary sources.
 
-| Source | Finding | Blocks this slice? |
-|---|---|---|
-| NDA National Drug Register | **Newest PDF found: June 2024.** It is about 1,405 pages, entries keyed `NDA/MAL/HDP/nnnn`. **The web register** is titled "Drug Register (October 2026)" (snippet only). **Reuse terms:** none stated. The 2026 Act s.111 opens registers to inspection "at the prescribed fee", which is not yet prescribed. **Columns and row count: unconfirmed until the owner supplies the file.** Strategic Plan IV cites 5,306 products. | **Yes, until the owner gives the file and clears reuse with the NDA.** |
-| RxNorm Current Prescribable Content | **Confirmed:** "without any licensing restrictions", no UMLS login, monthly plus weekly updates. US market only. | No, but it can only be a crosswalk. |
-| EDQM Standard Terms | **Access:** needs an EDQM account (free option). **Conditions of use:** in the v2.2.0 guidance (21 Sep 2026), which returned 403; **unread**. The attribution wording in Appendix D is unconfirmed here. | **Yes, until the owner reads that section in a browser.** |
-| WHO ATC/DDD (WHOCC) | **Confirmed:** "Copying and distribution for commercial purposes is not allowed", and the material may not be changed. The full files are ordered through the WHOCC portal (price unconfirmed). | **Yes.** MedSync holds no right to embed ATC. Needs written permission from whocc@fhi.no (D-CAT-06). |
-| GS1 | **Confirmed:** there is no free GTIN-to-product registry. Verified by GS1 allows 30 lookups a day. GS1 Uganda exists (admitted Dec 2023, prefix 605). | No: GTINs come from packs and suppliers. |
-| NDHPA Act 2026 | Act 5 of 2026, assented 29 Apr, gazetted 8 May. It commences on a date the Minister sets by statutory instrument; none found. s.34(1) requires a traceability identifier on labels, its format left to regulations. s.21 adds "listing" beside registration and notification. | No. Registration status should allow registered, notified or listed, and the identifier type stays open. |
+| Source                              | Finding                                                                                                                                                                                                                                                                                                                                                                                                                          | Blocks this slice?                                                                                       |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| NDA National Drug Register          | **Newest PDF found: June 2024.** It is about 1,405 pages, entries keyed `NDA/MAL/HDP/nnnn`. **The web register** is titled "Drug Register (October 2026)" (snippet only). **Reuse terms:** none stated. The 2026 Act s.111 opens registers to inspection "at the prescribed fee", which is not yet prescribed. **Columns and row count: unconfirmed until the owner supplies the file.** Strategic Plan IV cites 5,306 products. | **Yes, until the owner gives the file and clears reuse with the NDA.**                                   |
+| RxNorm Current Prescribable Content | **Confirmed:** "without any licensing restrictions", no UMLS login, monthly plus weekly updates. US market only.                                                                                                                                                                                                                                                                                                                 | No, but it can only be a crosswalk.                                                                      |
+| EDQM Standard Terms                 | **Access:** needs an EDQM account (free option). **Conditions of use:** in the v2.2.0 guidance (21 Sep 2026), which returned 403; **unread**. The attribution wording in Appendix D is unconfirmed here.                                                                                                                                                                                                                         | **Yes, until the owner reads that section in a browser.**                                                |
+| WHO ATC/DDD (WHOCC)                 | **Confirmed:** "Copying and distribution for commercial purposes is not allowed", and the material may not be changed. The full files are ordered through the WHOCC portal (price unconfirmed).                                                                                                                                                                                                                                  | **Yes.** MedSync holds no right to embed ATC. Needs written permission from whocc@fhi.no (D-CAT-06).     |
+| GS1                                 | **Confirmed:** there is no free GTIN-to-product registry. Verified by GS1 allows 30 lookups a day. GS1 Uganda exists (admitted Dec 2023, prefix 605).                                                                                                                                                                                                                                                                            | No: GTINs come from packs and suppliers.                                                                 |
+| NDHPA Act 2026                      | Act 5 of 2026, assented 29 Apr, gazetted 8 May. It commences on a date the Minister sets by statutory instrument; none found. s.34(1) requires a traceability identifier on labels, its format left to regulations. s.21 adds "listing" beside registration and notification.                                                                                                                                                    | No. Registration status should allow registered, notified or listed, and the identifier type stays open. |
 
 ### Q5. Scanner hardware: owner input needed
 
@@ -119,10 +124,10 @@ The repo cannot tell. Needed: the pilot site's scanners (USB keyboard wedge? 2D-
 
 ### Q8. Baselines (counted from the forms, not timed)
 
-| Task | Entries | Identities by hand |
-|---|---|---|
+| Task                     | Entries                                                                                       | Identities by hand                                         |
+| ------------------------ | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | Count a 20-line delivery | About 120: per line, pick the product, then note quantity, accepted, batch, expiry, unit cost | All 20, unless a GTIN was linked earlier through `setGtin` |
-| Add 50 products | About 350: seven fields each | All 50 |
+| Add 50 products          | About 350: seven fields each                                                                  | All 50                                                     |
 
 Timed runs need the demo deployed and the canvas flow built. They are recorded at Step 12 against these counts.
 
@@ -194,6 +199,7 @@ Timed runs need the demo deployed and the canvas flow built. They are recorded a
 ## STOP 1: GATE A proposal (27 Oct 2026)
 
 `gate-a-proposal.md` is drafted, checked against the Step 1 list and revised once:
+
 - Fixes from the check:
   - the ledger test list was made exact;
   - RLS was matched to the 0136 pattern;
@@ -210,6 +216,7 @@ GATE A **signed** by Fadhul, 27 Oct 2026, as recommended, no amendments. Fallbac
 ## STOP 2: catalogue schema and seed from EMHSLU (27 Oct 2026)
 
 Built dark; nothing is applied or switched on.
+
 - **Migrations (GATED, owner-applied, in order):**
   - `0251_pharmacy_catalogue.sql`: the five shared layers, proposals and reviews, curators, register editions, pack codes and photos, `cat_changes`;
   - `0252_pharmacy_catalogue_forms_routes.sql`: the 40 signed forms and 15 routes, with no EDQM codes (O-3).
@@ -221,19 +228,20 @@ Built dark; nothing is applied or switched on.
 - **Append-only:** reviews, changes, register editions and pack photos.
 - **The seed** is `npm run pharmacy:seed-catalogue -- <csv> --edition "EMHSLU 2023" [--apply --actor <uuid>]`. It writes proposals only, and the report goes to `docs/pharmacy/catalogue/seed-report.md`.
 
-| On the real EMHSLU 2023 file | Count |
-|---|---|
-| Medicines proposed | 714 |
-| Health supplies proposed | 1,911 |
-| Rows merged into an identical earlier row (same item, another section) | 96 |
-| Rows refused | 0 |
-| Multi-ingredient medicines | 64 |
-| Combinations whose strengths could not be split (kept as printed, noted) | 6 |
-| Medicines with no signed form (a curator sets it; the map never guesses) | 252 |
-| Medicines with no route known | 308 |
-| Substances | 2,115 |
+| On the real EMHSLU 2023 file                                             | Count |
+| ------------------------------------------------------------------------ | ----- |
+| Medicines proposed                                                       | 714   |
+| Health supplies proposed                                                 | 1,911 |
+| Rows merged into an identical earlier row (same item, another section)   | 96    |
+| Rows refused                                                             | 0     |
+| Multi-ingredient medicines                                               | 64    |
+| Combinations whose strengths could not be split (kept as printed, noted) | 6     |
+| Medicines with no signed form (a curator sets it; the map never guesses) | 252   |
+| Medicines with no route known                                            | 308   |
+| Substances                                                               | 2,115 |
 
 **Scenarios:**
+
 - **S1:** every row is a medicine's line or refused with its reason (dry run and apply).
 - **S2:** a fixed-dose combination is one medicine with two ingredients and its strengths as printed.
 - **S3:** a re-run proposes nothing.
@@ -242,6 +250,7 @@ Built dark; nothing is applied or switched on.
 `tests/emr-db/pharmacy-catalogue.test.ts` covers all four, plus the two-person rule, rejection, self-review and from-applied.
 
 **Fadhul, please confirm:**
+
 - **Merged duplicates.** The same item printed in two sections becomes one medicine with both rows linked. Level and VEN are kept only where the rows agree; otherwise the curator gets a note.
 - **Asides.** A printed aside that is not a synonym (for example "(with dextrose)") stays part of the identity and gets a curator note, so two different products never merge.
 
@@ -268,6 +277,7 @@ Built dark; nothing is applied or switched on.
 - **Strings:** Appendix A, the GATE A §11 strings and the picker and page words are in `content/pharmacy-catalogue.ts` as `CATALOGUE` with `CATALOGUE_COPY: draft`. The signed `NATIONAL_LIST` strings are untouched.
 
 **Scenarios (PGlite, the whole seed confirmed: 2,624 medicines):**
+
 - **S5:** each search finds the right medicine and says why:
   - "acetaminophen" gives "Also called acetaminophen";
   - "PCM";
@@ -283,32 +293,36 @@ Built dark; nothing is applied or switched on.
 
 **Checks:**
 
-| Check | Result |
-|---|---|
-| Typecheck | Clean |
-| ESLint, new and changed files | Clean |
-| `tests/pharmacy` (unit) | 1,159 of 1,159 pass |
-| Catalogue PGlite lane | 16 of 16 pass |
-| Drizzle parity | The catalogue tables match. 2 failures predate this slice: `location_shares` and `appointment_attachments` (0185 interval format) |
-| Ledger test files | 21 files, hashes unchanged against 576f6018 |
+| Check                         | Result                                                                                                                            |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Typecheck                     | Clean                                                                                                                             |
+| ESLint, new and changed files | Clean                                                                                                                             |
+| `tests/pharmacy` (unit)       | 1,159 of 1,159 pass                                                                                                               |
+| Catalogue PGlite lane         | 16 of 16 pass                                                                                                                     |
+| Drizzle parity                | The catalogue tables match. 2 failures predate this slice: `location_shares` and `appointment_attachments` (0185 interval format) |
+| Ledger test files             | 21 files, hashes unchanged against 576f6018                                                                                       |
 
 Pre-existing, not from this slice:
+
 - `tests/patient-web/{care,help}` fail to transform because `mobile/` has no tsconfig in this worktree;
 - `pharmacy-golive` S83 calls `cookies` outside a request (the Workspace v2 base).
 
 Two Law 2 source rules now name the catalogue explicitly:
+
 - `engines.test.ts`: the catalogue store writes `cat_*` reference tables only;
 - `ui.test.ts`: `catalogue-actions.ts` is reads only.
 
 **Notes for Fadhul:**
+
 - **§5 slip.** As drafted, §5 read "adrenaline / epinephrine (USAN)". The data follows D-CAT-05 instead: epinephrine is the INN and adrenaline the BAN, and the same for norepinephrine and noradrenaline. Please confirm.
-- **PCM** is stored as a *local* name, as signed, not as an abbreviation.
+- **PCM** is stored as a _local_ name, as signed, not as an abbreviation.
 - **RxNorm-derived names are not loaded.** They would need their own signed list; deferred.
 - **Ctrl K.** In Workspace v2, Ctrl K opens Find everywhere, while board 1 gives Ctrl K to the picker on Count a delivery. Step 7 lets the delivery page take Ctrl K while it is open; Find stays on Ctrl K everywhere else.
 
 ## STOP 4: NDA register import — deferred (O-1)
 
 No NDA register file has been supplied, so Step 4 waits, as the O-1 fallback says.
+
 - Brands, makers and registration numbers come only from that file or from a hospital's local proposal (Step 6). None are invented.
 - Brands show "not recorded" wherever no state is known.
 - S8–S10 run once the file arrives.
@@ -342,6 +356,7 @@ No NDA register file has been supplied, so Step 4 waits, as the O-1 fallback say
 - **ADR 0458.**
 
 **Scenarios:**
+
 - **S11:** a DataMatrix with and without GS separators parses identically (unit).
 - **S12:** a wrong check digit is refused, with words (unit and PGlite).
 - **S13:** `YYMM00` is the last day of the month (unit).
@@ -351,21 +366,23 @@ No NDA register file has been supplied, so Step 4 waits, as the O-1 fallback say
 
 **Checks:**
 
-| Check | Result |
-|---|---|
-| Typecheck | Clean |
-| ESLint, changed files | Clean |
-| `tests/pharmacy` | 1,165 of 1,165 pass |
-| Catalogue PGlite lane | 21 of 21 pass, search p95 89 ms |
-| Ledger PGlite lanes | 9 files, all pass |
-| Drizzle parity | Only the 2 pre-existing failures |
-| Ledger hashes | Unchanged |
+| Check                 | Result                           |
+| --------------------- | -------------------------------- |
+| Typecheck             | Clean                            |
+| ESLint, changed files | Clean                            |
+| `tests/pharmacy`      | 1,165 of 1,165 pass              |
+| Catalogue PGlite lane | 21 of 21 pass, search p95 89 ms  |
+| Ledger PGlite lanes   | 9 files, all pass                |
+| Drizzle parity        | Only the 2 pre-existing failures |
+| Ledger hashes         | Unchanged                        |
 
 Two non-ledger test files changed on purpose:
+
 - `tests/pharmacy/stores/scan.test.ts`: new fields, and an AI of unknown length replaces "unknown AI fails";
 - `tests/pharmacy/stores-store/scan-fill.test.ts`: a wrong check digit is now `refused`, not text (S12).
 
 **Not built:**
+
 - **Camera scanning** (O-2 fallback: USB wedge only).
 - **The pack photo upload** on 4.3. It needs the asset store with the "no patient in view" notice; it is built with Step 7's field kit.
 
@@ -374,6 +391,7 @@ Two non-ledger test files changed on purpose:
 ## STOP 6: the hospital's products and the catalogue (27 Oct 2026)
 
 **Owner answers recorded (Fadhul, CSO, 27 Oct 2026):**
+
 - **A-1 amended to "Catalogue key".** `medicine_id` stays NOT NULL. A trial that made it nullable broke 49 places in 17 files and was reverted. A product that is not on the prescribing list takes `cat_` plus 32 hex digits, so no prescription, dose rule or controlled class ever matches it.
 - **D-CAT-18 "Refuse for now".** Local medicines are refused until the CSO decides how their controlled status is set. Health supplies and pack links are built, and form 4.4 offers health supplies only.
 
@@ -397,6 +415,7 @@ Two non-ledger test files changed on purpose:
 - **ADR 0459.** CHANGELOG entry now reads "Steps 2–6".
 
 **Scenarios (PGlite, `tests/emr-db/pharmacy-catalogue-products.test.ts`, on the demo lane):**
+
 - **S17:** a demo product with one signed match links. Its medicine id, issue unit, batch count, movement count and balance are identical before and after. Another hospital cannot link it, and it cannot link to a supply.
 - **S18:** a health supply is added, then received (40), counted, moved to the inpatient point (10), quarantined (5) and written off with a witness. It ends with opd 25, inpatient 10 and quarantine 0. Its `new_product` proposal records `none_on_pack`. Once a second person confirms it, the brand, pack and barcode are in the catalogue and the product is linked to the pack.
 - **S19:** never prescribed. Its key is not a prescribing-list medicine, `ProductInput` refuses it, and the database refuses a formulary product with it (`pp_kind_key`).
@@ -404,17 +423,18 @@ Two non-ledger test files changed on purpose:
 
 **Checks:**
 
-| Check | Result |
-|---|---|
-| Typecheck | Clean |
-| ESLint (pharmacy app, lib, content, new test) | Clean |
-| `tests/pharmacy` unit | 1,169 of 1,169 |
-| Catalogue PGlite (`pharmacy-catalogue.test.ts`) | 21 of 21 |
-| Products PGlite (new) | 2 of 2 |
-| Drizzle parity | Only the 2 failures already on the branch (location_shares, appointment_attachments) |
-| Ledger test files (sha256) | 21 of 21 OK |
+| Check                                           | Result                                                                               |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Typecheck                                       | Clean                                                                                |
+| ESLint (pharmacy app, lib, content, new test)   | Clean                                                                                |
+| `tests/pharmacy` unit                           | 1,169 of 1,169                                                                       |
+| Catalogue PGlite (`pharmacy-catalogue.test.ts`) | 21 of 21                                                                             |
+| Products PGlite (new)                           | 2 of 2                                                                               |
+| Drizzle parity                                  | Only the 2 failures already on the branch (location_shares, appointment_attachments) |
+| Ledger test files (sha256)                      | 21 of 21 OK                                                                          |
 
 **Open:**
+
 - Migration 0255 waits for the owner, after 0251–0254.
 - Prices on products remain Step 8.
 
@@ -444,6 +464,7 @@ Two non-ledger test files changed on purpose:
 - **ADR 0467** (not in the GATE A list, which keeps 0460–0466 for later steps). CHANGELOG entry now reads "Steps 2–7".
 
 **Scenarios:**
+
 - **S20:** a 20-line delivery: 18 lines from 18 scans, a 19th scan adding a pack, and 2 typed identities. It received 2,000 units in one transaction, in 125–141 ms on PGlite. Q8 counted about 120 entries and 20 typed identities by hand. Timing on real hardware waits for Step 12's pilot.
 - **S21:** 20 packs × 100 gives 2,000. A mismatch is refused, a pack with unknown contents is refused in words, and the database refuses a change to the units (`pdl_packs_whole`).
 - **S22:** a rescan of the same pack and batch says "+1 pack · 2 counted", and the line holds 200 units.
@@ -454,16 +475,17 @@ Two non-ledger test files changed on purpose:
 
 **Checks:**
 
-| Check | Result |
-|---|---|
-| Typecheck | Clean |
-| ESLint (pharmacy app, lib, content, new tests) | Clean |
-| `tests/pharmacy` unit | 1,173 of 1,173 |
-| All `tests/emr-db/pharmacy-*` lanes + parity | 1,070 of 1,073. The 3 failures were already on the branch: parity location_shares and appointment_attachments, and golive S83 (`cookies` outside a request) |
-| Step 7 PGlite (new) | 6 of 6 |
-| Ledger test files (sha256) | 21 of 21 OK |
+| Check                                          | Result                                                                                                                                                      |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Typecheck                                      | Clean                                                                                                                                                       |
+| ESLint (pharmacy app, lib, content, new tests) | Clean                                                                                                                                                       |
+| `tests/pharmacy` unit                          | 1,173 of 1,173                                                                                                                                              |
+| All `tests/emr-db/pharmacy-*` lanes + parity   | 1,070 of 1,073. The 3 failures were already on the branch: parity location_shares and appointment_attachments, and golive S83 (`cookies` outside a request) |
+| Step 7 PGlite (new)                            | 6 of 6                                                                                                                                                      |
+| Ledger test files (sha256)                     | 21 of 21 OK                                                                                                                                                 |
 
 **Open:**
+
 - The pack photo (4.3) is not built: it needs the asset store and a storage decision.
 - Cart restock lines are fixed by the cart template, so scanning a batch there is not wired.
 - Found-on-shelf with a new product does not yet offer the picker.
@@ -484,6 +506,7 @@ Two non-ledger test files changed on purpose:
 - **ADRs 0460, 0461.** CHANGELOG entry now reads "Steps 2–8".
 
 **Scenarios:**
+
 - **S26:** 130 × 1.25 = 162.5, rounded up to 200 with its steps; × 0.8 for staff gives 150. Nothing is written until Accept, and Accept re-works it on the server.
 - **S27:** the latest row from on or before the date; a later entry wins a same-day tie; nothing before the first row.
 - **S28, S29:** on the demo dispensing day, every supply from today carries the cash price in force for priced products, `free` at the free emergency point, and `price_not_set` with no price otherwise; earlier supplies (before any price was in force) are `price_not_set`; no supply holds 0.
@@ -495,16 +518,17 @@ Two non-ledger test files changed on purpose:
 
 **Checks:**
 
-| Check | Result |
-|---|---|
-| Typecheck | Clean |
-| ESLint (pharmacy app, lib, content, new tests) | Clean |
-| `tests/pharmacy` unit | 1,185 of 1,185 |
-| All `tests/emr-db/pharmacy-*` lanes + parity | 1,084 of 1,087. The 3 failures were already on the branch: parity location_shares and appointment_attachments, and golive S83 |
-| Step 8 PGlite (new) | 6 of 6 |
-| Ledger test files (sha256) | 21 of 21 OK |
+| Check                                          | Result                                                                                                                        |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Typecheck                                      | Clean                                                                                                                         |
+| ESLint (pharmacy app, lib, content, new tests) | Clean                                                                                                                         |
+| `tests/pharmacy` unit                          | 1,185 of 1,185                                                                                                                |
+| All `tests/emr-db/pharmacy-*` lanes + parity   | 1,084 of 1,087. The 3 failures were already on the branch: parity location_shares and appointment_attachments, and golive S83 |
+| Step 8 PGlite (new)                            | 6 of 6                                                                                                                        |
+| Ledger test files (sha256)                     | 21 of 21 OK                                                                                                                   |
 
 **Open:**
+
 - The supply snapshot uses the cash payer; choosing a scheme or staff payer at the hand-over belongs to the payment slice.
 - The admitted exemption applies only where the flag is on.
 - 0257 waits for the owner, after 0256.
@@ -520,6 +544,7 @@ Two non-ledger test files changed on purpose:
 - **ADR 0462.** CHANGELOG entry now reads "Steps 2–9".
 
 **Scenarios:**
+
 - **S34:** a 600-row products file made a draft in 134 ms on PGlite (limit 10 s) with no product written; after four decisions, commit wrote exactly the 3 accepted rows (a catalogue product with its pack, two health supplies) and a second commit is refused. The lane's catalogue is small; with the full 2,624-medicine seed the index is read once per file, not per row.
 - **S35:** a barcode of the 250 mg pack on a 500 mg row is "check" with no proposal ("A different strength is never proposed"); a 125 mg row found only by name in other strengths is "not in the catalogue"; a row with no proposal cannot be accepted.
 - **S36:** opening stock for a store not yet live placed both products there, wrote no count and no movement, and the store's `opening_count` condition is still not met; a row for another place cannot be read; a live store is refused.
@@ -528,16 +553,17 @@ Two non-ledger test files changed on purpose:
 
 **Checks:**
 
-| Check | Result |
-|---|---|
-| Typecheck | Clean, after typing each committed row through the store's own schema (`valid()`) |
-| ESLint | Clean, after `parseCsv` was rewritten without comma expressions |
-| `tests/pharmacy` unit | 1,198 of 1,198 (imports engine 5 of 5) |
+| Check                                        | Result                                                                                                                                            |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Typecheck                                    | Clean, after typing each committed row through the store's own schema (`valid()`)                                                                 |
+| ESLint                                       | Clean, after `parseCsv` was rewritten without comma expressions                                                                                   |
+| `tests/pharmacy` unit                        | 1,198 of 1,198 (imports engine 5 of 5)                                                                                                            |
 | All `tests/emr-db/pharmacy-*` lanes + parity | 1,088 of 1,092. The 3 known failures, plus S6 (catalogue search p95), which ran beside a typecheck and took 5.9 s; alone it passes at p95 60.9 ms |
-| Step 9 PGlite (new) | 3 of 3 |
-| Ledger test files (sha256) | 21 of 21 OK |
+| Step 9 PGlite (new)                          | 3 of 3                                                                                                                                            |
+| Ledger test files (sha256)                   | 21 of 21 OK                                                                                                                                       |
 
 **Open:**
+
 - Opening stock still needs its blind opening count before the store goes live (S36).
 - Excel files wait for a dependency decision (O-5); CSV only.
 - 0258 waits for the owner, after 0257.
@@ -578,12 +604,14 @@ Two non-ledger test files changed on purpose:
 - **ADRs 0463, 0464, 0465.** The CHANGELOG entry reads "Steps 2–11" and "0251–0259".
 
 **Adapted:**
+
 - **Later-batch reasons:** a pick offers `first_not_found` and `first_unfit` from the existing `BATCH_CHOICE_REASONS`. "Other" is left out because a pick carries no text.
 - **IS-6:** issue and receipt already enforced the controlled witness and the second factor. `controlledRefusals` now states the need on the screen.
 - **Ward use:** as GATE A said, the administration record names no ward-stock source. `charted` is null on real data and every row reads "Not charted from ward stock". The gap and the nurse-in-charge item are computed and tested on the fixture. The item is not delivered, because nurses have no Needs you list yet.
 - **Resus doses:** none from carts on real data (the resus desk's cart is always null), so the seal report drives the signal alone.
 
 **Scenarios:**
+
 - **S38:** a scan of another product's GTIN is refused: "This is {it}. The line asks for {line}." Issuing the unpicked line is refused. A scan of the right pack is recorded, and `getRequisition` shows the pick and the planned batches. Unit tests cover another strength, a code no product carries, and the pick problems.
 - **S39:** a scan carrying a later batch than the planned first-to-expire is refused ("{batch} expires {date}; {first} expires first…"). With `first_unfit` it is recorded as a scan with that reason, and the issue then goes through.
 - **S40:** the receipt keeps its rule (own password and code, `ward_confirm`). The existing S23 lane covers it.
@@ -598,16 +626,17 @@ Two non-ledger test files changed on purpose:
 
 **Checks:**
 
-| Check | Result |
-|---|---|
-| Typecheck | Clean |
-| ESLint (pharmacy app, nurse ward stock, lib, content, tests) | Clean |
-| `tests/pharmacy` unit | 1,208 of 1,208 (distribution engine 9 of 9) |
-| All `tests/emr-db/pharmacy-*` lanes + parity | 1,100 of 1,103. The 3 failures are the known ones (parity location_shares and appointment_attachments, golive S83) |
-| Steps 10–11 PGlite (new) | 8 of 8 |
-| Ledger test files (sha256) | 21 of 21 OK |
+| Check                                                        | Result                                                                                                             |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Typecheck                                                    | Clean                                                                                                              |
+| ESLint (pharmacy app, nurse ward stock, lib, content, tests) | Clean                                                                                                              |
+| `tests/pharmacy` unit                                        | 1,208 of 1,208 (distribution engine 9 of 9)                                                                        |
+| All `tests/emr-db/pharmacy-*` lanes + parity                 | 1,100 of 1,103. The 3 failures are the known ones (parity location_shares and appointment_attachments, golive S83) |
+| Steps 10–11 PGlite (new)                                     | 8 of 8                                                                                                             |
+| Ledger test files (sha256)                                   | 21 of 21 OK                                                                                                        |
 
 **Open:**
+
 - 0259 waits for the owner, after 0258.
 - A dose source on the administration record (a later slice) turns the ward check on. Nurses need a Needs you list to receive the gap item.
 - The nurse's ward-stock page does not list the unit's carts yet, so a nurse reports a broken seal through the action only. The pharmacy cart page has the button.
@@ -635,12 +664,14 @@ Two non-ledger test files changed on purpose:
 - **ADR 0466.** CHANGELOG updated.
 
 **Adapted:**
+
 - **One product:** the trace follows one product, and the catalogue page lists each product of the medicine.
 - **Who received:** offered for a recalled batch only, because the existing trace is keyed by a recall.
 - **Find (Ctrl K):** does not open the trace yet.
 - **Workspace v2 only:** the map is reachable inside Workspace v2 only.
 
 **Scenarios:**
+
 - **S45:** the lane walks every place on the demo. Every row exists, holdings equal a SQL sum of positive balances, each value equals `stockValueOf` for that place, and the figure equals the rows' sum.
 - **S46:** every next step is from the fixed list. The cart with a broken seal (S42) reads "Check and restock the cart, then seal it" first. Unit tests cover the order.
 - **S47:** each issue-only ward has no value and no units, and reads "Not counted: issues only".
@@ -651,6 +682,7 @@ Two non-ledger test files changed on purpose:
 **Checks:** as STOP 10 (one run covers both steps).
 
 **Open:**
+
 - Find opens the trace in a later step.
 - The map uses one ledger read per load. `loadLedger` carries a ponytail note to narrow it when a hospital grows.
 - The pages are not checked in a browser here: they need the flag, Workspace v2 and a signed-in pharmacy user.

@@ -69,7 +69,12 @@ export function Stepper({
   const btn = "bg-card shadow-tide-card size-11 rounded-full text-[18px] sm:size-9";
   return (
     <div className="flex items-center gap-1.5">
-      <button type="button" aria-label={`${label} −`} className={btn} onClick={() => onChange(Math.max(min, v - step))}>
+      <button
+        type="button"
+        aria-label={`${label} −`}
+        className={btn}
+        onClick={() => onChange(Math.max(min, v - step))}
+      >
         −
       </button>
       <input
@@ -82,7 +87,12 @@ export function Stepper({
         }}
         className="bg-card shadow-tide-card h-11 w-16 rounded-full text-center text-[15px] tabular-nums sm:h-9"
       />
-      <button type="button" aria-label={`${label} +`} className={btn} onClick={() => onChange(v + step)}>
+      <button
+        type="button"
+        aria-label={`${label} +`}
+        className={btn}
+        onClick={() => onChange(v + step)}
+      >
         +
       </button>
     </div>

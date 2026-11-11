@@ -8,36 +8,35 @@ results had a set row. Conflicts take the most common value and are listed here;
 
 30 LOINC rows → 28 tests · 0 conflicts · 3 unmapped · 0 already set as tests (kept)
 
-| Test | Where | Hours | Stated turnaround | Section override | Coverage | From |
-|---|---|---|---|---|---|---|
-| `test.creatinine` | in_house | 24h | — | — | 1 of 1 | 14682-9, 2160-0 |
-| `test.albumin` | in_house | 24h | — | — | 1 of 1 | 1751-7 |
-| `test.ascitic_fluid_chemistry` | in_house | 24h | — | — | 1 of 6 | 1751-7 |
-| `test.bilirubin` | in_house | 24h | — | — | 2 of 2 | 14629-0, 14631-6 |
-| `test.bilirubin_neonatal` | in_house | 24h | — | — | 2 of 2 | 14629-0, 14631-6 |
-| `test.bone_profile` | in_house | 24h | — | — | 2 of 5 | 1751-7, 6768-6 |
-| `test.calcium` | in_house | 24h | — | — | 1 of 3 | 1751-7 |
-| `test.creatinine_clearance_24h` | in_house | 24h | — | — | 1 of 4 | 14682-9, 2160-0 |
-| `test.csf_chemistry` | in_house | 24h | — | — | 1 of 4 | 14749-6, 14771-0, 2345-7 |
-| `test.electrolytes` | in_house | 24h | — | — | 4 of 5 | 1963-8, 2075-0, 2823-3, 2951-2 |
-| `test.ft4` | in_house | 24h | — | — | 1 of 1 | 14920-3 |
-| `test.ogtt_pregnancy` | in_house | 24h | — | — | 1 of 3 | 14771-0 |
-| `test.thyroid_total` | in_house | 24h | — | — | 1 of 3 | 3016-3 |
-| `test.tsh` | in_house | 24h | — | — | 1 of 1 | 3016-3 |
-| `test.tsh_ft4` | in_house | 24h | — | — | 2 of 2 | 14920-3, 3016-3 |
-| `test.blood_gas` | in_house | 24h | — | — | 1 of 2 | 1963-8 |
-| `test.crp` | in_house | 24h | — | — | 1 of 1 | 1988-5 |
-| `test.glucose_fasting` | in_house | 24h | — | — | 1 of 1 | 14749-6, 14771-0, 2345-7 |
-| `test.glucose_random` | in_house | 24h | — | — | 1 of 1 | 14749-6, 14771-0, 2345-7 |
-| `test.hba1c` | in_house | 24h | — | — | 1 of 1 | 4548-4 |
-| `test.lactate` | in_house | 24h | — | — | 1 of 1 | 2524-7 |
-| `test.lft` | in_house | 24h | — | — | 5 of 7 | 14629-0, 14631-6, 1742-6, 1751-7, 6768-6 |
-| `test.lipid_panel` | in_house | 24h | — | — | 4 of 4 | 14646-4, 14647-2, 14927-8, 39469-2 |
-| `test.ogtt_75g` | in_house | 24h | — | — | 1 of 1 | 14749-6, 14771-0, 2345-7 |
-| `test.thyroid` | in_house | 24h | — | — | 2 of 2 | 14920-3, 3016-3 |
-| `test.troponin` | in_house | 24h | — | — | 1 of 1 | 67151-1, 89579-7 |
-| `test.uacr` | in_house | 24h | — | — | 1 of 1 | 32294-1 |
-| `test.urea_electrolytes` | in_house | 24h | — | — | 5 of 5 | 14682-9, 2075-0, 2160-0, 22664-7, 2823-3, 2951-2 |
+| Test                            | Where    | Hours | Stated turnaround | Section override | Coverage | From                                             |
+| ------------------------------- | -------- | ----- | ----------------- | ---------------- | -------- | ------------------------------------------------ |
+| `test.creatinine`               | in_house | 24h   | —                 | —                | 1 of 1   | 14682-9, 2160-0                                  |
+| `test.albumin`                  | in_house | 24h   | —                 | —                | 1 of 1   | 1751-7                                           |
+| `test.ascitic_fluid_chemistry`  | in_house | 24h   | —                 | —                | 1 of 6   | 1751-7                                           |
+| `test.bilirubin`                | in_house | 24h   | —                 | —                | 2 of 2   | 14629-0, 14631-6                                 |
+| `test.bilirubin_neonatal`       | in_house | 24h   | —                 | —                | 2 of 2   | 14629-0, 14631-6                                 |
+| `test.bone_profile`             | in_house | 24h   | —                 | —                | 2 of 5   | 1751-7, 6768-6                                   |
+| `test.calcium`                  | in_house | 24h   | —                 | —                | 1 of 3   | 1751-7                                           |
+| `test.creatinine_clearance_24h` | in_house | 24h   | —                 | —                | 1 of 4   | 14682-9, 2160-0                                  |
+| `test.csf_chemistry`            | in_house | 24h   | —                 | —                | 1 of 4   | 14749-6, 14771-0, 2345-7                         |
+| `test.electrolytes`             | in_house | 24h   | —                 | —                | 4 of 5   | 1963-8, 2075-0, 2823-3, 2951-2                   |
+| `test.ft4`                      | in_house | 24h   | —                 | —                | 1 of 1   | 14920-3                                          |
+| `test.ogtt_pregnancy`           | in_house | 24h   | —                 | —                | 1 of 3   | 14771-0                                          |
+| `test.thyroid_total`            | in_house | 24h   | —                 | —                | 1 of 3   | 3016-3                                           |
+| `test.tsh`                      | in_house | 24h   | —                 | —                | 1 of 1   | 3016-3                                           |
+| `test.tsh_ft4`                  | in_house | 24h   | —                 | —                | 2 of 2   | 14920-3, 3016-3                                  |
+| `test.blood_gas`                | in_house | 24h   | —                 | —                | 1 of 2   | 1963-8                                           |
+| `test.crp`                      | in_house | 24h   | —                 | —                | 1 of 1   | 1988-5                                           |
+| `test.glucose_fasting`          | in_house | 24h   | —                 | —                | 1 of 1   | 14749-6, 14771-0, 2345-7                         |
+| `test.glucose_random`           | in_house | 24h   | —                 | —                | 1 of 1   | 14749-6, 14771-0, 2345-7                         |
+| `test.hba1c`                    | in_house | 24h   | —                 | —                | 1 of 1   | 4548-4                                           |
+| `test.lactate`                  | in_house | 24h   | —                 | —                | 1 of 1   | 2524-7                                           |
+| `test.lft`                      | in_house | 24h   | —                 | —                | 5 of 7   | 14629-0, 14631-6, 1742-6, 1751-7, 6768-6         |
+| `test.lipid_panel`              | in_house | 24h   | —                 | —                | 4 of 4   | 14646-4, 14647-2, 14927-8, 39469-2               |
+| `test.ogtt_75g`                 | in_house | 24h   | —                 | —                | 1 of 1   | 14749-6, 14771-0, 2345-7                         |
+| `test.thyroid`                  | in_house | 24h   | —                 | —                | 2 of 2   | 14920-3, 3016-3                                  |
+| `test.troponin`                 | in_house | 24h   | —                 | —                | 1 of 1   | 67151-1, 89579-7                                 |
+| `test.uacr`                     | in_house | 24h   | —                 | —                | 1 of 1   | 32294-1                                          |
+| `test.urea_electrolytes`        | in_house | 24h   | —                 | —                | 5 of 5   | 14682-9, 2075-0, 2160-0, 22664-7, 2823-3, 2951-2 |
 
 **Unmapped LOINC rows:** 2324-2, 69419-0, DEMO-REF-TFT
-

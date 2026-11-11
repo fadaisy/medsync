@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 
-import { RC as RECORDS } from "@/content/pharmacy-rework-records";
 import { RC } from "@/content/pharmacy-receive";
+import { RC as RECORDS } from "@/content/pharmacy-rework-records";
 import { logger } from "@/lib/logger";
 import * as after from "@/lib/pharmacy/actions/receive/after";
 import * as delivery from "@/lib/pharmacy/actions/receive/delivery";
@@ -14,7 +14,10 @@ import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { createServiceClient } from "@/lib/supabase/service";
 
 /** Stock › Receive a delivery (RECEIVE §I): the session user acts; every check runs again on the server. */
-type Act = (actor: Awaited<ReturnType<typeof requirePharmacyActor>>, raw: unknown) => Promise<{ ok: boolean }>;
+type Act = (
+  actor: Awaited<ReturnType<typeof requirePharmacyActor>>,
+  raw: unknown,
+) => Promise<{ ok: boolean }>;
 const run = async <F extends Act>(fn: F, raw: unknown): Promise<Awaited<ReturnType<F>>> => {
   try {
     const out = (await fn(await requirePharmacyActor(), raw)) as Awaited<ReturnType<F>>;
@@ -22,7 +25,9 @@ const run = async <F extends Act>(fn: F, raw: unknown): Promise<Awaited<ReturnTy
     return out;
   } catch (e) {
     unstable_rethrow(e);
-    logger.error("pharmacy.receive.action_failed", { error: e instanceof Error ? e.name : "unknown" });
+    logger.error("pharmacy.receive.action_failed", {
+      error: e instanceof Error ? e.name : "unknown",
+    });
     return { ok: false, code: "conflict", error: RECORDS.refused.failed } as Awaited<ReturnType<F>>;
   }
 };
@@ -57,7 +62,9 @@ export async function photoUploadAction(raw: unknown) {
   if (!i.success) return { ok: false as const, error: RC.says.photo };
   const actor = await requirePharmacyActor();
   const path = `${actor.hospitalId}/${i.data.deliveryId}/${i.data.id}.jpg`;
-  const { data, error } = await createServiceClient().storage.from("pharmacy-delivery-photos").createSignedUploadUrl(path);
+  const { data, error } = await createServiceClient()
+    .storage.from("pharmacy-delivery-photos")
+    .createSignedUploadUrl(path);
   if (error || !data) return { ok: false as const, error: RC.says.photo };
   return { ok: true as const, signedUrl: data.signedUrl, path };
 }

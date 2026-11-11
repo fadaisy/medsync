@@ -247,7 +247,9 @@ Deno.serve(async (request: Request) => {
   const intakeId = input.intake_id!;
   const { data: intake, error: intakeErr } = await sb
     .from("patient_intakes")
-    .select("id, hospital_id, receiving_department_id, patient_user_id, status, entry_type_code, priority_hint")
+    .select(
+      "id, hospital_id, receiving_department_id, patient_user_id, status, entry_type_code, priority_hint",
+    )
     .eq("id", intakeId)
     .maybeSingle();
   if (intakeErr) return serverError(intakeErr.message, init);

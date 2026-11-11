@@ -9,7 +9,14 @@ import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { hm, when } from "@/lib/pharmacy/cd/sql";
 import { isInCharge } from "@/lib/pharmacy/cd/store";
-import { hoFlags, hoMine, nextFor, openLines, slotNow, slotsBetween } from "@/lib/pharmacy/handover/derive";
+import {
+  hoFlags,
+  hoMine,
+  nextFor,
+  openLines,
+  slotNow,
+  slotsBetween,
+} from "@/lib/pharmacy/handover/derive";
 import { loadHandovers } from "@/lib/pharmacy/handover/read";
 import { AcceptButton, FlagAction, StartHandover } from "./_components/handover-client";
 
@@ -20,7 +27,10 @@ const H = CTL.handover;
 /** One read per request: stations, the week's handovers and misses (3 queries) and whether the viewer is the in-charge. */
 const handoverPage = cache(async (hospitalId: string, userId: string) => {
   const d = db as unknown as EmrDb;
-  const [data, inCharge] = await Promise.all([loadHandovers(d, hospitalId), isInCharge(d, userId, hospitalId)]);
+  const [data, inCharge] = await Promise.all([
+    loadHandovers(d, hospitalId),
+    isInCharge(d, userId, hospitalId),
+  ]);
   return { ...data, inCharge };
 });
 
@@ -36,15 +46,23 @@ export default async function HandoverPage() {
   const placeName = Object.fromEntries(data.places.map((p) => [p.id, p.name]));
   const flags = hoMine(hoFlags({ ...data, now }), data.inCharge, station?.id ?? null);
   const toAccept = data.handovers.filter((h) => !h.acceptedAt && h.toUserId === actor.userId);
-  const sent = data.handovers.filter((h) => !h.acceptedAt && h.toUserId !== actor.userId && (data.inCharge || h.placeId === station?.id));
+  const sent = data.handovers.filter(
+    (h) =>
+      !h.acceptedAt && h.toUserId !== actor.userId && (data.inCharge || h.placeId === station?.id),
+  );
   const log = data.handovers.filter((h) => data.inCharge || h.placeId === station?.id);
   const prevAt = (h: Handover) =>
-    data.handovers.find((x) => x.placeId === h.placeId && x.at < h.at)?.at ?? new Date(h.at.getTime() - 86_400_000);
+    data.handovers.find((x) => x.placeId === h.placeId && x.at < h.at)?.at ??
+    new Date(h.at.getTime() - 86_400_000);
 
   return (
     <div className="flex flex-col gap-4">
       {toAccept.map((h) => (
-        <Panel key={h.id} title={H.toAccept} note={fill(H.toAcceptNote, { from: h.from, place: placeName[h.placeId] ?? "" })}>
+        <Panel
+          key={h.id}
+          title={H.toAccept}
+          note={fill(H.toAcceptNote, { from: h.from, place: placeName[h.placeId] ?? "" })}
+        >
           <HandoverSummary h={h} />
           <div className="mt-3">
             <AcceptButton handoverId={h.id} />
@@ -81,7 +99,10 @@ export default async function HandoverPage() {
             />
             <KeyFigure label={H.kpiMissed} value={flags.filter((f) => f.k === "miss").length} />
             <KeyFigure label={H.kpiDiff} value={flags.filter((f) => f.k === "diff").length} />
-            <KeyFigure label={H.kpiToday} value={data.handovers.filter((h) => now - h.at.getTime() < 86_400_000).length} />
+            <KeyFigure
+              label={H.kpiToday}
+              value={data.handovers.filter((h) => now - h.at.getTime() < 86_400_000).length}
+            />
           </KeyFigureGrid>
         </Panel>
       ) : null}
@@ -97,12 +118,23 @@ export default async function HandoverPage() {
                   : f.k === "due"
                     ? fill(H.flagDue, {
                         place,
-                        when: f.slot < now ? fill(H.flagDueLate, { n: Math.round((now - f.slot) / 60_000) }) : fill(H.flagDueAt, { time: hm(f.slot) }),
+                        when:
+                          f.slot < now
+                            ? fill(H.flagDueLate, { n: Math.round((now - f.slot) / 60_000) })
+                            : fill(H.flagDueAt, { time: hm(f.slot) }),
                       })
-                    : fill(H.flagDiff, { med: f.line.medicineName, place, counted: f.line.counted, expected: f.line.expected });
+                    : fill(H.flagDiff, {
+                        med: f.line.medicineName,
+                        place,
+                        counted: f.line.counted,
+                        expected: f.line.expected,
+                      });
               const meta =
                 f.k === "miss"
-                  ? fill(H.flagMissMeta, { from: H.shiftShort[slotFrom(f.slot)], to: H.shiftShort[slotTo(f.slot)] })
+                  ? fill(H.flagMissMeta, {
+                      from: H.shiftShort[slotFrom(f.slot)],
+                      to: H.shiftShort[slotTo(f.slot)],
+                    })
                   : f.k === "due"
                     ? H.flagDueMeta
                     : fill(H.flagDiffMeta, {
@@ -112,10 +144,15 @@ export default async function HandoverPage() {
                         cd: f.line.controlled ? H.flagDiffCd : "",
                       });
               return (
-                <li key={f.id} className="bg-card shadow-tide-card rounded-tide-row flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <li
+                  key={f.id}
+                  className="bg-card shadow-tide-card rounded-tide-row flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
                   <div className="flex min-w-0 flex-col gap-1">
                     <span className="flex flex-wrap items-center gap-2">
-                      <Pill tone={f.k === "due" ? "neutral" : "caution"}>{f.k === "miss" ? H.tagMiss : f.k === "diff" ? H.tagCount : H.next}</Pill>
+                      <Pill tone={f.k === "due" ? "neutral" : "caution"}>
+                        {f.k === "miss" ? H.tagMiss : f.k === "diff" ? H.tagCount : H.next}
+                      </Pill>
                       <span className="text-[14px] font-semibold">{title}</span>
                     </span>
                     <span className="text-caption text-ink-600">{meta}</span>
@@ -140,16 +177,26 @@ export default async function HandoverPage() {
             })}
           </ul>
         ) : (
-          <EmptyState compact title={data.inCharge ? H.nothingAll : fill(H.nothingMine, { place: station?.name ?? "" })} />
+          <EmptyState
+            compact
+            title={
+              data.inCharge ? H.nothingAll : fill(H.nothingMine, { place: station?.name ?? "" })
+            }
+          />
         )}
-        {!data.inCharge ? <p className="text-caption text-ink-600 mt-3">{H.otherStations}</p> : null}
+        {!data.inCharge ? (
+          <p className="text-caption text-ink-600 mt-3">{H.otherStations}</p>
+        ) : null}
       </Panel>
 
       <Panel title={data.inCharge || !station ? H.log : fill(H.logMine, { place: station.name })}>
         {log.length ? (
           <ul className="flex flex-col gap-2">
             {log.map((h) => (
-              <li key={h.id} className="bg-card shadow-tide-card rounded-tide-row flex flex-col gap-1 px-4 py-3">
+              <li
+                key={h.id}
+                className="bg-card shadow-tide-card rounded-tide-row flex flex-col gap-1 px-4 py-3"
+              >
                 <span className="text-[14px] font-semibold">
                   {when(h.at)} · {placeName[h.placeId]} · {h.from} → {h.to}
                 </span>
@@ -165,10 +212,13 @@ export default async function HandoverPage() {
   );
 }
 
-const slotFrom = (slot: number) => (new Date(slot + 3 * 3_600_000).getUTCHours() === 8 ? "night" : "day");
+const slotFrom = (slot: number) =>
+  new Date(slot + 3 * 3_600_000).getUTCHours() === 8 ? "night" : "day";
 const slotTo = (slot: number) => (slotFrom(slot) === "night" ? "day" : "night");
 const slotted = (hs: Handover[], now: number, hour: number) => {
-  const s = slotsBetween(now - 86_400_000, now).filter((t) => new Date(t + 3 * 3_600_000).getUTCHours() === hour).pop();
+  const s = slotsBetween(now - 86_400_000, now)
+    .filter((t) => new Date(t + 3 * 3_600_000).getUTCHours() === hour)
+    .pop();
   return s ? new Set(hs.filter((h) => h.slotAt?.getTime() === s).map((h) => h.placeId)).size : 0;
 };
 
@@ -184,7 +234,11 @@ function HandoverSummary({ h }: { h: Handover }) {
   return (
     <div className="text-caption text-ink-600 flex flex-col gap-1">
       <span>
-        {h.lines.length ? fill(H.counted, { items: h.lines.map((l) => `${l.medicineName} ${l.counted}`).join(", ") }) : H.keysOnly}
+        {h.lines.length
+          ? fill(H.counted, {
+              items: h.lines.map((l) => `${l.medicineName} ${l.counted}`).join(", "),
+            })
+          : H.keysOnly}
       </span>
       <span>
         {h.keys ? H.keys : H.noKeys}
@@ -222,7 +276,9 @@ function StationCard({
         {next ? (
           <span className="text-caption text-ink-600">
             {H.next}: {hm(next)} ·{" "}
-            {next < now ? fill(H.late, { n: Math.round((now - next) / 60_000) }) : fill(H.inTime, { t: `${Math.round((next - now) / 60_000)} min` })}
+            {next < now
+              ? fill(H.late, { n: Math.round((now - next) / 60_000) })
+              : fill(H.inTime, { t: `${Math.round((next - now) / 60_000)} min` })}
           </span>
         ) : null}
       </div>

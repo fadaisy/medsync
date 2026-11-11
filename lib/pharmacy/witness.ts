@@ -1,12 +1,12 @@
-import type { EmrDb } from "@/lib/emr/db";
 import type { RosterRole, RosterShift } from "@/db/schema/pharmacy-rework";
+import type { EmrDb } from "@/lib/emr/db";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 
 import { pharmacyAttestations } from "@/db/schema/pharmacy-dispensing";
 import { pharmacyWitnessRequests } from "@/db/schema/pharmacy-rework";
 import { users } from "@/db/schema/users";
-import { witnessCandidates } from "@/lib/pharmacy/controlled-read";
 import { EmrWriteError } from "@/lib/emr/write/context";
+import { witnessCandidates } from "@/lib/pharmacy/controlled-read";
 
 export { EmrWriteError as WitnessError };
 
@@ -43,7 +43,10 @@ export async function witnessesOnDuty(
     SELECT 1 FROM pharmacy_duty_roster WHERE hospital_id = ${input.hospitalId} AND ended_at IS NULL LIMIT 1`)) as unknown as unknown[];
   if (anyRoster.length) {
     const seen = new Set<string>();
-    return { roster: true, people: rows.filter((r) => !seen.has(r.userId) && !!seen.add(r.userId)) };
+    return {
+      roster: true,
+      people: rows.filter((r) => !seen.has(r.userId) && !!seen.add(r.userId)),
+    };
   }
   const list = await witnessCandidates(db, input.hospitalId, input.actorUserId);
   return {
@@ -67,7 +70,10 @@ export async function requestWitness(
     throw new EmrWriteError("forbidden", "You cannot witness your own entry.");
   const duty = await witnessesOnDuty(db, input);
   if (!duty.people.some((p) => p.userId === input.witnessUserId))
-    throw new EmrWriteError("forbidden", "That person is not on duty here now. Choose someone on the roster.");
+    throw new EmrWriteError(
+      "forbidden",
+      "That person is not on duty here now. Choose someone on the roster.",
+    );
   const [row] = await db
     .insert(pharmacyWitnessRequests)
     .values({
@@ -91,7 +97,12 @@ export async function witnessRequestState(db: EmrDb, requestId: string, actorUse
       createdAt: pharmacyWitnessRequests.createdAt,
     })
     .from(pharmacyWitnessRequests)
-    .where(and(eq(pharmacyWitnessRequests.id, requestId), eq(pharmacyWitnessRequests.actorUserId, actorUserId)));
+    .where(
+      and(
+        eq(pharmacyWitnessRequests.id, requestId),
+        eq(pharmacyWitnessRequests.actorUserId, actorUserId),
+      ),
+    );
   if (!r) return null;
   const expired = r.status === "waiting" && Date.now() - r.createdAt.getTime() > REQUEST_LIFE_MS;
   return { status: expired ? ("expired" as const) : r.status, attestationId: r.attestationId };
@@ -133,9 +144,13 @@ export async function answerWitnessRequest(
       .for("update");
     if (!r || r.witnessUserId !== input.witnessUserId)
       throw new EmrWriteError("not_found", "This request is not for you.");
-    if (r.status !== "waiting") throw new EmrWriteError("conflict", "This request was already answered.");
+    if (r.status !== "waiting")
+      throw new EmrWriteError("conflict", "This request was already answered.");
     if (now.getTime() - r.createdAt.getTime() > REQUEST_LIFE_MS)
-      throw new EmrWriteError("conflict", "This request is more than 10 minutes old. Ask them to send it again.");
+      throw new EmrWriteError(
+        "conflict",
+        "This request is more than 10 minutes old. Ask them to send it again.",
+      );
     let attestationId: string | null = null;
     if (input.approve) {
       const [a] = await tx

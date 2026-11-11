@@ -7,6 +7,7 @@ import { LockIcon, TriangleAlertIcon } from "lucide-react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,6 @@ import {
   setVisibilityAction,
 } from "@/lib/lab/catalogue-v2-actions";
 import { PROFILES as C } from "../_lib/copy";
-import { LabButton } from "@/components/tide/work/button";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =

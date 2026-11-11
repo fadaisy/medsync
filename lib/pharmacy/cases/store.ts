@@ -4,8 +4,8 @@ import { z } from "zod";
 
 import { CONTROLS_RULES as R } from "@/content/pharmacy-rework-controls";
 import { pharmacyCaseEvents, pharmacyCases } from "@/db/schema/pharmacy-rework-controls";
-import { isInCharge } from "@/lib/pharmacy/cd/store";
 import { q } from "@/lib/pharmacy/cd/sql";
+import { isInCharge } from "@/lib/pharmacy/cd/store";
 import { fail } from "@/lib/pharmacy/stores/write";
 
 /**
@@ -13,7 +13,13 @@ import { fail } from "@/lib/pharmacy/stores/write";
  * a report by hand opens here. Every change names who made it (`changed_by`); the database decides who may assign,
  * submit, send back and sign off, and what each step needs (S9). Each step leaves an event on the timeline.
  */
-const event = (who: Who, caseId: string, kind: typeof pharmacyCaseEvents.$inferInsert.kind, what?: string | null, note?: string | null) =>
+const event = (
+  who: Who,
+  caseId: string,
+  kind: typeof pharmacyCaseEvents.$inferInsert.kind,
+  what?: string | null,
+  note?: string | null,
+) =>
   who.tx.insert(pharmacyCaseEvents).values({
     hospitalId: who.hospitalId,
     caseId,
@@ -36,7 +42,10 @@ async function load(who: Who, caseId: string) {
 }
 
 const update = (who: Who, id: string, set: Partial<typeof pharmacyCases.$inferInsert>) =>
-  who.tx.update(pharmacyCases).set({ ...set, changedBy: who.userId }).where(eq(pharmacyCases.id, id));
+  who.tx
+    .update(pharmacyCases)
+    .set({ ...set, changedBy: who.userId })
+    .where(eq(pharmacyCases.id, id));
 
 export const NewCaseInput = z.object({
   clientKey: z.uuid(),
@@ -47,7 +56,10 @@ export const NewCaseInput = z.object({
 
 /** "Report a discrepancy", tap-only: place, medicine, what happened. Severity from the medicine. */
 export async function openManualCase(who: Who, input: z.infer<typeof NewCaseInput>) {
-  const [done] = await who.tx.select({ id: pharmacyCases.id }).from(pharmacyCases).where(eq(pharmacyCases.id, input.clientKey));
+  const [done] = await who.tx
+    .select({ id: pharmacyCases.id })
+    .from(pharmacyCases)
+    .where(eq(pharmacyCases.id, input.clientKey));
   if (done) return { id: done.id };
   const [m] = await q<{ name: string; controlled: boolean }>(
     who.tx,
@@ -77,7 +89,10 @@ export async function openManualCase(who: Who, input: z.infer<typeof NewCaseInpu
 export const AssignInput = z.object({
   caseId: z.uuid(),
   ownerUserId: z.uuid(),
-  hours: z.number().int().refine((h) => (R.assignHours as readonly number[]).includes(h)),
+  hours: z
+    .number()
+    .int()
+    .refine((h) => (R.assignHours as readonly number[]).includes(h)),
 });
 export async function assignCase(who: Who, input: z.infer<typeof AssignInput>) {
   await load(who, input.caseId);
@@ -101,7 +116,11 @@ export async function takeCase(who: Who, input: z.infer<typeof CaseIdInput>) {
   return { id: c.id };
 }
 
-export const StepInput = z.object({ caseId: z.uuid(), what: z.string().trim().min(2).max(200), note: z.string().trim().min(1).max(1000).nullable() });
+export const StepInput = z.object({
+  caseId: z.uuid(),
+  what: z.string().trim().min(2).max(200),
+  note: z.string().trim().min(1).max(1000).nullable(),
+});
 export async function addCaseStep(who: Who, input: z.infer<typeof StepInput>) {
   const c = await load(who, input.caseId);
   if (c.ownerUserId !== who.userId && !(await isInCharge(who.tx, who.userId, who.hospitalId)))
@@ -145,7 +164,8 @@ export async function sendBack(who: Who, input: z.infer<typeof BackInput>) {
 export const EscalateInput = z.object({ caseId: z.uuid(), to: z.string().trim().min(2).max(200) });
 export async function escalateCase(who: Who, input: z.infer<typeof EscalateInput>) {
   const c = await load(who, input.caseId);
-  if (!(await isInCharge(who.tx, who.userId, who.hospitalId))) throw fail("forbidden", "Only the in-charge escalates a case.");
+  if (!(await isInCharge(who.tx, who.userId, who.hospitalId)))
+    throw fail("forbidden", "Only the in-charge escalates a case.");
   await event(who, c.id, "escalated", input.to);
   return { id: c.id };
 }

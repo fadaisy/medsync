@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { and, eq, isNull, or } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { EmptyState } from "@/components/tide/work/kit";
 import { LAB } from "@/content/lab";
 import { LAB5 } from "@/content/lab-phase-5";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
@@ -15,7 +16,6 @@ import { loadConfigs } from "@/lib/lab/catalogue-v2";
 import { patientResultsLiveFor } from "@/lib/lab/feature";
 import { keyWords } from "@/lib/lab/setup-hub";
 import { SetupHeader } from "../_components/setup-header";
-import { EmptyState } from "@/components/tide/work/kit";
 import { SignRule } from "../delta/_components/delta-forms";
 import {
   FloorAdditionsDialog,

@@ -196,15 +196,18 @@ export async function witnessCandidates(
       ),
     )
     .orderBy(asc(users.fullName));
-  const map = dispensingMap(undefined, hospitalId, undefined, process.env.VERCEL_ENV === "production" && (await legalQ1RecordedFor(hospitalId)));
+  const map = dispensingMap(
+    undefined,
+    hospitalId,
+    undefined,
+    process.env.VERCEL_ENV === "production" && (await legalQ1RecordedFor(hospitalId)),
+  );
   const seen = new Set<string>();
   return rows.flatMap((r) => {
     if (seen.has(r.userId)) return [];
     seen.add(r.userId);
     const ok = witnessAllowed({
-      witnessPermissions: [
-        ...pharmacyDispensingAccess(r.code, map).permissions,
-      ],
+      witnessPermissions: [...pharmacyDispensingAccess(r.code, map).permissions],
       signedWitnessList: list,
       witnessUserId: r.userId,
       actorUserId,

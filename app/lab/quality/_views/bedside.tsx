@@ -2,6 +2,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { CheckIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { EmptyState } from "@/components/tide/work/kit";
 import { db } from "@/db";
 import { labSignedConfigs } from "@/db/schema";
 import { loadBedsideQuality } from "@/lib/lab/bedside-quality-store";
@@ -18,7 +19,6 @@ import { QList } from "../_components/q-list";
 import { QcChip } from "../_components/qc-chip";
 import { QUALITY } from "../_lib/copy";
 import { requireQualityScope } from "../_lib/scope";
-import { EmptyState } from "@/components/tide/work/kit";
 import { dayWords } from "../../_lib/days";
 import { Frame } from "./frame";
 

@@ -67,9 +67,7 @@ describe("the store's screens", () => {
   });
 
   it("every product, batch or recall field accepts a scan where stock is received or moved (5.11)", () => {
-    for (const f of [
-      "app/pharmacy/store/places/_components/places-dialogs.tsx",
-    ])
+    for (const f of ["app/pharmacy/store/places/_components/places-dialogs.tsx"])
       expect(read(join(ROOT, f)), f).toMatch(/<ScanField/);
   });
 

@@ -420,7 +420,10 @@ export async function getDelivery(
           .orderBy(asc(pharmacyDeliveryLines.lineNo)),
         withControlled(tx, scope.hospitalId),
         expiryLookahead(tx, scope.hospitalId),
-        tx.select().from(pharmacyCounterparties).where(eq(pharmacyCounterparties.id, d.supplierId ?? d.id)),
+        tx
+          .select()
+          .from(pharmacyCounterparties)
+          .where(eq(pharmacyCounterparties.id, d.supplierId ?? d.id)),
         places,
       ]);
       const orderLines = d.orderId

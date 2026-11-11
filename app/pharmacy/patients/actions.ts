@@ -28,13 +28,16 @@ async function act<R extends { id: string }>(
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const actor = await requirePharmacyActor();
-    if (!pharmacyTiersFor(actor.hospitalId)[tier]) return { ok: false, code: "config", error: PRW.common.tierOff };
+    if (!pharmacyTiersFor(actor.hospitalId)[tier])
+      return { ok: false, code: "config", error: PRW.common.tierOff };
     const r = await write(actor);
     if (r.ok) revalidatePath("/pharmacy", "layout");
     return r.ok ? { ok: true, id: r.id, serverTime: r.serverTime, data: { id: r.id } } : r;
   } catch (e) {
     unstable_rethrow(e);
-    logger.error("pharmacy.patients.action_failed", { error: e instanceof Error ? e.name : "unknown" });
+    logger.error("pharmacy.patients.action_failed", {
+      error: e instanceof Error ? e.name : "unknown",
+    });
     return { ok: false, code: "conflict", error: PRW.common.failed };
   }
 }

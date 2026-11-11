@@ -38,7 +38,14 @@ const WARDS: [WardKey, string][] = [
 ];
 
 /** Who the 60 demo patients are: where they are seen and which point serves them. */
-const COHORTS: { n: number; kind: DemoPatient["kind"]; clinic?: ClinicKey; ward?: WardKey; point: PointKey; child?: boolean }[] = [
+const COHORTS: {
+  n: number;
+  kind: DemoPatient["kind"];
+  clinic?: ClinicKey;
+  ward?: WardKey;
+  point: PointKey;
+  child?: boolean;
+}[] = [
   { n: 9, kind: "outpatient", clinic: "gopd", point: "opd" },
   { n: 3, kind: "outpatient", clinic: "gopd", point: "private" },
   { n: 8, kind: "outpatient", clinic: "ncd", point: "ncd" },
@@ -56,7 +63,13 @@ const COHORTS: { n: number; kind: DemoPatient["kind"]; clinic?: ClinicKey; ward?
 
 const slug = (k: string) => `demo-${k}-${Math.random().toString(36).slice(2, 8)}`;
 
-async function department(s: DemoState, name: string, kind: string, parent: string | null, code: string | null = null) {
+async function department(
+  s: DemoState,
+  name: string,
+  kind: string,
+  parent: string | null,
+  code: string | null = null,
+) {
   const [found] = await q<{ id: string }>(
     s,
     sql`SELECT id FROM hospital_departments WHERE hospital_id = ${s.h} AND name = ${name}
@@ -85,7 +98,8 @@ export async function setup(s: DemoState) {
   const liveAt = new Date(s.now.getTime() - 40 * DAY).toISOString();
   for (const [k, name, serves] of POINTS) {
     const id = await department(s, name, "support", s.pharmacyDept);
-    await s.db.execute(sql`INSERT INTO pharmacy_dispensing_points (department_id, hospital_id, serves, live_at, phone)
+    await s.db
+      .execute(sql`INSERT INTO pharmacy_dispensing_points (department_id, hospital_id, serves, live_at, phone)
       VALUES (${id}, ${s.h}, ${serves}, ${liveAt}::timestamptz, '+256 700 000000') ON CONFLICT (department_id) DO NOTHING`);
     s.points[k] = { key: k, id, name, serves };
   }
@@ -104,12 +118,19 @@ export async function setup(s: DemoState) {
   p.cso = await demoAccount(s, "Demo clinical safety officer");
   p.chief = await demoStaff(s, "Demo chief pharmacist", s.pharmacyDept, "PHARMACIST");
   if (!(await demoHead(s, s.pharmacyDept, p.chief)))
-    throw new Error("The pharmacy already has a head and an acting head; the demo chief pharmacist needs one of the two.");
+    throw new Error(
+      "The pharmacy already has a head and an acting head; the demo chief pharmacist needs one of the two.",
+    );
   p.storekeeper = await demoStaff(s, "Demo stores officer", s.pharmacyDept, "PHARMACY_TECH");
   const keys = POINTS.map(([k]) => k);
   for (const [i, k] of keys.entries()) {
-    if (i < 6) p.pharmacists.push(await demoStaff(s, `Demo pharmacist ${i + 1}`, s.points[k].id, "PHARMACIST"));
-    p.techs.push(await demoStaff(s, `Demo pharmacy technician ${i + 1}`, s.points[k].id, "PHARMACY_TECH"));
+    if (i < 6)
+      p.pharmacists.push(
+        await demoStaff(s, `Demo pharmacist ${i + 1}`, s.points[k].id, "PHARMACIST"),
+      );
+    p.techs.push(
+      await demoStaff(s, `Demo pharmacy technician ${i + 1}`, s.points[k].id, "PHARMACY_TECH"),
+    );
   }
   const doctors: [string, string, ClinicKey][] = [
     ["Demo medical officer 1", "MEDICAL_OFFICER", "gopd"],
@@ -119,17 +140,20 @@ export async function setup(s: DemoState) {
     ["Demo paediatrician", "CONSULTANT", "popd"],
     ["Demo intern doctor", "INTERN_DOCTOR", "gopd"],
   ];
-  for (const [label, cadre, clinic] of doctors) p.doctors.push(await demoStaff(s, label, s.clinics[clinic], cadre));
+  for (const [label, cadre, clinic] of doctors)
+    p.doctors.push(await demoStaff(s, label, s.clinics[clinic], cadre));
   for (const [i, w] of (["medM", "medF", "surgical", "paediatric"] as const).entries())
     p.nurses.push(await demoStaff(s, `Demo nurse ${i + 1}`, s.wards[w], "NURSE", "nurse"));
   bump(s, "staff", 2 + 2 + 6 + 8 + doctors.length + 4);
 
   // A cosign policy so a medical officer's routine prescription stands alone (the intern's waits for a cosign).
-  await s.db.execute(sql`INSERT INTO clinical_cosign_policies (hospital_id, cadre_code, action_kind, requirement)
+  await s.db
+    .execute(sql`INSERT INTO clinical_cosign_policies (hospital_id, cadre_code, action_kind, requirement)
     VALUES (${s.h}, 'MEDICAL_OFFICER', 'prescription_routine', 'allowed') ON CONFLICT DO NOTHING`);
 
   // Settings: ward lines are supplied per patient, so inpatient prescriptions reach the review queue.
-  await s.db.execute(sql`INSERT INTO pharmacy_hospital_settings (hospital_id, individual_inpatient_supply,
+  await s.db
+    .execute(sql`INSERT INTO pharmacy_hospital_settings (hospital_id, individual_inpatient_supply,
       expiry_lookahead_days, updated_by) VALUES (${s.h}, true, 90, ${p.admin})
     ON CONFLICT (hospital_id) DO UPDATE SET individual_inpatient_supply = true,
       expiry_lookahead_days = coalesce(pharmacy_hospital_settings.expiry_lookahead_days, 90)`);
@@ -138,15 +162,25 @@ export async function setup(s: DemoState) {
   for (const c of COHORTS)
     for (let i = 0; i < c.n; i++) {
       const n = s.patients.length + 1;
-      const sex: DemoPatient["sex"] = c.ward === "maternity" || c.clinic === "anc" ? "female" : n % 2 ? "female" : "male";
+      const sex: DemoPatient["sex"] =
+        c.ward === "maternity" || c.clinic === "anc" ? "female" : n % 2 ? "female" : "male";
       const year = c.child ? 2016 + (n % 9) : 1950 + ((n * 7) % 52);
       const dob = `${year}-${String(1 + (n % 12)).padStart(2, "0")}-${String(1 + ((n * 3) % 27)).padStart(2, "0")}`;
       const id = await demoAccount(s, `Demo patient ${String(n).padStart(2, "0")}`);
       await demoPatientProfile(s, id, n, sex, dob);
       const doctor = p.doctors[n % p.doctors.length]!;
       const dept = c.kind === "outpatient" ? s.clinics[c.clinic!] : s.wards[c.ward!];
-      const type = c.kind === "inpatient" ? "inpatient" : c.clinic === "ed" ? "emergency" : c.clinic === "anc" ? "antenatal" : "opd";
-      const started = new Date(s.now.getTime() - (c.kind === "inpatient" ? (2 + (n % 6)) * DAY : (n % 5) * 3_600_000));
+      const type =
+        c.kind === "inpatient"
+          ? "inpatient"
+          : c.clinic === "ed"
+            ? "emergency"
+            : c.clinic === "anc"
+              ? "antenatal"
+              : "opd";
+      const started = new Date(
+        s.now.getTime() - (c.kind === "inpatient" ? (2 + (n % 6)) * DAY : (n % 5) * 3_600_000),
+      );
       const enc = await one<{ id: string }>(
         s,
         sql`INSERT INTO encounters (hospital_id, patient_user_id, clinician_user_id, department_id, state, started_at,

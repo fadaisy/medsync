@@ -2,8 +2,8 @@
 
 import { z } from "zod";
 
-import * as cases from "@/lib/pharmacy/cases/store";
 import { caseMedicines } from "@/lib/pharmacy/cases/read";
+import * as cases from "@/lib/pharmacy/cases/store";
 import { ANY, controlsAct, controlsRead } from "@/lib/pharmacy/cd/act";
 import { cdPrescribers, rosterAt, wardPatients } from "@/lib/pharmacy/cd/read";
 import * as cd from "@/lib/pharmacy/cd/store";
@@ -16,23 +16,38 @@ import * as ho from "@/lib/pharmacy/handover/store";
  */
 const MANAGE = "pharmacy.manage" as const;
 
-export const cdCheckAction = async (raw: unknown) => controlsAct("cdCheck", cd.CheckInput, raw, ANY, cd.cdBalanceCheck);
-export const resolveCdAction = async (raw: unknown) => controlsAct("resolveCd", cd.ResolveInput, raw, ANY, cd.resolveCdCheck);
-export const cdEventAction = async (raw: unknown) => controlsAct("cdEvent", cd.EventInput, raw, ANY, cd.addCdEvent);
+export const cdCheckAction = async (raw: unknown) =>
+  controlsAct("cdCheck", cd.CheckInput, raw, ANY, cd.cdBalanceCheck);
+export const resolveCdAction = async (raw: unknown) =>
+  controlsAct("resolveCd", cd.ResolveInput, raw, ANY, cd.resolveCdCheck);
+export const cdEventAction = async (raw: unknown) =>
+  controlsAct("cdEvent", cd.EventInput, raw, ANY, cd.addCdEvent);
 
-export const handOverAction = async (raw: unknown) => controlsAct("handOver", ho.HandoverInput, raw, ANY, ho.handOverStation);
-export const acceptHandoverAction = async (raw: unknown) => controlsAct("acceptHandover", ho.AcceptInput, raw, ANY, ho.acceptHandover);
-export const explainMissedAction = async (raw: unknown) => controlsAct("explainMissed", ho.MissInput, raw, ANY, ho.explainMissed);
-export const resolveDiffAction = async (raw: unknown) => controlsAct("resolveDiff", ho.DiffInput, raw, ANY, ho.resolveHandoverDiff);
+export const handOverAction = async (raw: unknown) =>
+  controlsAct("handOver", ho.HandoverInput, raw, ANY, ho.handOverStation);
+export const acceptHandoverAction = async (raw: unknown) =>
+  controlsAct("acceptHandover", ho.AcceptInput, raw, ANY, ho.acceptHandover);
+export const explainMissedAction = async (raw: unknown) =>
+  controlsAct("explainMissed", ho.MissInput, raw, ANY, ho.explainMissed);
+export const resolveDiffAction = async (raw: unknown) =>
+  controlsAct("resolveDiff", ho.DiffInput, raw, ANY, ho.resolveHandoverDiff);
 
-export const openCaseAction = async (raw: unknown) => controlsAct("openCase", cases.NewCaseInput, raw, ANY, cases.openManualCase);
-export const assignCaseAction = async (raw: unknown) => controlsAct("assignCase", cases.AssignInput, raw, MANAGE, cases.assignCase);
-export const takeCaseAction = async (raw: unknown) => controlsAct("takeCase", cases.CaseIdInput, raw, ANY, cases.takeCase);
-export const caseStepAction = async (raw: unknown) => controlsAct("caseStep", cases.StepInput, raw, ANY, cases.addCaseStep);
-export const findingsAction = async (raw: unknown) => controlsAct("findings", cases.FindingsInput, raw, ANY, cases.submitFindings);
-export const signOffAction = async (raw: unknown) => controlsAct("signOff", cases.CaseIdInput, raw, ANY, cases.signOffCase);
-export const sendBackAction = async (raw: unknown) => controlsAct("sendBack", cases.BackInput, raw, ANY, cases.sendBack);
-export const escalateAction = async (raw: unknown) => controlsAct("escalate", cases.EscalateInput, raw, ANY, cases.escalateCase);
+export const openCaseAction = async (raw: unknown) =>
+  controlsAct("openCase", cases.NewCaseInput, raw, ANY, cases.openManualCase);
+export const assignCaseAction = async (raw: unknown) =>
+  controlsAct("assignCase", cases.AssignInput, raw, MANAGE, cases.assignCase);
+export const takeCaseAction = async (raw: unknown) =>
+  controlsAct("takeCase", cases.CaseIdInput, raw, ANY, cases.takeCase);
+export const caseStepAction = async (raw: unknown) =>
+  controlsAct("caseStep", cases.StepInput, raw, ANY, cases.addCaseStep);
+export const findingsAction = async (raw: unknown) =>
+  controlsAct("findings", cases.FindingsInput, raw, ANY, cases.submitFindings);
+export const signOffAction = async (raw: unknown) =>
+  controlsAct("signOff", cases.CaseIdInput, raw, ANY, cases.signOffCase);
+export const sendBackAction = async (raw: unknown) =>
+  controlsAct("sendBack", cases.BackInput, raw, ANY, cases.sendBack);
+export const escalateAction = async (raw: unknown) =>
+  controlsAct("escalate", cases.EscalateInput, raw, ANY, cases.escalateCase);
 
 /** The handover dialog's draft: what to count, who is on duty at the slot, the seal and the open items. */
 export async function handoverDraftAction(raw: unknown) {
@@ -42,7 +57,9 @@ export async function handoverDraftAction(raw: unknown) {
 
 /** A late entry's choices: the patients on the ward, the prescribers allowed, the people on the roster then. */
 export async function doseContextAction(raw: unknown) {
-  const i = z.object({ locationId: z.uuid(), medicineId: z.string().min(1).max(120), at: z.coerce.date() }).parse(raw);
+  const i = z
+    .object({ locationId: z.uuid(), medicineId: z.string().min(1).max(120), at: z.coerce.date() })
+    .parse(raw);
   return controlsRead(async (db, a) => {
     const [patients, prescribers, people] = await Promise.all([
       wardPatients(db, a.hospitalId, i.locationId),

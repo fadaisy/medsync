@@ -43,7 +43,20 @@ const HEADER_EMERGENCY = [
 ];
 
 /** Staff workspaces keep "Emergency"; under Tide every other route says "Help" (D-TW-04). */
-const STAFF = ["/doctor", "/nurse", "/reception", "/pharmacy", "/lab", "/ncd", "/hospital-admin", "/admin", "/clinician", "/ipc", "/hmis", "/referral-governance"];
+const STAFF = [
+  "/doctor",
+  "/nurse",
+  "/reception",
+  "/pharmacy",
+  "/lab",
+  "/ncd",
+  "/hospital-admin",
+  "/admin",
+  "/clinician",
+  "/ipc",
+  "/hmis",
+  "/referral-governance",
+];
 
 export function EmergencyPill({ tide }: { tide?: string }) {
   const pathname = usePathname();

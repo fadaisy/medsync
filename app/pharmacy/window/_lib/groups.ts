@@ -1,4 +1,5 @@
 import type { ReviewLane, ReviewQueueRow, ReviewStage } from "@/lib/pharmacy/queue";
+
 import { computeReviewQueue } from "@/lib/pharmacy/queue";
 
 /**
@@ -26,7 +27,10 @@ export function queueGroups<R extends ReviewQueueRow>(rows: readonly R[], f: Que
   const first = (r: R) => f.signed && f.lane !== "standard" && r.lane === "pharmacist_first";
   const groups: { key: QueueGroupKey; rows: R[] }[] = [
     { key: "first", rows: ordered.filter(first) },
-    ...STAGE_ORDER.map((s) => ({ key: s as QueueGroupKey, rows: ordered.filter((r) => !first(r) && r.stage === s) })),
+    ...STAGE_ORDER.map((s) => ({
+      key: s as QueueGroupKey,
+      rows: ordered.filter((r) => !first(r) && r.stage === s),
+    })),
   ];
   return { ...q, groups: groups.filter((g) => g.rows.length) };
 }
@@ -42,11 +46,18 @@ export function openGroups<R extends { outcome: "owed" | "buying_outside"; onShe
 ): { key: OpenGroupKey; rows: R[] }[] {
   const key = (r: R): OpenGroupKey =>
     r.outcome === "buying_outside" ? "patient" : r.onShelfHere ? "shelf" : "out";
-  return (["shelf", "patient", "out"] as const).map((k) => ({ key: k, rows: rows.filter((r) => key(r) === k) }));
+  return (["shelf", "patient", "out"] as const).map((k) => ({
+    key: k,
+    rows: rows.filter((r) => key(r) === k),
+  }));
 }
 
 /** A query value that must be one of `allowed`, else the fallback. */
-export function pick<T extends string>(v: string | string[] | undefined, allowed: readonly T[], fallback: T): T {
+export function pick<T extends string>(
+  v: string | string[] | undefined,
+  allowed: readonly T[],
+  fallback: T,
+): T {
   const s = Array.isArray(v) ? v[0] : v;
   return allowed.includes(s as T) ? (s as T) : fallback;
 }

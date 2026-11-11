@@ -2,6 +2,7 @@ import type { LabTechScope } from "@/lib/lab-tech/scope";
 import { redirect } from "next/navigation";
 import { FlaskConicalIcon } from "lucide-react";
 
+import { EmptyState } from "@/components/tide/work/kit";
 import { LAB } from "@/content/lab";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { labResultsLive } from "@/lib/encounter/feature";
@@ -12,7 +13,6 @@ import { withQuery } from "@/lib/lab/redirects";
 import { cn } from "@/lib/utils";
 import { EmrLabWorklist } from "./_components/emr-worklist";
 import { ResultRowActions } from "./_components/result-row-actions";
-import { EmptyState } from "@/components/tide/work/kit";
 import { labV2 } from "./_lib/places";
 
 export const dynamic = "force-dynamic";

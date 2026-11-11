@@ -3,7 +3,13 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronRightIcon, InfoIcon, MoreHorizontalIcon, TriangleAlertIcon, XIcon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  InfoIcon,
+  MoreHorizontalIcon,
+  TriangleAlertIcon,
+  XIcon,
+} from "lucide-react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { DialogTitle } from "@/components/ui/dialog";
@@ -32,7 +38,10 @@ export function LimitsLineView({
   const [open, setOpen] = useState(false);
   if (href)
     return (
-      <p className="text-caption text-ink-700 flex flex-wrap items-center gap-x-2 gap-y-1" role="note">
+      <p
+        className="text-caption text-ink-700 flex flex-wrap items-center gap-x-2 gap-y-1"
+        role="note"
+      >
         <InfoIcon aria-hidden className="text-tide-ink-3 size-3.5 shrink-0" />
         <span>{text}</span>
         <Link href={href} className="text-primary font-medium underline-offset-2 hover:underline">
@@ -41,7 +50,10 @@ export function LimitsLineView({
       </p>
     );
   return (
-    <p className="text-caption text-ink-700 flex flex-wrap items-center gap-x-2 gap-y-1" role="note">
+    <p
+      className="text-caption text-ink-700 flex flex-wrap items-center gap-x-2 gap-y-1"
+      role="note"
+    >
       <InfoIcon aria-hidden className="text-tide-ink-3 size-3.5 shrink-0" />
       <span>{text}</span>
       <button
@@ -129,7 +141,9 @@ export function WorkRow({
     <li className="border-border grid grid-cols-1 items-center gap-x-4 gap-y-1 border-b px-4 py-3 last:border-b-0 md:grid-cols-[minmax(10rem,1.1fr)_minmax(10rem,1.3fr)_minmax(12rem,1.4fr)_auto]">
       <div className="min-w-0">
         <div className="text-body-s text-foreground truncate font-medium">{who}</div>
-        {whoSub ? <div className="text-caption text-muted-foreground font-mono">{whoSub}</div> : null}
+        {whoSub ? (
+          <div className="text-caption text-muted-foreground font-mono">{whoSub}</div>
+        ) : null}
       </div>
       <div className="min-w-0">
         <div className="text-body-s text-foreground">{what}</div>
@@ -178,7 +192,9 @@ export function WorkGroup({
       <header className="border-border border-b px-4 py-3">
         <h2 className="text-heading-s text-foreground">
           {title}
-          {count !== undefined ? <span className="text-tide-ink-3 ml-2 tabular-nums">{count}</span> : null}
+          {count !== undefined ? (
+            <span className="text-tide-ink-3 ml-2 tabular-nums">{count}</span>
+          ) : null}
         </h2>
         {explainer ? <p className="text-caption text-muted-foreground">{explainer}</p> : null}
       </header>
@@ -201,13 +217,20 @@ export interface FlowStep {
 /** The flow strip (rx2.css `.flow`): suppliers → stores → points → wards → carts, each a count and its notes. */
 export function FlowStrip({ steps, label }: { steps: readonly FlowStep[]; label: string }) {
   return (
-    <ol aria-label={label} className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-flow-col lg:grid-cols-none">
+    <ol
+      aria-label={label}
+      className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-flow-col lg:grid-cols-none"
+    >
       {steps.map((s, i) => {
         const body = (
           <>
             <span className="text-caption text-tide-ink-3">{s.label}</span>
             <span className="text-[22px] leading-7 font-semibold tabular-nums">
-              {s.n === null ? <span className="text-body-s text-muted-foreground font-normal">{K.noData}</span> : s.n}
+              {s.n === null ? (
+                <span className="text-body-s text-muted-foreground font-normal">{K.noData}</span>
+              ) : (
+                s.n
+              )}
             </span>
             {s.sub?.map((t) => (
               <span key={t} className="text-caption text-muted-foreground">
@@ -215,7 +238,10 @@ export function FlowStrip({ steps, label }: { steps: readonly FlowStep[]; label:
               </span>
             ))}
             {s.notes?.map((t) => (
-              <span key={t} className="text-caption inline-flex items-center gap-1 font-medium text-amber-800">
+              <span
+                key={t}
+                className="text-caption inline-flex items-center gap-1 font-medium text-amber-800"
+              >
                 <TriangleAlertIcon aria-hidden className="size-3" />
                 {t}
               </span>
@@ -232,10 +258,15 @@ export function FlowStrip({ steps, label }: { steps: readonly FlowStep[]; label:
                 {body}
               </Link>
             ) : (
-              <div className="bg-tide-sunken rounded-tide-row flex min-w-0 flex-1 flex-col gap-0.5 px-3 py-2.5">{body}</div>
+              <div className="bg-tide-sunken rounded-tide-row flex min-w-0 flex-1 flex-col gap-0.5 px-3 py-2.5">
+                {body}
+              </div>
             )}
             {i < steps.length - 1 ? (
-              <ChevronRightIcon aria-hidden className="text-tide-ink-3 mx-0.5 hidden size-4 self-center lg:block" />
+              <ChevronRightIcon
+                aria-hidden
+                className="text-tide-ink-3 mx-0.5 hidden size-4 self-center lg:block"
+              />
             ) : null}
           </li>
         );

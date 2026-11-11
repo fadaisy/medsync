@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { SearchIcon } from "lucide-react";
 
+import { EmptyState, Pill } from "@/components/tide/work/kit";
 import { fill } from "@/content/lab-workspace-v2";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
-import { EmptyState, Pill } from "@/components/tide/work/kit";
 
 const S = LABWS2_SETUP;
 

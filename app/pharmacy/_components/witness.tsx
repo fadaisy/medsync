@@ -19,7 +19,12 @@ import {
 
 const W = RW.witness;
 
-type Person = { userId: string; name: string; role: keyof typeof W.roles | null; shift: keyof typeof W.shifts | null };
+type Person = {
+  userId: string;
+  name: string;
+  role: keyof typeof W.roles | null;
+  shift: keyof typeof W.shifts | null;
+};
 export type WitnessResult =
   | { how: "phone"; attestationId: string; name: string }
   | { how: "paper"; name: string };
@@ -86,7 +91,12 @@ export function WitnessDialog({
     person &&
     start(async () => {
       setError(null);
-      const r = await requestWitnessAction({ witnessUserId: person.userId, locationId, purpose, summary: what });
+      const r = await requestWitnessAction({
+        witnessUserId: person.userId,
+        locationId,
+        purpose,
+        summary: what,
+      });
       if (!r.ok) return setError(r.error);
       setRequest(r.id);
       setState("waiting");
@@ -132,7 +142,9 @@ export function WitnessDialog({
                       onClick={() => setRole(role === r ? null : r)}
                       className={cn(
                         "min-h-11 rounded-full px-4 text-[13.5px] sm:min-h-9",
-                        role === r ? "bg-tide-navy-900 text-tide-on-band" : "bg-card shadow-tide-card",
+                        role === r
+                          ? "bg-tide-navy-900 text-tide-on-band"
+                          : "bg-card shadow-tide-card",
                       )}
                     >
                       {r === "any" ? W.onDuty : W.roles[r as keyof typeof W.roles]}
@@ -142,7 +154,9 @@ export function WitnessDialog({
               </div>
             ) : null}
             <span className="text-overline text-tide-ink-3 uppercase">{W.onDuty}</span>
-            {people && !shown.length ? <p className="text-body-s text-ink-600">{W.nobody}</p> : null}
+            {people && !shown.length ? (
+              <p className="text-body-s text-ink-600">{W.nobody}</p>
+            ) : null}
             <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
               {shown.map((p) => (
                 <button
@@ -152,7 +166,9 @@ export function WitnessDialog({
                   onClick={() => setPerson(p)}
                   className={cn(
                     "rounded-tide-row flex min-h-12 flex-col justify-center px-3 py-2 text-left",
-                    person?.userId === p.userId ? "bg-tide-lagoon-tint font-semibold" : "bg-card shadow-tide-card",
+                    person?.userId === p.userId
+                      ? "bg-tide-lagoon-tint font-semibold"
+                      : "bg-card shadow-tide-card",
                   )}
                 >
                   <span className="text-[14px]">{p.name}</span>
@@ -167,7 +183,11 @@ export function WitnessDialog({
             </div>
           </>
         )}
-        {error ? <p role="alert" className="text-body-s text-ink-800">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-body-s text-ink-800">
+            {error}
+          </p>
+        ) : null}
       </div>
       <div className="border-border flex flex-wrap items-center justify-end gap-2 border-t px-6 py-3">
         <LabButton variant="quiet" onClick={() => onOpenChange(false)}>
@@ -217,10 +237,15 @@ export function WitnessInbox() {
   }, []);
   if (!rows.length) return null;
   return (
-    <section aria-label={W.inboxTitle} className="bg-tide-navy-900 text-tide-on-band rounded-tide-card flex flex-col gap-2 px-4 py-3 print:hidden">
+    <section
+      aria-label={W.inboxTitle}
+      className="bg-tide-navy-900 text-tide-on-band rounded-tide-card flex flex-col gap-2 px-4 py-3 print:hidden"
+    >
       {rows.map((r) => (
         <div key={r.id} className="flex flex-wrap items-center gap-3">
-          <p className="text-body-s min-w-0 flex-1">{fill(W.inboxFrom, { name: r.actorName, summary: r.summary })}</p>
+          <p className="text-body-s min-w-0 flex-1">
+            {fill(W.inboxFrom, { name: r.actorName, summary: r.summary })}
+          </p>
           <button
             type="button"
             disabled={pending}

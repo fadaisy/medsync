@@ -3,6 +3,7 @@ import Link from "next/link";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { Ident } from "@/components/tide/work/kit";
 import { LAB } from "@/content/lab";
 import { LAB3_HIV_PURPOSE, LAB3_HMIS } from "@/content/lab-phase-3";
 import { fill } from "@/content/lab-workspace-v2";
@@ -18,7 +19,6 @@ import { analyteName } from "@/lib/lab/qc-store";
 import { AVAILABILITY_REASONS } from "@/supabase/functions/_shared/services-hub";
 import { MappingEditor } from "../_components/mapping-editor";
 import { SetupHeader } from "../../_components/setup-header";
-import { Ident } from "@/components/tide/work/kit";
 import { dateWords } from "../../../_lib/days";
 
 type LabScope = Awaited<ReturnType<typeof requireLabTechScope>>;

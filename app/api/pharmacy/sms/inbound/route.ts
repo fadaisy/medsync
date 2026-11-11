@@ -1,5 +1,5 @@
-import type { EmrDb } from "@/lib/emr/db";
 import { timingSafeEqual } from "node:crypto";
+import type { EmrDb } from "@/lib/emr/db";
 import { NextResponse } from "next/server";
 
 import { db } from "@/db";
@@ -19,8 +19,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const form = await request.formData().catch(() => null);
   const from = String(form?.get("from") ?? "");
-  const text = String(form?.get("text") ?? "").trim().toUpperCase();
-  if (!/^\+?\d{9,15}$/.test(from)) return NextResponse.json({ error: "Bad request" }, { status: 400 });
-  const stopped = /^(STOP|STOPP|UNSUBSCRIBE)\b/.test(text) ? await optOutReply(db as unknown as EmrDb, from) : 0;
+  const text = String(form?.get("text") ?? "")
+    .trim()
+    .toUpperCase();
+  if (!/^\+?\d{9,15}$/.test(from))
+    return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  const stopped = /^(STOP|STOPP|UNSUBSCRIBE)\b/.test(text)
+    ? await optOutReply(db as unknown as EmrDb, from)
+    : 0;
   return NextResponse.json({ ok: true, stopped });
 }

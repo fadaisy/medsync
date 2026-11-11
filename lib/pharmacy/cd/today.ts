@@ -18,7 +18,9 @@ const appDb = async () => (await import("@/db")).db as unknown as EmrDb;
 const C = "/pharmacy/controls";
 const durWords = (ms: number) => {
   const d = dur(ms);
-  return fill(CTL.common[d.unit === "min" ? "minutes" : d.unit === "h" ? "hours" : "days"], { n: d.n });
+  return fill(CTL.common[d.unit === "min" ? "minutes" : d.unit === "h" ? "hours" : "days"], {
+    n: d.n,
+  });
 };
 
 /**
@@ -60,7 +62,10 @@ export async function controlsTodayItems(
         key: `handover:due:${f.id}`,
         title: fill(CTL.handover.flagDue, {
           place,
-          when: late > 0 ? fill(CTL.handover.flagDueLate, { n: Math.round(late / 60_000) }) : fill(CTL.handover.flagDueAt, { time: hm(f.slot) }),
+          when:
+            late > 0
+              ? fill(CTL.handover.flagDueLate, { n: Math.round(late / 60_000) })
+              : fill(CTL.handover.flagDueAt, { time: hm(f.slot) }),
         }),
         meta: CTL.handover.flagDueMeta,
         action: CTL.today.start,
@@ -81,7 +86,12 @@ export async function controlsTodayItems(
       items.push({
         kind: "handover",
         key: `handover:diff:${f.id}`,
-        title: fill(CTL.handover.flagDiff, { med: f.line.medicineName, place, counted: f.line.counted, expected: f.line.expected }),
+        title: fill(CTL.handover.flagDiff, {
+          med: f.line.medicineName,
+          place,
+          counted: f.line.counted,
+          expected: f.line.expected,
+        }),
         meta: fill(CTL.handover.flagDiffMeta, {
           when: when(f.handover.at),
           from: f.handover.from,
@@ -104,7 +114,10 @@ export async function controlsTodayItems(
           : why === "signoff"
             ? CTL.caseFlag.signoff
             : why === "overdue"
-              ? fill(CTL.caseFlag.overdue, { t: durWords(now.getTime() - c.dueAt.getTime()), owner: c.owner ?? CTL.cases.notAssigned })
+              ? fill(CTL.caseFlag.overdue, {
+                  t: durWords(now.getTime() - c.dueAt.getTime()),
+                  owner: c.owner ?? CTL.cases.notAssigned,
+                })
               : fill(CTL.caseFlag.yours, { t: durWords(c.dueAt.getTime() - now.getTime()) }),
       action: CTL.caseFlag.open,
       href: `${C}/cases?case=${c.id}`,

@@ -4,6 +4,7 @@ import type { SchemePayload } from "@/lib/lab/signed-config";
 import { useId, useState } from "react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,6 @@ import {
   SEX_WORDS,
   signErrorWords,
 } from "../_lib/schemes-copy";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { SchemeSign } from "./scheme-sign";
 

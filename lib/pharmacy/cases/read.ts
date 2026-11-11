@@ -43,7 +43,9 @@ export async function loadCases(d: Reader, hospitalId: string): Promise<CaseRow[
     owner: (r.owner as string | null) ?? null,
     fixedAt: d8n(r.fixed_at),
     fixedHow: (r.fixed_how as string | null) ?? null,
-    findings: (typeof r.findings === "string" ? JSON.parse(r.findings) : r.findings) as CaseFindings | null,
+    findings: (typeof r.findings === "string"
+      ? JSON.parse(r.findings)
+      : r.findings) as CaseFindings | null,
     submittedAt: d8n(r.submitted_at),
     signedOffAt: d8n(r.signed_off_at),
     selfSigned: !!r.self_signed,
@@ -65,7 +67,13 @@ export interface CaseEventRow {
 /** One case's timeline (an assignment names its owner) and the people on the roster it can go to. */
 export async function caseDetail(d: Reader, hospitalId: string, caseId: string) {
   const [events, people] = await Promise.all([
-    q<{ kind: CaseEventKind; what: string | null; note: string | null; by: string | null; at: string }>(
+    q<{
+      kind: CaseEventKind;
+      what: string | null;
+      note: string | null;
+      by: string | null;
+      at: string;
+    }>(
       d,
       sql`SELECT e.kind, CASE WHEN e.kind = 'assigned' THEN coalesce(${name("ua")}, e.what) ELSE e.what END AS what,
                  e.note, ${name("u")} AS by, e.created_at AS at
@@ -94,7 +102,13 @@ export type CaseDetail = Awaited<ReturnType<typeof caseDetail>>;
 
 /** For "Report a discrepancy": the controlled or high-risk medicines held at each place. */
 export async function caseMedicines(d: Reader, hospitalId: string) {
-  return q<{ placeId: string; place: string; medicineId: string; name: string; controlled: boolean }>(
+  return q<{
+    placeId: string;
+    place: string;
+    medicineId: string;
+    name: string;
+    controlled: boolean;
+  }>(
     d,
     sql`SELECT DISTINCT ON (l.id, p.medicine_id) l.id AS "placeId", l.name AS place, p.medicine_id AS "medicineId", p.name,
                private.pharmacy_medicine_controlled(p.hospital_id, p.medicine_id) AS controlled

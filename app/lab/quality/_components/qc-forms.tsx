@@ -6,6 +6,7 @@ import type { Payload } from "@/lib/lab/signed-config";
 import { useState } from "react";
 
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fill, LAB3 } from "@/content/lab-phase-3";
@@ -24,7 +25,6 @@ import { evaluateRules, RULE_IDS, runDecision, zScore } from "@/lib/lab/qc-rules
 import { cn } from "@/lib/utils";
 import { QUALITY } from "../_lib/copy";
 import { inputClass, newKey, num, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 import { ActButton } from "./act-button";
 

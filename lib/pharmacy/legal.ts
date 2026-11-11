@@ -1,5 +1,5 @@
-import { and, eq, isNull, or } from "drizzle-orm";
 import { cache } from "react";
+import { and, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { pharmacyLegalAnswers } from "@/db/schema/pharmacy-dispensing";
@@ -15,7 +15,10 @@ export const legalQ1RecordedFor = cache(async (hospitalId: string): Promise<bool
     .where(
       and(
         eq(pharmacyLegalAnswers.question, 1),
-        or(eq(pharmacyLegalAnswers.hospitalId, hospitalId), isNull(pharmacyLegalAnswers.hospitalId)),
+        or(
+          eq(pharmacyLegalAnswers.hospitalId, hospitalId),
+          isNull(pharmacyLegalAnswers.hospitalId),
+        ),
       ),
     )
     .limit(1);

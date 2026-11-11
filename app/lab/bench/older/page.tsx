@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { Panel } from "@/components/tide/work/kit";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { OlderView } from "../_views/older";
-import { Panel } from "@/components/tide/work/kit";
 import { ViewHeader } from "../../_components/v2/view-header";
 import { labV2 } from "../../_lib/places";
 

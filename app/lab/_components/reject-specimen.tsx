@@ -5,9 +5,9 @@ import { useState, useTransition } from "react";
 
 import { ChoiceChips } from "@/components/emr/orders/choice-chips";
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { rejectSpecimen } from "@/lib/emr/actions/orders";
-import { LabButton } from "@/components/tide/work/button";
 
 /**
  * Reject the specimen from the result screen (Lab Phase 0: the worklist row keeps one control, so

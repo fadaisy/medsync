@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
+import { TideScope } from "@/components/medsync/tide-scope";
 import { getAuthState } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { AdminShell } from "./_components/admin-shell";
 import { getApprovalsCount } from "./_lib/approvals-count";
 import { getPaletteEntities } from "./_lib/palette-entities";
-import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

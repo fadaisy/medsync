@@ -39,7 +39,8 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
       actorUserId: actor.userId,
       placeId: one(sp.place),
       deliveryId: opened,
-      store: () => loadStoreWorld(appDb(), { hospitalId: actor.hospitalId, actorUserId: actor.userId }),
+      store: () =>
+        loadStoreWorld(appDb(), { hospitalId: actor.hospitalId, actorUserId: actor.userId }),
       signPhotos: async (paths) => {
         if (!paths.length) return new Map();
         const { data } = await createServiceClient()
@@ -51,7 +52,11 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
     body = world ? (
       <ReceiveTab world={world} deliveryId={opened} />
     ) : (
-      <EmptyState title={ST.shell.notReady} why={ST.shell.notReadyWhy} next={ST.shell.notReadyAsk} />
+      <EmptyState
+        title={ST.shell.notReady}
+        why={ST.shell.notReadyWhy}
+        next={ST.shell.notReadyAsk}
+      />
     );
   } else if (ward && UUID.test(ward))
     body = (

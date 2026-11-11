@@ -17,7 +17,10 @@ export const TIDE_GROUPS = [
 ] as const;
 export type TideGroup = (typeof TIDE_GROUPS)[number];
 
-export function tideOn(group: TideGroup, env: string | undefined = process.env.TIDE_SURFACES): boolean {
+export function tideOn(
+  group: TideGroup,
+  env: string | undefined = process.env.TIDE_SURFACES,
+): boolean {
   if (!env) return false;
   const list = env.split(",").map((s) => s.trim());
   return list.includes("1") || list.includes(group);

@@ -22,7 +22,10 @@ export function LoadPharmacyDemo() {
             const r = await loadPharmacyDemoAction();
             setSaid(
               r.ok
-                ? { ok: true, text: r.warnings?.[0] ?? "Loaded. Every pharmacy page now has demo data." }
+                ? {
+                    ok: true,
+                    text: r.warnings?.[0] ?? "Loaded. Every pharmacy page now has demo data.",
+                  }
                 : { ok: false, text: r.error ?? "The demo did not load." },
             );
           })

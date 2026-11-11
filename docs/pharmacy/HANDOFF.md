@@ -232,6 +232,7 @@ Built: the stage board, the one start dialog, order detail, edit and chase, coun
 **Before deploying:** apply GATED migration 0276 (`cd ~/Desktop/medsync-receive && npm run db:migrate`). The Main store reads it too, so app and migration go together. Copy is `draft`.
 
 **Defaults taken:**
+
 - A queued delivery that needs a witness, second check or in-charge approval comes back to Counting on reconnect: those need people online. Offline works only with the tab already open (no service worker).
 - One witness confirmation per controlled line, in one dialog (an attestation is single use).
 - A place receives directly when it is the store, or a dispensing point or clinic with nothing supplying it.
@@ -253,6 +254,7 @@ Built: the stage board, the one start dialog, order detail, edit and chase, coun
 Supplies are items: same table, ledger and screens as medicines, no parallel module. All copy is `draft`. Nothing is deployed.
 
 **Built**
+
 - **Data:** `data/emhslu-2023-supplies.csv` (1,917 rows parsed from the PDF: B 512, C 243, D 1,162; never hand-typed), loaded by `0278` into `cat_supply_items` (1,914 distinct items). `0277` adds the item columns, `seal` and `kit_temp`, and the guards. Seed: `scripts/seed-pharmacy-dev/supplies.ts` (28 supplies, shelves E and L, ward requisitions with supply lines).
 - **Guards in the database, each tested in `tests/emr-db/pharmacy-supplies-guards.test.ts`:** type derived from the section, Section C behind the switch, sterile seal, kit temperature, no supplied movement (Dispense), no bill line without a price or for a free item, `no_expiry` batches held at the far date.
 - **Screens:** Set-up › Medicines and supplies (shared type switch, Items tile, flags, EMHSLU row group, Section C switch, catalogue under EMHSLU categories), Main store (switch filters table and chart, tags, E and L, pickers), Receive (tags, seal, kit, no expiry, picker chips), Rules (group `sup`, 5 rules, unsigned), Going live (`supplies`, `suplevels`).
@@ -264,6 +266,7 @@ cd /Users/airm1/Desktop/medsync-supplies && npm run db:migrate
 ```
 
 **Defaults taken**
+
 - The master list is loaded by migration, not through curator proposals.
 - No expiry is stored as the sentinel 2099-12-31; every screen shows "no expiry", and Expiry and At risk skip it.
 - Sections B and C print no unit, so the issue unit starts at piece (surgical gloves at pair). It stays editable.
@@ -277,6 +280,7 @@ cd /Users/airm1/Desktop/medsync-supplies && npm run db:migrate
 - The kit's `prototype/` Receive has no supply strings, so Receive uses SUPPLIES.md §E wording.
 
 **Not done or not proved**
+
 - No Playwright in this repo. §H is covered by Vitest, the PGlite lane and axe, plus a manual browser pass at 1440 and 390 px on the fixtures (axe clean, no horizontal scroll; the only console error is the fixture's realtime socket with no local Supabase).
 - Nothing has run against a real database yet. The catalogue dialog needs one, so only the lane covers it.
 - There is a bill-line table with its guard, but no screen bills a supply yet.
@@ -284,6 +288,7 @@ cd /Users/airm1/Desktop/medsync-supplies && npm run db:migrate
 - `pharmacy-store-actions.test.ts` failed two tests in one crowded parallel run and passed alone and on the rerun, so treat those as a flake under load.
 
 **The owner supplies**
+
 - The EMHSLU PDF, committed at `docs/pharmacy/rework/EMHSLU-2023.pdf` (parsed from your copy).
 - Whether Section C is used (off by default).
 - Supply prices, if any are billed.

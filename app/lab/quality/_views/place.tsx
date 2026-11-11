@@ -1,11 +1,11 @@
 import type { labV2 } from "../../_lib/places";
 import type { SP } from "@/lib/lab/redirects";
 
+import { PillTabs, PrimaryLink, SpaceHeader } from "@/components/tide/work/space";
 import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import { labEquipmentLiveFor, labStockLiveFor } from "@/lib/lab/feature";
 import { equipmentFor, ncsFor, qcToRun, stockFor } from "../_lib/quality-data";
 import { ncLiveFor } from "../_lib/scope";
-import { PillTabs, PrimaryLink, SpaceHeader } from "@/components/tide/work/space";
 import { one, pillTabs } from "../../_lib/place-tabs";
 import { BedsideView } from "./bedside";
 import { EqaView } from "./eqa";

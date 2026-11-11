@@ -26,7 +26,6 @@ import { QueueScreen } from "./_components/queue-screen";
 import { ReviewQueue } from "./_components/review-queue";
 import { pharmacyV2 } from "./_lib/v2";
 
-
 const PERIODS: readonly QueuePeriod[] = ["today", "yesterday", "7d"];
 
 /**

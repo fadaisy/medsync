@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { CRITICALS_UI } from "@/content/lab-criticals";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { couldNotReachAction, logCriticalCallAction } from "@/lib/lab/criticals/actions";
-import { LabButton } from "@/components/tide/work/button";
 
 const OTHER = "__other__";
 const D = CRITICALS_UI.detail;

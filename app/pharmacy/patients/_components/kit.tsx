@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { MinusIcon, PlusIcon } from "lucide-react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
@@ -68,7 +68,12 @@ export function Stepper({
     "bg-tide-sunken hover:bg-ink-100 focus-visible:shadow-focus grid size-11 place-items-center rounded-full outline-none";
   return (
     <span className="inline-flex items-center gap-2">
-      <button type="button" className={btn} aria-label={`${label} −1`} onClick={() => set((value ?? 0) - 1)}>
+      <button
+        type="button"
+        className={btn}
+        aria-label={`${label} −1`}
+        onClick={() => set((value ?? 0) - 1)}
+      >
         <MinusIcon className="size-4" aria-hidden />
       </button>
       <input
@@ -81,7 +86,12 @@ export function Stepper({
         }}
         className="bg-card rounded-tide-field h-11 w-20 text-center tabular-nums shadow-[inset_0_0_0_1px_var(--color-ink-300)]"
       />
-      <button type="button" className={btn} aria-label={`${label} +1`} onClick={() => set((value ?? 0) + 1)}>
+      <button
+        type="button"
+        className={btn}
+        aria-label={`${label} +1`}
+        onClick={() => set((value ?? 0) + 1)}
+      >
         <PlusIcon className="size-4" aria-hidden />
       </button>
       {unit ? <span className="text-body-s text-muted-foreground">{unit}</span> : null}
@@ -149,7 +159,9 @@ export function ActionDialog({
         ) : null}
       </div>
       <div className="border-border flex flex-wrap items-center justify-end gap-2 border-t px-6 py-3">
-        {foot ? <span className="text-caption text-muted-foreground mr-auto max-w-prose">{foot}</span> : null}
+        {foot ? (
+          <span className="text-caption text-muted-foreground mr-auto max-w-prose">{foot}</span>
+        ) : null}
         <LabButton variant="quiet" onClick={() => onOpenChange(false)}>
           {run ? PRW.common.cancel : PRW.common.close}
         </LabButton>

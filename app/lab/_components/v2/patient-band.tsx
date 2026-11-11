@@ -1,5 +1,5 @@
-import { LABWS2 } from "@/content/lab-workspace-v2";
 import { Ident } from "@/components/tide/work/kit";
+import { LABWS2 } from "@/content/lab-workspace-v2";
 
 const B = LABWS2.bench.band;
 

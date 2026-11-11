@@ -29,7 +29,8 @@ const refusal = async (p: Promise<unknown>) => {
     return `${err.message} ${err.cause?.message ?? ""}`;
   }
 };
-const id = async (pg: Pg, q: string, p?: unknown[]) => (await pg.query<{ id: string }>(q, p)).rows[0]!.id;
+const id = async (pg: Pg, q: string, p?: unknown[]) =>
+  (await pg.query<{ id: string }>(q, p)).rows[0]!.id;
 
 describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)", () => {
   let lane: Lane;
@@ -41,7 +42,14 @@ describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)
     lane.db.transaction((tx) =>
       fn({
         tx,
-        actor: { userId, hospitalId: f.h!, cadreCode: "PHARMACY_TECH", cadreName: "Fixture cadre", pointId: null, access: {} as never },
+        actor: {
+          userId,
+          hospitalId: f.h!,
+          cadreCode: "PHARMACY_TECH",
+          cadreName: "Fixture cadre",
+          pointId: null,
+          access: {} as never,
+        },
         point: null,
         now: new Date(),
         manages,
@@ -62,7 +70,12 @@ describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)
        VALUES ($1, $2, $3, $4, '2099-12-31', $4, '2099-12-31', $5) RETURNING id`,
       [f.h, place, productId, `B-${randomUUID().slice(0, 6)}`, f.head],
     );
-  const move = (b: string, kind: string, qty: number, o: { actor?: string; reason?: string; reverses?: string } = {}) =>
+  const move = (
+    b: string,
+    kind: string,
+    qty: number,
+    o: { actor?: string; reason?: string; reverses?: string } = {},
+  ) =>
     id(
       pg,
       `INSERT INTO public.pharmacy_stock_movements (hospital_id, location_id, batch_id, kind, quantity, effective_at,
@@ -74,8 +87,12 @@ describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)
     );
   const balance = async (b: string) =>
     Number(
-      (await pg.query<{ n: string }>(`SELECT coalesce(sum(quantity), 0) AS n FROM public.pharmacy_stock_movements WHERE batch_id = $1`, [b]))
-        .rows[0]!.n,
+      (
+        await pg.query<{ n: string }>(
+          `SELECT coalesce(sum(quantity), 0) AS n FROM public.pharmacy_stock_movements WHERE batch_id = $1`,
+          [b],
+        )
+      ).rows[0]!.n,
     );
 
   beforeAll(async () => {
@@ -88,20 +105,29 @@ describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)
        VALUES ($1, 'Pharmacy', $2, 'support', 'PHARMACY') RETURNING id`,
       [f.h, `ph-${randomUUID().slice(0, 6)}`],
     );
-    f.head = (await staff(pg, { hospitalId: f.h, departmentId: f.pharmacy, cadre: "PHARMACIST" })).userId;
+    f.head = (
+      await staff(pg, { hospitalId: f.h, departmentId: f.pharmacy, cadre: "PHARMACIST" })
+    ).userId;
     await pg.query(
       `INSERT INTO public.department_heads (hospital_id, department_id, user_id, starts_at) VALUES ($1, $2, $3, now() - interval '1 day')`,
       [f.h, f.pharmacy, f.head],
     );
-    f.tech = (await staff(pg, { hospitalId: f.h, departmentId: f.pharmacy, cadre: "PHARMACY_TECH" })).userId;
-    f.other = (await staff(pg, { hospitalId: f.h, departmentId: f.pharmacy, cadre: "PHARMACY_TECH" })).userId;
+    f.tech = (
+      await staff(pg, { hospitalId: f.h, departmentId: f.pharmacy, cadre: "PHARMACY_TECH" })
+    ).userId;
+    f.other = (
+      await staff(pg, { hospitalId: f.h, departmentId: f.pharmacy, cadre: "PHARMACY_TECH" })
+    ).userId;
     f.witness = await authUser(pg, "witness");
     f.point = await id(
       pg,
       `INSERT INTO public.hospital_departments (hospital_id, parent_id, name, slug, kind) VALUES ($1, $2, 'Window', $3, 'support') RETURNING id`,
       [f.h, f.pharmacy, `win-${randomUUID().slice(0, 6)}`],
     );
-    await pg.query(`INSERT INTO public.pharmacy_dispensing_points (department_id, hospital_id, serves) VALUES ($1, $2, 'window')`, [f.point, f.h]);
+    await pg.query(
+      `INSERT INTO public.pharmacy_dispensing_points (department_id, hospital_id, serves) VALUES ($1, $2, 'window')`,
+      [f.point, f.h],
+    );
     const wardDept = await id(
       pg,
       `INSERT INTO public.hospital_departments (hospital_id, name, slug) VALUES ($1, 'Medicine', $2) RETURNING id`,
@@ -129,27 +155,50 @@ describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)
     await move(b, "received", 100, { actor: f.head });
     const given = await move(b, "ward_used", -15);
     const key = randomUUID();
-    const input = { clientKey: key, movementId: given, reason: "wrong_quantity" as const, quantity: 10 };
+    const input = {
+      clientKey: key,
+      movementId: given,
+      reason: "wrong_quantity" as const,
+      quantity: 10,
+    };
     // Someone else's entry: only the in-charge corrects it.
-    expect(await refusal(as(f.other!, false, (c) => audit.correctMovement(c, { ...input, clientKey: randomUUID() })))).toMatch(
-      /own entries/,
-    );
+    expect(
+      await refusal(
+        as(f.other!, false, (c) => audit.correctMovement(c, { ...input, clientKey: randomUUID() })),
+      ),
+    ).toMatch(/own entries/);
     const r = await as(f.tech!, false, (c) => audit.correctMovement(c, input));
     expect(r.replacementId).not.toBeNull();
     const rows = (
-      await pg.query<{ id: string; kind: string; quantity: number; reverses_id: string | null; correction_of_id: string | null }>(
+      await pg.query<{
+        id: string;
+        kind: string;
+        quantity: number;
+        reverses_id: string | null;
+        correction_of_id: string | null;
+      }>(
         `SELECT id, kind, quantity, reverses_id, correction_of_id FROM public.pharmacy_stock_movements WHERE id IN ($1, $2)`,
         [r.id, r.replacementId],
       )
     ).rows;
-    expect(rows.find((x) => x.id === r.id)).toMatchObject({ kind: "reversed", quantity: 15, reverses_id: given });
-    expect(rows.find((x) => x.id === r.replacementId)).toMatchObject({ kind: "ward_used", quantity: -10, correction_of_id: given });
+    expect(rows.find((x) => x.id === r.id)).toMatchObject({
+      kind: "reversed",
+      quantity: 15,
+      reverses_id: given,
+    });
+    expect(rows.find((x) => x.id === r.replacementId)).toMatchObject({
+      kind: "ward_used",
+      quantity: -10,
+      correction_of_id: given,
+    });
     expect(await balance(b)).toBe(90);
     // The same tap again returns what it wrote; a second correction is refused.
     expect((await as(f.tech!, false, (c) => audit.correctMovement(c, input))).id).toBe(r.id);
-    expect(await refusal(as(f.head!, true, (c) => audit.correctMovement(c, { ...input, clientKey: randomUUID() })))).toMatch(
-      /already corrected/,
-    );
+    expect(
+      await refusal(
+        as(f.head!, true, (c) => audit.correctMovement(c, { ...input, clientKey: randomUUID() })),
+      ),
+    ).toMatch(/already corrected/);
     // The trail shows the original struck through, with who and why.
     const moves = await auditRead.auditMovements(lane.db, f.h!, null);
     const orig = moves.find((m) => m.id === given)!;
@@ -162,14 +211,27 @@ describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)
     await move(b, "received", 20, { actor: f.head });
     const twice = await move(b, "ward_used", -5, { actor: f.other });
     await as(f.head!, true, (c) =>
-      audit.correctMovement(c, { clientKey: randomUUID(), movementId: twice, reason: "entered_twice" }),
+      audit.correctMovement(c, {
+        clientKey: randomUUID(),
+        movementId: twice,
+        reason: "entered_twice",
+      }),
     );
     expect(await balance(b)).toBe(20);
 
     const cdb = await batch(f.morphine!);
     const cdIn = await move(cdb, "received", 10, { actor: f.tech });
     expect(
-      await refusal(as(f.tech!, false, (c) => audit.correctMovement(c, { clientKey: randomUUID(), movementId: cdIn, reason: "wrong_quantity", quantity: 8 }))),
+      await refusal(
+        as(f.tech!, false, (c) =>
+          audit.correctMovement(c, {
+            clientKey: randomUUID(),
+            movementId: cdIn,
+            reason: "wrong_quantity",
+            quantity: 8,
+          }),
+        ),
+      ),
     ).toMatch(/needs a witness/);
 
     // A replacement for a line that was never reversed.
@@ -229,9 +291,11 @@ describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)
     expect(await refusal(check({}))).toMatch(/Add a remark/);
     await check({ [`rm-${f.amox}`]: "Delivered late" });
     // Submitting is the in-charge's, in the app and in the database.
-    expect(await refusal(as(f.tech!, false, (c) => reports.submitReport(c, { kind: "hmis_meds", month: ym })))).toMatch(
-      /Only the in-charge/,
-    );
+    expect(
+      await refusal(
+        as(f.tech!, false, (c) => reports.submitReport(c, { kind: "hmis_meds", month: ym })),
+      ),
+    ).toMatch(/Only the in-charge/);
     expect(
       await refusal(
         pg.query(
@@ -242,14 +306,27 @@ describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)
       ),
     ).toMatch(/in-charge|not_in_charge/);
     await as(f.head!, true, (c) => reports.submitReport(c, { kind: "hmis_meds", month: ym }));
-    const saved = (await reportsRead.savedReports(lane.db, f.h!, ym)).find((r) => r.kind === "hmis_meds")!;
+    const saved = (await reportsRead.savedReports(lane.db, f.h!, ym)).find(
+      (r) => r.kind === "hmis_meds",
+    )!;
     expect(saved.status).toBe("submitted");
-    expect((saved.snapshot as { rows: { productId: string }[] }).rows.some((r) => r.productId === f.amox)).toBe(true);
+    expect(
+      (saved.snapshot as { rows: { productId: string }[] }).rows.some(
+        (r) => r.productId === f.amox,
+      ),
+    ).toBe(true);
     // Frozen: nothing changes or deletes a submitted report.
-    expect(await refusal(pg.query(`UPDATE public.pharmacy_reports SET remarks = '{}' WHERE hospital_id = $1 AND kind = 'hmis_meds'`, [f.h]))).not.toBe(
-      "accepted",
-    );
-    expect(await refusal(pg.query(`DELETE FROM public.pharmacy_reports WHERE hospital_id = $1`, [f.h]))).not.toBe("accepted");
+    expect(
+      await refusal(
+        pg.query(
+          `UPDATE public.pharmacy_reports SET remarks = '{}' WHERE hospital_id = $1 AND kind = 'hmis_meds'`,
+          [f.h],
+        ),
+      ),
+    ).not.toBe("accepted");
+    expect(
+      await refusal(pg.query(`DELETE FROM public.pharmacy_reports WHERE hospital_id = $1`, [f.h])),
+    ).not.toBe("accepted");
 
     // An open morphine case blocks the CD return, named in the report.
     await pg.query(
@@ -257,10 +334,14 @@ describe.skipIf(!laneOn)("Pharmacy rework: Records (test 10, scenarios 8 and 12)
        VALUES ($1, 'manual', 'fx_morphine', $2, -1, 'Fixture shortfall', 'high', now() + interval '1 day', $3)`,
       [f.h, f.ward, f.head],
     );
-    await as(f.tech!, false, (c) => reports.checkReport(c, { kind: "cd_return", month: ym, remarks: {} }));
-    expect(await refusal(as(f.head!, true, (c) => reports.submitReport(c, { kind: "cd_return", month: ym })))).toMatch(
-      /Resolve the items/,
+    await as(f.tech!, false, (c) =>
+      reports.checkReport(c, { kind: "cd_return", month: ym, remarks: {} }),
     );
+    expect(
+      await refusal(
+        as(f.head!, true, (c) => reports.submitReport(c, { kind: "cd_return", month: ym })),
+      ),
+    ).toMatch(/Resolve the items/);
     const cdIssues = (await reportsRead.reportFigures(lane.db, f.h!, ym)).cases;
     expect(cdIssues.map((x) => [x.product, x.controlled])).toEqual([["Morphine injection", true]]);
   });

@@ -1,659 +1,478 @@
 [
- {
-  "key": "sad5",
-  "name": "Syringe AD + needle, disposable detached, 5 ml",
-  "unit": "piece",
-  "code": "B1",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   100
-  ],
-  "loose": true,
-  "use": 180,
-  "places": [
-   "store",
-   "opd",
-   "w3",
-   "mat",
-   "paed",
-   "epi"
-  ],
-  "level": "HC3",
-  "emName": "Syringe AD +needle, disposable detached",
-  "emSpec": "5 ml, needle 21 G"
- },
- {
-  "key": "sad2",
-  "name": "Syringe AD + needle, disposable detached, 2 ml",
-  "unit": "piece",
-  "code": "B1",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   100
-  ],
-  "loose": true,
-  "use": 90,
-  "places": [
-   "store",
-   "opd",
-   "w3",
-   "mat",
-   "paed"
-  ],
-  "level": "HC3",
-  "emName": "Syringe AD +needle, disposable detached",
-  "emSpec": "2 ml, needle 23 G"
- },
- {
-  "key": "can18",
-  "name": "Cannula IV with inj port and wings (green), 18G",
-  "unit": "piece",
-  "code": "B1",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   50
-  ],
-  "loose": true,
-  "use": 25,
-  "places": [
-   "store",
-   "w3",
-   "mat"
-  ],
-  "level": "HC3",
-  "emName": "Cannula IV with inj port and wings (green)",
-  "emSpec": "18G, 1.2 mm x 45 mm"
- },
- {
-  "key": "can22",
-  "name": "Cannula IV with inj port and wings (blue), 22G",
-  "unit": "piece",
-  "code": "B1",
-  "ven": "E",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   50
-  ],
-  "loose": true,
-  "use": 20,
-  "places": [
-   "store",
-   "w3",
-   "paed"
-  ],
-  "level": "HC3",
-  "emName": "Cannula IV with inj port and wings (blue)",
-  "emSpec": "22G, 0.7 mm x 26 mm"
- },
- {
-  "key": "can24",
-  "name": "Cannula IV with inj port and wings (yellow), 24G",
-  "unit": "piece",
-  "code": "B1",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   50
-  ],
-  "loose": true,
-  "use": 8,
-  "places": [
-   "store",
-   "paed"
-  ],
-  "level": "HC4",
-  "emName": "Cannula IV with inj port and wings (yellow)",
-  "emSpec": "24G, 0.55 mm x 19 mm"
- },
- {
-  "key": "ivset",
-  "name": "Set, infusion + needle, adult",
-  "unit": "piece",
-  "code": "B1",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   25
-  ],
-  "loose": true,
-  "use": 30,
-  "places": [
-   "store",
-   "w3",
-   "mat",
-   "paed"
-  ],
-  "level": "HC3",
-  "emName": "Set, infusion + Needle 21G",
-  "emSpec": "Adult, 15-20 drops/ml"
- },
- {
-  "key": "aswab",
-  "name": "Alcohol swab, 70%",
-  "unit": "piece",
-  "code": "B2",
-  "ven": "V",
-  "sterile": false,
-  "kit": false,
-  "free": false,
-  "packs": [
-   100
-  ],
-  "loose": true,
-  "use": 150,
-  "places": [
-   "store",
-   "opd",
-   "w3",
-   "mat",
-   "paed",
-   "epi"
-  ],
-  "level": "HC2",
-  "emName": "Alcohol swab",
-  "emSpec": "70%"
- },
- {
-  "key": "hypo",
-  "name": "Sodium hypochlorite 6%",
-  "unit": "bottle",
-  "code": "B2",
-  "ven": "V",
-  "sterile": false,
-  "kit": false,
-  "free": false,
-  "packs": [
-   1
-  ],
-  "loose": false,
-  "use": 2,
-  "places": [
-   "store",
-   "w3",
-   "mat"
-  ],
-  "level": "HC2",
-  "emName": "Sodium hypochlorite",
-  "emSpec": "6%"
- },
- {
-  "key": "cotton",
-  "name": "Wool, cotton, hospital quality, 500 g",
-  "unit": "roll",
-  "code": "B3",
-  "ven": "V",
-  "sterile": false,
-  "kit": false,
-  "free": false,
-  "packs": [
-   1
-  ],
-  "loose": false,
-  "use": 3,
-  "places": [
-   "store",
-   "opd",
-   "w3",
-   "mat"
-  ],
-  "level": "HC2",
-  "emName": "Wool, cotton, hospital quality",
-  "emSpec": "500 g"
- },
- {
-  "key": "gswab",
-  "name": "Gauze swabs, WOW, sterile 12 ply, 10 x 10 cm",
-  "unit": "packet",
-  "code": "B3",
-  "ven": "E",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   10
-  ],
-  "loose": true,
-  "use": 15,
-  "places": [
-   "store",
-   "w3",
-   "mat"
-  ],
-  "level": "HC4",
-  "emName": "Gauze swabs 19 x 15, WOW, sterile",
-  "emSpec": "12 ply, 10 x 10 cm"
- },
- {
-  "key": "zox",
-  "name": "Plaster, adhesive, zinc oxide, 7.5 cm x 5 m",
-  "unit": "roll",
-  "code": "B3",
-  "ven": "N",
-  "sterile": false,
-  "kit": false,
-  "free": false,
-  "packs": [
-   1
-  ],
-  "loose": false,
-  "use": 2,
-  "places": [
-   "store",
-   "opd",
-   "w3"
-  ],
-  "level": "HC2",
-  "emName": "Plaster, adhesive, zinc oxide",
-  "emSpec": "7.5 cm x 5 m"
- },
- {
-  "key": "fol16",
-  "name": "Catheter foley, balloon, 2-way, FG16",
-  "unit": "piece",
-  "code": "B4",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   10
-  ],
-  "loose": true,
-  "use": 3,
-  "places": [
-   "store",
-   "w3",
-   "mat"
-  ],
-  "level": "HC4",
-  "emName": "Catheter foley, balloon",
-  "emSpec": "FG16, 2-way, 10-30 ml"
- },
- {
-  "key": "ngt8",
-  "name": "Nasogastric/feeding tube, neonate/child, FG8",
-  "unit": "piece",
-  "code": "B4",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   10
-  ],
-  "loose": true,
-  "use": 2,
-  "places": [
-   "store",
-   "paed"
-  ],
-  "level": "HC4",
-  "emName": "Nasogastric/feeding tube, for neonate",
-  "emSpec": "FG8 x 50 cm long"
- },
- {
-  "key": "ucb",
-  "name": "Urine collecting bag, sterile, disposable, adult 2 L",
-  "unit": "piece",
-  "code": "B9",
-  "ven": "E",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   10
-  ],
-  "loose": true,
-  "use": 3,
-  "places": [
-   "store",
-   "w3"
-  ],
-  "level": "HC4",
-  "emName": "Urine collecting bag, sterile, disposable",
-  "emSpec": "Adult, 2 L"
- },
- {
-  "key": "glex",
-  "name": "Examination gloves, latex, non-sterile, medium",
-  "unit": "piece",
-  "code": "B5",
-  "ven": "N",
-  "sterile": false,
-  "kit": false,
-  "free": false,
-  "packs": [
-   100
-  ],
-  "loose": true,
-  "use": 400,
-  "places": [
-   "store",
-   "opd",
-   "w3",
-   "mat",
-   "paed",
-   "epi"
-  ],
-  "level": "HC2",
-  "emName": "Examination gloves, latex, on-sterile",
-  "emSpec": "Medium"
- },
- {
-  "key": "glsur",
-  "name": "Surgeon gloves, sterile, size 7.5",
-  "unit": "pair",
-  "code": "B5",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   50
-  ],
-  "loose": true,
-  "use": 20,
-  "places": [
-   "store",
-   "w3",
-   "mat"
-  ],
-  "level": "HC2",
-  "emName": "Surgeon gloves, sterile",
-  "emSpec": "Size 7.5 (medium)"
- },
- {
-  "key": "pga1",
-  "name": "Polyglycolic acid, thread M4 (1), 90 cm, ½ circle taper",
-  "unit": "piece",
-  "code": "B6",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   12
-  ],
-  "loose": true,
-  "use": 3,
-  "places": [
-   "store",
-   "mat"
-  ],
-  "level": "HC4",
-  "emName": "Polyglycolic acid, thread M4 (1)",
-  "emSpec": "90 cm, needle 40 mm ½ circle taper heavy"
- },
- {
-  "key": "nyl2",
-  "name": "Suture nylon, thread M3 (2/0), 45 cm, 3/8 circle",
-  "unit": "piece",
-  "code": "B6",
-  "ven": "V",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   12
-  ],
-  "loose": true,
-  "use": 2,
-  "places": [
-   "store",
-   "opd",
-   "w3"
-  ],
-  "level": "HC3",
-  "emName": "Suture nylon, thread M3 (2/0)",
-  "emSpec": "45 cm, needle 26 mm 3/8 circle rev.cut"
- },
- {
-  "key": "sbox",
-  "name": "Safety box for syringes & needles, disposable",
-  "unit": "piece",
-  "code": "B7",
-  "ven": "V",
-  "sterile": false,
-  "kit": false,
-  "free": false,
-  "packs": [
-   25
-  ],
-  "loose": true,
-  "use": 4,
-  "places": [
-   "store",
-   "opd",
-   "w3",
-   "mat",
-   "paed",
-   "epi"
-  ],
-  "level": "HC2",
-  "emName": "Safety box for syringes & needle, disposable",
-  "emSpec": "Disposable"
- },
- {
-  "key": "mask",
-  "name": "Face masks, disposable, 2-ply",
-  "unit": "piece",
-  "code": "B7",
-  "ven": "E",
-  "sterile": false,
-  "kit": false,
-  "free": false,
-  "packs": [
-   50
-  ],
-  "loose": true,
-  "use": 40,
-  "places": [
-   "store",
-   "w3",
-   "mat"
-  ],
-  "level": "HC4",
-  "emName": "Face masks, disposable",
-  "emSpec": "2-ply operation theatre"
- },
- {
-  "key": "clamp",
-  "name": "Disposable umbilical cord clamp with safe security lock",
-  "unit": "piece",
-  "code": "B9",
-  "ven": "E",
-  "sterile": true,
-  "kit": false,
-  "free": false,
-  "packs": [
-   100
-  ],
-  "loose": true,
-  "use": 8,
-  "places": [
-   "store",
-   "mat"
-  ],
-  "level": "HC3",
-  "emName": "Disposable umbilical cord clamp with safe security lock",
-  "emSpec": ""
- },
- {
-  "key": "mrdt",
-  "name": "Malaria Antigen P.f/Pan Kit (dipstick), 25 tests",
-  "unit": "test",
-  "code": "D1",
-  "ven": "V",
-  "sterile": false,
-  "kit": true,
-  "free": true,
-  "packs": [
-   25
-  ],
-  "loose": true,
-  "use": 80,
-  "places": [
-   "store",
-   "opd",
-   "w3",
-   "paed"
-  ],
-  "level": "HC2",
-  "emName": "Malaria Antigen P.f/Pan Kit, 25 Test dipstick",
-  "emSpec": ""
- },
- {
-  "key": "hivd",
-  "name": "HIV 1/2, Determine Complete HIV Kit, 100 tests",
-  "unit": "test",
-  "code": "D1",
-  "ven": "V",
-  "sterile": false,
-  "kit": true,
-  "free": true,
-  "packs": [
-   100
-  ],
-  "loose": true,
-  "use": 30,
-  "places": [
-   "store",
-   "opd",
-   "mat"
-  ],
-  "level": "HC2",
-  "emName": "HIV 1/2, Determine Complete HIV Kit, 100 Test",
-  "emSpec": ""
- },
- {
-  "key": "hivs",
-  "name": "HIV 1/2, Stat-Pak Dipstick Assay Kit, 30 tests",
-  "unit": "test",
-  "code": "D1",
-  "ven": "V",
-  "sterile": false,
-  "kit": true,
-  "free": true,
-  "packs": [
-   30
-  ],
-  "loose": true,
-  "use": 6,
-  "places": [
-   "store",
-   "opd",
-   "mat"
-  ],
-  "level": "HC2",
-  "emName": "HIV 1/2, Stat-Pak Dipstick Assay Kit, 30 Test",
-  "emSpec": ""
- },
- {
-  "key": "hbs",
-  "name": "Hepatitis, HBsAg Screening Kit, 25 tests",
-  "unit": "test",
-  "code": "D1",
-  "ven": "V",
-  "sterile": false,
-  "kit": true,
-  "free": false,
-  "packs": [
-   25
-  ],
-  "loose": true,
-  "use": 4,
-  "places": [
-   "store",
-   "opd",
-   "mat"
-  ],
-  "level": "HC2",
-  "emName": "Hepatitis, HBsAg Screening Kit, 25 Test",
-  "emSpec": ""
- },
- {
-  "key": "hcg",
-  "name": "HCG pregnancy test strips",
-  "unit": "test",
-  "code": "D1",
-  "ven": "V",
-  "sterile": false,
-  "kit": true,
-  "free": false,
-  "packs": [
-   50
-  ],
-  "loose": true,
-  "use": 10,
-  "places": [
-   "store",
-   "opd",
-   "mat"
-  ],
-  "level": "HC2",
-  "emName": "HCG pregnancy test strips",
-  "emSpec": ""
- },
- {
-  "key": "urin",
-  "name": "Test Strips, Urinalysis Strips, 10 parameters",
-  "unit": "strip",
-  "code": "D2",
-  "ven": "V",
-  "sterile": false,
-  "kit": true,
-  "free": false,
-  "packs": [
-   100
-  ],
-  "loose": true,
-  "use": 15,
-  "places": [
-   "store",
-   "opd",
-   "mat",
-   "w3"
-  ],
-  "level": "HC3",
-  "emName": "Test Strips, Urinalysis Strips, 10 Parameters",
-  "emSpec": ""
- },
- {
-  "key": "gluc",
-  "name": "Glucometer, Test Strips, 50 pieces",
-  "unit": "strip",
-  "code": "D2",
-  "ven": "V",
-  "sterile": false,
-  "kit": true,
-  "free": false,
-  "packs": [
-   50
-  ],
-  "loose": true,
-  "use": 20,
-  "places": [
-   "store",
-   "opd",
-   "w3"
-  ],
-  "level": "HC3",
-  "emName": "Glucometer, Test Strips, 50 pieces",
-  "emSpec": ""
- }
+  {
+    "key": "sad5",
+    "name": "Syringe AD + needle, disposable detached, 5 ml",
+    "unit": "piece",
+    "code": "B1",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [100],
+    "loose": true,
+    "use": 180,
+    "places": ["store", "opd", "w3", "mat", "paed", "epi"],
+    "level": "HC3",
+    "emName": "Syringe AD +needle, disposable detached",
+    "emSpec": "5 ml, needle 21 G"
+  },
+  {
+    "key": "sad2",
+    "name": "Syringe AD + needle, disposable detached, 2 ml",
+    "unit": "piece",
+    "code": "B1",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [100],
+    "loose": true,
+    "use": 90,
+    "places": ["store", "opd", "w3", "mat", "paed"],
+    "level": "HC3",
+    "emName": "Syringe AD +needle, disposable detached",
+    "emSpec": "2 ml, needle 23 G"
+  },
+  {
+    "key": "can18",
+    "name": "Cannula IV with inj port and wings (green), 18G",
+    "unit": "piece",
+    "code": "B1",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [50],
+    "loose": true,
+    "use": 25,
+    "places": ["store", "w3", "mat"],
+    "level": "HC3",
+    "emName": "Cannula IV with inj port and wings (green)",
+    "emSpec": "18G, 1.2 mm x 45 mm"
+  },
+  {
+    "key": "can22",
+    "name": "Cannula IV with inj port and wings (blue), 22G",
+    "unit": "piece",
+    "code": "B1",
+    "ven": "E",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [50],
+    "loose": true,
+    "use": 20,
+    "places": ["store", "w3", "paed"],
+    "level": "HC3",
+    "emName": "Cannula IV with inj port and wings (blue)",
+    "emSpec": "22G, 0.7 mm x 26 mm"
+  },
+  {
+    "key": "can24",
+    "name": "Cannula IV with inj port and wings (yellow), 24G",
+    "unit": "piece",
+    "code": "B1",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [50],
+    "loose": true,
+    "use": 8,
+    "places": ["store", "paed"],
+    "level": "HC4",
+    "emName": "Cannula IV with inj port and wings (yellow)",
+    "emSpec": "24G, 0.55 mm x 19 mm"
+  },
+  {
+    "key": "ivset",
+    "name": "Set, infusion + needle, adult",
+    "unit": "piece",
+    "code": "B1",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [25],
+    "loose": true,
+    "use": 30,
+    "places": ["store", "w3", "mat", "paed"],
+    "level": "HC3",
+    "emName": "Set, infusion + Needle 21G",
+    "emSpec": "Adult, 15-20 drops/ml"
+  },
+  {
+    "key": "aswab",
+    "name": "Alcohol swab, 70%",
+    "unit": "piece",
+    "code": "B2",
+    "ven": "V",
+    "sterile": false,
+    "kit": false,
+    "free": false,
+    "packs": [100],
+    "loose": true,
+    "use": 150,
+    "places": ["store", "opd", "w3", "mat", "paed", "epi"],
+    "level": "HC2",
+    "emName": "Alcohol swab",
+    "emSpec": "70%"
+  },
+  {
+    "key": "hypo",
+    "name": "Sodium hypochlorite 6%",
+    "unit": "bottle",
+    "code": "B2",
+    "ven": "V",
+    "sterile": false,
+    "kit": false,
+    "free": false,
+    "packs": [1],
+    "loose": false,
+    "use": 2,
+    "places": ["store", "w3", "mat"],
+    "level": "HC2",
+    "emName": "Sodium hypochlorite",
+    "emSpec": "6%"
+  },
+  {
+    "key": "cotton",
+    "name": "Wool, cotton, hospital quality, 500 g",
+    "unit": "roll",
+    "code": "B3",
+    "ven": "V",
+    "sterile": false,
+    "kit": false,
+    "free": false,
+    "packs": [1],
+    "loose": false,
+    "use": 3,
+    "places": ["store", "opd", "w3", "mat"],
+    "level": "HC2",
+    "emName": "Wool, cotton, hospital quality",
+    "emSpec": "500 g"
+  },
+  {
+    "key": "gswab",
+    "name": "Gauze swabs, WOW, sterile 12 ply, 10 x 10 cm",
+    "unit": "packet",
+    "code": "B3",
+    "ven": "E",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [10],
+    "loose": true,
+    "use": 15,
+    "places": ["store", "w3", "mat"],
+    "level": "HC4",
+    "emName": "Gauze swabs 19 x 15, WOW, sterile",
+    "emSpec": "12 ply, 10 x 10 cm"
+  },
+  {
+    "key": "zox",
+    "name": "Plaster, adhesive, zinc oxide, 7.5 cm x 5 m",
+    "unit": "roll",
+    "code": "B3",
+    "ven": "N",
+    "sterile": false,
+    "kit": false,
+    "free": false,
+    "packs": [1],
+    "loose": false,
+    "use": 2,
+    "places": ["store", "opd", "w3"],
+    "level": "HC2",
+    "emName": "Plaster, adhesive, zinc oxide",
+    "emSpec": "7.5 cm x 5 m"
+  },
+  {
+    "key": "fol16",
+    "name": "Catheter foley, balloon, 2-way, FG16",
+    "unit": "piece",
+    "code": "B4",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [10],
+    "loose": true,
+    "use": 3,
+    "places": ["store", "w3", "mat"],
+    "level": "HC4",
+    "emName": "Catheter foley, balloon",
+    "emSpec": "FG16, 2-way, 10-30 ml"
+  },
+  {
+    "key": "ngt8",
+    "name": "Nasogastric/feeding tube, neonate/child, FG8",
+    "unit": "piece",
+    "code": "B4",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [10],
+    "loose": true,
+    "use": 2,
+    "places": ["store", "paed"],
+    "level": "HC4",
+    "emName": "Nasogastric/feeding tube, for neonate",
+    "emSpec": "FG8 x 50 cm long"
+  },
+  {
+    "key": "ucb",
+    "name": "Urine collecting bag, sterile, disposable, adult 2 L",
+    "unit": "piece",
+    "code": "B9",
+    "ven": "E",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [10],
+    "loose": true,
+    "use": 3,
+    "places": ["store", "w3"],
+    "level": "HC4",
+    "emName": "Urine collecting bag, sterile, disposable",
+    "emSpec": "Adult, 2 L"
+  },
+  {
+    "key": "glex",
+    "name": "Examination gloves, latex, non-sterile, medium",
+    "unit": "piece",
+    "code": "B5",
+    "ven": "N",
+    "sterile": false,
+    "kit": false,
+    "free": false,
+    "packs": [100],
+    "loose": true,
+    "use": 400,
+    "places": ["store", "opd", "w3", "mat", "paed", "epi"],
+    "level": "HC2",
+    "emName": "Examination gloves, latex, on-sterile",
+    "emSpec": "Medium"
+  },
+  {
+    "key": "glsur",
+    "name": "Surgeon gloves, sterile, size 7.5",
+    "unit": "pair",
+    "code": "B5",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [50],
+    "loose": true,
+    "use": 20,
+    "places": ["store", "w3", "mat"],
+    "level": "HC2",
+    "emName": "Surgeon gloves, sterile",
+    "emSpec": "Size 7.5 (medium)"
+  },
+  {
+    "key": "pga1",
+    "name": "Polyglycolic acid, thread M4 (1), 90 cm, ½ circle taper",
+    "unit": "piece",
+    "code": "B6",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [12],
+    "loose": true,
+    "use": 3,
+    "places": ["store", "mat"],
+    "level": "HC4",
+    "emName": "Polyglycolic acid, thread M4 (1)",
+    "emSpec": "90 cm, needle 40 mm ½ circle taper heavy"
+  },
+  {
+    "key": "nyl2",
+    "name": "Suture nylon, thread M3 (2/0), 45 cm, 3/8 circle",
+    "unit": "piece",
+    "code": "B6",
+    "ven": "V",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [12],
+    "loose": true,
+    "use": 2,
+    "places": ["store", "opd", "w3"],
+    "level": "HC3",
+    "emName": "Suture nylon, thread M3 (2/0)",
+    "emSpec": "45 cm, needle 26 mm 3/8 circle rev.cut"
+  },
+  {
+    "key": "sbox",
+    "name": "Safety box for syringes & needles, disposable",
+    "unit": "piece",
+    "code": "B7",
+    "ven": "V",
+    "sterile": false,
+    "kit": false,
+    "free": false,
+    "packs": [25],
+    "loose": true,
+    "use": 4,
+    "places": ["store", "opd", "w3", "mat", "paed", "epi"],
+    "level": "HC2",
+    "emName": "Safety box for syringes & needle, disposable",
+    "emSpec": "Disposable"
+  },
+  {
+    "key": "mask",
+    "name": "Face masks, disposable, 2-ply",
+    "unit": "piece",
+    "code": "B7",
+    "ven": "E",
+    "sterile": false,
+    "kit": false,
+    "free": false,
+    "packs": [50],
+    "loose": true,
+    "use": 40,
+    "places": ["store", "w3", "mat"],
+    "level": "HC4",
+    "emName": "Face masks, disposable",
+    "emSpec": "2-ply operation theatre"
+  },
+  {
+    "key": "clamp",
+    "name": "Disposable umbilical cord clamp with safe security lock",
+    "unit": "piece",
+    "code": "B9",
+    "ven": "E",
+    "sterile": true,
+    "kit": false,
+    "free": false,
+    "packs": [100],
+    "loose": true,
+    "use": 8,
+    "places": ["store", "mat"],
+    "level": "HC3",
+    "emName": "Disposable umbilical cord clamp with safe security lock",
+    "emSpec": ""
+  },
+  {
+    "key": "mrdt",
+    "name": "Malaria Antigen P.f/Pan Kit (dipstick), 25 tests",
+    "unit": "test",
+    "code": "D1",
+    "ven": "V",
+    "sterile": false,
+    "kit": true,
+    "free": true,
+    "packs": [25],
+    "loose": true,
+    "use": 80,
+    "places": ["store", "opd", "w3", "paed"],
+    "level": "HC2",
+    "emName": "Malaria Antigen P.f/Pan Kit, 25 Test dipstick",
+    "emSpec": ""
+  },
+  {
+    "key": "hivd",
+    "name": "HIV 1/2, Determine Complete HIV Kit, 100 tests",
+    "unit": "test",
+    "code": "D1",
+    "ven": "V",
+    "sterile": false,
+    "kit": true,
+    "free": true,
+    "packs": [100],
+    "loose": true,
+    "use": 30,
+    "places": ["store", "opd", "mat"],
+    "level": "HC2",
+    "emName": "HIV 1/2, Determine Complete HIV Kit, 100 Test",
+    "emSpec": ""
+  },
+  {
+    "key": "hivs",
+    "name": "HIV 1/2, Stat-Pak Dipstick Assay Kit, 30 tests",
+    "unit": "test",
+    "code": "D1",
+    "ven": "V",
+    "sterile": false,
+    "kit": true,
+    "free": true,
+    "packs": [30],
+    "loose": true,
+    "use": 6,
+    "places": ["store", "opd", "mat"],
+    "level": "HC2",
+    "emName": "HIV 1/2, Stat-Pak Dipstick Assay Kit, 30 Test",
+    "emSpec": ""
+  },
+  {
+    "key": "hbs",
+    "name": "Hepatitis, HBsAg Screening Kit, 25 tests",
+    "unit": "test",
+    "code": "D1",
+    "ven": "V",
+    "sterile": false,
+    "kit": true,
+    "free": false,
+    "packs": [25],
+    "loose": true,
+    "use": 4,
+    "places": ["store", "opd", "mat"],
+    "level": "HC2",
+    "emName": "Hepatitis, HBsAg Screening Kit, 25 Test",
+    "emSpec": ""
+  },
+  {
+    "key": "hcg",
+    "name": "HCG pregnancy test strips",
+    "unit": "test",
+    "code": "D1",
+    "ven": "V",
+    "sterile": false,
+    "kit": true,
+    "free": false,
+    "packs": [50],
+    "loose": true,
+    "use": 10,
+    "places": ["store", "opd", "mat"],
+    "level": "HC2",
+    "emName": "HCG pregnancy test strips",
+    "emSpec": ""
+  },
+  {
+    "key": "urin",
+    "name": "Test Strips, Urinalysis Strips, 10 parameters",
+    "unit": "strip",
+    "code": "D2",
+    "ven": "V",
+    "sterile": false,
+    "kit": true,
+    "free": false,
+    "packs": [100],
+    "loose": true,
+    "use": 15,
+    "places": ["store", "opd", "mat", "w3"],
+    "level": "HC3",
+    "emName": "Test Strips, Urinalysis Strips, 10 Parameters",
+    "emSpec": ""
+  },
+  {
+    "key": "gluc",
+    "name": "Glucometer, Test Strips, 50 pieces",
+    "unit": "strip",
+    "code": "D2",
+    "ven": "V",
+    "sterile": false,
+    "kit": true,
+    "free": false,
+    "packs": [50],
+    "loose": true,
+    "use": 20,
+    "places": ["store", "opd", "w3"],
+    "level": "HC3",
+    "emName": "Glucometer, Test Strips, 50 pieces",
+    "emSpec": ""
+  }
 ]

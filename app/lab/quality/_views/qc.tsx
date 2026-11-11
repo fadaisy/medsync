@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 
+import { EmptyState, Panel } from "@/components/tide/work/kit";
+import { SecondaryLink } from "@/components/tide/work/space";
 import { buttonVariants } from "@/components/ui/button";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
@@ -19,8 +21,6 @@ import { QUALITY } from "../_lib/copy";
 import { requireQualityScope } from "../_lib/scope";
 import { qcWord } from "../_lib/status";
 import { PickField } from "../../_components/v2/fields";
-import { EmptyState, Panel } from "@/components/tide/work/kit";
-import { SecondaryLink } from "@/components/tide/work/space";
 import { dateWords, timeWords } from "../../_lib/days";
 import { Frame } from "./frame";
 

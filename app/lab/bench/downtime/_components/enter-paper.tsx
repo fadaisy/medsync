@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
+import { EmptyState, Ident, Panel, Pill, TwoIds } from "@/components/tide/work/kit";
 import { Input } from "@/components/ui/input";
 import { fill } from "@/content/lab-workspace-v2";
 import { LABWS2_DOWNTIME } from "@/content/lab-workspace-v2-downtime";
@@ -19,9 +21,7 @@ import {
 import { localValue } from "@/lib/lab/field-kit";
 import { cn } from "@/lib/utils";
 import { entryStep, formTimesProblem, PAPER_TIMES_START, saveBlock } from "../_lib/steps";
-import { LabButton } from "@/components/tide/work/button";
 import { DateTimeField, PickField } from "../../../_components/v2/fields";
-import { EmptyState, Ident, Panel, Pill, TwoIds } from "@/components/tide/work/kit";
 
 const E = LABWS2_DOWNTIME.enter;
 type CheckKind = "repeated" | "checked_not_repeated" | "could_not_check";

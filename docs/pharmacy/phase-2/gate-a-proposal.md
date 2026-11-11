@@ -6,17 +6,17 @@ Branch `feat/pharmacy-stores` (worktree `~/Desktop/medsync-pharmclose`), cut fro
 
 ### Q1: Phase 1 is merged, all three merges. P1 to P9 checked against the repo
 
-| # | Verdict | What the repo holds |
-|---|---|---|
-| P1 | True, with differences | `pharmacy_stock_movements` (0124) is append-only (`psm_append_only`).<br>Kinds: `received, supplied, reversed, adjusted, count_correction, transfer_out, transfer_in`.<br>**There is no `counted` or `batch_corrected` movement kind.** Counts live in `pharmacy_counts` and `pharmacy_count_lines`; corrections in `pharmacy_batch_corrections`.<br>**There is no pair id and no cost column.** A transfer pairs through `source_id`. |
-| P2 | True | `pharmacy_batches` is unique on (point, product, batch number). Expiry is not in the key. `first_batch_number` and `first_expiry` are kept. |
-| P3 | True | `pharmacy_dispensing_points` (0121, go-live columns in 0129). The switch needs two people in `pharmacy_golive` (`pg_second_person`). |
-| P4 | True | `pharmacy_products` has `pack_size` **as text**, `issue_unit` (locked once moved), `registration_number` and `price_ugx`. Supplies snapshot the price. `pharmacy_product_points` lists products per point. |
-| P5 | True | `pharmacy_reorder_levels` is append-only; `pharmacy_stockouts` is projected by trigger. |
-| P6 | Partly | VEN class and level of care sit on `pharmacy_national_list_rows`, reached through `pharmacy_medicine_links`. |
-| P7 | True | Transfers (`transferStock`) and `pharmacy_stock_requests`. |
-| P8 | Partly | `pharmacy_controlled_entries` has a witness attestation. The count before comes from `pharmacy_count_lines.recorded_balance`. Witness proof: `pharmacy_attestations` (`password+totp`). |
-| P9 | True | `downtime_*` (0105) is shared with the lab, with true times on back-entry. |
+| #   | Verdict                | What the repo holds                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1  | True, with differences | `pharmacy_stock_movements` (0124) is append-only (`psm_append_only`).<br>Kinds: `received, supplied, reversed, adjusted, count_correction, transfer_out, transfer_in`.<br>**There is no `counted` or `batch_corrected` movement kind.** Counts live in `pharmacy_counts` and `pharmacy_count_lines`; corrections in `pharmacy_batch_corrections`.<br>**There is no pair id and no cost column.** A transfer pairs through `source_id`. |
+| P2  | True                   | `pharmacy_batches` is unique on (point, product, batch number). Expiry is not in the key. `first_batch_number` and `first_expiry` are kept.                                                                                                                                                                                                                                                                                            |
+| P3  | True                   | `pharmacy_dispensing_points` (0121, go-live columns in 0129). The switch needs two people in `pharmacy_golive` (`pg_second_person`).                                                                                                                                                                                                                                                                                                   |
+| P4  | True                   | `pharmacy_products` has `pack_size` **as text**, `issue_unit` (locked once moved), `registration_number` and `price_ugx`. Supplies snapshot the price. `pharmacy_product_points` lists products per point.                                                                                                                                                                                                                             |
+| P5  | True                   | `pharmacy_reorder_levels` is append-only; `pharmacy_stockouts` is projected by trigger.                                                                                                                                                                                                                                                                                                                                                |
+| P6  | Partly                 | VEN class and level of care sit on `pharmacy_national_list_rows`, reached through `pharmacy_medicine_links`.                                                                                                                                                                                                                                                                                                                           |
+| P7  | True                   | Transfers (`transferStock`) and `pharmacy_stock_requests`.                                                                                                                                                                                                                                                                                                                                                                             |
+| P8  | Partly                 | `pharmacy_controlled_entries` has a witness attestation. The count before comes from `pharmacy_count_lines.recorded_balance`. Witness proof: `pharmacy_attestations` (`password+totp`).                                                                                                                                                                                                                                                |
+| P9  | True                   | `downtime_*` (0105) is shared with the lab, with true times on back-entry.                                                                                                                                                                                                                                                                                                                                                             |
 
 ### Q2 (P10): carts
 
@@ -35,7 +35,8 @@ Branch `feat/pharmacy-stores` (worktree `~/Desktop/medsync-pharmclose`), cut fro
 ### Q5, Q6, Q8: waiting on the owner and the pilot site
 
 Not available in the repo. Nothing is invented. Until they arrive:
-- **The national layouts** (HMIS 085, 084B, 087, 088, 105 Section 6) and **EMHS Chapters 8, 18 and 19:** every print carries *"Columns not yet confirmed against this hospital's {form}."* The column maps are an unsigned pack.
+
+- **The national layouts** (HMIS 085, 084B, 087, 088, 105 Section 6) and **EMHS Chapters 8, 18 and 19:** every print carries _"Columns not yet confirmed against this hospital's {form}."_ The column maps are an unsigned pack.
 - **The pilot practice** (how wards are supplied, carts, receivers, order cycle, costs on notes, stores, scanner): nothing defaults (D-PH2-05). Each ward's supply model is set per ward.
 - **The paper baselines** (a timed receipt, a requisition, a cart check, the last stock status report, the last order): the timed and paper comparisons (STOP 4, 8 and 9 reports) are deferred until supplied.
 
@@ -91,6 +92,7 @@ The lab keeps its own stock in `lab_stock_*` (0112). The pharmacy shares its pat
 ### Permission map, version 3 (D-PH2-02)
 
 As Appendix A.
+
 - `pharmacy.store` is added to the access engine and to `private.pharmacy_cadre_permissions`, for the Pharmacist and Pharmacy technician, with a backfill for both cadres.
 - Ward rights come from `ward_in_charge_assignments`; cart rights from the unit's `department_heads`.
 - In production, map v3 applies only where `PHARMACY_STORE` is on.
@@ -103,11 +105,13 @@ As Appendix A.
 ### Hazard log
 
 Appendix C, H2-1 to H2-15, each closed by its named test. Added:
+
 - **H2-16:** a cart name typed on the resus desk matches no cart, so its uses are not shown. Control: unmatched names are listed for the pharmacy in charge.
 
 ### Screens
 
 The previews in boards 2.1 to 2.6 are corrected per 5.13:
+
 - no "on the ward now" figure;
 - no "should be left" figure on carts;
 - two recall lists, never merged;
@@ -120,7 +124,7 @@ They are laid out after the Phase 1 Tide canvas: rail group **Store**, numbered 
 
 - D-PH2-01 to D-PH2-20 and E-PH2-01 to E-PH2-04, as recommended in Section 14 of the prompt.
 - **D-PH2-21:** a cart location links to its `crash_carts` row. Resus-desk cart names are matched to a cart through a signed list of names per cart. Unmatched names are listed (H2-16).
-- **D-PH2-22:** signers. The CSO signs alone for now (ADR 0281). Packs that name a second signer record the exception *"CSO signs alone (ADR 0281)"*. The pharmacist reviewer and the pilot in-charge co-sign before a real hospital goes live, when they exist.
+- **D-PH2-22:** signers. The CSO signs alone for now (ADR 0281). Packs that name a second signer record the exception _"CSO signs alone (ADR 0281)"_. The pharmacist reviewer and the pilot in-charge co-sign before a real hospital goes live, when they exist.
 - **D-PH2-23:** month close and every other "second approver" reuse `pharmacy_attestations` (password and second factor) with approver ≠ actor.
 - **D-PH2-24:** flags are `PHARMACY_STORE`, `PHARMACY_WARD_STOCK`, `PHARMACY_CARTS`, `PHARMACY_RECALL`, `PHARMACY_MONTH_END` and `PHARMACY_ORDERING`, as env values like Phase 1's, each ANDed with `PHARMACY_WORKSPACE`.
 
@@ -141,6 +145,7 @@ They are laid out after the Phase 1 Tide canvas: rail group **Store**, numbered 
 ## Signatures
 
 Signed by Fadhul (CSO), 21 Oct 2026, in session:
+
 - D-PH2-01 to D-PH2-20 and E-PH2-01 to E-PH2-04, as recommended;
 - D-PH2-21 to D-PH2-24;
 - the permission map, version 3;

@@ -1,5 +1,5 @@
-import type { PharmacyNavId } from "@/lib/pharmacy/nav";
 import type { PharmacyPlace } from "@/content/pharmacy-workspace-v2";
+import type { PharmacyNavId } from "@/lib/pharmacy/nav";
 
 /**
  * Pharmacy Workspace v2 places (GATE A §3, D-PW-03). A tab exists exactly when the Phase 1–4 nav item it replaces
@@ -14,7 +14,12 @@ export interface PlaceTab {
   from: PharmacyNavId | null;
 }
 
-const T = (place: PharmacyPlace, key: string, href: string, from: PharmacyNavId | null): PlaceTab => ({
+const T = (
+  place: PharmacyPlace,
+  key: string,
+  href: string,
+  from: PharmacyNavId | null,
+): PlaceTab => ({
   place,
   key,
   href,
@@ -48,7 +53,14 @@ const ALL: readonly PlaceTab[] = [
   T("setup", "downtime", "/pharmacy/setup?view=downtime", "downtime"),
 ];
 
-export const PLACE_ORDER: readonly PharmacyPlace[] = ["today", "window", "shelf", "store", "clinical", "setup"];
+export const PLACE_ORDER: readonly PharmacyPlace[] = [
+  "today",
+  "window",
+  "shelf",
+  "store",
+  "clinical",
+  "setup",
+];
 
 export interface PlacesInput {
   navIds: readonly PharmacyNavId[];
@@ -67,7 +79,9 @@ export interface PlacesInput {
 
 export function placesFor({ navIds, dispensing, nationalList, packs, catalogue }: PlacesInput) {
   const visible = new Set(navIds);
-  const tabs = ALL.filter((t) => t.from && visible.has(t.from) && (t.key !== "packs" || packs !== false));
+  const tabs = ALL.filter(
+    (t) => t.from && visible.has(t.from) && (t.key !== "packs" || packs !== false),
+  );
   if (packs && visible.has("queue") && !tabs.some((t) => t.key === "packs")) {
     const at = tabs.findIndex((t) => t.place === "setup");
     tabs.splice(at < 0 ? tabs.length : at, 0, T("setup", "packs", "/pharmacy/setup", null));
@@ -102,7 +116,8 @@ export function placeOf(pathname: string): PharmacyPlace | "needsYou" | null {
   const p = pathname.replace(/^\/pharmacy/, "") || "/";
   if (p.startsWith("/today")) return "today";
   if (p.startsWith("/needs-you")) return "needsYou";
-  if (/^\/(window|prescriptions|open-lines|refills|supplied|downtime\/enter|slip|labels)/.test(p)) return "window";
+  if (/^\/(window|prescriptions|open-lines|refills|supplied|downtime\/enter|slip|labels)/.test(p))
+    return "window";
   if (p === "/") return "window";
   if (/^\/(shelf|controlled|emergency-doses)/.test(p)) return "shelf";
   if (p.startsWith("/stock/national-list")) return "setup";

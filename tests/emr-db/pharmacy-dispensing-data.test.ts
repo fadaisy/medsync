@@ -17,7 +17,6 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { asClinicalReader } from "@/lib/emr/db";
 import { nameWards, queryFacts } from "@/lib/pharmacy/clinical/interventions-read";
-
 import {
   authUser,
   bootLane,
@@ -935,7 +934,9 @@ describe.skipIf(!laneOn)("Pharmacy Phase 1 data layer (0122–0130)", () => {
         [f.hA, f.pointA, f.count, f.attest, f.tech],
       ),
     );
-    expect(otherActor).toMatch(/does not stand for this person|more than 10 minutes old|already used/);
+    expect(otherActor).toMatch(
+      /does not stand for this person|more than 10 minutes old|already used/,
+    );
   });
 
   it("pharmacy sheets move unused → to_enter → complete and never take a lab state (D-PH1-46)", async () => {
@@ -1050,17 +1051,34 @@ describe.skipIf(!laneOn)("Pharmacy Phase 1 data layer (0122–0130)", () => {
 
   it("intervention review reads its queries as the pharmacist, with point names from outside the reader (IV-4)", async () => {
     // The reader role has no grant on hospital_departments; joining it inside the reader failed the page in production.
-    const denied = await probe(pg, reader(f.pharmacist), "SELECT name FROM public.hospital_departments");
+    const denied = await probe(
+      pg,
+      reader(f.pharmacist),
+      "SELECT name FROM public.hospital_departments",
+    );
     expect(denied.ok).toBe(false);
     const { name } = (
-      await pg.query<{ name: string }>("SELECT name FROM public.hospital_departments WHERE id = $1", [f.pointA])
+      await pg.query<{ name: string }>(
+        "SELECT name FROM public.hospital_departments WHERE id = $1",
+        [f.pointA],
+      )
     ).rows[0]!;
     const read = await asClinicalReader(
       { userId: f.pharmacist!, hospitalId: f.hA! },
-      (tx) => queryFacts(tx as EmrTx, f.hA!, new Date(Date.now() - 86_400_000), new Date(Date.now() + 86_400_000)),
+      (tx) =>
+        queryFacts(
+          tx as EmrTx,
+          f.hA!,
+          new Date(Date.now() - 86_400_000),
+          new Date(Date.now() + 86_400_000),
+        ),
       lane.db,
     );
     const facts = await nameWards(read, f.hA!, lane.db);
-    expect(facts.find((q) => q.id === f.query)).toMatchObject({ typeCode: "dose_unclear", ward: name, closed: null });
+    expect(facts.find((q) => q.id === f.query)).toMatchObject({
+      typeCode: "dose_unclear",
+      ward: name,
+      closed: null,
+    });
   });
 });

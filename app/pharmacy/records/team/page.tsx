@@ -39,9 +39,16 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
       <Panel>
         <KeyFigureGrid className="xl:grid-cols-4">
           <KeyFigure label={all ? T.kpi.rxTeam : T.kpi.rxMe} value={rx} />
-          <KeyFigure label={T.kpi.counts} value={lines ? `${Math.round((matched / lines) * 100)}%` : null} noData={T.notMeasured} />
+          <KeyFigure
+            label={T.kpi.counts}
+            value={lines ? `${Math.round((matched / lines) * 100)}%` : null}
+            noData={T.notMeasured}
+          />
           <KeyFigure label={T.kpi.late} value={everyRow.reduce((a, r) => a + r.late, 0)} />
-          <KeyFigure label={T.kpi.noWitness} value={everyRow.reduce((a, r) => a + r.noWitness, 0)} />
+          <KeyFigure
+            label={T.kpi.noWitness}
+            value={everyRow.reduce((a, r) => a + r.noWitness, 0)}
+          />
         </KeyFigureGrid>
       </Panel>
 
@@ -65,7 +72,10 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
             );
           })}
         </div>
-        <div className="text-caption text-muted-foreground flex justify-between tabular-nums" aria-hidden>
+        <div
+          className="text-caption text-muted-foreground flex justify-between tabular-nums"
+          aria-hidden
+        >
           <span>00</span>
           <span>06</span>
           <span>12</span>
@@ -81,7 +91,11 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
           <FilterChips
             label={T.tableTitle}
             current={shift}
-            chips={SHIFTS.map((s) => ({ key: s, label: T.shifts[s], href: `/pharmacy/records/team?shift=${s}` }))}
+            chips={SHIFTS.map((s) => ({
+              key: s,
+              label: T.shifts[s],
+              href: `/pharmacy/records/team?shift=${s}`,
+            }))}
           />
         }
       >
@@ -93,16 +107,36 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
               <table className="text-body-s w-full">
                 <thead className="text-muted-foreground text-left">
                   <tr>
-                    <th scope="col" className="py-1.5 pr-3 font-medium">{T.cols.person}</th>
-                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">{T.cols.rx}</th>
-                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">{T.cols.perHour}</th>
-                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">{T.cols.wait}</th>
-                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">{T.cols.owed}</th>
-                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">{T.cols.counts}</th>
-                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">{T.cols.handovers}</th>
-                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">{T.cols.late}</th>
-                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">{T.cols.noWitness}</th>
-                    <th scope="col" className="py-1.5 text-right font-medium">{T.cols.cases}</th>
+                    <th scope="col" className="py-1.5 pr-3 font-medium">
+                      {T.cols.person}
+                    </th>
+                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                      {T.cols.rx}
+                    </th>
+                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                      {T.cols.perHour}
+                    </th>
+                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                      {T.cols.wait}
+                    </th>
+                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                      {T.cols.owed}
+                    </th>
+                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                      {T.cols.counts}
+                    </th>
+                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                      {T.cols.handovers}
+                    </th>
+                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                      {T.cols.late}
+                    </th>
+                    <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                      {T.cols.noWitness}
+                    </th>
+                    <th scope="col" className="py-1.5 text-right font-medium">
+                      {T.cols.cases}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-border divide-y">
@@ -110,19 +144,27 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
                     <tr key={`${r.userId}|${r.shift}`}>
                       <td className="py-1.5 pr-3">
                         <span className="font-semibold">{r.who}</span>
-                        <span className="text-caption text-muted-foreground block">{T.shiftWord[r.shift]}</span>
+                        <span className="text-caption text-muted-foreground block">
+                          {T.shiftWord[r.shift]}
+                        </span>
                       </td>
                       <td className="py-1.5 pr-3 text-right tabular-nums">{r.rx}</td>
                       <td className="py-1.5 pr-3 text-right tabular-nums">{r.perHour ?? "–"}</td>
-                      <td className="text-muted-foreground py-1.5 pr-3 text-right">{T.notMeasured}</td>
-                      <td className="text-muted-foreground py-1.5 pr-3 text-right">{T.notMeasured}</td>
+                      <td className="text-muted-foreground py-1.5 pr-3 text-right">
+                        {T.notMeasured}
+                      </td>
+                      <td className="text-muted-foreground py-1.5 pr-3 text-right">
+                        {T.notMeasured}
+                      </td>
                       <td className="py-1.5 pr-3 text-right tabular-nums">
                         {r.countLines ? T.of(r.countsMatched, r.countLines) : "–"}
                       </td>
                       <td className="py-1.5 pr-3 text-right tabular-nums">{r.handovers ?? "–"}</td>
                       <Talk n={r.late} />
                       <Talk n={r.noWitness} />
-                      <td className="py-1.5 text-right tabular-nums">{r.cases ? T.of(r.cases.closed, r.cases.owned) : "–"}</td>
+                      <td className="py-1.5 text-right tabular-nums">
+                        {r.cases ? T.of(r.cases.closed, r.cases.owned) : "–"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -132,13 +174,21 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
               {rows.map((r) => (
                 <li key={`${r.userId}|${r.shift}`} className="flex flex-col gap-0.5 py-2">
                   <span className="text-body-s font-semibold">
-                    {r.who} <span className="text-caption text-muted-foreground font-normal">· {T.shiftWord[r.shift]}</span>
+                    {r.who}{" "}
+                    <span className="text-caption text-muted-foreground font-normal">
+                      · {T.shiftWord[r.shift]}
+                    </span>
                   </span>
                   <span className="text-caption text-ink-700">
                     {T.cols.rx} {r.rx} · {T.cols.perHour} {r.perHour ?? "–"} · {T.cols.counts}{" "}
                     {r.countLines ? T.of(r.countsMatched, r.countLines) : "–"}
                   </span>
-                  <span className={cn("text-caption", r.late || r.noWitness ? "text-amber-800" : "text-ink-700")}>
+                  <span
+                    className={cn(
+                      "text-caption",
+                      r.late || r.noWitness ? "text-amber-800" : "text-ink-700",
+                    )}
+                  >
                     {T.cols.late} {r.late} · {T.cols.noWitness} {r.noWitness}
                     {r.late || r.noWitness ? ` · ${T.talk}` : ""}
                   </span>

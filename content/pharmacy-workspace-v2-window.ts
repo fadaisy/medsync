@@ -64,7 +64,8 @@ export const PHWS2_WINDOW = {
       },
       patient: {
         title: "Waiting for the patient",
-        explainer: "The patient is buying these outside. Record what they bought, or close the line.",
+        explainer:
+          "The patient is buying these outside. Record what they bought, or close the line.",
       },
       out: {
         title: "Still out",

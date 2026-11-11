@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 
-import { ActionDialog, Chip, Chips, Field, Stepper, useClientKey } from "@/app/pharmacy/patients/_components/kit";
+import {
+  ActionDialog,
+  Chip,
+  Chips,
+  Field,
+  Stepper,
+  useClientKey,
+} from "@/app/pharmacy/patients/_components/kit";
 import { opCheckInAction, opPillCountAction } from "@/app/pharmacy/patients/actions";
 import { LabButton } from "@/components/tide/work/button";
 import { Pill } from "@/components/tide/work/kit";
@@ -33,7 +40,10 @@ export function RefillButton({
   const [back, setBack] = useState<number | null>(null);
   const [none, setNone] = useState(false);
   const taken = back == null ? null : lastQty - back;
-  const pct = taken == null || !should ? null : Math.max(0, Math.min(100, Math.round((taken / should) * 100)));
+  const pct =
+    taken == null || !should
+      ? null
+      : Math.max(0, Math.min(100, Math.round((taken / should) * 100)));
   return (
     <>
       <LabButton variant="secondary" size="sm" onClick={() => setOpen(true)}>
@@ -49,7 +59,11 @@ export function RefillButton({
         run={() => opPillCountAction({ clientKey: key, rxId, back: none ? null : back })}
       >
         <p className="text-body-s">
-          {fill(O.expectLeft, { days: since, daily: Math.round(daily * 10) / 10, left: Math.round(expectLeft) })}
+          {fill(O.expectLeft, {
+            days: since,
+            daily: Math.round(daily * 10) / 10,
+            left: Math.round(expectLeft),
+          })}
         </p>
         <Field label={O.broughtBack}>
           <div className="flex flex-wrap items-center gap-3">
@@ -112,7 +126,14 @@ export function CheckInButton({ rxId, med }: { rxId: string; med: string }) {
         submit={O.checkIn}
         blocked={!how ? O.howWord : !status ? O.goingWord : null}
         run={() =>
-          opCheckInAction({ clientKey: key, rxId, how, status, missed: status === "taking" ? 0 : (missed ?? 0), sideEffects: se })
+          opCheckInAction({
+            clientKey: key,
+            rxId,
+            how,
+            status,
+            missed: status === "taking" ? 0 : (missed ?? 0),
+            sideEffects: se,
+          })
         }
       >
         <Field label={O.howWord}>
@@ -148,7 +169,15 @@ export function CheckInButton({ rxId, med }: { rxId: string; med: string }) {
               <Chip
                 key={s}
                 on={se.includes(s)}
-                onClick={() => setSe((x) => (s === "None" ? ["None"] : x.includes(s) ? x.filter((y) => y !== s) : [...x.filter((y) => y !== "None"), s]))}
+                onClick={() =>
+                  setSe((x) =>
+                    s === "None"
+                      ? ["None"]
+                      : x.includes(s)
+                        ? x.filter((y) => y !== s)
+                        : [...x.filter((y) => y !== "None"), s],
+                  )
+                }
               >
                 {s}
               </Chip>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { monthTitle } from "@/lib/lab/field-kit";
@@ -11,7 +12,6 @@ import {
   signPartnerConfigAction,
 } from "@/lib/lab/referral-actions";
 import { inputClass, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { DateField, PickField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 import { SignButton } from "../../setup/drafts/_components/sign-button";

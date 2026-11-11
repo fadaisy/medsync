@@ -7,12 +7,12 @@ How each role uses the **Store** group in the pharmacy rail. Each page shows onl
 - **Places and suppliers** (`/pharmacy/store/places`, Head of Pharmacy):
   - add a store and a quarantine;
   - name each place's in-charge;
-  - set each ward's supply model, *stocked* or *issue-only* (nothing defaults);
+  - set each ward's supply model, _stocked_ or _issue-only_ (nothing defaults);
   - add suppliers (National Medical Stores, Joint Medical Store, others) and other facilities.
 - **Signed packs** (`/pharmacy/store/packs`):
   - The hospital's own figures and lists: order parameters, the tracer list, the cart look-ahead, month-end rules, ward rules, reason lists, HMIS column maps, the recall message and the day-out-of-stock rule.
   - "Write a draft" opens with MedSync's starting draft when there is no draft and no version in force (ADR 0469): each field says whether it is a national figure (with its document and page), MedSync's proposal (with why), or yours to decide.
-  - Signing needs two people, each with their password and code, or the exception *"CSO signs alone (ADR 0281)"*.
+  - Signing needs two people, each with their password and code, or the exception _"CSO signs alone (ADR 0281)"_.
   - While a pack is unsigned, what needs it does not run, and the screen says which pack is missing.
 - **Going live** (Hospital admin → Departments → Pharmacy): each store, ward and cart lists its conditions:
   - products set up, and an opening count of every product;
@@ -27,7 +27,7 @@ How each role uses the **Store** group in the pharmacy rail. Each page shows onl
 
 1. **Start the delivery:** supplier, delivery note number, the order it fills, when it arrived, where it is received, who counts.
 2. **Each line:** product (typed or scanned), the note's quantity, what you counted (accepted, or rejected and kept, or rejected and sent back), batch, expiry, and the cost if the note shows one.
-3. **The result in words:** *Matches*, *fewer than the note*, *more than the note*, *short of the order*, *not on the order*, *expires soon*, *damaged* or *wrong product*. Only what was counted goes into stock.
+3. **The result in words:** _Matches_, _fewer than the note_, _more than the note_, _short of the order_, _not on the order_, _expires soon_, _damaged_ or _wrong product_. Only what was counted goes into stock.
 4. **A short-dated line** needs your decision: accept, accept and tell the supplier, or reject.
 5. **Add the lines to stock.** Then print the discrepancy report and the goods received note. MedSync sends nothing. Controlled drugs are received with a witness, and their register entry is still made on paper.
 
@@ -43,7 +43,7 @@ How each role uses the **Store** group in the pharmacy rail. Each page shows onl
 ## Ward stock (nurse in charge, and pharmacy)
 
 - **The page** shows each product's ward level, the last count, issues and returns since it, and the doses charted since it. Doses are context only, never taken from a figure.
-- **A suggested top-up** shows only when the last count is recent; otherwise the page says *"Count the ward first"*.
+- **A suggested top-up** shows only when the last count is recent; otherwise the page says _"Count the ward first"_.
 - **Count the ward blind:** nothing expected is shown until your figures are saved. Use since the last count is worked out from your count.
 - **A count higher than possible** is listed for you to explain.
 - **Raise a requisition** from the suggested top-ups. Confirm what arrives with your second factor.
@@ -69,7 +69,7 @@ Carts past their check interval are listed for the pharmacy in charge.
   - receipts;
   - patients supplied (exact);
   - wards and carts;
-  - patients who *may have received it*, kept separate;
+  - patients who _may have received it_, kept separate;
   - shelves;
   - loans;
   - the accounted-for sum.
@@ -80,7 +80,7 @@ Carts past their check interval are listed for the pharmacy in charge.
 ## Month end (`pharmacy.stock` counts; `pharmacy.manage` closes)
 
 - **Count every place blind.** Any product with a movement and no count needs a reason.
-- **Each difference** gets a reason from the signed list, or is left *Unexplained*, which carries it to next month.
+- **Each difference** gets a reason from the signed list, or is left _Unexplained_, which carries it to next month.
 - **Close the month:** a second person confirms with their password and code. A closed month never changes. Late entries appear next month, labelled.
 - **Print** the stock status report (HMIS 105 Section 6) for the tracer list, and the quarterly tracer audit.
 
@@ -95,4 +95,4 @@ Carts past their check interval are listed for the pharmacy in charge.
   - the proposal, rounded up to whole packs.
 - **Type your own quantity** for every line; a difference from the proposal needs a reason.
 - **If the budget is short,** trimming proposes cuts in VEN order, and you confirm each one. A vital line needs a typed reason.
-- **Output:** print HMIS 085, HMIS 084B or a purchase list, or copy the quantities for the NMS portal. *MedSync does not send this order.*
+- **Output:** print HMIS 085, HMIS 084B or a purchase list, or copy the quantities for the NMS portal. _MedSync does not send this order._

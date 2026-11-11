@@ -11,7 +11,6 @@ import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { OpenLines } from "./_components/open-lines";
 
-
 /**
  * Open lines (5.7, artboard 1.7; wireframe §7.1): every line owed or being bought outside, oldest
  * first, until a person acts on it (Law 4, LO-3, LO-5). Behind `pharmacyDispensing`; a point that

@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { BiohazardIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LAB } from "@/content/lab";
@@ -17,7 +18,6 @@ import {
   undoReceiveAction,
 } from "@/lib/lab/bench-actions";
 import { UNDO_WINDOW_MS } from "@/lib/lab/one-menu";
-import { LabButton } from "@/components/tide/work/button";
 
 const B = LAB.bench;
 const TAP = "min-h-11 sm:min-h-0";

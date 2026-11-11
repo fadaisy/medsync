@@ -20,7 +20,13 @@ import { runPharmacyWrite } from "@/lib/pharmacy/write";
  */
 export type Result = { ok: true; id: string } | { ok: false; error: string };
 
-export const ANY: readonly PharmacyPermission[] = ["pharmacy.controlled", "pharmacy.stock", "pharmacy.store", "pharmacy.dispense", "pharmacy.manage"];
+export const ANY: readonly PharmacyPermission[] = [
+  "pharmacy.controlled",
+  "pharmacy.stock",
+  "pharmacy.store",
+  "pharmacy.dispense",
+  "pharmacy.manage",
+];
 
 /** 0267's messages are written for people: "pharmacy_cases: fix the number at the source first" → "Fix the number…". */
 export function controlsWords(e: unknown): string | null {
@@ -40,28 +46,55 @@ export async function controlsAct<I, R extends { id: string }>(
 ): Promise<Result> {
   try {
     const actor = await requirePharmacyActor();
-    const r = await runPharmacyWrite(schema, raw, actor, storeNeed(permission), async (ctx, input) => {
-      try {
-        return await write({ tx: ctx.tx, userId: actor.userId, hospitalId: actor.hospitalId, now: ctx.now, station: actor.pointId }, input);
-      } catch (e) {
-        const words = controlsWords(e);
-        if (words) throw fail("conflict", words);
-        throw e;
-      }
-    });
+    const r = await runPharmacyWrite(
+      schema,
+      raw,
+      actor,
+      storeNeed(permission),
+      async (ctx, input) => {
+        try {
+          return await write(
+            {
+              tx: ctx.tx,
+              userId: actor.userId,
+              hospitalId: actor.hospitalId,
+              now: ctx.now,
+              station: actor.pointId,
+            },
+            input,
+          );
+        } catch (e) {
+          const words = controlsWords(e);
+          if (words) throw fail("conflict", words);
+          throw e;
+        }
+      },
+    );
     if (!r.ok) return { ok: false, error: r.error };
     revalidatePath("/pharmacy", "layout");
     return { ok: true, id: r.id };
   } catch (e) {
     unstable_rethrow(e);
-    logger.error("pharmacy.controls.action_failed", { action: name, error: e instanceof Error ? e.name : "unknown" });
+    logger.error("pharmacy.controls.action_failed", {
+      action: name,
+      error: e instanceof Error ? e.name : "unknown",
+    });
     return { ok: false, error: CTL.common.failed };
   }
 }
 
 /** A read for a dialog, as the pharmacy actor. */
-export async function controlsRead<T>(read: (db: EmrDb, a: { hospitalId: string; userId: string; station: string | null }) => Promise<T>) {
+export async function controlsRead<T>(
+  read: (
+    db: EmrDb,
+    a: { hospitalId: string; userId: string; station: string | null },
+  ) => Promise<T>,
+) {
   const actor = await requirePharmacyActor();
   const { db } = await import("@/db");
-  return read(db as unknown as EmrDb, { hospitalId: actor.hospitalId, userId: actor.userId, station: actor.pointId });
+  return read(db as unknown as EmrDb, {
+    hospitalId: actor.hospitalId,
+    userId: actor.userId,
+    station: actor.pointId,
+  });
 }

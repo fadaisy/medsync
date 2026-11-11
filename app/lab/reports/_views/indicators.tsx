@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { basis } from "@/components/lab/lab-report-view";
+import { EmptyState, KeyFigure, KeyFigureGrid, Panel } from "@/components/tide/work/kit";
+import { SpaceHeader } from "@/components/tide/work/space";
 import { fill, LAB3, LAB3_REPORTS } from "@/content/lab-phase-3";
 import { LABWS2_REPORTS } from "@/content/lab-workspace-v2-reports";
 import { ORDER_PRIORITIES, ORDER_PRIORITY_WORD } from "@/lib/emr/orders";
@@ -17,9 +19,7 @@ import { formatDuration } from "@/lib/lab/turnaround";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { ReasonBars, Sparkline, WeeklyLine } from "../_components/charts";
 import { loadReport } from "../_lib/load";
-import { EmptyState, KeyFigure, KeyFigureGrid, Panel } from "@/components/tide/work/kit";
 import { PeriodPicker, PickChip } from "../../_components/v2/period-picker";
-import { SpaceHeader } from "@/components/tide/work/space";
 import { dateWords, timeWords } from "../../_lib/days";
 
 const R = LAB3_REPORTS;

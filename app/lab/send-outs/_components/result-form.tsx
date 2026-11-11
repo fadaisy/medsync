@@ -6,6 +6,7 @@ import { useMemo, useState, useTransition } from "react";
 import { CheckIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { LAB4 } from "@/content/lab-phase-4";
 import { LABWS2_SEND_OUTS } from "@/content/lab-workspace-v2-send-outs";
@@ -19,7 +20,6 @@ import { componentEntry } from "@/lib/lab/referral-results";
 import { fromCanonical, toCanonical } from "@/lib/units";
 import { cn } from "@/lib/utils";
 import { inputClass, newKey, selectClass } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { Field, Said } from "../../setup/criticals/_components/setup-forms";
 
 /* Result back on paper (Lab Phase 4 §5.4, artboard 4; RB-1..RB-8). The flag shown is computed from the printed

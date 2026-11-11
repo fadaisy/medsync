@@ -1,7 +1,14 @@
 "use client";
 
 import type { ReportKind } from "@/db/schema/pharmacy-rework-records";
-import type { EpiRow, EpiWasteRow, Issue, LossRow, MedRow, ReportState } from "@/lib/pharmacy/reports/derive";
+import type {
+  EpiRow,
+  EpiWasteRow,
+  Issue,
+  LossRow,
+  MedRow,
+  ReportState,
+} from "@/lib/pharmacy/reports/derive";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -34,7 +41,13 @@ export interface ReportCard {
   body: ReportBody;
 }
 
-const when = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Kampala" });
+const when = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Africa/Kampala",
+});
 
 export function issueWords(i: Issue): string {
   const w = i.what;
@@ -99,10 +112,15 @@ export function ReportsView({
                 </Pill>
               </span>
               <span className="text-caption text-ink-700">{R.card(period, c.due)}</span>
-              <span className="text-caption text-muted-foreground">{R.toLine(R.to[c.kind], R.who[c.kind])}</span>
+              <span className="text-caption text-muted-foreground">
+                {R.toLine(R.to[c.kind], R.who[c.kind])}
+              </span>
               <span className="text-caption text-ink-800 font-medium">
                 {c.state === "submitted"
-                  ? R.foot.submitted(c.submittedAt ? when.format(new Date(c.submittedAt)) : "", c.submittedBy ?? "")
+                  ? R.foot.submitted(
+                      c.submittedAt ? when.format(new Date(c.submittedAt)) : "",
+                      c.submittedBy ?? "",
+                    )
                   : g.blocked
                     ? R.blocks(g.blocked)
                     : g.remarksLeft && c.state === "draft"
@@ -166,18 +184,23 @@ function ReportDialog({
       <div className="flex flex-col gap-1 px-6 pt-5">
         <DialogTitle>{R.names[card.kind]}</DialogTitle>
         <p className="text-body-s text-ink-600">
-          {R.head.facility}: {facility} · {R.head.period}: {period} · {R.head.prepared}: {R.who[card.kind]} · {R.head.due}:{" "}
-          {card.due}
+          {R.head.facility}: {facility} · {R.head.period}: {period} · {R.head.prepared}:{" "}
+          {R.who[card.kind]} · {R.head.due}: {card.due}
         </p>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
-        {card.state === "submitted" ? <p className="text-caption text-ink-700">{R.frozen}</p> : null}
+        {card.state === "submitted" ? (
+          <p className="text-caption text-ink-700">{R.frozen}</p>
+        ) : null}
         {card.issues.length === 0 ? (
           <p className="text-body-s text-ink-700">{R.noIssues}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {card.issues.map((i, n) => (
-              <li key={i.key ?? n} className="bg-muted/60 rounded-tide-tile flex flex-col gap-2 px-3 py-2">
+              <li
+                key={i.key ?? n}
+                className="bg-muted/60 rounded-tide-tile flex flex-col gap-2 px-3 py-2"
+              >
                 <span className="text-body-s flex flex-wrap items-center gap-2">
                   <Pill tone={i.sev === "info" ? "neutral" : "caution"}>{R.sev[i.sev]}</Pill>
                   {issueWords(i)}
@@ -213,7 +236,10 @@ function ReportDialog({
       <div className="border-border flex flex-wrap items-center justify-end gap-2 border-t px-6 py-3">
         <span className="text-caption text-ink-700 mr-auto">
           {card.state === "submitted"
-            ? R.foot.submitted(card.submittedAt ? when.format(new Date(card.submittedAt)) : "", card.submittedBy ?? "")
+            ? R.foot.submitted(
+                card.submittedAt ? when.format(new Date(card.submittedAt)) : "",
+                card.submittedBy ?? "",
+              )
             : card.state === "checked"
               ? R.foot.checked(card.checkedBy ?? "")
               : R.foot.draft}
@@ -250,7 +276,13 @@ function ReportDialog({
 const th = "py-1.5 pr-3 font-medium";
 const num = "py-1.5 pr-3 text-right tabular-nums";
 
-function Table({ head, rows }: { head: { k: string; label: string; right?: boolean }[]; rows: (string | number)[][] }) {
+function Table({
+  head,
+  rows,
+}: {
+  head: { k: string; label: string; right?: boolean }[];
+  rows: (string | number)[][];
+}) {
   return (
     <div className="overflow-x-auto">
       <table className="text-body-s w-full min-w-[32rem]">
@@ -296,7 +328,16 @@ function Body({ body }: { body: ReportBody }) {
           { k: "out", label: c.out, right: true },
           { k: "mos", label: c.mos, right: true },
         ]}
-        rows={body.rows.map((r) => [r.name, r.unit, r.opening, r.received, r.consumed, r.closing, r.daysOut, mos(r)])}
+        rows={body.rows.map((r) => [
+          r.name,
+          r.unit,
+          r.opening,
+          r.received,
+          r.consumed,
+          r.closing,
+          r.daysOut,
+          mos(r),
+        ])}
       />
     );
   }
@@ -313,7 +354,15 @@ function Body({ body }: { body: ReportBody }) {
           { k: "closing", label: c.closing, right: true },
           { k: "cases", label: c.cases, right: true },
         ]}
-        rows={body.rows.map((r) => [r.name, r.opening, r.received, r.consumed, r.lost, r.closing, body.cases[r.productId] ?? 0])}
+        rows={body.rows.map((r) => [
+          r.name,
+          r.opening,
+          r.received,
+          r.consumed,
+          r.lost,
+          r.closing,
+          body.cases[r.productId] ?? 0,
+        ])}
       />
     );
   }
@@ -351,7 +400,11 @@ function Body({ body }: { body: ReportBody }) {
         { k: "value", label: c.value, right: true },
       ]}
       rows={[
-        ...body.rows.map((r) => [RC.losses.causes[r.cause as keyof typeof RC.losses.causes] ?? r.cause, r.lines, RC.ugx(r.value)]),
+        ...body.rows.map((r) => [
+          RC.losses.causes[r.cause as keyof typeof RC.losses.causes] ?? r.cause,
+          r.lines,
+          RC.ugx(r.value),
+        ]),
         [c.total, body.rows.reduce((a, r) => a + r.lines, 0), RC.ugx(total)],
       ]}
     />

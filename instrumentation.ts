@@ -11,7 +11,9 @@ import { redactPII } from "@/lib/logger";
 export async function register() {
   const overrides = productionOverrides();
   if (overrides.length) {
-    throw new Error(`Refusing to start in production with development switches set: ${overrides.join(", ")}`);
+    throw new Error(
+      `Refusing to start in production with development switches set: ${overrides.join(", ")}`,
+    );
   }
   const dsn = process.env.SENTRY_DSN;
   if (!dsn) return;

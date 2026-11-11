@@ -1,5 +1,5 @@
-import { LABWS2 } from "@/content/lab-workspace-v2";
 import { Bone, CardBone, PlaceLoading } from "@/components/tide/work/loading";
+import { LABWS2 } from "@/content/lab-workspace-v2";
 
 /** The Set-up hub: the note, the finder, the signature queue, then the groups of settings. */
 export default function Loading() {

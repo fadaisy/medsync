@@ -3,12 +3,12 @@ import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { Ident } from "@/components/tide/work/kit";
 import { fill, LAB4 } from "@/content/lab-phase-4";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { db } from "@/db";
 import { devices } from "@/db/schema";
 import { loadConnections } from "@/lib/lab/exchange-read";
-import { Ident } from "@/components/tide/work/kit";
 import { dateWords, timeWords } from "../../../_lib/days";
 
 const A = LABWS2_SETUP.analysers;

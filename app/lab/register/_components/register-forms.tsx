@@ -3,6 +3,7 @@
 import type { RegisterConfig } from "@/lib/lab/register";
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LAB3_REGISTER } from "@/content/lab-phase-3";
@@ -12,7 +13,6 @@ import {
   signRegisterConfigAction,
 } from "@/lib/lab/hmis-actions";
 import { Pop } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../setup/criticals/_components/setup-forms";
 import { SignButton } from "../../setup/drafts/_components/sign-button";
 

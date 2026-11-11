@@ -1,26 +1,31 @@
 import type { PharmacyV2 } from "../../_lib/v2";
-import type { ReviewRow } from "@/lib/pharmacy/review/read";
 import type { requirePharmacyActor } from "@/lib/pharmacy/actor";
+import type { ReviewRow } from "@/lib/pharmacy/review/read";
 
 import { EmptyState, Pill } from "@/components/tide/work/kit";
 import { SecondaryLink } from "@/components/tide/work/space";
+import { CLOSE_REASONS, NOT_SUPPLIED_REASONS, REVIEW } from "@/content/pharmacy-review";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_WINDOW } from "@/content/pharmacy-workspace-v2-window";
-import { CLOSE_REASONS, NOT_SUPPLIED_REASONS, REVIEW } from "@/content/pharmacy-review";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { formatDuration } from "@/lib/lab/turnaround";
 import { can } from "@/lib/pharmacy/access";
 import { patientListLive } from "@/lib/pharmacy/patient-list";
 import { getOpenLines } from "@/lib/pharmacy/review/read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
+import { openGroups } from "../_lib/groups";
 import { FilledDialog } from "../../_components/review-dialogs";
 import { WorkGroup, WorkRow } from "../../_components/v2/pieces";
 import { TellPatientButton } from "../../open-lines/_components/tell-patient";
-import { openGroups } from "../_lib/groups";
 
 type Scope = PharmacyV2["scope"];
 type Actor = Awaited<ReturnType<typeof requirePharmacyActor>>;
-const day = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "2-digit", month: "short", timeZone: DEFAULT_TIME_ZONE });
+const day = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  day: "2-digit",
+  month: "short",
+  timeZone: DEFAULT_TIME_ZONE,
+});
 const rxHref = (key: string) => `/pharmacy/prescriptions/${encodeURIComponent(key)}`;
 const withheld = { name: PHWS2_WINDOW.queue.nameWithheld, mrn: "", ageSex: "" };
 
@@ -38,7 +43,11 @@ export async function ReadyView({
 }) {
   const R = PHWS2_WINDOW.ready;
   if (!rows.length) return <EmptyState title={R.empty} why={R.emptyWhy} />;
-  const ids = await identitiesFor(scope, rows.map((r) => r.patientUserId), "pharmacy_queue");
+  const ids = await identitiesFor(
+    scope,
+    rows.map((r) => r.patientUserId),
+    "pharmacy_queue",
+  );
   const now = new Date(serverNow).getTime();
   const sorted = [...rows].sort((a, b) => a.writtenAt.localeCompare(b.writtenAt));
   return (
@@ -74,11 +83,23 @@ export async function ReadyView({
  * permissions the old page uses. Each row shows one action; every other action (change, close, print the slip) is on
  * the "Every action" view, which is the old page's own body.
  */
-export async function OpenView({ scope, actor, hrefAll }: { scope: Scope; actor: Actor; hrefAll: string }) {
+export async function OpenView({
+  scope,
+  actor,
+  hrefAll,
+}: {
+  scope: Scope;
+  actor: Actor;
+  hrefAll: string;
+}) {
   const O = PHWS2_WINDOW.open;
   const { rows, points, liveSms } = await getOpenLines(scope.hospitalId, undefined, actor.pointId);
   if (!rows.length) return <EmptyState title={O.empty} why={O.emptyWhy} />;
-  const ids = await identitiesFor(scope, rows.map((r) => r.patientUserId), "pharmacy_open_lines");
+  const ids = await identitiesFor(
+    scope,
+    rows.map((r) => r.patientUserId),
+    "pharmacy_open_lines",
+  );
   const point = points.find((p) => p.id === actor.pointId) ?? null;
   const dispense = can(actor.access, "pharmacy.dispense");
   const canChange = dispense && !!point?.live;
@@ -96,7 +117,12 @@ export async function OpenView({ scope, actor, hrefAll }: { scope: Scope; actor:
       {openGroups(rows)
         .filter((g) => g.rows.length)
         .map((g) => (
-          <WorkGroup key={g.key} title={O.groups[g.key].title} explainer={O.groups[g.key].explainer} count={g.rows.length}>
+          <WorkGroup
+            key={g.key}
+            title={O.groups[g.key].title}
+            explainer={O.groups[g.key].explainer}
+            count={g.rows.length}
+          >
             {g.rows.map((r) => {
               const who = ids.get(r.patientUserId) ?? withheld;
               const since = fill(r.outcome === "owed" ? O.owedSince : O.outsideSince, {
@@ -104,7 +130,9 @@ export async function OpenView({ scope, actor, hrefAll }: { scope: Scope; actor:
               });
               const supply =
                 g.key === "shelf" && canChange && !r.controlled ? (
-                  <SecondaryLink href={`${rxHref(r.key)}/handover?line=${r.lineId}`}>{O.supplyNow}</SecondaryLink>
+                  <SecondaryLink href={`${rxHref(r.key)}/handover?line=${r.lineId}`}>
+                    {O.supplyNow}
+                  </SecondaryLink>
                 ) : null;
               const action =
                 supply ??
@@ -133,7 +161,9 @@ export async function OpenView({ scope, actor, hrefAll }: { scope: Scope; actor:
                   what={
                     <span className="inline-flex flex-wrap items-center gap-1.5">
                       {r.medicine}
-                      {r.patientCouldNotGet ? <Pill tone="caution">{REVIEW.open.patientCouldNotGet}</Pill> : null}
+                      {r.patientCouldNotGet ? (
+                        <Pill tone="caution">{REVIEW.open.patientCouldNotGet}</Pill>
+                      ) : null}
                     </span>
                   }
                   since={since}

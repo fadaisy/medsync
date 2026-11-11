@@ -1,7 +1,7 @@
 import "server-only";
 
-import type { PharmacyNavFlags } from "@/lib/pharmacy/nav";
 import type { EmrDb } from "@/lib/emr/db";
+import type { PharmacyNavFlags } from "@/lib/pharmacy/nav";
 import { cookies } from "next/headers";
 import { cache } from "react";
 

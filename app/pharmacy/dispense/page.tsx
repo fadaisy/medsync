@@ -11,21 +11,21 @@ import { identitiesFor } from "@/lib/emr/read/results";
 import { can } from "@/lib/pharmacy/access";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { countSheetsToEnter } from "@/lib/pharmacy/downtime-store";
+import { tabOf } from "@/lib/pharmacy/ia";
 import { dispensingNavCountsFor } from "@/lib/pharmacy/page-data";
 import { computeReviewQueue, servesRow } from "@/lib/pharmacy/queue";
 import { getReviewQueue } from "@/lib/pharmacy/review/read";
 import { isLive } from "@/lib/pharmacy/write";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
-import { tabOf } from "@/lib/pharmacy/ia";
-import { LimitsLine } from "../_components/v2/limits-line";
 import { PageTabs } from "../_components/page-tabs";
+import { LimitsLine } from "../_components/v2/limits-line";
 import { pharmacyFlagsFor, pharmacyScope } from "../_lib/v2";
-import { OpenLinesBody } from "../open-lines/body";
 import { QueueBody } from "../body";
+import { OpenLinesBody } from "../open-lines/body";
 import { PrescriptionBody } from "../prescriptions/[key]/body";
 import { SuppliedBody } from "../supplied/body";
-import { OpenView, ReadyView } from "../window/_components/views";
 import { QueueList } from "../window/_components/queue-list";
+import { OpenView, ReadyView } from "../window/_components/views";
 import { pick, queueGroups } from "../window/_lib/groups";
 
 export const dynamic = "force-dynamic";
@@ -82,7 +82,11 @@ export default async function DispensePage({ searchParams }: { searchParams: Pro
     <SpaceHeader
       tabs={<PageTabs page="dispense" current={view} counts={counts} />}
       action={
-        sheets > 0 ? <PrimaryLink href="/pharmacy/records?tab=sheets">{fill(W.downtime, { n: sheets })}</PrimaryLink> : null
+        sheets > 0 ? (
+          <PrimaryLink href="/pharmacy/records?tab=sheets">
+            {fill(W.downtime, { n: sheets })}
+          </PrimaryLink>
+        ) : null
       }
       chips={chips}
       note={
@@ -101,21 +105,41 @@ export default async function DispensePage({ searchParams }: { searchParams: Pro
     return (
       <div className="flex flex-col gap-3">
         {header()}
-        <QueueBody searchParams={Promise.resolve({ period: one(sp.period), lane: one(sp.lane), state: one(sp.state), from: one(sp.from), sort: one(sp.sort) })} />
+        <QueueBody
+          searchParams={Promise.resolve({
+            period: one(sp.period),
+            lane: one(sp.lane),
+            state: one(sp.state),
+            from: one(sp.from),
+            sort: one(sp.sort),
+          })}
+        />
       </div>
     );
 
   if (view === "waiting" && review) {
     const Q = W.queue;
     const signed = review.rule.signed;
-    const lane = pick<ReviewLane | "all">(sp.lane, signed ? ["pharmacist_first", "standard", "all"] : ["all"], signed ? "pharmacist_first" : "all");
-    const stage = pick<ReviewStage | "all">(sp.stage, ["all", "to_review", "queried", "awaiting_cosign", "ready"], "all");
+    const lane = pick<ReviewLane | "all">(
+      sp.lane,
+      signed ? ["pharmacist_first", "standard", "all"] : ["all"],
+      signed ? "pharmacist_first" : "all",
+    );
+    const stage = pick<ReviewStage | "all">(
+      sp.stage,
+      ["all", "to_review", "queried", "awaiting_cosign", "ready"],
+      "all",
+    );
     const pointKey = one(sp.point) ?? point!.id;
     const chosen = review.points.find((p) => p.id === pointKey) ?? null;
     const g = queueGroups(review.rows, { lane, stage, serves: chosen?.serves ?? null, signed });
     const rx = one(sp.rx) ?? null;
     const shownRows = g.groups.flatMap((x) => x.rows);
-    const ids = await identitiesFor(scope, shownRows.map((r) => r.patientUserId), "pharmacy_queue");
+    const ids = await identitiesFor(
+      scope,
+      shownRows.map((r) => r.patientUserId),
+      "pharmacy_queue",
+    );
     const chips = (
       <div className="flex flex-col gap-2">
         {signed ? (
@@ -133,19 +157,25 @@ export default async function DispensePage({ searchParams }: { searchParams: Pro
         <FilterChips
           label={Q.stageLabel}
           current={stage}
-          chips={(["all", "to_review", "queried", "awaiting_cosign", "ready"] as const).map((s) => ({
-            key: s,
-            label: Q.stages[s],
-            href: hrefWith({ stage: s }),
-            count: g.stageCounts[s],
-          }))}
+          chips={(["all", "to_review", "queried", "awaiting_cosign", "ready"] as const).map(
+            (s) => ({
+              key: s,
+              label: Q.stages[s],
+              href: hrefWith({ stage: s }),
+              count: g.stageCounts[s],
+            }),
+          )}
         />
         {review.points.length > 1 ? (
           <FilterChips
             label={Q.pointLabel}
             current={chosen?.id ?? "all"}
             chips={[
-              ...review.points.map((p) => ({ key: p.id, label: p.name, href: hrefWith({ point: p.id }) })),
+              ...review.points.map((p) => ({
+                key: p.id,
+                label: p.name,
+                href: hrefWith({ point: p.id }),
+              })),
               { key: "all", label: Q.allPoints, href: hrefWith({ point: "all" }) },
             ]}
           />
@@ -181,7 +211,8 @@ export default async function DispensePage({ searchParams }: { searchParams: Pro
 
   let chips: ReactNode;
   let content: ReactNode;
-  if (view === "done") content = <SuppliedBody searchParams={Promise.resolve({ day: one(sp.day) })} />;
+  if (view === "done")
+    content = <SuppliedBody searchParams={Promise.resolve({ day: one(sp.day) })} />;
   else if (view === "owed") {
     if (!actor) notFound();
     const all = one(sp.list) === "all";
@@ -195,7 +226,11 @@ export default async function DispensePage({ searchParams }: { searchParams: Pro
         ]}
       />
     );
-    content = all ? <OpenLinesBody /> : <OpenView scope={scope} actor={actor} hrefAll={hrefWith({ list: "all" })} />;
+    content = all ? (
+      <OpenLinesBody />
+    ) : (
+      <OpenView scope={scope} actor={actor} hrefAll={hrefWith({ list: "all" })} />
+    );
   } else
     content = review ? (
       <ReadyView

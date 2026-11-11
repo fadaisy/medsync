@@ -3,8 +3,21 @@
 import type { ColdChainData, FridgeRow } from "@/lib/pharmacy/cold/read";
 import { useState } from "react";
 
-import { ActionDialog, Chip, Chips, Field, inputCls, Stepper, useClientKey } from "@/app/pharmacy/patients/_components/kit";
-import { coldAckAction, coldAddAction, coldReadingAction, coldTakeOutAction } from "@/app/pharmacy/patients/actions";
+import {
+  ActionDialog,
+  Chip,
+  Chips,
+  Field,
+  inputCls,
+  Stepper,
+  useClientKey,
+} from "@/app/pharmacy/patients/_components/kit";
+import {
+  coldAckAction,
+  coldAddAction,
+  coldReadingAction,
+  coldTakeOutAction,
+} from "@/app/pharmacy/patients/actions";
 import { LabButton } from "@/components/tide/work/button";
 import { Pill } from "@/components/tide/work/kit";
 import { fill, PRW, RULES } from "@/content/pharmacy-rework-patients";
@@ -33,7 +46,9 @@ export function TempChart({ series, now }: { series: { at: number; v: number }[]
   const hi = Math.max(12, ...pts.map((p) => p.v)) + 1;
   const x = (at: number) => P + ((at - from) / (now - from)) * (W - P - 8);
   const y = (v: number) => 8 + ((hi - v) / (hi - lo)) * (H - 28);
-  const d = pts.map((p, i) => `${i ? "L" : "M"}${x(p.at).toFixed(1)},${y(p.v).toFixed(1)}`).join("");
+  const d = pts
+    .map((p, i) => `${i ? "L" : "M"}${x(p.at).toFixed(1)},${y(p.v).toFixed(1)}`)
+    .join("");
   const shown = hover ?? pts.at(-1) ?? null;
   return (
     <div className="flex flex-col gap-2">
@@ -63,21 +78,37 @@ export function TempChart({ series, now }: { series: { at: number; v: number }[]
           onPointerLeave={() => setHover(null)}
           onPointerMove={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
-            const at = from + (((e.clientX - r.left) / r.width) * W - P) / (W - P - 8) * (now - from);
+            const at =
+              from + ((((e.clientX - r.left) / r.width) * W - P) / (W - P - 8)) * (now - from);
             setHover(pts.reduce((a, b) => (Math.abs(b.at - at) < Math.abs(a.at - at) ? b : a)));
           }}
         >
-          <rect x={P} width={W - P - 8} y={y(RULES.cold.high)} height={y(RULES.cold.low) - y(RULES.cold.high)} className="fill-ink-100" />
+          <rect
+            x={P}
+            width={W - P - 8}
+            y={y(RULES.cold.high)}
+            height={y(RULES.cold.low) - y(RULES.cold.high)}
+            className="fill-ink-100"
+          />
           {[RULES.cold.high, RULES.cold.freeze].map((v) => (
             <g key={v}>
-              <line x1={P} x2={W - 8} y1={y(v)} y2={y(v)} className="stroke-ink-500" strokeDasharray="4 4" />
+              <line
+                x1={P}
+                x2={W - 8}
+                y1={y(v)}
+                y2={y(v)}
+                className="stroke-ink-500"
+                strokeDasharray="4 4"
+              />
               <text x={2} y={y(v) + 4} className="fill-ink-600 text-[10px]">
                 {t1(v)}
               </text>
             </g>
           ))}
           <path d={d} fill="none" className="stroke-tide-navy-900" strokeWidth={1.75} />
-          {hover ? <circle cx={x(hover.at)} cy={y(hover.v)} r={4} className="fill-tide-navy-900" /> : null}
+          {hover ? (
+            <circle cx={x(hover.at)} cy={y(hover.v)} r={4} className="fill-tide-navy-900" />
+          ) : null}
         </svg>
       )}
     </div>
@@ -87,7 +118,9 @@ export function TempChart({ series, now }: { series: { at: number; v: number }[]
 /** Record the am or pm thermometer reading; the afternoon one carries the freeze indicator. */
 export function RecordReading({ fridge }: { fridge: FridgeRow }) {
   const [open, setOpen] = useState(false);
-  const [slot, setSlot] = useState<"am" | "pm">(() => (new Date().getUTCHours() + 3 >= 12 ? "pm" : "am"));
+  const [slot, setSlot] = useState<"am" | "pm">(() =>
+    new Date().getUTCHours() + 3 >= 12 ? "pm" : "am",
+  );
   const [temp, setTemp] = useState("");
   const [fi, setFi] = useState<"ok" | "x" | null>(null);
   const [initials, setInitials] = useState("");
@@ -104,8 +137,24 @@ export function RecordReading({ fridge }: { fridge: FridgeRow }) {
         title={fill(C.recordTitle, { slot: slot === "am" ? C.am : C.pm })}
         sub={`${fridge.name} · ${fridge.place}`}
         submit={C.recordSave}
-        blocked={!valid ? C.thermometer : slot === "pm" && !fi ? C.fiNeeded : !initials.trim() ? C.initials : null}
-        run={() => coldReadingAction({ fridgeId: fridge.id, slot, tempC: v, fi: slot === "pm" ? fi : null, initials })}
+        blocked={
+          !valid
+            ? C.thermometer
+            : slot === "pm" && !fi
+              ? C.fiNeeded
+              : !initials.trim()
+                ? C.initials
+                : null
+        }
+        run={() =>
+          coldReadingAction({
+            fridgeId: fridge.id,
+            slot,
+            tempC: v,
+            fi: slot === "pm" ? fi : null,
+            initials,
+          })
+        }
       >
         <Chips label={C.recordTitle}>
           <Chip on={slot === "am"} onClick={() => setSlot("am")}>
@@ -116,7 +165,12 @@ export function RecordReading({ fridge }: { fridge: FridgeRow }) {
           </Chip>
         </Chips>
         <Field label={C.thermometer}>
-          <input inputMode="decimal" className={`${inputCls} max-w-32 tabular-nums`} value={temp} onChange={(e) => setTemp(e.target.value)} />
+          <input
+            inputMode="decimal"
+            className={`${inputCls} max-w-32 tabular-nums`}
+            value={temp}
+            onChange={(e) => setTemp(e.target.value)}
+          />
         </Field>
         {valid && coldStatus(v) !== "ok" ? <Pill tone="caution">{C.outOfRange}</Pill> : null}
         {slot === "pm" ? (
@@ -132,7 +186,12 @@ export function RecordReading({ fridge }: { fridge: FridgeRow }) {
           </Field>
         ) : null}
         <Field label={C.initials}>
-          <input className={`${inputCls} max-w-24 uppercase`} maxLength={6} value={initials} onChange={(e) => setInitials(e.target.value)} />
+          <input
+            className={`${inputCls} max-w-24 uppercase`}
+            maxLength={6}
+            value={initials}
+            onChange={(e) => setInitials(e.target.value)}
+          />
         </Field>
       </ActionDialog>
     </>
@@ -143,17 +202,28 @@ type Full = Extract<ColdChainData, { excursions: unknown }>;
 type Exc = Full["excursions"][number];
 
 /** Excursions in the last 30 days; one without an action recorded asks for one. */
-export function Excursions({ fridgeId, list, freezeSensitive }: { fridgeId: string; list: Exc[]; freezeSensitive: boolean }) {
+export function Excursions({
+  fridgeId,
+  list,
+  freezeSensitive,
+}: {
+  fridgeId: string;
+  list: Exc[];
+  freezeSensitive: boolean;
+}) {
   const [act, setAct] = useState<Exc | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   if (!list.length) return <p className="text-body-s text-muted-foreground">{C.excursionsNone}</p>;
-  const dur = (m: number) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ""}`);
+  const dur = (m: number) =>
+    m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ""}`;
   return (
     <ul className="divide-border flex flex-col divide-y">
       {list.map((e) => (
         <li key={e.start} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
           <span className="font-medium">
-            {fill(e.kind === "high" ? C.tooWarm : e.frozen ? C.froze : C.tooCold, { t: `${t1(e.peak)} °C` })}
+            {fill(e.kind === "high" ? C.tooWarm : e.frozen ? C.froze : C.tooCold, {
+              t: `${t1(e.peak)} °C`,
+            })}
           </span>
           <span className="text-body-s text-muted-foreground tabular-nums">
             {fill(C.outFor, { from: kampala(e.start, true), to: kampala(e.end), dur: dur(e.mins) })}
@@ -183,18 +253,32 @@ export function Excursions({ fridgeId, list, freezeSensitive }: { fridgeId: stri
         open={!!act}
         onOpenChange={(o) => !o && setAct(null)}
         title={C.recordActions}
-        sub={act ? fill(C.outFor, { from: kampala(act.start, true), to: kampala(act.end), dur: dur(act.mins) }) : undefined}
+        sub={
+          act
+            ? fill(C.outFor, {
+                from: kampala(act.start, true),
+                to: kampala(act.end),
+                dur: dur(act.mins),
+              })
+            : undefined
+        }
         submit={C.recordActions}
         blocked={picked.length ? null : C.recordActions}
-        run={() => coldAckAction({ fridgeId, start: new Date(act!.start).toISOString(), actions: picked })}
+        run={() =>
+          coldAckAction({ fridgeId, start: new Date(act!.start).toISOString(), actions: picked })
+        }
       >
-        {act && (act.frozen || act.kind === "low") && freezeSensitive ? <Pill tone="caution">{C.shakePrompt}</Pill> : null}
+        {act && (act.frozen || act.kind === "low") && freezeSensitive ? (
+          <Pill tone="caution">{C.shakePrompt}</Pill>
+        ) : null}
         <Chips label={C.recordActions}>
           {C.actions.map((a) => (
             <Chip
               key={a}
               on={picked.includes(a)}
-              onClick={() => setPicked((p) => (p.includes(a) ? p.filter((x) => x !== a) : [...p, a]))}
+              onClick={() =>
+                setPicked((p) => (p.includes(a) ? p.filter((x) => x !== a) : [...p, a]))
+              }
             >
               {a}
             </Chip>
@@ -231,9 +315,16 @@ export function Contents({
               <span className="font-medium">{p.name}</span>
               <span className="text-body-s text-muted-foreground tabular-nums">
                 {C.here}: {p.here}
-                {p.batches.length ? ` · ${p.batches.map((b) => `${b.no} (${b.n})`).join(", ")}` : ""}
+                {p.batches.length
+                  ? ` · ${p.batches.map((b) => `${b.no} (${b.n})`).join(", ")}`
+                  : ""}
               </span>
-              <LabButton className="ml-auto" variant="secondary" size="sm" onClick={() => setOut(p)}>
+              <LabButton
+                className="ml-auto"
+                variant="secondary"
+                size="sm"
+                onClick={() => setOut(p)}
+              >
                 {C.takeOut}
               </LabButton>
             </li>
@@ -258,7 +349,9 @@ export function Contents({
           product={out}
           places={[
             ...places,
-            ...out.elsewhere.filter((e) => !places.some((p) => p.id === e.placeId)).map((e) => ({ id: e.placeId, name: e.place })),
+            ...out.elsewhere
+              .filter((e) => !places.some((p) => p.id === e.placeId))
+              .map((e) => ({ id: e.placeId, name: e.place })),
           ].filter((p) => p.id !== fridge.locationId)}
         />
       ) : null}
@@ -292,7 +385,13 @@ function AddDialog({
       submit={from && qty ? fill(C.moveInSave, { n: qty }) : C.addSave}
       blocked={!p ? C.choose : from && !qty ? PRW.inpatients.quantity : null}
       run={() =>
-        coldAddAction({ clientKey: key, fridgeId: fridge.id, productId, moveFrom: from && qty ? from : null, quantity: from && qty ? qty : null })
+        coldAddAction({
+          clientKey: key,
+          fridgeId: fridge.id,
+          productId,
+          moveFrom: from && qty ? from : null,
+          quantity: from && qty ? qty : null,
+        })
       }
     >
       <Field label={C.choose}>
@@ -317,14 +416,20 @@ function AddDialog({
         <Field label={C.moveIn}>
           <Chips label={C.moveIn}>
             {sources.map((s) => (
-              <Chip key={s.placeId} on={from === s.placeId} onClick={() => setFrom(from === s.placeId ? null : s.placeId)}>
+              <Chip
+                key={s.placeId}
+                on={from === s.placeId}
+                onClick={() => setFrom(from === s.placeId ? null : s.placeId)}
+              >
                 {s.place} · {s.n}
               </Chip>
             ))}
           </Chips>
         </Field>
       ) : null}
-      {from ? <Stepper label={PRW.inpatients.quantity} value={qty} onChange={setQty} max={max} /> : null}
+      {from ? (
+        <Stepper label={PRW.inpatients.quantity} value={qty} onChange={setQty} max={max} />
+      ) : null}
     </ActionDialog>
   );
 }
@@ -342,15 +447,31 @@ function TakeOutDialog({
 }) {
   const key = useClientKey(true);
   const canMove = ISSUES_FROM.has(fridge.placeKind);
-  const [how, setHow] = useState<"move" | "discard" | "unlist">(product.here ? (canMove ? "move" : "discard") : "unlist");
+  const [how, setHow] = useState<"move" | "discard" | "unlist">(
+    product.here ? (canMove ? "move" : "discard") : "unlist",
+  );
   const [to, setTo] = useState<string | null>(null);
   const [cause, setCause] = useState<string | null>(null);
   const [batchId, setBatchId] = useState<string | null>(null);
   const [qty, setQty] = useState<number | null>(null);
   const max = batchId ? product.batches.find((b) => b.id === batchId)?.n : product.here;
-  const hows = (["move", "discard", "unlist"] as const).filter((h) => h === "unlist" || product.here > 0);
+  const hows = (["move", "discard", "unlist"] as const).filter(
+    (h) => h === "unlist" || product.here > 0,
+  );
   const blocked =
-    how === "unlist" ? null : !qty ? PRW.inpatients.quantity : how === "move" ? (canMove ? (to ? null : C.moveTo) : C.noMoveFromHere) : cause ? null : C.why;
+    how === "unlist"
+      ? null
+      : !qty
+        ? PRW.inpatients.quantity
+        : how === "move"
+          ? canMove
+            ? to
+              ? null
+              : C.moveTo
+            : C.noMoveFromHere
+          : cause
+            ? null
+            : C.why;
   return (
     <ActionDialog
       open

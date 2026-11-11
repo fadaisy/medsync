@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { inputClass, Pop } from "../../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { QUALITY } from "../../../quality/_lib/copy";
 
 const H = QUALITY.hold;

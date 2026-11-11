@@ -23,7 +23,10 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
   let pg: Pg;
   let D: typeof Del;
   let A: typeof After;
-  let finish: (a: PharmacyActor, raw: unknown) => Promise<{ ok: boolean; error?: string; data?: unknown }>;
+  let finish: (
+    a: PharmacyActor,
+    raw: unknown,
+  ) => Promise<{ ok: boolean; error?: string; data?: unknown }>;
   let load: () => Promise<ReceiveWorld>;
   let h: string;
   let boss: string;
@@ -38,7 +41,9 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     cadreCode: "PHARMACIST",
     cadreName: "Pharmacist",
     pointId: null,
-    access: { permissions: new Set(["pharmacy.view", "pharmacy.store", "pharmacy.stock"]) } as PharmacyActor["access"],
+    access: {
+      permissions: new Set(["pharmacy.view", "pharmacy.store", "pharmacy.stock"]),
+    } as PharmacyActor["access"],
   });
   const ok = async <T = { id: string }>(p: Promise<unknown>) => {
     const r = (await p) as { ok: boolean; error?: string; data?: unknown };
@@ -89,15 +94,29 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
   };
   const plain = () => med((m) => !m.cold && !m.controlled && !m.vaccine);
   const docLine = (m: ReceiveWorld["meds"][number], over: Partial<ReceiveLine> = {}) =>
-    blankLine(randomUUID(), { lines: [] }, m, "typed", { batch: `B${Date.now()}${Math.floor(Math.random() * 1000)}`, exp: "2031-06", packs: "3", cost: "1000", ...over });
+    blankLine(randomUUID(), { lines: [] }, m, "typed", {
+      batch: `B${Date.now()}${Math.floor(Math.random() * 1000)}`,
+      exp: "2031-06",
+      packs: "3",
+      cost: "1000",
+      ...over,
+    });
   const saved = (l: ReceiveLine) => {
-    const { approvedBy: _a, approvalAsked: _b, rank: _c, owedFrozen: _d, witnessName: _e, ...rest } = l;
+    const {
+      approvedBy: _a,
+      approvalAsked: _b,
+      rank: _c,
+      owedFrozen: _d,
+      witnessName: _e,
+      ...rest
+    } = l;
     return rest;
   };
   const started = async (lines: ReceiveLine[], over: Record<string, unknown> = {}) => {
     const hd = head(over);
     await ok(D.startDelivery(keeperA, hd));
-    if (lines.length) await ok(D.saveLines(keeperA, { deliveryId: hd.id, lines: lines.map(saved), removed: [] }));
+    if (lines.length)
+      await ok(D.saveLines(keeperA, { deliveryId: hd.id, lines: lines.map(saved), removed: [] }));
     return hd.id;
   };
   const done = (deliveryId: string, more: Record<string, unknown> = {}) =>
@@ -121,13 +140,25 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
         [h, dept, `st-r-${s}`],
       )
     ).rows[0]!.id;
-    await pg.query(`INSERT INTO public.pharmacy_locations (hospital_id, kind, department_id, name, live_at) VALUES ($1, 'store', $2, 'Main store', now())`, [h, sub]);
+    await pg.query(
+      `INSERT INTO public.pharmacy_locations (hospital_id, kind, department_id, name, live_at) VALUES ($1, 'store', $2, 'Main store', now())`,
+      [h, sub],
+    );
     boss = (await staff(pg, { hospitalId: h, departmentId: dept, cadre: "PHARMACIST" })).userId;
     keeper = (await staff(pg, { hospitalId: h, departmentId: dept, cadre: "PHARMACIST" })).userId;
-    await pg.query(`INSERT INTO public.department_heads (hospital_id, department_id, user_id, starts_at) VALUES ($1, $2, $3, now() - interval '1 day')`, [h, dept, boss]);
+    await pg.query(
+      `INSERT INTO public.department_heads (hospital_id, department_id, user_id, starts_at) VALUES ($1, $2, $3, now() - interval '1 day')`,
+      [h, dept, boss],
+    );
     for (const u of [boss, keeper])
-      await pg.query(`INSERT INTO public.pharmacy_roster_people (hospital_id, user_id, cadre, places, added_by) VALUES ($1, $2, 'pharmacist', ARRAY[$3::uuid], $2)`, [h, u, sub]);
-    await pg.query(`INSERT INTO public.pharmacy_suppliers (hospital_id, name, updated_by) VALUES ($1, 'NMS', $2)`, [h, boss]);
+      await pg.query(
+        `INSERT INTO public.pharmacy_roster_people (hospital_id, user_id, cadre, places, added_by) VALUES ($1, $2, 'pharmacist', ARRAY[$3::uuid], $2)`,
+        [h, u, sub],
+      );
+    await pg.query(
+      `INSERT INTO public.pharmacy_suppliers (hospital_id, name, updated_by) VALUES ($1, 'NMS', $2)`,
+      [h, boss],
+    );
     const { seedStore } = await import("../../scripts/seed-pharmacy-dev/store");
     expect(await seedStore(lane.db as never, h)).toEqual({ ok: true });
     const { seedReceive } = await import("../../scripts/seed-pharmacy-dev/receive");
@@ -136,7 +167,8 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     A = await import("@/lib/pharmacy/actions/receive/after");
     finish = (await import("@/lib/pharmacy/actions/receive/finish")).finishDelivery as never;
     const { loadReceiveWorld } = await import("@/lib/pharmacy/receive/read");
-    load = async () => (await loadReceiveWorld(lane.db as never, { hospitalId: h, actorUserId: boss }))!;
+    load = async () =>
+      (await loadReceiveWorld(lane.db as never, { hospitalId: h, actorUserId: boss }))!;
     keeperA = actor(keeper);
     bossA = actor(boss);
     w = await load();
@@ -157,10 +189,14 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const note = `DN-${randomUUID()}`;
     const first = head({ note });
     await ok(D.startDelivery(keeperA, first));
-    const again = await ok<{ duplicateOf?: string }>(D.startDelivery(keeperA, head({ note: note.toLowerCase() })));
+    const again = await ok<{ duplicateOf?: string }>(
+      D.startDelivery(keeperA, head({ note: note.toLowerCase() })),
+    );
     expect(again.duplicateOf).toBe(first.id);
     await ok(D.abandonDelivery(keeperA, { deliveryId: first.id, reason: "Wrong hospital" }));
-    expect((await ok<{ duplicateOf?: string }>(D.startDelivery(keeperA, head({ note })))).duplicateOf).toBeUndefined();
+    expect(
+      (await ok<{ duplicateOf?: string }>(D.startDelivery(keeperA, head({ note })))).duplicateOf,
+    ).toBeUndefined();
   });
 
   it("L2 nothing moves until finished; abandoning leaves stock and orders alone", async () => {
@@ -184,7 +220,10 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const again = await ok<{ grn: string; replay: boolean }>(done(id));
     expect(again).toMatchObject({ grn: r.grn, replay: true });
     expect(await hand(m.id)).toBe(before + 40);
-    const put = await pg.query(`SELECT qty FROM public.pharmacy_delivery_put_away WHERE delivery_line_id = $1`, [l.id]);
+    const put = await pg.query(
+      `SELECT qty FROM public.pharmacy_delivery_put_away WHERE delivery_line_id = $1`,
+      [l.id],
+    );
     expect(put.rows).toEqual([{ qty: 40 }]);
   });
 
@@ -195,7 +234,10 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const id = await started([l]);
     expect(pending.packs).toBe("");
     await ok(done(id));
-    const rows = await pg.query(`SELECT 1 FROM public.pharmacy_delivery_lines WHERE delivery_id = $1`, [id]);
+    const rows = await pg.query(
+      `SELECT 1 FROM public.pharmacy_delivery_lines WHERE delivery_id = $1`,
+      [id],
+    );
     expect(rows.rows).toHaveLength(1);
   });
 
@@ -204,7 +246,9 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const a = await started([]);
     await ok(D.scanPack(keeperA, { deliveryId: a, gtin: g, serial: "SER1" }));
     const b = await started([]);
-    expect(await refusal(D.scanPack(keeperA, { deliveryId: b, gtin: g, serial: "SER1" }))).toMatch(/already scanned \(serial SER1/);
+    expect(await refusal(D.scanPack(keeperA, { deliveryId: b, gtin: g, serial: "SER1" }))).toMatch(
+      /already scanned \(serial SER1/,
+    );
     await ok(D.abandonDelivery(keeperA, { deliveryId: a, reason: "Wrong note" }));
     await ok(D.scanPack(keeperA, { deliveryId: b, gtin: g, serial: "SER1" }));
   });
@@ -215,7 +259,15 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const l = docLine(m, { batch: rc.batch });
     const id = await started([l]);
     expect(await refusal(done(id))).toMatch(/is on recall/);
-    await ok(D.saveLines(keeperA, { deliveryId: id, lines: [saved({ ...l, rejOn: true, rejPacks: "3", rejWhy: "recall", rejFate: "quarantine" })], removed: [] }));
+    await ok(
+      D.saveLines(keeperA, {
+        deliveryId: id,
+        lines: [
+          saved({ ...l, rejOn: true, rejPacks: "3", rejWhy: "recall", rejFate: "quarantine" }),
+        ],
+        removed: [],
+      }),
+    );
     const before = await hand(m.id);
     await ok(done(id));
     expect(await hand(m.id)).toBe(before);
@@ -227,12 +279,22 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const l = docLine(m, { exp: soon, decision: "accept" });
     const id = await started([l]);
     expect(await refusal(done(id))).toMatch(/in-charge's approval/);
-    expect(await refusal(D.approveShortDated(keeperA, { deliveryId: id, lineId: l.id }))).toBeTruthy();
+    expect(
+      await refusal(D.approveShortDated(keeperA, { deliveryId: id, lineId: l.id })),
+    ).toBeTruthy();
     await ok(D.askApproval(keeperA, { deliveryId: id, lineId: l.id }));
     expect((await load()).asks.some((a) => a.lineId === l.id)).toBe(true);
     await ok(D.approveShortDated(bossA, { deliveryId: id, lineId: l.id }));
     // A changed expiry loses the approval.
-    await ok(D.saveLines(keeperA, { deliveryId: id, lines: [saved({ ...l, exp: new Date(Date.now() + 40 * 86_400_000).toISOString().slice(0, 10) })], removed: [] }));
+    await ok(
+      D.saveLines(keeperA, {
+        deliveryId: id,
+        lines: [
+          saved({ ...l, exp: new Date(Date.now() + 40 * 86_400_000).toISOString().slice(0, 10) }),
+        ],
+        removed: [],
+      }),
+    );
     expect(await refusal(done(id))).toMatch(/in-charge's approval/);
     await ok(D.approveShortDated(bossA, { deliveryId: id, lineId: l.id }));
     await ok(done(id));
@@ -253,9 +315,21 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const l = docLine(m, { temp: "5" });
     const id = await started([l]);
     expect(await refusal(done(id))).toMatch(/VVM/);
-    await ok(D.saveLines(keeperA, { deliveryId: id, lines: [saved({ ...l, vvm: "3", freeze: "ok" })], removed: [] }));
+    await ok(
+      D.saveLines(keeperA, {
+        deliveryId: id,
+        lines: [saved({ ...l, vvm: "3", freeze: "ok" })],
+        removed: [],
+      }),
+    );
     expect(await refusal(done(id))).toMatch(/discard point/);
-    await ok(D.saveLines(keeperA, { deliveryId: id, lines: [saved({ ...l, vvm: "2", freeze: "ok" })], removed: [] }));
+    await ok(
+      D.saveLines(keeperA, {
+        deliveryId: id,
+        lines: [saved({ ...l, vvm: "2", freeze: "ok" })],
+        removed: [],
+      }),
+    );
     await ok(done(id));
   });
 
@@ -266,8 +340,14 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const other = docLine(m, { no: 2 });
     const id = await started([coldLine, other]);
     await ok(done(id));
-    expect(await refusal(A.putAwayLine(keeperA, { clientKey: randomUUID(), lineId: other.id, shelf: "b-01" }))).toMatch(/Cold-chain first/);
-    await ok(A.putAwayLine(keeperA, { clientKey: randomUUID(), lineId: coldLine.id, shelf: "cr-01" }));
+    expect(
+      await refusal(
+        A.putAwayLine(keeperA, { clientKey: randomUUID(), lineId: other.id, shelf: "b-01" }),
+      ),
+    ).toMatch(/Cold-chain first/);
+    await ok(
+      A.putAwayLine(keeperA, { clientKey: randomUUID(), lineId: coldLine.id, shelf: "cr-01" }),
+    );
     // 0275's guard is store-wide: the seed's other cold batches go first too.
     const waiting = await pg.query<{ id: string }>(
       `SELECT b.id FROM public.pharmacy_batches b JOIN public.pharmacy_products p ON p.id = b.product_id JOIN public.pharmacy_locations l ON l.id = b.location_id
@@ -276,12 +356,21 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
       [h],
     );
     for (const b of waiting.rows)
-      await pg.query(`INSERT INTO public.pharmacy_batch_shelves (hospital_id, batch_id, shelf, actor_id) VALUES ($1, $2, 'CR-01', $3)`, [h, b.id, keeper]);
+      await pg.query(
+        `INSERT INTO public.pharmacy_batch_shelves (hospital_id, batch_id, shelf, actor_id) VALUES ($1, $2, 'CR-01', $3)`,
+        [h, b.id, keeper],
+      );
     await ok(A.putAwayLine(keeperA, { clientKey: randomUUID(), lineId: other.id, shelf: "b-01" }));
-    const d = await pg.query<{ shelved_at: string | null }>(`SELECT shelved_at FROM public.pharmacy_deliveries WHERE id = $1`, [id]);
+    const d = await pg.query<{ shelved_at: string | null }>(
+      `SELECT shelved_at FROM public.pharmacy_deliveries WHERE id = $1`,
+      [id],
+    );
     expect(d.rows[0]!.shelved_at).not.toBeNull();
     await ok(A.undoPutAwayLine(keeperA, { clientKey: randomUUID(), lineId: other.id }));
-    const u = await pg.query<{ shelved_at: string | null }>(`SELECT shelved_at FROM public.pharmacy_deliveries WHERE id = $1`, [id]);
+    const u = await pg.query<{ shelved_at: string | null }>(
+      `SELECT shelved_at FROM public.pharmacy_deliveries WHERE id = $1`,
+      [id],
+    );
     expect(u.rows[0]!.shelved_at).toBeNull();
   });
 
@@ -294,7 +383,9 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     expect(r.claim.ref).toMatch(/^CLM-/);
     const c = (await load()).claims.find((x) => x.deliveryId === id)!;
     expect(c.state).toBe("draft");
-    expect(c.lines.map((l) => l.kind)).toEqual(expect.arrayContaining(["Short on the note", "Charged above the order price"]));
+    expect(c.lines.map((l) => l.kind)).toEqual(
+      expect.arrayContaining(["Short on the note", "Charged above the order price"]),
+    );
     expect(await refusal(A.creditClaim(keeperA, { claimId: c.id, creditNote: "" }))).toBeTruthy();
     await ok(A.sendClaim(keeperA, { claimId: c.id }));
     await ok(A.creditClaim(keeperA, { claimId: c.id, creditNote: "CN-9" }));
@@ -309,7 +400,14 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const id = await started([big]);
     expect(await refusal(done(id))).toMatch(/who checked the count/);
     await ok(done(id, { secondAttestationId: await witnessBy(boss) }));
-    expect(((await pg.query<{ second_checker_id: string }>(`SELECT second_checker_id FROM public.pharmacy_deliveries WHERE id = $1`, [id])).rows[0]!).second_checker_id).toBe(boss);
+    expect(
+      (
+        await pg.query<{ second_checker_id: string }>(
+          `SELECT second_checker_id FROM public.pharmacy_deliveries WHERE id = $1`,
+          [id],
+        )
+      ).rows[0]!.second_checker_id,
+    ).toBe(boss);
 
     const cd = med((x) => x.controlled);
     const l = docLine(cd);
@@ -322,10 +420,23 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const o = w.orders.find((x) => x.state === "part")!;
     const line = o.lines.find((l) => l.received > 0)!;
     const m = med((x) => x.id === line.medId);
-    const names = o.lines.map((l) => ({ id: l.id, productId: l.medId, name: "x", packs: l.packs, price: l.price, per: 100 }));
-    const below = names.map((l) => (l.id === line.id ? { ...l, packs: line.received - 1, name: "Amoxicillin" } : l));
-    expect(await refusal(A.editOrder(keeperA, { orderId: o.id, lines: below, removed: [] }))).toMatch(/can't be less than the 25 packs/);
-    expect(await refusal(A.editOrder(keeperA, { orderId: o.id, lines: [], removed: [] }))).toBeTruthy();
+    const names = o.lines.map((l) => ({
+      id: l.id,
+      productId: l.medId,
+      name: "x",
+      packs: l.packs,
+      price: l.price,
+      per: 100,
+    }));
+    const below = names.map((l) =>
+      l.id === line.id ? { ...l, packs: line.received - 1, name: "Amoxicillin" } : l,
+    );
+    expect(
+      await refusal(A.editOrder(keeperA, { orderId: o.id, lines: below, removed: [] })),
+    ).toMatch(/can't be less than the 25 packs/);
+    expect(
+      await refusal(A.editOrder(keeperA, { orderId: o.id, lines: [], removed: [] })),
+    ).toBeTruthy();
     const higher = names.map((l) => (l.id === line.id ? { ...l, packs: line.packs + 5 } : l));
     await ok(A.editOrder(keeperA, { orderId: o.id, lines: higher, removed: [] }));
     const edited = (await load()).orders.find((x) => x.id === o.id)!;
@@ -335,15 +446,28 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
   });
 
   it("L11 receiving an order fills its lines and closes it", async () => {
-    const o = w.orders.find((x) => x.state === "sent" && x.lines.every((l) => !med((m) => m.id === l.medId).cold))!;
+    const o = w.orders.find(
+      (x) => x.state === "sent" && x.lines.every((l) => !med((m) => m.id === l.medId).cold),
+    )!;
     const hd = head({ orderId: o.id, supplierId: o.supplierId });
     await ok(D.startDelivery(keeperA, hd));
     const lines = (await load()).deliveries.find((d) => d.id === hd.id)!.lines;
     expect(lines.map((l) => l.orderLineId).sort()).toEqual(o.lines.map((l) => l.id).sort());
-    const all = lines.map((l) => saved({ ...l, packs: String(o.lines.find((x) => x.id === l.orderLineId)!.packs), batch: `R${l.no}`, exp: "2031-01", cost: "100" }));
+    const all = lines.map((l) =>
+      saved({
+        ...l,
+        packs: String(o.lines.find((x) => x.id === l.orderLineId)!.packs),
+        batch: `R${l.no}`,
+        exp: "2031-01",
+        cost: "100",
+      }),
+    );
     await ok(D.saveLines(keeperA, { deliveryId: hd.id, lines: all, removed: [] }));
     await ok(done(hd.id));
-    const row = await pg.query<{ state: string }>(`SELECT state FROM public.pharmacy_orders WHERE id = $1`, [o.id]);
+    const row = await pg.query<{ state: string }>(
+      `SELECT state FROM public.pharmacy_orders WHERE id = $1`,
+      [o.id],
+    );
     expect(row.rows[0]!.state).toBe("closed");
   });
 
@@ -357,8 +481,13 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     const m = med((x) => !x.gtin);
     const r = await ok<{ gtin: string }>(A.assignInHouseCode(keeperA, { productId: m.id }));
     expect(r.gtin).toMatch(/^0200\d{10}$/);
-    expect((await ok<{ gtin: string }>(A.assignInHouseCode(keeperA, { productId: m.id }))).gtin).toBe(r.gtin);
-    expect((await load()).meds.find((x) => x.id === m.id)).toMatchObject({ gtin: r.gtin, ownCode: true });
+    expect(
+      (await ok<{ gtin: string }>(A.assignInHouseCode(keeperA, { productId: m.id }))).gtin,
+    ).toBe(r.gtin);
+    expect((await load()).meds.find((x) => x.id === m.id)).toMatchObject({
+      gtin: r.gtin,
+      ownCode: true,
+    });
   });
 
   it("L14 replaying a device's delivery commits once; a refused one stays uncommitted", async () => {
@@ -374,25 +503,48 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     expect(await hand(m.id)).toBe(before + 20);
     const rc = w.recalls[0]!;
     const blocked = head();
-    await ok(D.syncCounting(keeperA, { head: blocked, lines: [saved(docLine(med((x) => x.id === rc.medId), { batch: rc.batch }))] }));
+    await ok(
+      D.syncCounting(keeperA, {
+        head: blocked,
+        lines: [
+          saved(
+            docLine(
+              med((x) => x.id === rc.medId),
+              { batch: rc.batch },
+            ),
+          ),
+        ],
+      }),
+    );
     expect(await refusal(done(blocked.id))).toMatch(/is on recall/);
-    const st = await pg.query<{ state: string }>(`SELECT state FROM public.pharmacy_deliveries WHERE id = $1`, [blocked.id]);
+    const st = await pg.query<{ state: string }>(
+      `SELECT state FROM public.pharmacy_deliveries WHERE id = $1`,
+      [blocked.id],
+    );
     expect(st.rows[0]!.state).toBe("counting");
   });
 
   it("L16 the figures match SQL on the seed", async () => {
     const world = await load();
     const f = figures(world.figureRows, world.claims, world.rules);
-    const rows = await pg.query<{ m: number }>(`
+    const rows = await pg.query<{ m: number }>(
+      `
       WITH last AS (SELECT round(extract(epoch FROM date_trunc('minute', finished_at) - date_trunc('minute', arrived_at)) / 60)::int AS m, finished_at
         FROM public.pharmacy_deliveries WHERE hospital_id = $1 AND location_id = $2 AND state = 'received' AND kind = 'supplier' ORDER BY finished_at DESC LIMIT 8)
-      SELECT m FROM last ORDER BY m`, [h, world.placeId]);
+      SELECT m FROM last ORDER BY m`,
+      [h, world.placeId],
+    );
     const median = rows.rows[Math.floor((rows.rows.length - 1) / 2)]!.m;
     expect(f[0]!.chart!.bars).toHaveLength(8);
     const hours = Math.floor(median / 60);
-    expect(f[0]!.value).toBe(hours ? `${hours} h${median % 60 ? ` ${median % 60} min` : ""}` : `${median} min`);
+    expect(f[0]!.value).toBe(
+      hours ? `${hours} h${median % 60 ? ` ${median % 60} min` : ""}` : `${median} min`,
+    );
     expect(f[0]!.onTarget).toBe(median <= world.rules.targetStock);
-    const open = await pg.query<{ t: string }>(`SELECT coalesce(sum(total), 0) AS t FROM public.pharmacy_supplier_claims WHERE hospital_id = $1 AND state <> 'credit'`, [h]);
+    const open = await pg.query<{ t: string }>(
+      `SELECT coalesce(sum(total), 0) AS t FROM public.pharmacy_supplier_claims WHERE hospital_id = $1 AND state <> 'credit'`,
+      [h],
+    );
     expect(f[3]!.value).toBe(`UGX ${Number(open.rows[0]!.t).toLocaleString("en-GB")}`);
   });
 
@@ -411,7 +563,14 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
       await pg.query<{ id: string }>(
         `INSERT INTO public.pharmacy_products (hospital_id, medicine_id, name, issue_unit, created_by, supply_item_id${keys.map((k) => `, ${k}`).join("")})
          VALUES ($1,$2,$3,'piece',$4,$5${keys.map((_, i) => `, $${i + 6}`).join("")}) RETURNING id`,
-        [h, `cat_sup_${randomUUID().replaceAll("-", "_")}`, name, boss, si, ...Object.values(flags)],
+        [
+          h,
+          `cat_sup_${randomUUID().replaceAll("-", "_")}`,
+          name,
+          boss,
+          si,
+          ...Object.values(flags),
+        ],
       )
     ).rows[0]!.id;
     return (await load()).meds.find((m) => m.id === id)!;
@@ -442,7 +601,14 @@ describe.skipIf(!laneOn)("Receive actions (0276)", () => {
     expect(await refusal(done(id))).toMatch(/confirm the test kits/);
     await resave(id, { ...l, kitTemp: "hot" });
     expect(await refusal(done(id))).toMatch(/kept above/);
-    await resave(id, { ...l, kitTemp: "hot", rejOn: true, rejPacks: "2", rejWhy: "other", rejFate: "quarantine" });
+    await resave(id, {
+      ...l,
+      kitTemp: "hot",
+      rejOn: true,
+      rejPacks: "2",
+      rejWhy: "other",
+      rejFate: "quarantine",
+    });
     await ok(done(id));
   });
 

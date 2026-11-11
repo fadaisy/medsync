@@ -1,11 +1,11 @@
 import type { ConfigDraftRow } from "@/lib/lab/setup-hub";
 
+import { EmptyState, Panel, Pill } from "@/components/tide/work/kit";
+import { PrimaryLink, SecondaryLink } from "@/components/tide/work/space";
 import { fill } from "@/content/lab-workspace-v2";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { keyWords, kindWords, secondWords, signHref } from "@/lib/lab/setup-hub";
 import { cn } from "@/lib/utils";
-import { EmptyState, Panel, Pill } from "@/components/tide/work/kit";
-import { PrimaryLink, SecondaryLink } from "@/components/tide/work/space";
 import { dateWords } from "../../_lib/days";
 
 const Q = LABWS2_SETUP.queue;

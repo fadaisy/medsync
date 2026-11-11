@@ -6,7 +6,13 @@ import { useMemo, useState } from "react";
 import { LabButton } from "@/components/tide/work/button";
 import { EmptyState, Panel, Pill } from "@/components/tide/work/kit";
 import { RC, RULES } from "@/content/pharmacy-rework-records";
-import { AUDIT_CATS, canCorrect, filterEvents, personView, whoDidWhat } from "@/lib/pharmacy/audit/derive";
+import {
+  AUDIT_CATS,
+  canCorrect,
+  filterEvents,
+  personView,
+  whoDidWhat,
+} from "@/lib/pharmacy/audit/derive";
 import { cn } from "@/lib/utils";
 import { CorrectDialog } from "./correct-dialog";
 
@@ -25,7 +31,8 @@ export function actionWords(key: string): string {
   const [k, a, b] = key.split(":");
   if (k === "kind") return RC.kinds[a!] ?? a!;
   if (a === "pharmacy_case_events" && b) return RC.caseEvents[b] ?? RC.sources[a]!;
-  if (a === "pharmacy_risk_actions" && b) return RC.losses.actions[b as keyof typeof RC.losses.actions] ?? RC.sources[a]!;
+  if (a === "pharmacy_risk_actions" && b)
+    return RC.losses.actions[b as keyof typeof RC.losses.actions] ?? RC.sources[a]!;
   return RC.sources[a!] ?? a!;
 }
 const reasonWords = (r: string | null) =>
@@ -55,7 +62,10 @@ export function AuditView({
   const [flagged, setFlagged] = useState(false);
   const [shown, setShown] = useState<number>(RULES.auditFirst);
   const [fix, setFix] = useState<AuditMovement | null>(null);
-  const list = useMemo(() => filterEvents(events, { cat, who, flagged }), [events, cat, who, flagged]);
+  const list = useMemo(
+    () => filterEvents(events, { cat, who, flagged }),
+    [events, cat, who, flagged],
+  );
   const top = useMemo(() => whoDidWhat(events), [events]);
   const person = who ? personView(events, who) : null;
   const people = useMemo(
@@ -92,7 +102,12 @@ export function AuditView({
             </option>
           ))}
         </select>
-        <button type="button" aria-pressed={flagged} onClick={() => setFlagged(!flagged)} className={chip(flagged)}>
+        <button
+          type="button"
+          aria-pressed={flagged}
+          onClick={() => setFlagged(!flagged)}
+          className={chip(flagged)}
+        >
           {A.flagged}
         </button>
       </div>
@@ -117,13 +132,21 @@ export function AuditView({
             ).map(([n, k, warn]) => (
               <div key={k} className="flex flex-col">
                 <dd className="text-heading-s tabular-nums">{n}</dd>
-                <dt className={cn("text-caption", warn ? "text-amber-800" : "text-muted-foreground")}>{k}</dt>
+                <dt
+                  className={cn("text-caption", warn ? "text-amber-800" : "text-muted-foreground")}
+                >
+                  {k}
+                </dt>
               </div>
             ))}
           </dl>
           <ul className="flex flex-col gap-1.5">
             {person.byCat.map((x) => (
-              <li key={x.k} title={`${RC.cats[x.k]}: ${x.v}`} className="grid grid-cols-[minmax(0,9rem)_1fr_3rem] items-center gap-2">
+              <li
+                key={x.k}
+                title={`${RC.cats[x.k]}: ${x.v}`}
+                className="grid grid-cols-[minmax(0,9rem)_1fr_3rem] items-center gap-2"
+              >
                 <span className="text-caption text-ink-700 truncate">{RC.cats[x.k]}</span>
                 <span className="bg-tide-sunken h-2 overflow-hidden rounded-full">
                   <span
@@ -142,24 +165,52 @@ export function AuditView({
             <table className="text-body-s w-full">
               <thead className="text-muted-foreground text-left">
                 <tr>
-                  <th scope="col" className="py-1.5 pr-3 font-medium">{A.whoCols.person}</th>
-                  <th scope="col" className="py-1.5 pr-3 text-right font-medium">{A.whoCols.actions}</th>
-                  <th scope="col" className="py-1.5 pr-3 text-right font-medium">{A.whoCols.late}</th>
-                  <th scope="col" className="py-1.5 pr-3 text-right font-medium">{A.whoCols.noWitness}</th>
-                  <th scope="col" className="py-1.5 text-right font-medium">{A.whoCols.corrections}</th>
+                  <th scope="col" className="py-1.5 pr-3 font-medium">
+                    {A.whoCols.person}
+                  </th>
+                  <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                    {A.whoCols.actions}
+                  </th>
+                  <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                    {A.whoCols.late}
+                  </th>
+                  <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                    {A.whoCols.noWitness}
+                  </th>
+                  <th scope="col" className="py-1.5 text-right font-medium">
+                    {A.whoCols.corrections}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-border divide-y">
                 {top.map((t) => (
                   <tr key={t.who}>
                     <td className="py-1.5 pr-3">
-                      <button type="button" onClick={() => setWho(t.who)} className="min-h-9 text-left font-semibold hover:underline">
+                      <button
+                        type="button"
+                        onClick={() => setWho(t.who)}
+                        className="min-h-9 text-left font-semibold hover:underline"
+                      >
                         {t.who}
                       </button>
                     </td>
                     <td className="py-1.5 pr-3 text-right tabular-nums">{t.n}</td>
-                    <td className={cn("py-1.5 pr-3 text-right tabular-nums", t.late && "text-amber-800")}>{t.late}</td>
-                    <td className={cn("py-1.5 pr-3 text-right tabular-nums", t.noWitness && "text-amber-800")}>{t.noWitness}</td>
+                    <td
+                      className={cn(
+                        "py-1.5 pr-3 text-right tabular-nums",
+                        t.late && "text-amber-800",
+                      )}
+                    >
+                      {t.late}
+                    </td>
+                    <td
+                      className={cn(
+                        "py-1.5 pr-3 text-right tabular-nums",
+                        t.noWitness && "text-amber-800",
+                      )}
+                    >
+                      {t.noWitness}
+                    </td>
                     <td className="py-1.5 text-right tabular-nums">{t.corrections}</td>
                   </tr>
                 ))}
@@ -179,7 +230,11 @@ export function AuditView({
                 key={e.key}
                 e={e}
                 onWho={setWho}
-                onFix={e.move && canCorrect(e.move, { userId: me, inCharge }) ? () => setFix(e.move) : null}
+                onFix={
+                  e.move && canCorrect(e.move, { userId: me, inCharge })
+                    ? () => setFix(e.move)
+                    : null
+                }
               />
             ))}
           </ul>
@@ -197,7 +252,15 @@ export function AuditView({
 }
 
 /** One entry: a grid row on wide screens, stacked under 640 px. A corrected line is struck through. */
-function Entry({ e, onWho, onFix }: { e: AuditEvent; onWho: (w: string) => void; onFix: (() => void) | null }) {
+function Entry({
+  e,
+  onWho,
+  onFix,
+}: {
+  e: AuditEvent;
+  onWho: (w: string) => void;
+  onFix: (() => void) | null;
+}) {
   const m = e.move;
   return (
     <li className="grid gap-x-3 gap-y-1 py-2 sm:grid-cols-[8.5rem_9rem_minmax(0,1fr)_auto] sm:items-start">
@@ -224,10 +287,16 @@ function Entry({ e, onWho, onFix }: { e: AuditEvent; onWho: (w: string) => void;
             {RC.tags[t]}
           </Pill>
         ))}
-        <span className={cn("text-ink-700 block break-words", m?.correctedAt && "line-through")}>{e.detail}</span>
+        <span className={cn("text-ink-700 block break-words", m?.correctedAt && "line-through")}>
+          {e.detail}
+        </span>
         {m?.correctedAt ? (
           <span className="text-caption text-ink-700 block">
-            {A.corrected(fmt(m.correctedAt), m.correctedBy ?? "", reasonWords(m.correctedWhy).toLowerCase())}
+            {A.corrected(
+              fmt(m.correctedAt),
+              m.correctedBy ?? "",
+              reasonWords(m.correctedWhy).toLowerCase(),
+            )}
           </span>
         ) : null}
         {e.witness ? (

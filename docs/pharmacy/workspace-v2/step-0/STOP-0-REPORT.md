@@ -28,21 +28,21 @@ The old interface has 40 route pages under `app/pharmacy`, listed in `inventory-
 
 ## Where the boards and the repo disagree (resolved in GATE A §1)
 
-| Board says | Repo has | Resolution |
-| --- | --- | --- |
-| "updates live" (Today, Window) | No pharmacy realtime channel. The queue ticks a clock and has a refresh button | The words say "As of {time}", with a refresh link. A live channel is out of scope (a new subscription is not interface-only) |
-| Points table state "Downtime" | No "in downtime" state. Downtime periods are recorded only after they end | The states are Live, Not live and Switched off |
-| Shelf › Counts tab | No list of counts. The stock page has a "Not counted" tab and `lastCounted` | No Counts tab. The stock page's "Not counted" filter stays as a chip on Shelf › Stock |
-| Emergency doses: "15 matched, 3 without a prescription" | No matching of resus doses to prescriptions | The card shows the doses list only. Matching would be a clinical rule, so it needs a CSO decision first |
-| Shelf strip "Cold chain 2 fridges" | No temperature logging | Dropped |
-| Clinical › Interventions "Record one" | No manual intervention writer. An intervention is a query | "Record one" is dropped. The card shows the existing report, and queries are sent from the prescription |
-| Clinical › Reconciliation "not started" | Only opened reconciliations exist | The card counts open and reopened ones. "Not started" is dropped |
-| Needs you › "queries answered" | An answer moves the line back to "to review". There is no separate stage | Answered queries show in the Window queue's To review group, marked by the existing query state. They are not a separate inbox item |
-| Week bars for Refills | No refill history | No bars, and the words say "No earlier data" |
-| Set-up "sign clinical content" permission | `pharmacy.manage` signs (packs and content); the author may not be the first signer when another holder exists | The coded rule is shown, from `signerRoles` and `signRefusal` |
-| Plum for place | DESIGN (Chroma): Pharmacy and lab share **grape** | Grape (`bg-tide-area-lab`). DESIGN wins |
-| Network routing under Places and suppliers | Not on this branch (Phase 4, `feat/pharmacy-network`) | There is no routing tab here, so the nav gap does not exist on this base |
-| Going live tab | Going live is run from hospital admin, not the pharmacy | A read-only list of point states, with the note that hospital admin switches points on |
+| Board says                                              | Repo has                                                                                                       | Resolution                                                                                                                          |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| "updates live" (Today, Window)                          | No pharmacy realtime channel. The queue ticks a clock and has a refresh button                                 | The words say "As of {time}", with a refresh link. A live channel is out of scope (a new subscription is not interface-only)        |
+| Points table state "Downtime"                           | No "in downtime" state. Downtime periods are recorded only after they end                                      | The states are Live, Not live and Switched off                                                                                      |
+| Shelf › Counts tab                                      | No list of counts. The stock page has a "Not counted" tab and `lastCounted`                                    | No Counts tab. The stock page's "Not counted" filter stays as a chip on Shelf › Stock                                               |
+| Emergency doses: "15 matched, 3 without a prescription" | No matching of resus doses to prescriptions                                                                    | The card shows the doses list only. Matching would be a clinical rule, so it needs a CSO decision first                             |
+| Shelf strip "Cold chain 2 fridges"                      | No temperature logging                                                                                         | Dropped                                                                                                                             |
+| Clinical › Interventions "Record one"                   | No manual intervention writer. An intervention is a query                                                      | "Record one" is dropped. The card shows the existing report, and queries are sent from the prescription                             |
+| Clinical › Reconciliation "not started"                 | Only opened reconciliations exist                                                                              | The card counts open and reopened ones. "Not started" is dropped                                                                    |
+| Needs you › "queries answered"                          | An answer moves the line back to "to review". There is no separate stage                                       | Answered queries show in the Window queue's To review group, marked by the existing query state. They are not a separate inbox item |
+| Week bars for Refills                                   | No refill history                                                                                              | No bars, and the words say "No earlier data"                                                                                        |
+| Set-up "sign clinical content" permission               | `pharmacy.manage` signs (packs and content); the author may not be the first signer when another holder exists | The coded rule is shown, from `signerRoles` and `signRefusal`                                                                       |
+| Plum for place                                          | DESIGN (Chroma): Pharmacy and lab share **grape**                                                              | Grape (`bg-tide-area-lab`). DESIGN wins                                                                                             |
+| Network routing under Places and suppliers              | Not on this branch (Phase 4, `feat/pharmacy-network`)                                                          | There is no routing tab here, so the nav gap does not exist on this base                                                            |
+| Going live tab                                          | Going live is run from hospital admin, not the pharmacy                                                        | A read-only list of point states, with the note that hospital admin switches points on                                              |
 
 ## Timed baselines and screenshots (Q4/Q5)
 

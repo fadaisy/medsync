@@ -14,7 +14,6 @@ import { getLookBack, getSupplied } from "@/lib/pharmacy/supply/read";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { Supplied } from "./_components/supplied";
 
-
 /**
  * Supplied today and the look-back tab (5.7, wireframe §7.2). Every hand-over at the acting point on one
  * hospital-local day, newest first; `?day=YYYY-MM-DD` reads an earlier day (for Correct the record,

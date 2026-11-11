@@ -1,6 +1,6 @@
 import type { EmrDb } from "@/lib/emr/db";
-import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { env } from "@/lib/env";
@@ -20,10 +20,20 @@ export const maxDuration = 60;
 export async function GET(request: Request) {
   const auth = request.headers.get("authorization") ?? "";
   const supplied = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
-  if (!env.CRON_SECRET) return NextResponse.json({ error: "CRON_SECRET not configured on the server." }, { status: 503 });
-  if (!supplied || supplied !== env.CRON_SECRET) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!env.CRON_SECRET)
+    return NextResponse.json(
+      { error: "CRON_SECRET not configured on the server." },
+      { status: 503 },
+    );
+  if (!supplied || supplied !== env.CRON_SECRET)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const conn = db as unknown as EmrDb;
-  const hospitals = (await q<{ id: string }>(conn, sql`SELECT DISTINCT hospital_id AS id FROM public.pharmacy_locations`))
+  const hospitals = (
+    await q<{ id: string }>(
+      conn,
+      sql`SELECT DISTINCT hospital_id AS id FROM public.pharmacy_locations`,
+    )
+  )
     .map((h) => h.id)
     .filter((h) => pharmacyTiersFor(h).core);
   const sender = smsSender();
@@ -32,7 +42,10 @@ export async function GET(request: Request) {
     try {
       out.push({ hospital: h, ...(await runDaily(conn, h, sender)) });
     } catch (e) {
-      logger.error("cron.pharmacy-sms.failed", { hospital: h, error: e instanceof Error ? e.name : "unknown" });
+      logger.error("cron.pharmacy-sms.failed", {
+        hospital: h,
+        error: e instanceof Error ? e.name : "unknown",
+      });
     }
   return NextResponse.json({ ok: true, connected: !!sender, hospitals: out });
 }

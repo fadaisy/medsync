@@ -3,7 +3,15 @@
 import type { Journey } from "@/lib/pharmacy/wards/derive";
 import { useState } from "react";
 
-import { ActionDialog, Chip, Chips, Field, inputCls, Stepper, useClientKey } from "@/app/pharmacy/patients/_components/kit";
+import {
+  ActionDialog,
+  Chip,
+  Chips,
+  Field,
+  inputCls,
+  Stepper,
+  useClientKey,
+} from "@/app/pharmacy/patients/_components/kit";
 import { wardNoteAction, wardPickAction } from "@/app/pharmacy/patients/actions";
 import { LabButton } from "@/components/tide/work/button";
 import { Pill } from "@/components/tide/work/kit";
@@ -19,7 +27,17 @@ export interface Source {
 }
 
 /** Track one medicine: prescribed → picked → received → given, and what should still be on the ward. */
-export function TrackButton({ drug, j, wardHas, picks }: { drug: string; j: Journey; wardHas: number; picks: string[] }) {
+export function TrackButton({
+  drug,
+  j,
+  wardHas,
+  picks,
+}: {
+  drug: string;
+  j: Journey;
+  wardHas: number;
+  picks: string[];
+}) {
   const [open, setOpen] = useState(false);
   const gap = j.left - wardHas;
   const row = (label: string, v: number | string) => (
@@ -51,7 +69,9 @@ export function TrackButton({ drug, j, wardHas, picks }: { drug: string; j: Jour
           </li>
           <li>
             {j.given ? "✓" : "○"} {I.steps.given} ·{" "}
-            {j.total ? fill(I.givenOf, { n: j.given, total: j.total }) : fill(I.givenCount, { n: j.given })}
+            {j.total
+              ? fill(I.givenOf, { n: j.given, total: j.total })
+              : fill(I.givenCount, { n: j.given })}
           </li>
         </ol>
         <dl className="divide-border text-body-s divide-y">
@@ -101,7 +121,15 @@ export function PickButton({
         submit={I.pickSend}
         blocked={!sources.length ? I.noSource : !from ? I.from : !qty ? I.quantity : null}
         foot={I.dosesNote}
-        run={() => wardPickAction({ clientKey: key, wardId, fromId: from, windowH: null, lines: [{ rxId, quantity: qty }] })}
+        run={() =>
+          wardPickAction({
+            clientKey: key,
+            wardId,
+            fromId: from,
+            windowH: null,
+            lines: [{ rxId, quantity: qty }],
+          })
+        }
       >
         {sources.length ? (
           <Field label={I.from}>
@@ -210,15 +238,28 @@ export function RoundList({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-body-s tabular-nums">{fill(R.progress, { n: ticked.size, total: toPick.length })}</span>
-        <LabButton variant="text" size="sm" onClick={() => setTicked(new Set(toPick.map((l) => l.medicineId)))}>
+        <span className="text-body-s tabular-nums">
+          {fill(R.progress, { n: ticked.size, total: toPick.length })}
+        </span>
+        <LabButton
+          variant="text"
+          size="sm"
+          onClick={() => setTicked(new Set(toPick.map((l) => l.medicineId)))}
+        >
           {R.tickAll}
         </LabButton>
-        <LabButton variant="secondary" size="sm" className="print:hidden" onClick={() => window.print()}>
+        <LabButton
+          variant="secondary"
+          size="sm"
+          className="print:hidden"
+          onClick={() => window.print()}
+        >
           {R.print}
         </LabButton>
       </div>
-      {short.length ? <Pill tone="caution">{fill(R.short, { place: fromName, meds: short.join(", ") })}</Pill> : null}
+      {short.length ? (
+        <Pill tone="caution">{fill(R.short, { place: fromName, meds: short.join(", ") })}</Pill>
+      ) : null}
       <table className="hidden w-full text-[13.5px] sm:table">
         <thead className="text-muted-foreground text-left text-[12.5px]">
           <tr>
@@ -235,10 +276,16 @@ export function RoundList({
           {toPick.map((l) => (
             <tr key={l.medicineId}>
               <td className="py-1">
-                <Tick on={ticked.has(l.medicineId)} label={fill(R.tick, { med: l.drug })} onClick={() => setTicked(flip(ticked, l.medicineId))} />
+                <Tick
+                  on={ticked.has(l.medicineId)}
+                  label={fill(R.tick, { med: l.drug })}
+                  onClick={() => setTicked(flip(ticked, l.medicineId))}
+                />
               </td>
               <td className="py-2 font-medium">{l.drug}</td>
-              <td className="text-body-s py-2">{l.pts.map((p) => `${p.who} × ${p.n}`).join(" · ")}</td>
+              <td className="text-body-s py-2">
+                {l.pts.map((p) => `${p.who} × ${p.n}`).join(" · ")}
+              </td>
               <td className="py-2 text-right tabular-nums">{l.need}</td>
               <td className="py-2 text-right tabular-nums">{l.have}</td>
               <td className="py-2 text-right font-semibold tabular-nums">{l.pick}</td>
@@ -250,12 +297,18 @@ export function RoundList({
       <ul className="divide-border flex flex-col divide-y sm:hidden">
         {toPick.map((l) => (
           <li key={l.medicineId} className="flex items-start gap-2 py-2">
-            <Tick on={ticked.has(l.medicineId)} label={fill(R.tick, { med: l.drug })} onClick={() => setTicked(flip(ticked, l.medicineId))} />
+            <Tick
+              on={ticked.has(l.medicineId)}
+              label={fill(R.tick, { med: l.drug })}
+              onClick={() => setTicked(flip(ticked, l.medicineId))}
+            />
             <div className="flex flex-col">
               <span className="font-medium">
                 {l.drug} · {R.toPick} {l.pick}
               </span>
-              <span className="text-body-s text-muted-foreground">{l.pts.map((p) => `${p.who} × ${p.n}`).join(" · ")}</span>
+              <span className="text-body-s text-muted-foreground">
+                {l.pts.map((p) => `${p.who} × ${p.n}`).join(" · ")}
+              </span>
               <span className="text-caption text-muted-foreground tabular-nums">
                 {R.needed} {l.need} · {R.onWard} {l.have} · {R.place} {l.placeHas}
               </span>

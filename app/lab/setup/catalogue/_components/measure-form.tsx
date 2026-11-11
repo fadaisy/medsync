@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { saveMeasureAction } from "@/lib/lab/measures-actions";
 import { METHOD_WORDS } from "../_lib/methods";
-import { LabButton } from "@/components/tide/work/button";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 
 const selectClass =

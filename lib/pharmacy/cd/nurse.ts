@@ -19,15 +19,22 @@ import { databaseRefusal } from "@/lib/pharmacy/write";
  * permission: the right is the ward assignment (`ward_read`) at that place, checked in the one transaction. The
  * witness rules (on duty, unused, under 10 minutes, not oneself) are the database's (0265).
  */
-export async function nurseRecordDose(who: { userId: string; hospitalId: string }, raw: unknown): Promise<Result> {
+export async function nurseRecordDose(
+  who: { userId: string; hospitalId: string },
+  raw: unknown,
+): Promise<Result> {
   const parsed = DoseInput.safeParse(raw);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? CTL.common.failed };
+  if (!parsed.success)
+    return { ok: false, error: parsed.error.issues[0]?.message ?? CTL.common.failed };
   try {
     const r = await asClinicalWriter(who, async (tx) => {
       if (!(await hasLocationRight(tx, who.userId, parsed.data.locationId, "ward_read")))
         throw fail("forbidden", CTL.nurse.noWard);
       try {
-        return await recordDose({ tx, ...who, now: new Date() }, { ...parsed.data, givenByUserId: who.userId });
+        return await recordDose(
+          { tx, ...who, now: new Date() },
+          { ...parsed.data, givenByUserId: who.userId },
+        );
       } catch (e) {
         const words = controlsWords(e);
         if (words) throw fail("conflict", words);
@@ -45,7 +52,12 @@ export async function nurseRecordDose(who: { userId: string; hospitalId: string 
 }
 
 /** The dose dialog's choices: the ward's patients and the prescribers allowed this medicine. */
-export async function nurseDoseContext(d: EmrDb, hospitalId: string, locationId: string, medicineId: string) {
+export async function nurseDoseContext(
+  d: EmrDb,
+  hospitalId: string,
+  locationId: string,
+  medicineId: string,
+) {
   const [patients, prescribers] = await Promise.all([
     wardPatients(d, hospitalId, locationId),
     cdPrescribers(d, hospitalId, medicineId, locationId),

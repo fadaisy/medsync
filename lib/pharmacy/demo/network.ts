@@ -1,8 +1,8 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import type { DemoPatient, DemoState, PointKey } from "./state";
 import type { Admin } from "@/lib/pharmacy/golive/store";
-import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 
 import { asClinicalWriter } from "@/lib/emr/db";
@@ -14,8 +14,20 @@ import * as rf from "@/lib/pharmacy/refill-store";
 import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { addDays } from "@/lib/pharmacy/stores/ledger";
 import * as supply from "@/lib/pharmacy/supply/store";
-import { at, bump, chiefActor, DAY, demoAccount, demoHead, DEMO_DOSE, one, pharmacyActor, q, signSet, write } from "./state";
-
+import {
+  at,
+  bump,
+  chiefActor,
+  DAY,
+  DEMO_DOSE,
+  demoAccount,
+  demoHead,
+  one,
+  pharmacyActor,
+  q,
+  signSet,
+  write,
+} from "./state";
 
 type Six<T> = [T, T, T, T, T, T];
 type Eight<T> = [T, T, T, T, T, T, T, T];
@@ -32,20 +44,39 @@ const SUPPLY = 28; // units per supply, and the days each covers (demo values)
 /** The packs the refills board, the patient's page and the doctor's renewals read. Every number is a demo value. */
 async function packs(s: DemoState) {
   await signSet(s, "repeat_rules", {
-    repeatList: ["amlodipine", "enalapril", "losartan", "hydrochlorothiazide", "atorvastatin", "aspirin", "metformin",
-      "glibenclamide", "tld", "dolutegravir", "co_trimoxazole"],
+    repeatList: [
+      "amlodipine",
+      "enalapril",
+      "losartan",
+      "hydrochlorothiazide",
+      "atorvastatin",
+      "aspirin",
+      "metformin",
+      "glibenclamide",
+      "tld",
+      "dolutegravir",
+      "co_trimoxazole",
+    ],
     neverRepeat: [],
     maxSupplies: 5,
     maxPeriodDays: 365,
     minIntervalDays: 14,
     toleranceDays: 2,
   });
-  await signSet(s, "hold_rules", { holdDays: 7, extensions: 1, holdLongerMaxDays: 21, missThreshold: 2 });
+  await signSet(s, "hold_rules", {
+    holdDays: 7,
+    extensions: 1,
+    holdLongerMaxDays: 21,
+    missThreshold: 2,
+  });
   await signSet(s, "refill_timing", { requestWindowDays: 5, lateWindowDays: 7 });
   await signSet(s, "renewal_decline_reasons", {
     items: [
       { code: "review_visit_needed", words: "Demo reason: the patient needs a review visit first" },
-      { code: "medicine_changed", words: "Demo reason: the medicine was changed at the last visit" },
+      {
+        code: "medicine_changed",
+        words: "Demo reason: the medicine was changed at the last visit",
+      },
       { code: "not_continued", words: "Demo reason: the medicine is not to be continued" },
     ],
   });
@@ -66,18 +97,28 @@ export async function networkSection(s: DemoState): Promise<void> {
   const ncd = s.patients.filter((p) => p.clinic === "ncd");
   const art = s.patients.filter((p) => p.clinic === "art");
   const prescriberOf = (p: DemoPatient) =>
-    p.point === "art" ? { id: s.people.doctors[3]!, cadre: "MEDICAL_OFFICER" } : { id: s.people.doctors[2]!, cadre: "CONSULTANT" };
+    p.point === "art"
+      ? { id: s.people.doctors[3]!, cadre: "MEDICAL_OFFICER" }
+      : { id: s.people.doctors[2]!, cadre: "CONSULTANT" };
   // Who hands over: the ART clinic has its own pharmacist; the NCD clinic pharmacy's pharmacist is the chief.
-  const pharmacist = (k: PointKey) => (k === "art" ? pharmacyActor(s, s.people.pharmacists[5]!, "PHARMACIST", "art") : chiefActor(s, k));
+  const pharmacist = (k: PointKey) =>
+    k === "art"
+      ? pharmacyActor(s, s.people.pharmacists[5]!, "PHARMACIST", "art")
+      : chiefActor(s, k);
   // The cadre's own name, as the pharmacy actor carries it (never a literal title).
   const cadreName = chiefActor(s, null).cadreName;
-  const tech = (k: PointKey) => pharmacyActor(s, s.people.techs[Object.keys(s.points).indexOf(k)]!, "PHARMACY_TECH", k);
+  const tech = (k: PointKey) =>
+    pharmacyActor(s, s.people.techs[Object.keys(s.points).indexOf(k)]!, "PHARMACY_TECH", k);
 
   /**
    * A clinic prescription with repeats and its first supply `first` days ago, written as the refills tests write them:
    * the line, its authorisation, then the hand-over, supply and movement in one transaction (Law 3), and the line events.
    */
-  const line = async (p: DemoPatient, medicineId: string, o: { first: number; n?: number; interval?: number; expiredDaysAgo?: number }) => {
+  const line = async (
+    p: DemoPatient,
+    medicineId: string,
+    o: { first: number; n?: number; interval?: number; expiredDaysAgo?: number },
+  ) => {
     const m = s.medicines.find((x) => x.id === medicineId)!;
     const shelf = s.stock.get(medicineId)?.get(p.point);
     if (!shelf) throw new Error(`The demo has no ${medicineId} at the ${p.point} point.`);
@@ -92,7 +133,8 @@ export async function networkSection(s: DemoState): Promise<void> {
             'active', gen_random_uuid(), ${written}::timestamptz, ${written}::timestamptz) RETURNING id`,
       )
     ).id;
-    await s.db.execute(sql`INSERT INTO prescription_repeat_authorisations (hospital_id, patient_user_id, prescription_id,
+    await s.db
+      .execute(sql`INSERT INTO prescription_repeat_authorisations (hospital_id, patient_user_id, prescription_id,
         further_supplies, min_interval_days, not_after, review_by, rule_version, prescriber_user_id, prescriber_cadre,
         authorised_at)
       VALUES (${s.h}, ${p.id}, ${rx}, ${o.n ?? 3}, ${o.interval ?? SUPPLY},
@@ -138,10 +180,14 @@ export async function networkSection(s: DemoState): Promise<void> {
       await asClinicalWriter(
         { userId: p.id, hospitalId: s.h },
         (tx) =>
-          rf.saveCollector({ tx, hospitalId: s.h, userId: p.id, cadre: null, now: at(s, 20, 11) }, p.id, {
-            name: `Demo collector ${String(nn).padStart(2, "0")}`,
-            relationship,
-          }),
+          rf.saveCollector(
+            { tx, hospitalId: s.h, userId: p.id, cadre: null, now: at(s, 20, 11) },
+            p.id,
+            {
+              name: `Demo collector ${String(nn).padStart(2, "0")}`,
+              relationship,
+            },
+          ),
         s.db,
       )
     ).id;
@@ -166,10 +212,23 @@ export async function networkSection(s: DemoState): Promise<void> {
       channel === "app"
         ? await asClinicalWriter(
             { userId: p.id, hospitalId: s.h },
-            (tx) => rf.requestRefill({ tx, hospitalId: s.h, userId: p.id, cadre: null, now }, rf.RequestRefillInput.parse(raw), "app"),
+            (tx) =>
+              rf.requestRefill(
+                { tx, hospitalId: s.h, userId: p.id, cadre: null, now },
+                rf.RequestRefillInput.parse(raw),
+                "app",
+              ),
             s.db,
           )
-        : await write(s, tech(p.point), rf.RequestRefillInput, rf.DISPENSE_POINT, (ctx, input) => rf.requestRefill(rf.writerOf(ctx), input, channel), raw, now);
+        : await write(
+            s,
+            tech(p.point),
+            rf.RequestRefillInput,
+            rf.DISPENSE_POINT,
+            (ctx, input) => rf.requestRefill(rf.writerOf(ctx), input, channel),
+            raw,
+            now,
+          );
     bump(s, "refill_requests");
     const rows = await q<{ id: string; rx: string }>(
       s,
@@ -179,11 +238,19 @@ export async function networkSection(s: DemoState): Promise<void> {
   };
 
   const setAside = async (p: DemoPatient, refillLine: string, medicineId: string, now: Date) => {
-    await write(s, tech(p.point), rf.SetAsideInput, rf.DISPENSE_POINT, rf.setAsideRefill, {
-      lineId: refillLine,
-      productId: s.stock.get(medicineId)!.get(p.point)!.productId,
-      quantity: SUPPLY,
-    }, now);
+    await write(
+      s,
+      tech(p.point),
+      rf.SetAsideInput,
+      rf.DISPENSE_POINT,
+      rf.setAsideRefill,
+      {
+        lineId: refillLine,
+        productId: s.stock.get(medicineId)!.get(p.point)!.productId,
+        quantity: SUPPLY,
+      },
+      now,
+    );
     bump(s, "refills_set_aside");
   };
 
@@ -191,19 +258,36 @@ export async function networkSection(s: DemoState): Promise<void> {
   const handOver = async (p: DemoPatient, refillLines: string[], rx: string, now: Date) => {
     const clientKey = randomUUID();
     const [y, mo, d] = p.dob.split("-");
-    const check = await write(s, pharmacist(p.point), supply.IdentifierInput, supply.DISPENSE_LIVE, supply.checkSecondIdentifier, {
-      clientKey,
-      lineId: rx,
-      kind: "date_of_birth",
-      typed: `${d}/${mo}/${y}`,
-    }, now);
-    if ((check as { result?: string }).result !== "match") throw new Error("The demo patient's date of birth did not match.");
-    await write(s, pharmacist(p.point), rf.HandOverInput, rf.DISPENSE_POINT, rf.handOverPrepared, {
-      clientKey,
-      lineIds: refillLines,
-      identity: { route: "two_identifiers", nameAttested: true },
-      payment: { status: "paid" },
-    }, now);
+    const check = await write(
+      s,
+      pharmacist(p.point),
+      supply.IdentifierInput,
+      supply.DISPENSE_LIVE,
+      supply.checkSecondIdentifier,
+      {
+        clientKey,
+        lineId: rx,
+        kind: "date_of_birth",
+        typed: `${d}/${mo}/${y}`,
+      },
+      now,
+    );
+    if ((check as { result?: string }).result !== "match")
+      throw new Error("The demo patient's date of birth did not match.");
+    await write(
+      s,
+      pharmacist(p.point),
+      rf.HandOverInput,
+      rf.DISPENSE_POINT,
+      rf.handOverPrepared,
+      {
+        clientKey,
+        lineIds: refillLines,
+        identity: { route: "two_identifiers", nameAttested: true },
+        payment: { status: "paid" },
+      },
+      now,
+    );
     bump(s, "refills_collected");
   };
 
@@ -296,9 +380,15 @@ export async function networkSection(s: DemoState): Promise<void> {
   // The pharmacist asks the clinic to renew (a review is due), with a note.
   {
     const x = await line(a5, "co_trimoxazole", { first: 27 });
-    await write(s, pharmacyActor(s, s.people.pharmacists[5]!, "PHARMACIST", null), rf.AskClinicInput, rf.ASK_CLINIC,
+    await write(
+      s,
+      pharmacyActor(s, s.people.pharmacists[5]!, "PHARMACIST", null),
+      rf.AskClinicInput,
+      rf.ASK_CLINIC,
       (ctx, input) => rf.askClinicToRenew(rf.writerOf(ctx), input),
-      { lineId: x, note: "Demo note: the patient's regimen review is due at the clinic." }, ago(45));
+      { lineId: x, note: "Demo note: the patient's regimen review is due at the clinic." },
+      ago(45),
+    );
     bump(s, "renewal_requests");
   }
 }
@@ -309,18 +399,54 @@ export async function goliveSection(s: DemoState): Promise<void> {
   // Two demo hospital admins hold the go-live record, so no decision is put in a real person's name.
   const first: Admin = { userId: await demoAccount(s, "Demo hospital admin 1"), hospitalId: s.h };
   const second: Admin = { userId: await demoAccount(s, "Demo hospital admin 2"), hospitalId: s.h };
-  const as = <T>(a: Admin, fn: Parameters<typeof asClinicalWriter<T>>[1]) => asClinicalWriter(a, fn, s.db);
+  const as = <T>(a: Admin, fn: Parameters<typeof asClinicalWriter<T>>[1]) =>
+    asClinicalWriter(a, fn, s.db);
   const liveAt = new Date(
-    (await one<{ live: string | Date }>(s, sql`SELECT min(live_at) AS live FROM pharmacy_dispensing_points WHERE hospital_id = ${s.h}`)).live,
+    (
+      await one<{ live: string | Date }>(
+        s,
+        sql`SELECT min(live_at) AS live FROM pharmacy_dispensing_points WHERE hospital_id = ${s.h}`,
+      )
+    ).live,
   );
   const before = (days: number) => localDate(new Date(liveAt.getTime() - days * DAY));
 
   // Briefings: the pharmacy team and the prescribers hospital-wide, and each point's own team.
   await as(first, async (tx) => {
-    await gl.recordBriefing(tx, first, { pointId: null, audience: "pharmacy", heldOn: before(6), notes: "Demo briefing: the dispensing queue, labels and the hand-over." }, s.now);
-    await gl.recordBriefing(tx, first, { pointId: null, audience: "prescribers", heldOn: before(5), notes: "Demo briefing: what the pharmacy sees and how its queries reach the prescriber." }, s.now);
+    await gl.recordBriefing(
+      tx,
+      first,
+      {
+        pointId: null,
+        audience: "pharmacy",
+        heldOn: before(6),
+        notes: "Demo briefing: the dispensing queue, labels and the hand-over.",
+      },
+      s.now,
+    );
+    await gl.recordBriefing(
+      tx,
+      first,
+      {
+        pointId: null,
+        audience: "prescribers",
+        heldOn: before(5),
+        notes: "Demo briefing: what the pharmacy sees and how its queries reach the prescriber.",
+      },
+      s.now,
+    );
     for (const k of keys)
-      await gl.recordBriefing(tx, first, { pointId: s.points[k].id, audience: "pharmacy", heldOn: before(3), notes: `Demo briefing for the ${s.points[k].name.toLowerCase()} team.` }, s.now);
+      await gl.recordBriefing(
+        tx,
+        first,
+        {
+          pointId: s.points[k].id,
+          audience: "pharmacy",
+          heldOn: before(3),
+          notes: `Demo briefing for the ${s.points[k].name.toLowerCase()} team.`,
+        },
+        s.now,
+      );
   });
   bump(s, "briefings", 2 + keys.length);
 
@@ -332,19 +458,31 @@ export async function goliveSection(s: DemoState): Promise<void> {
       setBy: first.userId,
     });
     await as(first, (tx) =>
-      gl.updatePointSettings(tx, first, { pointId: s.points[k].id, phone: "+256 700 000000", labelMode: "printed", countFreshnessDays: 30 }),
+      gl.updatePointSettings(tx, first, {
+        pointId: s.points[k].id,
+        phone: "+256 700 000000",
+        labelMode: "printed",
+        countFreshnessDays: 30,
+      }),
     );
   }
   bump(s, "in_charges", keys.length);
 
   // A downtime drill at every point, two days before it went live.
   for (const [i, k] of keys.entries())
-    await write(s, pharmacyActor(s, s.people.techs[i]!, "PHARMACY_TECH", k), dt.DrillInput, dt.SHEETS_NEED, dt.recordDrill, {
-      heldOn: before(2),
-      participants: "Demo pharmacy technician and demo pharmacist",
-      whatWasDone: "Demo drill: printed the downtime sheets and filled three rows by hand.",
-      problems: null,
-    });
+    await write(
+      s,
+      pharmacyActor(s, s.people.techs[i]!, "PHARMACY_TECH", k),
+      dt.DrillInput,
+      dt.SHEETS_NEED,
+      dt.recordDrill,
+      {
+        heldOn: before(2),
+        participants: "Demo pharmacy technician and demo pharmacist",
+        whatWasDone: "Demo drill: printed the downtime sheets and filled three rows by hand.",
+        problems: null,
+      },
+    );
   bump(s, "drills", keys.length);
 
   // The switch-on decisions as 0129 keeps them (one admin asks, another approves), inserted as the go-live tests do.
@@ -352,7 +490,8 @@ export async function goliveSection(s: DemoState): Promise<void> {
   for (const k of keys) {
     const r = await s.db.transaction((tx) => getPharmacyReadiness(tx, s.h, s.points[k].id, s.now));
     const approved = new Date(r!.point.liveAt!);
-    await s.db.execute(sql`INSERT INTO pharmacy_golive (hospital_id, dispensing_point_id, action, conditions, requested_by,
+    await s.db
+      .execute(sql`INSERT INTO pharmacy_golive (hospital_id, dispensing_point_id, action, conditions, requested_by,
         requested_at, approved_by, approved_at)
       VALUES (${s.h}, ${s.points[k].id}, 'switch_on', ${JSON.stringify({
         conditions: r!.readiness.conditions,
@@ -365,17 +504,41 @@ export async function goliveSection(s: DemoState): Promise<void> {
 
   // Pilot notes on two points, one by each admin, so every point has a note on another point by someone else.
   await as(first, (tx) =>
-    gl.recordPilotNote(tx, first, { pointId: s.points.opd.id, note: "Demo pilot note: the first two weeks at the main outpatient window ran with steady queue times." }, s.now),
+    gl.recordPilotNote(
+      tx,
+      first,
+      {
+        pointId: s.points.opd.id,
+        note: "Demo pilot note: the first two weeks at the main outpatient window ran with steady queue times.",
+      },
+      s.now,
+    ),
   );
   await as(second, (tx) =>
-    gl.recordPilotNote(tx, second, { pointId: s.points.inpatient.id, note: "Demo pilot note: ward lines reached the inpatient queue and the counts held." }, s.now),
+    gl.recordPilotNote(
+      tx,
+      second,
+      {
+        pointId: s.points.inpatient.id,
+        note: "Demo pilot note: ward lines reached the inpatient queue and the counts held.",
+      },
+      s.now,
+    ),
   );
   bump(s, "pilot_notes", 2);
 
   // One request waiting for a second admin (not after an earlier load left one): the private wing off for shelving.
   if (!(await openRequest(s.db, s.points.private.id))) {
     await as(first, (tx) =>
-      gl.requestSwitchOff(tx, first, { pointId: s.points.private.id, reason: "Demo request: the private wing pharmacy closes for two days of shelving work." }, s.now),
+      gl.requestSwitchOff(
+        tx,
+        first,
+        {
+          pointId: s.points.private.id,
+          reason: "Demo request: the private wing pharmacy closes for two days of shelving work.",
+        },
+        s.now,
+      ),
     );
     bump(s, "golive_requests");
   }
