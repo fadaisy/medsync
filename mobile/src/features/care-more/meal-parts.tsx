@@ -1,5 +1,5 @@
-import type { Item, MealEntry, MealSlot } from "@/data/meals";
 import type { FoodGroup } from "@/data/food/types";
+import type { Item, MealEntry, MealSlot } from "@/data/meals";
 import type { ProductDraft } from "@/data/products";
 import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
@@ -22,8 +22,8 @@ import { useHealthLog } from "@/data/health-log";
 import {
   amountsFor,
   dayTotals,
-  GROUPS,
   giLine,
+  GROUPS,
   itemId,
   itemName,
   mealRepo,
@@ -37,8 +37,8 @@ import {
 import {
   lookupBarcode,
   productFood,
-  saveProduct,
   savedByBarcode,
+  saveProduct,
   useProducts,
 } from "@/data/products";
 import { BarcodeScan, ProductForm } from "@/features/care-more/product-parts";
@@ -227,10 +227,7 @@ function AddFoodSheet({
   const [looking, setLooking] = useState(false);
   // A product not saved yet: kept with the meal it is first logged with.
   const [draft, setDraft] = useState<ProductDraft | null>(null);
-  const results = useMemo(
-    () => searchItems(query, group, products),
-    [query, group, products],
-  );
+  const results = useMemo(() => searchItems(query, group, products), [query, group, products]);
 
   const reset = () => {
     setQuery("");
@@ -430,7 +427,8 @@ function AddFoodSheet({
           />
           {draft?.source === "open_food_facts" ? (
             <Note tone="info">
-              From Open Food Facts, typed in by volunteers from the label. Check it against the pack.
+              From Open Food Facts, typed in by volunteers from the label. Check it against the
+              pack.
             </Note>
           ) : null}
           <ChipRow>

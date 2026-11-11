@@ -1,4 +1,5 @@
 import type { ReadingInput, ReadingLevel } from "@/lib/readings";
+
 import { checkReading } from "@/lib/readings";
 import table from "../../../packages/patient-core/fixtures/readings.json";
 

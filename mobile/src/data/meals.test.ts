@@ -32,7 +32,9 @@ describe("meals", () => {
     expect(ids).toContain("posho-whole");
     expect(searchItems("ebijanjaalo").length).toBeGreaterThan(0);
     expect(searchItems("rolex")[0]?.kind).toBe("combo");
-    expect(searchItems("", "fruits").every((i) => i.kind === "food" && i.food.group === "fruits")).toBe(true);
+    expect(
+      searchItems("", "fruits").every((i) => i.kind === "food" && i.food.group === "fruits"),
+    ).toBe(true);
     expect(searchItems("zzzz")).toEqual([]);
   });
 
@@ -41,8 +43,12 @@ describe("meals", () => {
     expect(ids[0]).toBe("apple");
     expect(ids.some((id) => id.startsWith("usda:"))).toBe(true);
     expect(ids.findIndex((id) => id.startsWith("usda:"))).toBeGreaterThan(ids.indexOf("apple"));
-    expect(searchItems("").some((i) => i.kind === "food" && i.food.id.startsWith("usda:"))).toBe(false);
-    const usda = searchItems("apple").find((i) => i.kind === "food" && i.food.id.startsWith("usda:"))!;
+    expect(searchItems("").some((i) => i.kind === "food" && i.food.id.startsWith("usda:"))).toBe(
+      false,
+    );
+    const usda = searchItems("apple").find(
+      (i) => i.kind === "food" && i.food.id.startsWith("usda:"),
+    )!;
     expect(itemById(i_id(usda))).toEqual(usda);
     expect(giLine(usda)).toBe("GI not known");
   });

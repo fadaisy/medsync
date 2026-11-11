@@ -1,7 +1,7 @@
 import type { IconName } from "@/components/tide/icon";
 import type { Dose } from "@/data/medicines";
-import type { Href } from "expo-router";
 import type { NotifTargetKey } from "@patient-core/notifications";
+import type { Href } from "expo-router";
 import { useEffect } from "react";
 import { FALLBACK, KIND_WORDS, notifTarget } from "@patient-core/notifications";
 

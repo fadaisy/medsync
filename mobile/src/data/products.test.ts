@@ -27,19 +27,23 @@ describe("packaged foods", () => {
       servingG: 15,
       source: "open_food_facts",
     });
-    expect(fromOpenFoodFacts("1", off({ "energy-kj_100g": 1674, carbohydrates_100g: 10 }))?.kcal).toBe(
-      400,
-    );
+    expect(
+      fromOpenFoodFacts("1", off({ "energy-kj_100g": 1674, carbohydrates_100g: 10 }))?.kcal,
+    ).toBe(400);
   });
 
   it("gives nothing without energy and carbohydrate, or for an unknown code", () => {
     expect(fromOpenFoodFacts("1", off({ "energy-kcal_100g": 40 }))).toBeNull();
     expect(fromOpenFoodFacts("1", { status: 0 })).toBeNull();
-    expect(fromOpenFoodFacts("1", off({ "energy-kcal_100g": 2000, carbohydrates_100g: 1 }))).toBeNull();
+    expect(
+      fromOpenFoodFacts("1", off({ "energy-kcal_100g": 2000, carbohydrates_100g: 1 })),
+    ).toBeNull();
   });
 
   it("checks the typed label before it becomes a product", () => {
-    expect(draftFromForm({ name: "Juice", kcal: "45", carbs: "10,5" }, null, "typed")).toMatchObject({
+    expect(
+      draftFromForm({ name: "Juice", kcal: "45", carbs: "10,5" }, null, "typed"),
+    ).toMatchObject({
       ok: true,
       draft: { name: "Juice", kcal: 45, carbsG: 10.5, proteinG: null, source: "typed" },
     });

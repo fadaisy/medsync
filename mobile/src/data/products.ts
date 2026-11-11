@@ -1,9 +1,9 @@
 import type { Row, SaveResult } from "@/offline/outbox";
 import type { LabelValues, Product, ProductDraft, ProductSource } from "@patient-core/care-meals";
 import { useEffect } from "react";
+import { fromOpenFoodFacts } from "@patient-core/care-meals";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import { fromOpenFoodFacts } from "@patient-core/care-meals";
 
 import { onAccountChange } from "@/data/health-log";
 import { createStore, useStore } from "@/data/store";
@@ -113,7 +113,11 @@ export async function labelFromPhoto(): Promise<LabelResult> {
 
 /* ─── The patient's saved products ───────────────────────────────────── */
 
-type State = { userId: string | null; status: "idle" | "loading" | "ready" | "error"; rows: Product[] };
+type State = {
+  userId: string | null;
+  status: "idle" | "loading" | "ready" | "error";
+  rows: Product[];
+};
 const EMPTY: State = { userId: null, status: "idle", rows: [] };
 const store = createStore<State>(EMPTY);
 let watching = false;
@@ -212,4 +216,3 @@ export async function saveProduct(
   }
   return { result, product };
 }
-

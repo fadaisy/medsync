@@ -3,8 +3,10 @@ import rules from "@clinical-rules/patient-thresholds.v0.json";
 import { checkReading } from "@/lib/readings";
 
 const bp = (top: number, bottom: number) => checkReading({ kind: "bp", top, bottom }).level;
-const sugar = (value: number, context: "fasting" | "lunch" | "supper" | "after" | "bedtime" | "random") =>
-  checkReading({ kind: "sugar", value, context }).level;
+const sugar = (
+  value: number,
+  context: "fasting" | "lunch" | "supper" | "after" | "bedtime" | "random",
+) => checkReading({ kind: "sugar", value, context }).level;
 const pulse = (value: number) => checkReading({ kind: "pulse", value }).level;
 
 /** Every v0 threshold edge, ±0.1 (Gate 5 test). The numbers come from the rules file, not the test. */
@@ -37,8 +39,12 @@ describe("reading check, v0 thresholds (pending CSO)", () => {
     expect(bp(r.lowTopBelow - 0.1, 70)).toBe("watch");
     expect(bp(r.lowTopBelow, 70)).toBe("ok");
     expect(bp(120, r.lowBottomBelow - 0.1)).toBe("watch");
-    expect(checkReading({ kind: "bp", top: r.implausibleTopBelow - 0.1, bottom: 60 }).text).toMatch(/too low/);
-    expect(checkReading({ kind: "bp", top: 100, bottom: r.implausibleBottomBelow - 0.1 }).text).toMatch(/too low/);
+    expect(checkReading({ kind: "bp", top: r.implausibleTopBelow - 0.1, bottom: 60 }).text).toMatch(
+      /too low/,
+    );
+    expect(
+      checkReading({ kind: "bp", top: 100, bottom: r.implausibleBottomBelow - 0.1 }).text,
+    ).toMatch(/too low/);
   });
 
   it("sugar danger edges", () => {

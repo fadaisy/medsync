@@ -50,7 +50,10 @@ describe("meals section", () => {
     await show();
     expect(screen.getByText(/Nothing logged today/)).toBeTruthy();
     await fireEvent.press(screen.getByText("Add food"));
-    await fireEvent.changeText(screen.getByPlaceholderText("Search: matooke, beans, chai…"), "posho");
+    await fireEvent.changeText(
+      screen.getByPlaceholderText("Search: matooke, beans, chai…"),
+      "posho",
+    );
     await fireEvent.press(screen.getByLabelText("Posho (refined maize flour)"));
     expect(screen.getByText("GI 74, high · glycemic load 30.3")).toBeTruthy();
     await fireEvent.press(screen.getByText("Save"));
