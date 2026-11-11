@@ -2,8 +2,20 @@
  * The count sheet (rework PRD §6.4 Count, prototype store.js). Blind: packs and loose units counted, never the
  * recorded balance until the sheet is sent. Pure.
  */
-export const FEWER = ["damaged", "expired", "broken_in_transit", "given_not_recorded", "miscounted_last_time", "other"] as const;
-export const MORE = ["found_other_shelf", "received_not_recorded", "miscounted_last_time", "other"] as const;
+export const FEWER = [
+  "damaged",
+  "expired",
+  "broken_in_transit",
+  "given_not_recorded",
+  "miscounted_last_time",
+  "other",
+] as const;
+export const MORE = [
+  "found_other_shelf",
+  "received_not_recorded",
+  "miscounted_last_time",
+  "other",
+] as const;
 export type CountReason = (typeof FEWER)[number] | (typeof MORE)[number];
 
 export interface SheetLine {
@@ -29,7 +41,10 @@ export interface Diff {
 }
 
 /** Lines whose count differs from the ledger; uncounted lines are not differences, they block sending. */
-export function countDiffs(lines: readonly SheetLine[], recorded: ReadonlyMap<string, number>): Diff[] {
+export function countDiffs(
+  lines: readonly SheetLine[],
+  recorded: ReadonlyMap<string, number>,
+): Diff[] {
   return lines.flatMap((l) => {
     const counted = countedOf(l);
     const rec = recorded.get(l.batchId) ?? 0;
@@ -40,7 +55,8 @@ export function countDiffs(lines: readonly SheetLine[], recorded: ReadonlyMap<st
 }
 
 export const reasonFits = (d: Diff): boolean =>
-  !!d.reason && (d.diff < 0 ? (FEWER as readonly string[]) : (MORE as readonly string[])).includes(d.reason);
+  !!d.reason &&
+  (d.diff < 0 ? (FEWER as readonly string[]) : (MORE as readonly string[])).includes(d.reason);
 
 /** Why the sheet cannot be sent yet: lines left, or differences without a fitting reason. */
 export function countBlockers(lines: readonly SheetLine[], recorded: ReadonlyMap<string, number>) {

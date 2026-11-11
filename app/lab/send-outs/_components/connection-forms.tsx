@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import {
   createPairingCodeAction,
@@ -13,7 +14,6 @@ import {
   revokeSenderAction,
 } from "@/lib/lab/exchange-actions";
 import { inputClass, newKey, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 /* Connections (Lab Phase 4 §5.6): pairing (AB-6, B3), revoking, dead letters (EX-4), the raw view (EX-9). */

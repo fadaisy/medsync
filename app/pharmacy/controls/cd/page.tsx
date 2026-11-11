@@ -8,7 +8,14 @@ import { CTL } from "@/content/pharmacy-rework-controls";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { db } from "@/db";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
-import { cdFlags, cdRegisters, checkDue, checkStatus, lastCheck, mgFmt } from "@/lib/pharmacy/cd/derive";
+import {
+  cdFlags,
+  cdRegisters,
+  checkDue,
+  checkStatus,
+  lastCheck,
+  mgFmt,
+} from "@/lib/pharmacy/cd/derive";
 import { loadCd } from "@/lib/pharmacy/cd/read";
 import { when } from "@/lib/pharmacy/cd/sql";
 import { isInCharge } from "@/lib/pharmacy/cd/store";
@@ -24,7 +31,10 @@ const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : n
 /** One read per request: the controlled ledger, checks and places (3 queries) and whether the viewer is the in-charge. */
 const cdPage = cache(async (hospitalId: string, userId: string) => {
   const d = db as unknown as EmrDb;
-  const [data, inCharge] = await Promise.all([loadCd(d, hospitalId), isInCharge(d, userId, hospitalId)]);
+  const [data, inCharge] = await Promise.all([
+    loadCd(d, hospitalId),
+    isInCharge(d, userId, hospitalId),
+  ]);
   return { ...data, inCharge };
 });
 
@@ -45,9 +55,13 @@ export default async function ControlledDrugsPage({ searchParams }: { searchPara
   const placeName = Object.fromEntries(data.places.map((p) => [p.id, p.name]));
   const held = data.places.filter((p) => registers.some((r) => r.placeId === p.id));
   const due = held.filter((p) => checkDue(data.checks, p, now));
-  const doses24 = data.moves.filter((m) => m.dose && now.getTime() - m.at.getTime() < 86_400_000).length;
+  const doses24 = data.moves.filter(
+    (m) => m.dose && now.getTime() - m.at.getTime() < 86_400_000,
+  ).length;
   const forPlace = (placeId: string) =>
-    registers.filter((r) => r.placeId === placeId && r.balance > 0).map((r) => ({ medicineId: r.medicineId, name: r.medicineName, balance: r.balance }));
+    registers
+      .filter((r) => r.placeId === placeId && r.balance > 0)
+      .map((r) => ({ medicineId: r.medicineId, name: r.medicineName, balance: r.balance }));
 
   let body;
   if (tab === "flags")
@@ -78,15 +92,22 @@ export default async function ControlledDrugsPage({ searchParams }: { searchPara
               {held.map((p) => {
                 const last = lastCheck(data.checks, p.id);
                 return (
-                  <li key={p.id} className="bg-card shadow-tide-card rounded-tide-row flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+                  <li
+                    key={p.id}
+                    className="bg-card shadow-tide-card rounded-tide-row flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                  >
                     <div className="flex flex-col">
                       <span className="text-[14px] font-semibold">{p.name}</span>
                       <span className="text-caption text-ink-600">
-                        {last ? fill(CTL.register.checked, { when: when(last.at) }) : CTL.register.never}
+                        {last
+                          ? fill(CTL.register.checked, { when: when(last.at) })
+                          : CTL.register.never}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {checkDue(data.checks, p, now) ? <Pill tone="caution">{CTL.flags.tag.due}</Pill> : null}
+                      {checkDue(data.checks, p, now) ? (
+                        <Pill tone="caution">{CTL.flags.tag.due}</Pill>
+                      ) : null}
                       <CheckButton place={p} items={forPlace(p.id)} label={CTL.checks.checkNow} />
                     </div>
                   </li>
@@ -112,14 +133,22 @@ export default async function ControlledDrugsPage({ searchParams }: { searchPara
                         {placeName[c.placeId]} · {when(c.at)}
                       </span>
                       <span className="text-caption text-ink-600">
-                        {c.lines.map((l) => `${l.counted} (${fill(CTL.checks.regShort, { n: l.expected })})`).join(" · ")}
+                        {c.lines
+                          .map(
+                            (l) => `${l.counted} (${fill(CTL.checks.regShort, { n: l.expected })})`,
+                          )
+                          .join(" · ")}
                       </span>
                       <span className="text-caption text-ink-600">
                         {c.by} ·{" "}
-                        {c.handover ? fill(CTL.checks.fromHandover, { name: c.witness ?? "" }) : (c.witness ?? CTL.register.noWitness)}
+                        {c.handover
+                          ? fill(CTL.checks.fromHandover, { name: c.witness ?? "" })
+                          : (c.witness ?? CTL.register.noWitness)}
                       </span>
                     </div>
-                    <Pill tone={s === "open" ? "caution" : s === "ok" ? "passed" : "neutral"}>{CTL.checks[s]}</Pill>
+                    <Pill tone={s === "open" ? "caution" : s === "ok" ? "passed" : "neutral"}>
+                      {CTL.checks[s]}
+                    </Pill>
                   </li>
                 );
               })}
@@ -147,11 +176,22 @@ export default async function ControlledDrugsPage({ searchParams }: { searchPara
           <KeyFigure
             label={CTL.kpi.registers}
             value={registers.length}
-            sub={fill(CTL.kpi.registersSub, { meds: new Set(registers.map((r) => r.medicineId)).size, places: held.length })}
+            sub={fill(CTL.kpi.registersSub, {
+              meds: new Set(registers.map((r) => r.medicineId)).size,
+              places: held.length,
+            })}
           />
           <KeyFigure label={CTL.kpi.doses} value={doses24} />
-          <KeyFigure label={CTL.kpi.toFix} value={toFix.length} href="/pharmacy/controls/cd?tab=flags" />
-          <KeyFigure label={CTL.kpi.due} value={due.length} href="/pharmacy/controls/cd?tab=checks" />
+          <KeyFigure
+            label={CTL.kpi.toFix}
+            value={toFix.length}
+            href="/pharmacy/controls/cd?tab=flags"
+          />
+          <KeyFigure
+            label={CTL.kpi.due}
+            value={due.length}
+            href="/pharmacy/controls/cd?tab=checks"
+          />
         </KeyFigureGrid>
         {sel && place ? (
           <>
@@ -168,7 +208,9 @@ export default async function ControlledDrugsPage({ searchParams }: { searchPara
             <Panel
               title={`${sel.medicineName} · ${place.name}`}
               note={fill(CTL.register.balance, { n: sel.balance })}
-              action={<CheckButton place={place} items={forPlace(place.id)} label={CTL.register.check} />}
+              action={
+                <CheckButton place={place} items={forPlace(place.id)} label={CTL.register.check} />
+              }
             >
               <RegisterRows rows={rows} placeName={placeName} />
               <p className="text-caption text-ink-600 mt-3">{CTL.register.hint}</p>
@@ -182,7 +224,11 @@ export default async function ControlledDrugsPage({ searchParams }: { searchPara
   }
   return (
     <div className="flex flex-col gap-4">
-      <PageTabs page="cd" current={tab} counts={{ flags: toFix.length, checks: due.length, paper: paper.length }} />
+      <PageTabs
+        page="cd"
+        current={tab}
+        counts={{ flags: toFix.length, checks: due.length, paper: paper.length }}
+      />
       {body}
     </div>
   );
@@ -193,7 +239,9 @@ type Row = { m: CdMove; bal: number };
 function RegisterRows({ rows, placeName }: { rows: Row[]; placeName: Record<string, string> }) {
   const R = CTL.register;
   const who = (m: CdMove) =>
-    m.dose ? `${m.dose.patient}${m.dose.bed ? ` · ${m.dose.bed}` : ""}` : `${R.kinds[m.kind] ?? m.kind}${m.note ? ` · ${m.note}` : ""}`;
+    m.dose
+      ? `${m.dose.patient}${m.dose.bed ? ` · ${m.dose.bed}` : ""}`
+      : `${R.kinds[m.kind] ?? m.kind}${m.note ? ` · ${m.note}` : ""}`;
   const dose = (m: CdMove) => {
     if (!m.dose) return "";
     const left = m.dose.residueDisposed
@@ -238,7 +286,9 @@ function RegisterRows({ rows, placeName }: { rows: Row[]; placeName: Record<stri
                   <span>{who(m)}</span>
                   <span className="flex flex-wrap gap-1">{marks(m)}</span>
                   {m.late ? (
-                    <span className="text-caption text-ink-600">{fill(R.entered, { when: when(m.recordedAt), name: m.by })}</span>
+                    <span className="text-caption text-ink-600">
+                      {fill(R.entered, { when: when(m.recordedAt), name: m.by })}
+                    </span>
                   ) : null}
                 </div>
               </td>
@@ -255,7 +305,10 @@ function RegisterRows({ rows, placeName }: { rows: Row[]; placeName: Record<stri
       </table>
       <ul className="flex flex-col gap-2 sm:hidden">
         {rows.map(({ m, bal }) => (
-          <li key={m.id} className="bg-card shadow-tide-card rounded-tide-row flex flex-col gap-1 px-3 py-2.5 text-[13.5px]">
+          <li
+            key={m.id}
+            className="bg-card shadow-tide-card rounded-tide-row flex flex-col gap-1 px-3 py-2.5 text-[13.5px]"
+          >
             <div className="flex items-start justify-between gap-2">
               <span className="font-semibold">{who(m)}</span>
               <span className="tabular-nums">

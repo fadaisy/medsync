@@ -13,7 +13,11 @@ export const dynamic = "force-dynamic";
 const S = PRW.sms;
 
 /** Reminders (rework PRD §6.3): today's SMS queue and the rules. Not connected → listed, never sent. */
-export default async function RemindersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function RemindersPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const sp = await searchParams;
   const tab = tabOf("reminders", sp.tab);
   const actor = await requirePharmacyActor();
@@ -37,7 +41,9 @@ export default async function RemindersPage({ searchParams }: { searchParams: Pr
                   </span>
                 </div>
                 <p className="text-body-s text-ink-700">{r.en ?? S.templates[r.rule]!.en}</p>
-                {r.edited ? <p className="text-caption text-muted-foreground">{S.templateDraft}</p> : null}
+                {r.edited ? (
+                  <p className="text-caption text-muted-foreground">{S.templateDraft}</p>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -49,7 +55,10 @@ export default async function RemindersPage({ searchParams }: { searchParams: Pr
           action={
             <span className="flex flex-wrap gap-2">
               <BuildButton />
-              <SendAll ids={d.messages.filter((m) => m.status === "scheduled").map((m) => m.id)} connected={connected} />
+              <SendAll
+                ids={d.messages.filter((m) => m.status === "scheduled").map((m) => m.id)}
+                connected={connected}
+              />
             </span>
           }
         >
@@ -64,14 +73,24 @@ export default async function RemindersPage({ searchParams }: { searchParams: Pr
                     <span className="text-body-s text-muted-foreground">
                       {S.rules[m.rule]} · {S.lang[m.lang]}
                     </span>
-                    {m.status === "failed" ? <LatePill>{S.status.failed!}</LatePill> : <Pill tone={m.status === "sent" ? "passed" : "neutral"}>{S.status[m.status]!}</Pill>}
+                    {m.status === "failed" ? (
+                      <LatePill>{S.status.failed!}</LatePill>
+                    ) : (
+                      <Pill tone={m.status === "sent" ? "passed" : "neutral"}>
+                        {S.status[m.status]!}
+                      </Pill>
+                    )}
                     <span className="ml-auto">
                       <MessageActions id={m.id} status={m.status} connected={connected} />
                     </span>
                   </div>
                   <p className="text-body-s text-ink-700">{m.body}</p>
                   {m.failure || m.cost ? (
-                    <p className="text-caption text-muted-foreground">{[m.failure, m.cost ? `${S.cost} ${m.cost}` : null].filter(Boolean).join(" · ")}</p>
+                    <p className="text-caption text-muted-foreground">
+                      {[m.failure, m.cost ? `${S.cost} ${m.cost}` : null]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
                   ) : null}
                 </li>
               ))}

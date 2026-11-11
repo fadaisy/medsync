@@ -9,8 +9,14 @@ import { RiskAct } from "./risk-act";
 
 const L = RC.losses;
 const monthName = (ym: string, style: "long" | "short" = "long") =>
-  new Intl.DateTimeFormat("en-GB", { month: style, timeZone: "UTC" }).format(new Date(`${ym}-01T00:00:00Z`));
-const dayMonth = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "Africa/Kampala" });
+  new Intl.DateTimeFormat("en-GB", { month: style, timeZone: "UTC" }).format(
+    new Date(`${ym}-01T00:00:00Z`),
+  );
+const dayMonth = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  timeZone: "Africa/Kampala",
+});
 const SHOWN = 12;
 
 /**
@@ -18,13 +24,22 @@ const SHOWN = 12;
  * immunisation clinic's opened-vial wastage, through one function — by cause, by place, by month, and the stock that will
  * expire before it is used, with three moves to act on it.
  */
-export function LossesView({ data, all }: { data: Awaited<ReturnType<typeof loadLosses>>; all: boolean }) {
+export function LossesView({
+  data,
+  all,
+}: {
+  data: Awaited<ReturnType<typeof loadLosses>>;
+  all: boolean;
+}) {
   const { month, total, months, risk, riskValue, openValue, epiInUse } = data;
   const last = months.at(-2);
   const pct = last && last.v > 0 ? Math.round(((total - last.v) / last.v) * 100) : null;
   const expired = month.filter((l) => l.cause === "expired").reduce((a, l) => a + l.value, 0);
   const causes = sumBy(month, (l) => l.cause).map((x) => ({ label: L.causes[x.k], v: x.v }));
-  const places = sumBy(month, (l) => l.place ?? (l.epi ? L.epiPlace : null)).map((x) => ({ label: x.k, v: x.v }));
+  const places = sumBy(month, (l) => l.place ?? (l.epi ? L.epiPlace : null)).map((x) => ({
+    label: x.k,
+    v: x.v,
+  }));
   const lines = [...month].sort((a, b) => b.value - a.value);
 
   return (
@@ -45,13 +60,24 @@ export function LossesView({ data, all }: { data: Awaited<ReturnType<typeof load
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Panel title={L.byCause}>
-          {causes.length ? <Bars rows={causes} value={RC.ugxShort} /> : <EmptyState compact title={L.none} />}
+          {causes.length ? (
+            <Bars rows={causes} value={RC.ugxShort} />
+          ) : (
+            <EmptyState compact title={L.none} />
+          )}
         </Panel>
         <Panel title={L.byPlace}>
-          {places.length ? <Bars rows={places} value={RC.ugxShort} /> : <EmptyState compact title={L.none} />}
+          {places.length ? (
+            <Bars rows={places} value={RC.ugxShort} />
+          ) : (
+            <EmptyState compact title={L.none} />
+          )}
         </Panel>
         <Panel title={L.monthly}>
-          <Bars rows={months.map((m) => ({ label: monthName(m.k, "short"), v: m.v }))} value={RC.ugxShort} />
+          <Bars
+            rows={months.map((m) => ({ label: monthName(m.k, "short"), v: m.v }))}
+            value={RC.ugxShort}
+          />
         </Panel>
       </div>
 
@@ -68,7 +94,8 @@ export function LossesView({ data, all }: { data: Awaited<ReturnType<typeof load
                 <span className="min-w-0">
                   <span className="text-body-s block font-semibold">{r.product}</span>
                   <span className="text-caption text-ink-700 block">
-                    {L.riskCols.batch} {r.batchNumber} · {L.riskCols.expires} {r.expires} ({L.months(r.months)})
+                    {L.riskCols.batch} {r.batchNumber} · {L.riskCols.expires} {r.expires} (
+                    {L.months(r.months)})
                   </span>
                   <span className="text-caption text-muted-foreground block">
                     {r.places.map((p) => `${p.place} ${p.n}`).join(" · ")}
@@ -85,7 +112,10 @@ export function LossesView({ data, all }: { data: Awaited<ReturnType<typeof load
                   <RiskAct productId={r.productId} batchNumber={r.batchNumber} value={r.value} />
                   {r.done.map((d) => (
                     <span key={`${d.action}:${d.at}`} className="text-caption text-ink-700">
-                      {L.actionDone(L.actions[d.action as keyof typeof L.actions] ?? d.action, d.by ?? "")}
+                      {L.actionDone(
+                        L.actions[d.action as keyof typeof L.actions] ?? d.action,
+                        d.by ?? "",
+                      )}
                     </span>
                   ))}
                 </span>
@@ -104,21 +134,31 @@ export function LossesView({ data, all }: { data: Awaited<ReturnType<typeof load
               <table className="text-body-s w-full">
                 <thead className="text-muted-foreground text-left">
                   <tr>
-                    {(["date", "place", "medicine", "cause", "qty", "value", "by"] as const).map((c) => (
-                      <th key={c} scope="col" className={`py-1.5 pr-3 font-medium ${c === "qty" || c === "value" ? "text-right" : ""}`}>
-                        {L.cols[c]}
-                      </th>
-                    ))}
+                    {(["date", "place", "medicine", "cause", "qty", "value", "by"] as const).map(
+                      (c) => (
+                        <th
+                          key={c}
+                          scope="col"
+                          className={`py-1.5 pr-3 font-medium ${c === "qty" || c === "value" ? "text-right" : ""}`}
+                        >
+                          {L.cols[c]}
+                        </th>
+                      ),
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-border divide-y">
                   {(all ? lines : lines.slice(0, SHOWN)).map((l, i) => (
                     <tr key={l.movementId ?? `epi:${i}`}>
-                      <td className="py-1.5 pr-3 tabular-nums">{dayMonth.format(new Date(l.at))}</td>
+                      <td className="py-1.5 pr-3 tabular-nums">
+                        {dayMonth.format(new Date(l.at))}
+                      </td>
                       <td className="py-1.5 pr-3">{l.place ?? (l.epi ? L.epiPlace : "")}</td>
                       <td className="py-1.5 pr-3">
                         {l.product}
-                        {l.note ? <span className="text-caption text-muted-foreground block">{l.note}</span> : null}
+                        {l.note ? (
+                          <span className="text-caption text-muted-foreground block">{l.note}</span>
+                        ) : null}
                       </td>
                       <td className="py-1.5 pr-3">{L.causes[l.cause]}</td>
                       <td className="py-1.5 pr-3 text-right tabular-nums">
@@ -139,10 +179,12 @@ export function LossesView({ data, all }: { data: Awaited<ReturnType<typeof load
                     <span className="tabular-nums">{RC.ugx(l.value)}</span>
                   </span>
                   <span className="text-caption text-ink-700">
-                    {dayMonth.format(new Date(l.at))} · {l.place ?? (l.epi ? L.epiPlace : "")} · {L.causes[l.cause]} · {l.qty}{" "}
-                    {l.unit}
+                    {dayMonth.format(new Date(l.at))} · {l.place ?? (l.epi ? L.epiPlace : "")} ·{" "}
+                    {L.causes[l.cause]} · {l.qty} {l.unit}
                   </span>
-                  {l.who ? <span className="text-caption text-muted-foreground">{l.who}</span> : null}
+                  {l.who ? (
+                    <span className="text-caption text-muted-foreground">{l.who}</span>
+                  ) : null}
                 </li>
               ))}
             </ul>

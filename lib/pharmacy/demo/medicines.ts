@@ -83,6 +83,16 @@ const SHELF: [id: string, form: string, unit: DemoMedicine["unit"]][] = [
 export function demoMedicines(): DemoMedicine[] {
   return SHELF.flatMap(([id, form, unit]) => {
     const d = drugById(id);
-    return d ? [{ id, name: d.generic, product: `${d.generic} ${form}`, unit, controlled: d.flags.controlled }] : [];
+    return d
+      ? [
+          {
+            id,
+            name: d.generic,
+            product: `${d.generic} ${form}`,
+            unit,
+            controlled: d.flags.controlled,
+          },
+        ]
+      : [];
   });
 }

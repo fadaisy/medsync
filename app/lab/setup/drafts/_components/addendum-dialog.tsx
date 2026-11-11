@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import {
   SheetBody,
@@ -19,7 +20,6 @@ import {
   signConfigAsLeadAction,
 } from "@/lib/lab/catalogue-v2-actions";
 import { DRAFTS } from "../_lib/copy";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { SignButton } from "./sign-button";
 

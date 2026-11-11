@@ -4,6 +4,7 @@ import Link from "next/link";
 import { and, asc, eq, isNull, or } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { EmptyState } from "@/components/tide/work/kit";
 import { LAB4 } from "@/content/lab-phase-4";
 import { LABWS2_SEND_OUTS } from "@/content/lab-workspace-v2-send-outs";
 import { db } from "@/db";
@@ -19,7 +20,6 @@ import {
   TestsDialog,
 } from "../_components/partner-forms";
 import { hrefWith } from "../_lib/links";
-import { EmptyState } from "@/components/tide/work/kit";
 
 const KIND_WORDS: Record<string, string> = {
   national_reference: "National reference lab",

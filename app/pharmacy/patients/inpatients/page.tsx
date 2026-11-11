@@ -7,7 +7,17 @@ import { fill, PRW, RULES } from "@/content/pharmacy-rework-patients";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import { pharmacyTiersFor } from "@/lib/pharmacy/feature";
 import { tabOf } from "@/lib/pharmacy/ia";
-import { day0, DAY, doseState, dosesAhead, journey, nextDose, ptStats, roundLines, slots } from "@/lib/pharmacy/wards/derive";
+import {
+  DAY,
+  day0,
+  dosesAhead,
+  doseState,
+  journey,
+  nextDose,
+  ptStats,
+  roundLines,
+  slots,
+} from "@/lib/pharmacy/wards/derive";
 import { inpatientsData } from "@/lib/pharmacy/wards/read";
 import { NoteButton, PickButton, RoundList, TrackButton } from "./_components/ip-client";
 
@@ -30,7 +40,11 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
   const tab = tabOf("inpatients", sp.tab);
   const actor = await requirePharmacyActor();
   if (!pharmacyTiersFor(actor.hospitalId).wards) return <EmptyState title={PRW.common.tierOff} />;
-  const d = await inpatientsData({ userId: actor.userId, hospitalId: actor.hospitalId }, one(sp.ward), one(sp.pt));
+  const d = await inpatientsData(
+    { userId: actor.userId, hospitalId: actor.hospitalId },
+    one(sp.ward),
+    one(sp.pt),
+  );
   const now = new Date().getTime();
   const tabs = <PageTabs page="inpatients" current={tab} />;
   if (!d.ward)
@@ -43,25 +57,38 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
   const ward = d.ward;
   const href = (p: Record<string, string | null>) =>
     `/pharmacy/patients/inpatients?${new URLSearchParams(
-      Object.entries({ tab, ward: ward.id, ...p }).filter((e): e is [string, string] => e[1] != null),
+      Object.entries({ tab, ward: ward.id, ...p }).filter(
+        (e): e is [string, string] => e[1] != null,
+      ),
     )}`;
-  const wardHas = (med: string) => d.balances.filter((b) => b.loc === ward.id && b.med === med).reduce((a, b) => a + b.n, 0);
+  const wardHas = (med: string) =>
+    d.balances.filter((b) => b.loc === ward.id && b.med === med).reduce((a, b) => a + b.n, 0);
   const sources = (med: string) =>
-    d.balances.filter((b) => b.kind !== "ward" && b.med === med).map((b) => ({ id: b.loc, name: b.name, n: b.n }));
+    d.balances
+      .filter((b) => b.kind !== "ward" && b.med === med)
+      .map((b) => ({ id: b.loc, name: b.name, n: b.n }));
   const name = (id: string) => d.ids.get(id)?.name ?? PRW.common.noName;
-  const jOf = (r: (typeof d.regs)[number]) => journey(r, d.supplies.get(r.id) ?? [], 0, d.recs, now);
+  const jOf = (r: (typeof d.regs)[number]) =>
+    journey(r, d.supplies.get(r.id) ?? [], 0, d.recs, now);
 
   const chips = (
     <FilterChips
       label={I.wardsLabel}
       current={ward.id}
-      chips={d.wards.map((w) => ({ key: w.id, label: w.name, href: `/pharmacy/patients/inpatients?tab=${tab}&ward=${w.id}`, count: w.patients.length }))}
+      chips={d.wards.map((w) => ({
+        key: w.id,
+        label: w.name,
+        href: `/pharmacy/patients/inpatients?tab=${tab}&ward=${w.id}`,
+        count: w.patients.length,
+      }))}
     />
   );
 
   if (tab === "round") {
     const h = ([12, 24, 48] as const).find((x) => String(x) === one(sp.h)) ?? 24;
-    const pickPlaces = [...new Map(d.balances.filter((b) => b.kind !== "ward").map((b) => [b.loc, b.name])).entries()];
+    const pickPlaces = [
+      ...new Map(d.balances.filter((b) => b.kind !== "ward").map((b) => [b.loc, b.name])).entries(),
+    ];
     const from = pickPlaces.find(([id]) => id === one(sp.from)) ?? pickPlaces[0] ?? null;
     const lines = roundLines(d.regs, d.recs, jOf, h, now).map((l) => ({
       medicineId: l.medicineId,
@@ -69,8 +96,15 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
       need: l.need,
       have: l.have,
       pick: l.pick,
-      placeHas: from ? d.balances.find((b) => b.loc === from[0] && b.med === l.medicineId)?.n ?? 0 : 0,
-      pts: l.pts.map((p) => ({ rxId: p.r.id, who: `${name(p.r.patientId)}`, n: p.n, pick: p.pick })),
+      placeHas: from
+        ? (d.balances.find((b) => b.loc === from[0] && b.med === l.medicineId)?.n ?? 0)
+        : 0,
+      pts: l.pts.map((p) => ({
+        rxId: p.r.id,
+        who: `${name(p.r.patientId)}`,
+        n: p.n,
+        pick: p.pick,
+      })),
     }));
     const last = d.lastRound.get(ward.id);
     return (
@@ -79,23 +113,42 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
         {chips}
         <Panel
           title={fill(PRW.round.windowLabel, { h })}
-          note={last ? `${fill(PRW.round.lastRound, { when: time(last.at, true) })} · ${last.recv ? PRW.round.lastConfirmed : PRW.round.lastWaiting}` : undefined}
+          note={
+            last
+              ? `${fill(PRW.round.lastRound, { when: time(last.at, true) })} · ${last.recv ? PRW.round.lastConfirmed : PRW.round.lastWaiting}`
+              : undefined
+          }
         >
           <div className="mb-3 flex flex-col gap-2">
             <FilterChips
               label={PRW.round.windows}
               current={String(h)}
-              chips={RULES.roundWindows.map((x) => ({ key: String(x), label: fill(PRW.round.windowLabel, { h: x }), href: href({ h: String(x), from: from?.[0] ?? null }) }))}
+              chips={RULES.roundWindows.map((x) => ({
+                key: String(x),
+                label: fill(PRW.round.windowLabel, { h: x }),
+                href: href({ h: String(x), from: from?.[0] ?? null }),
+              }))}
             />
             {pickPlaces.length > 1 ? (
               <FilterChips
                 label={PRW.round.fromPlace}
                 current={from?.[0] ?? ""}
-                chips={pickPlaces.map(([id, n]) => ({ key: id, label: n, href: href({ h: String(h), from: id }) }))}
+                chips={pickPlaces.map(([id, n]) => ({
+                  key: id,
+                  label: n,
+                  href: href({ h: String(h), from: id }),
+                }))}
               />
             ) : null}
           </div>
-          <RoundList wardId={ward.id} ward={ward.name} fromId={from?.[0] ?? null} fromName={from?.[1] ?? ""} windowH={h} lines={lines} />
+          <RoundList
+            wardId={ward.id}
+            ward={ward.name}
+            fromId={from?.[0] ?? null}
+            fromName={from?.[1] ?? ""}
+            windowH={h}
+            lines={lines}
+          />
         </Panel>
       </div>
     );
@@ -104,15 +157,29 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
   // MAR tab
   const rows = ward.patients.map((p) => {
     const regs = d.regs.filter((r) => r.patientId === p);
-    return { id: p, regs, s: ptStats(regs, d.recs, wardHas, now), next: nextDose(regs, d.recs, now) };
+    return {
+      id: p,
+      regs,
+      s: ptStats(regs, d.recs, wardHas, now),
+      next: nextDose(regs, d.recs, now),
+    };
   });
   const forPharmacy = d.regs.flatMap((r) => {
     const s = ptStats([r], d.recs, wardHas, now);
     const j = jOf(r);
     const out: { key: string; text: string; pt: string }[] = [];
     if (s.stock || !s.rs[0]!.c.ok)
-      out.push({ key: `${r.id}:pick`, text: fill(I.pickFor, { med: r.drug, who: name(r.patientId) }), pt: r.patientId });
-    if (j.onway > 0) out.push({ key: `${r.id}:wait`, text: fill(I.waitingConfirm, { med: r.drug }), pt: r.patientId });
+      out.push({
+        key: `${r.id}:pick`,
+        text: fill(I.pickFor, { med: r.drug, who: name(r.patientId) }),
+        pt: r.patientId,
+      });
+    if (j.onway > 0)
+      out.push({
+        key: `${r.id}:wait`,
+        text: fill(I.waitingConfirm, { med: r.drug }),
+        pt: r.patientId,
+      });
     return out;
   });
   const sel = d.patient ? rows.find((r) => r.id === d.patient) : null;
@@ -135,7 +202,9 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
                     className="hover:bg-ink-50 aria-[current=true]:bg-ink-50 flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 rounded-md px-2 py-2.5"
                   >
                     <span className="font-medium">{name(r.id)}</span>
-                    <span className="text-body-s text-muted-foreground">{d.ids.get(r.id)?.mrn}</span>
+                    <span className="text-body-s text-muted-foreground">
+                      {d.ids.get(r.id)?.mrn}
+                    </span>
                     <span className="text-body-s tabular-nums">
                       {r.s.pct == null ? I.noneDue : fill(I.adherenceOf, { pct: r.s.pct })}
                     </span>
@@ -156,7 +225,10 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
             <ul className="text-body-s flex flex-col gap-2">
               {forPharmacy.map((f) => (
                 <li key={f.key}>
-                  <Link className="text-primary underline-offset-2 hover:underline" href={href({ pt: f.pt })}>
+                  <Link
+                    className="text-primary underline-offset-2 hover:underline"
+                    href={href({ pt: f.pt })}
+                  >
                     {f.text}
                   </Link>
                 </li>
@@ -182,15 +254,18 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span className="font-medium">{r.drug}</span>
                         <span className="text-body-s text-muted-foreground">
-                          {[r.dose, r.route, r.prn ? I.prn : r.frequency].filter(Boolean).join(" · ")}
+                          {[r.dose, r.route, r.prn ? I.prn : r.frequency]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </span>
                         <span className="ml-auto flex flex-wrap gap-1">
                           <TrackButton
                             drug={r.drug}
                             j={j}
                             wardHas={wardHas(r.medicineId)}
-                            picks={(d.supplies.get(r.id) ?? []).map((s) =>
-                              `${fill(I.pickedLine, { qty: s.qty, when: time(s.at, true) })} · ${s.receivedAt ? I.confirmed : I.onTheWay}`,
+                            picks={(d.supplies.get(r.id) ?? []).map(
+                              (s) =>
+                                `${fill(I.pickedLine, { qty: s.qty, when: time(s.at, true) })} · ${s.receivedAt ? I.confirmed : I.onTheWay}`,
                             )}
                           />
                           <PickButton
@@ -198,7 +273,11 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
                             rxId={r.id}
                             drug={r.drug}
                             next24={dosesAhead(r, d.recs, now, now + DAY)}
-                            rest={r.days == null ? null : dosesAhead(r, d.recs, now, r.start + r.days * DAY)}
+                            rest={
+                              r.days == null
+                                ? null
+                                : dosesAhead(r, d.recs, now, r.start + r.days * DAY)
+                            }
                             sources={sources(r.medicineId)}
                           />
                         </span>
@@ -231,7 +310,9 @@ export default async function InpatientsPage({ searchParams }: { searchParams: P
               <ul className="text-body-s flex flex-col gap-2">
                 {d.notes.map((n) => (
                   <li key={n.id}>
-                    <span className="text-muted-foreground tabular-nums">{time(n.at, true)} · </span>
+                    <span className="text-muted-foreground tabular-nums">
+                      {time(n.at, true)} ·{" "}
+                    </span>
                     {n.body}
                   </li>
                 ))}

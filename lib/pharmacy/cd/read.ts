@@ -35,7 +35,15 @@ interface MoveRow {
   residue_mg: string | null;
   residue_disposed: boolean | null;
   late_entry: boolean | null;
-  events: { kind: CdEvent["kind"]; at: string; by: string | null; reason: string | null; witness: string | null }[] | string;
+  events:
+    | {
+        kind: CdEvent["kind"];
+        at: string;
+        by: string | null;
+        reason: string | null;
+        witness: string | null;
+      }[]
+    | string;
 }
 
 interface CheckRow {
@@ -166,12 +174,19 @@ export async function loadCd(d: Reader, hospitalId: string) {
     witness: r.witness,
     handover: !!r.handover,
     lines: (json(r.lines) ?? []).map((l) => {
-      if (l.case) cases.set(`${r.id}|${l.medicineId}`, { owner: l.case.owner, dueAt: d8(l.case.dueAt), closed: l.case.closed });
+      if (l.case)
+        cases.set(`${r.id}|${l.medicineId}`, {
+          owner: l.case.owner,
+          dueAt: d8(l.case.dueAt),
+          closed: l.case.closed,
+        });
       return {
         medicineId: l.medicineId,
         expected: Number(l.expected),
         counted: Number(l.counted),
-        resolution: l.resolution ? { how: l.resolution.how, at: d8(l.resolution.at), by: l.resolution.by ?? "" } : null,
+        resolution: l.resolution
+          ? { how: l.resolution.how, at: d8(l.resolution.at), by: l.resolution.by ?? "" }
+          : null,
       };
     }),
   }));
@@ -195,7 +210,12 @@ export async function wardPatients(d: Reader, hospitalId: string, locationId: st
 }
 
 /** Staff allowed to prescribe this controlled medicine (latest line per person); the place's own team first. */
-export async function cdPrescribers(d: Reader, hospitalId: string, medicineId: string, locationId: string) {
+export async function cdPrescribers(
+  d: Reader,
+  hospitalId: string,
+  medicineId: string,
+  locationId: string,
+) {
   return q<{ userId: string; name: string; department: string | null; own: boolean }>(
     d,
     sql`SELECT x.user_id AS "userId", coalesce(u.full_name, u.email) AS name, x.department,

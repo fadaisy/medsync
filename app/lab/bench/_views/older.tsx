@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 
 import { PageHeader } from "@/components/medsync/page-header";
+import { EmptyState } from "@/components/tide/work/kit";
 import { LAB } from "@/content/lab";
 import { db } from "@/db";
 import { encounterOrders, encounterResults } from "@/db/schema/encounter";
@@ -11,7 +12,6 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { legacyWritesOpen } from "@/lib/lab/cutover-store";
 import { LAB_TIME_ZONE } from "@/lib/lab/page-data";
 import { PatientNameMrn } from "../../_components/record-list";
-import { EmptyState } from "@/components/tide/work/kit";
 
 /**
  * Older results (Lab Phase 1 CO-4): after the switch to one result path, the old list, read-only.

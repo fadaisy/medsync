@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import {
@@ -15,7 +16,6 @@ import {
 } from "@/lib/lab/qc-actions";
 import { QUALITY } from "../_lib/copy";
 import { inputClass, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { DateField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 import { ActButton } from "./act-button";

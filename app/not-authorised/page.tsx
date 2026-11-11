@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { TideScope } from "@/components/medsync/tide-scope";
 import { LAB } from "@/content/lab";
 import { PHARMACY } from "@/content/pharmacy";
-import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   title: "No access",
@@ -30,16 +30,16 @@ export default async function NotAuthorisedPage({
   return (
     <>
       <TideScope group="public">{null}</TideScope>
-    <main className="mx-auto flex min-h-svh w-full max-w-120 flex-col justify-center gap-4 px-4 py-16">
-      <h1 className="font-display text-display-s text-foreground">{LAB.refused.title}</h1>
-      <p className="text-body-m text-muted-foreground">{body}</p>
-      <Link
-        href="/"
-        className="text-body-s tap inline-flex min-h-11 items-center self-start font-medium text-teal-700 underline-offset-4 hover:underline sm:min-h-0"
-      >
-        {LAB.refused.home}
-      </Link>
-    </main>
+      <main className="mx-auto flex min-h-svh w-full max-w-120 flex-col justify-center gap-4 px-4 py-16">
+        <h1 className="font-display text-display-s text-foreground">{LAB.refused.title}</h1>
+        <p className="text-body-m text-muted-foreground">{body}</p>
+        <Link
+          href="/"
+          className="text-body-s tap inline-flex min-h-11 items-center self-start font-medium text-teal-700 underline-offset-4 hover:underline sm:min-h-0"
+        >
+          {LAB.refused.home}
+        </Link>
+      </main>
     </>
   );
 }

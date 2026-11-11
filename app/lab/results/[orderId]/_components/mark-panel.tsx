@@ -7,12 +7,12 @@ import { useEffect, useRef } from "react";
 import { TriangleAlertIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CRITICALS_COPY, CRITICALS_UI } from "@/content/lab-criticals";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { unitWords } from "@/lib/emr/unit-words";
-import { LabButton } from "@/components/tide/work/button";
 
 const P = CRITICALS_UI.panel;
 const REASONS = Object.entries(CRITICALS_COPY.couldNotCheck) as [CouldNotCheckReason, string][];

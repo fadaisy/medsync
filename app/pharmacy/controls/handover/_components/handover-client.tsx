@@ -9,6 +9,7 @@ import { LabButton } from "@/components/tide/work/button";
 import { CTL } from "@/content/pharmacy-rework-controls";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { shiftsIn } from "@/lib/pharmacy/handover/derive";
+import { Chips, Choice, Dlg, Field, newKey, Stepper, useAct } from "../../_components/kit";
 import {
   acceptHandoverAction,
   doseContextAction,
@@ -17,39 +18,89 @@ import {
   handoverDraftAction,
   resolveDiffAction,
 } from "../../actions";
-import { Chips, Choice, Dlg, Field, newKey, Stepper, useAct } from "../../_components/kit";
 
 const D = CTL.hoDialog;
-const K = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Kampala", hourCycle: "h23", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-const T = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Kampala", hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
-const DAY = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Kampala", weekday: "short", day: "numeric" });
+const K = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Africa/Kampala",
+  hourCycle: "h23",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+const T = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Africa/Kampala",
+  hourCycle: "h23",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+const DAY = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Africa/Kampala",
+  weekday: "short",
+  day: "numeric",
+});
 
 export function AcceptButton({ handoverId }: { handoverId: string }) {
   const { pending, error, run } = useAct();
   return (
     <div className="flex flex-col gap-1">
-      <LabButton variant="primary" busy={pending} onClick={() => run(() => acceptHandoverAction({ handoverId }))}>
+      <LabButton
+        variant="primary"
+        busy={pending}
+        onClick={() => run(() => acceptHandoverAction({ handoverId }))}
+      >
         {CTL.handover.accept}
       </LabButton>
-      {error ? <p role="alert" className="text-body-s text-ink-800">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-body-s text-ink-800">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
 
 /** Start the handover of one's own station: who, count together, keys and seal, open items, notes. */
-export function StartHandover({ locationId, placeName, slotAt, label }: { locationId: string; placeName: string; slotAt: string | null; label: string }) {
+export function StartHandover({
+  locationId,
+  placeName,
+  slotAt,
+  label,
+}: {
+  locationId: string;
+  placeName: string;
+  slotAt: string | null;
+  label: string;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <LabButton variant="primary" onClick={() => setOpen(true)}>
         {label}
       </LabButton>
-      {open ? <HandoverDialog locationId={locationId} placeName={placeName} slotAt={slotAt} onClose={() => setOpen(false)} /> : null}
+      {open ? (
+        <HandoverDialog
+          locationId={locationId}
+          placeName={placeName}
+          slotAt={slotAt}
+          onClose={() => setOpen(false)}
+        />
+      ) : null}
     </>
   );
 }
 
-function HandoverDialog({ locationId, placeName, slotAt, onClose }: { locationId: string; placeName: string; slotAt: string | null; onClose: () => void }) {
+function HandoverDialog({
+  locationId,
+  placeName,
+  slotAt,
+  onClose,
+}: {
+  locationId: string;
+  placeName: string;
+  slotAt: string | null;
+  onClose: () => void;
+}) {
   const [draft, setDraft] = useState<HandoverDraft | null>(null);
   const [to, setTo] = useState<string | null>(null);
   const [counts, setCounts] = useState<Record<string, number | null>>({});
@@ -62,13 +113,16 @@ function HandoverDialog({ locationId, placeName, slotAt, onClose }: { locationId
   const [key] = useState(newKey);
   const { pending, error, setError, run } = useAct();
   useEffect(() => {
-    void handoverDraftAction({ locationId, at: slotAt ?? new Date().toISOString() }).then(setDraft, () => setError(CTL.common.failed));
+    void handoverDraftAction({ locationId, at: slotAt ?? new Date().toISOString() }).then(
+      setDraft,
+      () => setError(CTL.common.failed),
+    );
   }, [locationId, slotAt, setError]);
   const items = draft?.items ?? [];
   const people = draft?.people ?? [];
   const all = items.every((i) => counts[i.medicineId] != null);
   const diffs = items.filter((i) => counts[i.medicineId] !== i.expected).length;
-  const sealNo = seal === "intact" ? draft?.seal ?? null : newSeal.trim() || null;
+  const sealNo = seal === "intact" ? (draft?.seal ?? null) : newSeal.trim() || null;
   const missing = !to
     ? D.missing.who
     : !all
@@ -92,7 +146,15 @@ function HandoverDialog({ locationId, placeName, slotAt, onClose }: { locationId
       onOpenChange={(o) => !o && onClose()}
       width="wide"
       title={fill(D.title, { place: placeName })}
-      sub={slotAt ? fill(D.subSlot, { out: CTL.handover.shiftShort[Number(at?.slice(0, 2)) === 8 ? "night" : "day"], in: CTL.handover.shiftShort[Number(at?.slice(0, 2)) === 8 ? "day" : "night"], time: at ?? "" }) : D.subMid}
+      sub={
+        slotAt
+          ? fill(D.subSlot, {
+              out: CTL.handover.shiftShort[Number(at?.slice(0, 2)) === 8 ? "night" : "day"],
+              in: CTL.handover.shiftShort[Number(at?.slice(0, 2)) === 8 ? "day" : "night"],
+              time: at ?? "",
+            })
+          : D.subMid
+      }
       error={error}
       primary={
         <LabButton
@@ -107,7 +169,11 @@ function HandoverDialog({ locationId, placeName, slotAt, onClose }: { locationId
                   locationId,
                   toUserId: to,
                   slotAt,
-                  counts: items.map((i) => ({ medicineId: i.medicineId, counted: counts[i.medicineId] ?? 0, highRisk: i.highRisk })),
+                  counts: items.map((i) => ({
+                    medicineId: i.medicineId,
+                    counted: counts[i.medicineId] ?? 0,
+                    highRisk: i.highRisk,
+                  })),
                   keys: true,
                   sealNo,
                   sealNew: seal === "new",
@@ -125,7 +191,9 @@ function HandoverDialog({ locationId, placeName, slotAt, onClose }: { locationId
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label={D.s1}>
           <span className="text-caption text-ink-600">{D.handingHint}</span>
-          <span className="text-caption text-ink-600">{fill(D.taking, { when: at ? fill(D.takingFrom, { time: at }) : D.takingNow })}</span>
+          <span className="text-caption text-ink-600">
+            {fill(D.taking, { when: at ? fill(D.takingFrom, { time: at }) : D.takingNow })}
+          </span>
           {draft && !people.length ? <p className="text-body-s">{D.nobody}</p> : null}
           <Chips>
             {people.map((p) => (
@@ -140,24 +208,41 @@ function HandoverDialog({ locationId, placeName, slotAt, onClose }: { locationId
           <span className="text-caption text-ink-600">{D.s2Hint}</span>
           <ul className="flex flex-col gap-2">
             {items.map((i) => (
-              <li key={i.medicineId} className="bg-card shadow-tide-card rounded-tide-row flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+              <li
+                key={i.medicineId}
+                className="bg-card shadow-tide-card rounded-tide-row flex flex-wrap items-center justify-between gap-2 px-3 py-2"
+              >
                 <div className="flex flex-col">
                   <span className="text-[14px] font-semibold">{i.name}</span>
                   <span className="text-caption text-ink-600">
                     {i.controlled ? D.controlled : D.highRisk} ·{" "}
-                    {shown ? (counts[i.medicineId] === i.expected ? CTL.checkDialog.matches : fill(D.ledger, { n: i.expected })) : D.hidden}
+                    {shown
+                      ? counts[i.medicineId] === i.expected
+                        ? CTL.checkDialog.matches
+                        : fill(D.ledger, { n: i.expected })
+                      : D.hidden}
                   </span>
                 </div>
-                <Stepper label={i.name} value={counts[i.medicineId] ?? null} onChange={(n) => !shown && setCounts((c) => ({ ...c, [i.medicineId]: n }))} />
+                <Stepper
+                  label={i.name}
+                  value={counts[i.medicineId] ?? null}
+                  onChange={(n) => !shown && setCounts((c) => ({ ...c, [i.medicineId]: n }))}
+                />
               </li>
             ))}
           </ul>
           {items.length && !shown ? (
-            <LabButton size="sm" disabledReason={all ? null : D.missing.count} onClick={() => setShown(true)}>
+            <LabButton
+              size="sm"
+              disabledReason={all ? null : D.missing.count}
+              onClick={() => setShown(true)}
+            >
               {D.compare}
             </LabButton>
           ) : null}
-          {shown ? <p className="text-body-s">{diffs ? fill(D.diffs, { n: diffs }) : D.allMatch}</p> : null}
+          {shown ? (
+            <p className="text-body-s">{diffs ? fill(D.diffs, { n: diffs }) : D.allMatch}</p>
+          ) : null}
         </Field>
         <Field label={D.s3}>
           <Choice on={keys} onClick={() => setKeys(!keys)}>
@@ -185,17 +270,25 @@ function HandoverDialog({ locationId, placeName, slotAt, onClose }: { locationId
           ) : null}
         </Field>
         <Field label={fill(D.s4, { n: draft?.open.length ?? 0 })}>
-          {draft && !draft.open.length ? <p className="text-caption text-ink-600">{fill(D.nothingOpen, { place: placeName })}</p> : null}
+          {draft && !draft.open.length ? (
+            <p className="text-caption text-ink-600">{fill(D.nothingOpen, { place: placeName })}</p>
+          ) : null}
           <div className="flex flex-col gap-1.5">
             {(draft?.open ?? []).map((t, n) => (
               <Choice key={n} on={seen.has(n)} onClick={() => setSeen((s) => new Set(s).add(n))}>
                 <span className="block">{t}</span>
-                <span className="text-caption text-ink-600">{seen.has(n) ? D.seen : D.tapSeen}</span>
+                <span className="text-caption text-ink-600">
+                  {seen.has(n) ? D.seen : D.tapSeen}
+                </span>
               </Choice>
             ))}
           </div>
           {(draft?.open.length ?? 0) > 1 ? (
-            <LabButton size="sm" variant="text" onClick={() => setSeen(new Set(draft!.open.map((_, i) => i)))}>
+            <LabButton
+              size="sm"
+              variant="text"
+              onClick={() => setSeen(new Set(draft!.open.map((_, i) => i)))}
+            >
               {D.allSeen}
             </LabButton>
           ) : null}
@@ -214,7 +307,15 @@ function HandoverDialog({ locationId, placeName, slotAt, onClose }: { locationId
   );
 }
 
-type Diff = { kind: "diff"; handoverId: string; placeId: string; placeName: string; line: HoLine; at: string; from: string };
+type Diff = {
+  kind: "diff";
+  handoverId: string;
+  placeId: string;
+  placeName: string;
+  line: HoLine;
+  at: string;
+  from: string;
+};
 type Miss = { kind: "miss"; placeId: string; slot: number };
 
 /** The one signed action that closes a handover flag: explain a missed slot, or resolve a count. */
@@ -222,7 +323,10 @@ export function FlagAction(p: Diff | Miss) {
   const [open, setOpen] = useState(false);
   if (p.kind === "diff" && p.line.controlled)
     return (
-      <Link href="/pharmacy/controls/cd?tab=flags" className="inline-flex min-h-11 items-center text-[13.5px] font-medium underline underline-offset-2">
+      <Link
+        href="/pharmacy/controls/cd?tab=flags"
+        className="inline-flex min-h-11 items-center text-[13.5px] font-medium underline underline-offset-2"
+      >
         {CTL.handover.actCd}
       </Link>
     );
@@ -231,13 +335,23 @@ export function FlagAction(p: Diff | Miss) {
       <LabButton size="sm" onClick={() => setOpen(true)}>
         {p.kind === "miss" ? CTL.handover.actExplain : CTL.handover.actResolve}
       </LabButton>
-      {open && p.kind === "miss" ? <MissDialog placeId={p.placeId} slot={p.slot} onClose={() => setOpen(false)} /> : null}
+      {open && p.kind === "miss" ? (
+        <MissDialog placeId={p.placeId} slot={p.slot} onClose={() => setOpen(false)} />
+      ) : null}
       {open && p.kind === "diff" ? <DiffDialog d={p} onClose={() => setOpen(false)} /> : null}
     </>
   );
 }
 
-function MissDialog({ placeId, slot, onClose }: { placeId: string; slot: number; onClose: () => void }) {
+function MissDialog({
+  placeId,
+  slot,
+  onClose,
+}: {
+  placeId: string;
+  slot: number;
+  onClose: () => void;
+}) {
   const M = CTL.miss;
   const [why, setWhy] = useState<keyof typeof M.reasons | null>(null);
   const [note, setNote] = useState("");
@@ -256,7 +370,16 @@ function MissDialog({ placeId, slot, onClose }: { placeId: string; slot: number;
           busy={pending}
           disabledReason={!why ? M.what : need ? M.noteRequired : null}
           onClick={() =>
-            run(() => explainMissedAction({ locationId: placeId, slotAt: new Date(slot).toISOString(), why, note: note.trim() || null }), onClose)
+            run(
+              () =>
+                explainMissedAction({
+                  locationId: placeId,
+                  slotAt: new Date(slot).toISOString(),
+                  why,
+                  note: note.trim() || null,
+                }),
+              onClose,
+            )
           }
         >
           {M.save}
@@ -273,7 +396,12 @@ function MissDialog({ placeId, slot, onClose }: { placeId: string; slot: number;
         </div>
       </Field>
       <Field label={why === "not_done" ? M.noteRequired : M.note}>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} className="bg-card shadow-tide-card rounded-tide-row px-3 py-2 text-[14px]" />
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={2}
+          className="bg-card shadow-tide-card rounded-tide-row px-3 py-2 text-[14px]"
+        />
       </Field>
       <p className="text-caption text-ink-600">{M.hint}</p>
     </Dlg>
@@ -291,14 +419,20 @@ function DiffDialog({ d, onClose }: { d: Diff; onClose: () => void }) {
   const [ctx, setCtx] = useState<Ctx | null>(null);
   const [patient, setPatient] = useState<string | null>(null);
   const [by, setBy] = useState<string | null>(null);
-  const [shift, setShift] = useState<{ at: number; shift: "day" | "night"; day: number } | null>(null);
+  const [shift, setShift] = useState<{ at: number; shift: "day" | "night"; day: number } | null>(
+    null,
+  );
   const { pending, error, setError, run } = useAct();
   const shifts = shiftsIn(new Date(d.from).getTime(), new Date(d.at).getTime());
   const pick = (h: typeof how) => {
     setHow(h);
     setWhy(h === "late_entry" ? X.given : null);
     if (h === "late_entry" && !ctx)
-      void doseContextAction({ locationId: d.placeId, medicineId: d.line.medicineId, at: d.at }).then(setCtx, () => setError(CTL.common.failed));
+      void doseContextAction({
+        locationId: d.placeId,
+        medicineId: d.line.medicineId,
+        at: d.at,
+      }).then(setCtx, () => setError(CTL.common.failed));
   };
   const missing = !how
     ? X.found
@@ -321,7 +455,11 @@ function DiffDialog({ d, onClose }: { d: Diff; onClose: () => void }) {
       onOpenChange={(o) => !o && onClose()}
       width="wide"
       title={fill(X.title, { med: d.line.medicineName, place: d.placeName })}
-      sub={fill(X.sub, { counted: d.line.counted, expected: d.line.expected, when: K.format(new Date(d.at)) })}
+      sub={fill(X.sub, {
+        counted: d.line.counted,
+        expected: d.line.expected,
+        when: K.format(new Date(d.at)),
+      })}
       error={error}
       primary={
         <LabButton
@@ -343,7 +481,10 @@ function DiffDialog({ d, onClose }: { d: Diff; onClose: () => void }) {
                           patient,
                           givenByUserId: by,
                           at: new Date(shift.at).toISOString(),
-                          approx: fill(X.approxNote, { shift: shiftWord(shift) }).replace(/^ · /, ""),
+                          approx: fill(X.approxNote, { shift: shiftWord(shift) }).replace(
+                            /^ · /,
+                            "",
+                          ),
                         }
                       : null,
                 }),
@@ -379,7 +520,11 @@ function DiffDialog({ d, onClose }: { d: Diff; onClose: () => void }) {
       {how === "late_entry" ? (
         <div className="grid gap-4 sm:grid-cols-3">
           <p className="text-body-s sm:col-span-3">
-            {fill(X.window, { n: -diff, from: K.format(new Date(d.from)), to: K.format(new Date(d.at)) })}
+            {fill(X.window, {
+              n: -diff,
+              from: K.format(new Date(d.from)),
+              to: K.format(new Date(d.at)),
+            })}
           </p>
           <Field label={X.patient}>
             <div className="flex flex-col gap-1.5">
@@ -393,7 +538,11 @@ function DiffDialog({ d, onClose }: { d: Diff; onClose: () => void }) {
           <Field label={X.givenBy}>
             <div className="flex flex-col gap-1.5">
               {(ctx?.people ?? []).map((p) => (
-                <Choice key={p.userId} on={by === p.userId} onClick={() => setBy(by === p.userId ? null : p.userId)}>
+                <Choice
+                  key={p.userId}
+                  on={by === p.userId}
+                  onClick={() => setBy(by === p.userId ? null : p.userId)}
+                >
                   {p.name}
                 </Choice>
               ))}
@@ -414,17 +563,23 @@ function DiffDialog({ d, onClose }: { d: Diff; onClose: () => void }) {
       {how && how !== "late_entry" ? (
         <Field label={X.where}>
           <Chips>
-            {(how === "recount" ? X.recountWhy : how === "loss" ? X.lossWhy : X.excessWhy).map((w) => (
-              <Choice key={w} on={why === w} onClick={() => setWhy(w)}>
-                {w}
-              </Choice>
-            ))}
+            {(how === "recount" ? X.recountWhy : how === "loss" ? X.lossWhy : X.excessWhy).map(
+              (w) => (
+                <Choice key={w} on={why === w} onClick={() => setWhy(w)}>
+                  {w}
+                </Choice>
+              ),
+            )}
           </Chips>
         </Field>
       ) : null}
       {how === "loss" || how === "excess" ? (
         <Field label={X.incident}>
-          <input value={incident} onChange={(e) => setIncident(e.target.value)} className="bg-card shadow-tide-card rounded-tide-row h-11 px-3 text-[14px]" />
+          <input
+            value={incident}
+            onChange={(e) => setIncident(e.target.value)}
+            className="bg-card shadow-tide-card rounded-tide-row h-11 px-3 text-[14px]"
+          />
           <span className="text-caption text-ink-600">{X.inChargeOnly}</span>
         </Field>
       ) : null}

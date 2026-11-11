@@ -1,7 +1,7 @@
 import type { RecordColumn } from "../../_components/record-list";
 
-import { RecordList } from "../../_components/record-list";
 import { EmptyState } from "@/components/tide/work/kit";
+import { RecordList } from "../../_components/record-list";
 
 /**
  * The quality, stock and equipment lists (Lab Workspace v2 field kit): the shared RecordList, but an empty list

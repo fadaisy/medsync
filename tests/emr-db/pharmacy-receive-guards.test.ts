@@ -1,6 +1,6 @@
 /** RECEIVE hard rules, in the database (0276): one guard test each. Runs with EMR_PGLITE=1. */
-import type { Lane, Pg } from "./_pglite";
 import { randomUUID } from "node:crypto";
+import type { Lane, Pg } from "./_pglite";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { bootLane, hospital, laneOn, staff } from "./_pglite";
@@ -22,8 +22,22 @@ describe.skipIf(!laneOn)("Receive guards (0276)", () => {
     await expect(p).rejects.toThrow(re);
   };
   const newProduct = async (over: Record<string, unknown> = {}) => {
-    const keys = ["hospital_id", "medicine_id", "name", "issue_unit", "created_by", ...Object.keys(over)];
-    const vals = [h, `m_${randomUUID().replaceAll("-", "_")}`, "Test", "tablet", boss, ...Object.values(over)];
+    const keys = [
+      "hospital_id",
+      "medicine_id",
+      "name",
+      "issue_unit",
+      "created_by",
+      ...Object.keys(over),
+    ];
+    const vals = [
+      h,
+      `m_${randomUUID().replaceAll("-", "_")}`,
+      "Test",
+      "tablet",
+      boss,
+      ...Object.values(over),
+    ];
     return (
       await pg.query<{ id: string }>(
         `INSERT INTO public.pharmacy_products (${keys.join(",")}) VALUES (${keys.map((_, i) => `$${i + 1}`).join(",")}) RETURNING id`,
@@ -63,7 +77,10 @@ describe.skipIf(!laneOn)("Receive guards (0276)", () => {
       [d, by, second],
     );
   const finishErr = async (d: string, hint: string) => {
-    const e = (await finish(d).then(() => null, (x: { hint?: string; message: string }) => x)) as { hint?: string; message: string } | null;
+    const e = (await finish(d).then(
+      () => null,
+      (x: { hint?: string; message: string }) => x,
+    )) as { hint?: string; message: string } | null;
     expect(e?.hint ?? e?.message).toBe(hint);
   };
 
@@ -112,13 +129,19 @@ describe.skipIf(!laneOn)("Receive guards (0276)", () => {
     const d = await delivery("DN-DUP");
     await fails(delivery("DN-DUP"), /pd_source_note|duplicate/);
     await fails(delivery("dn-dup"), /pd_source_note|duplicate/);
-    await pg.query(`UPDATE public.pharmacy_deliveries SET state='abandoned', abandon_reason='Wrong note', finished_by=$2, finished_at=now() WHERE id=$1`, [d, keeper]);
+    await pg.query(
+      `UPDATE public.pharmacy_deliveries SET state='abandoned', abandon_reason='Wrong note', finished_by=$2, finished_at=now() WHERE id=$1`,
+      [d, keeper],
+    );
     await expect(delivery("DN-DUP")).resolves.toBeTruthy();
   });
   it("a pack serial is unique per GTIN", async () => {
     const d = await delivery();
     const add = (g: string) =>
-      pg.query(`INSERT INTO public.pharmacy_pack_serials (hospital_id,gtin,serial,delivery_id) VALUES ($1,$2,'S1',$3)`, [h, g, d]);
+      pg.query(
+        `INSERT INTO public.pharmacy_pack_serials (hospital_id,gtin,serial,delivery_id) VALUES ($1,$2,'S1',$3)`,
+        [h, g, d],
+      );
     await add("08901234567890");
     await fails(add("08901234567890"), /duplicate|pharmacy_pack_serials/);
     await expect(add("08901234567891")).resolves.toBeTruthy();
@@ -200,8 +223,13 @@ describe.skipIf(!laneOn)("Receive guards (0276)", () => {
     const d = await delivery();
     await line(d, product);
     await finish(d);
-    await expect(pg.query(`UPDATE public.pharmacy_deliveries SET shelved_at=now() WHERE id=$1`, [d])).resolves.toBeTruthy();
-    await fails(pg.query(`UPDATE public.pharmacy_deliveries SET note_number='X' WHERE id=$1`, [d]), /never changes/);
+    await expect(
+      pg.query(`UPDATE public.pharmacy_deliveries SET shelved_at=now() WHERE id=$1`, [d]),
+    ).resolves.toBeTruthy();
+    await fails(
+      pg.query(`UPDATE public.pharmacy_deliveries SET note_number='X' WHERE id=$1`, [d]),
+      /never changes/,
+    );
   });
   it("an order line cannot go below what arrived; a line with something received stays", async () => {
     const o = (
@@ -217,9 +245,17 @@ describe.skipIf(!laneOn)("Receive guards (0276)", () => {
       )
     ).rows[0]!.id;
     await pg.query(`UPDATE public.pharmacy_orders SET state='open' WHERE id=$1`, [o]);
-    await fails(pg.query(`UPDATE public.pharmacy_order_lines SET packs=24 WHERE id=$1`, [l]), /less than what arrived/);
-    await expect(pg.query(`UPDATE public.pharmacy_order_lines SET packs=25 WHERE id=$1`, [l])).resolves.toBeTruthy();
-    await fails(pg.query(`DELETE FROM public.pharmacy_order_lines WHERE id=$1`, [l]), /never removed/);
+    await fails(
+      pg.query(`UPDATE public.pharmacy_order_lines SET packs=24 WHERE id=$1`, [l]),
+      /less than what arrived/,
+    );
+    await expect(
+      pg.query(`UPDATE public.pharmacy_order_lines SET packs=25 WHERE id=$1`, [l]),
+    ).resolves.toBeTruthy();
+    await fails(
+      pg.query(`DELETE FROM public.pharmacy_order_lines WHERE id=$1`, [l]),
+      /never removed/,
+    );
   });
   it("credit needs a note; donations make no claim", async () => {
     const d = await delivery();
@@ -229,9 +265,15 @@ describe.skipIf(!laneOn)("Receive guards (0276)", () => {
         [h, `CLM-${randomUUID()}`, delivery_id, supplier, boss],
       );
     const c = (await insert(d)).rows[0]!.id;
-    await fails(pg.query(`UPDATE public.pharmacy_supplier_claims SET state='credit' WHERE id=$1`, [c]), /check|credit/i);
+    await fails(
+      pg.query(`UPDATE public.pharmacy_supplier_claims SET state='credit' WHERE id=$1`, [c]),
+      /check|credit/i,
+    );
     await expect(
-      pg.query(`UPDATE public.pharmacy_supplier_claims SET state='credit', credit_note='CN-1', credited_at=now() WHERE id=$1`, [c]),
+      pg.query(
+        `UPDATE public.pharmacy_supplier_claims SET state='credit', credit_note='CN-1', credited_at=now() WHERE id=$1`,
+        [c],
+      ),
     ).resolves.toBeTruthy();
     const don = (
       await pg.query<{ id: string }>(

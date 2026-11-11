@@ -32,7 +32,9 @@ export interface CaseRow {
   escalated: boolean;
 }
 
-export const caseStatus = (c: Pick<CaseRow, "signedOffAt" | "submittedAt" | "ownerUserId">): CaseStatus =>
+export const caseStatus = (
+  c: Pick<CaseRow, "signedOffAt" | "submittedAt" | "ownerUserId">,
+): CaseStatus =>
   c.signedOffAt ? "closed" : c.submittedAt ? "signoff" : c.ownerUserId ? "open" : "new";
 
 export const isOverdue = (c: CaseRow, now: Date) => caseStatus(c) !== "closed" && c.dueAt < now;
@@ -59,7 +61,8 @@ export function caseFlags(cases: readonly CaseRow[], me: string, inCharge: boole
     if (s === "closed") continue;
     if (inCharge && s === "new") out.push({ c, why: "not_assigned" });
     else if (inCharge && s === "signoff") out.push({ c, why: "signoff" });
-    else if (isOverdue(c, now) && (inCharge || c.ownerUserId === me)) out.push({ c, why: "overdue" });
+    else if (isOverdue(c, now) && (inCharge || c.ownerUserId === me))
+      out.push({ c, why: "overdue" });
     else if (c.ownerUserId === me && s === "open") out.push({ c, why: "yours" });
   }
   return out;
@@ -90,5 +93,11 @@ export function dur(ms: number): { n: number; unit: "min" | "h" | "days" } {
 }
 
 /** Findings are ready to submit: the number fixed (derived cases), a cause, an action and a prevention. */
-export const findingsReady = (c: Pick<CaseRow, "sourceType" | "fixedAt">, f: Partial<CaseFindings>) =>
-  (c.sourceType === "manual" || !!c.fixedAt) && !!f.cause && !!f.actions?.length && !!f.prevent?.length;
+export const findingsReady = (
+  c: Pick<CaseRow, "sourceType" | "fixedAt">,
+  f: Partial<CaseFindings>,
+) =>
+  (c.sourceType === "manual" || !!c.fixedAt) &&
+  !!f.cause &&
+  !!f.actions?.length &&
+  !!f.prevent?.length;

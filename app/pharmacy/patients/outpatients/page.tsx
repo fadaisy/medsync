@@ -11,10 +11,19 @@ import { CheckInButton, RefillButton } from "./_components/op-client";
 export const dynamic = "force-dynamic";
 
 const O = PRW.outpatients;
-const date = (ms: number) => new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Kampala", day: "numeric", month: "short" }).format(ms);
+const date = (ms: number) =>
+  new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Kampala",
+    day: "numeric",
+    month: "short",
+  }).format(ms);
 
 /** Outpatients (rework PRD §6.3): chronic refills with the pill count, and antibiotic courses with check-ins. */
-export default async function OutpatientsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function OutpatientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const sp = await searchParams;
   const tab = tabOf("outpatients", sp.tab);
   const actor = await requirePharmacyActor();
@@ -32,16 +41,25 @@ export default async function OutpatientsPage({ searchParams }: { searchParams: 
           <Panel>
             <ul className="divide-border flex flex-col divide-y">
               {d.refills
-                .map((r) => ({ r, s: opRefill(r.hist, r.daily, now), c: pillCount(r.hist.at(-1)!, r.daily, null, now) }))
+                .map((r) => ({
+                  r,
+                  s: opRefill(r.hist, r.daily, now),
+                  c: pillCount(r.hist.at(-1)!, r.daily, null, now),
+                }))
                 .sort((a, b) => a.s.runOut - b.s.runOut)
                 .map(({ r, s, c }) => {
                   const until = Math.round((s.runOut - now) / 86_400_000);
                   return (
-                    <li key={r.rxId} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:gap-4">
+                    <li
+                      key={r.rxId}
+                      className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:gap-4"
+                    >
                       <div className="flex min-w-0 flex-1 flex-col">
                         <span className="font-medium">
                           {who(r.patientId)?.name ?? PRW.common.noName}{" "}
-                          <span className="text-body-s text-muted-foreground font-normal">{who(r.patientId)?.mrn}</span>
+                          <span className="text-body-s text-muted-foreground font-normal">
+                            {who(r.patientId)?.mrn}
+                          </span>
                         </span>
                         <span className="text-body-s">
                           {r.med} · {fill(O.perDay, { n: Math.round(r.daily * 10) / 10 })}
@@ -103,17 +121,27 @@ export default async function OutpatientsPage({ searchParams }: { searchParams: 
             {d.courses.map((c) => {
               const s = opCourse(c.start, c.days, c.checks, now);
               return (
-                <li key={c.rxId} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:gap-4">
+                <li
+                  key={c.rxId}
+                  className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:gap-4"
+                >
                   <div className="flex min-w-0 flex-1 flex-col">
                     <span className="font-medium">
                       {who(c.patientId)?.name ?? PRW.common.noName}{" "}
-                      <span className="text-body-s text-muted-foreground font-normal">{who(c.patientId)?.mrn}</span>
+                      <span className="text-body-s text-muted-foreground font-normal">
+                        {who(c.patientId)?.mrn}
+                      </span>
                     </span>
                     <span className="text-body-s">
                       {c.med} · {s.done ? O.done : fill(O.dayOf, { n: s.dayN, total: c.days })}
                     </span>
                     <span className="text-caption text-muted-foreground">
-                      {s.lastC ? fill(O.lastCheck, { when: date(s.lastC.at), status: O.status_[s.lastC.status]! }) : O.noCheck}
+                      {s.lastC
+                        ? fill(O.lastCheck, {
+                            when: date(s.lastC.at),
+                            status: O.status_[s.lastC.status]!,
+                          })
+                        : O.noCheck}
                       {s.missed ? ` · ${O.missedDoses} ${s.missed}` : ""}
                     </span>
                   </div>

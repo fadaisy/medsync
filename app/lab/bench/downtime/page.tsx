@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { EmptyState, Panel } from "@/components/tide/work/kit";
+import { PillTabs, SpaceHeader } from "@/components/tide/work/space";
 import { fill } from "@/content/lab-workspace-v2";
 import { LABWS2_DOWNTIME } from "@/content/lab-workspace-v2-downtime";
 import { db } from "@/db";
@@ -10,8 +12,6 @@ import { tableDate } from "@/lib/lab/field-kit";
 import { labTests } from "@/lib/lab/measures-setup";
 import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
 import { startOfLocalDay } from "@/supabase/functions/_shared/slots";
-import { EmptyState, Panel } from "@/components/tide/work/kit";
-import { PillTabs, SpaceHeader } from "@/components/tide/work/space";
 import { one } from "../../_lib/place-tabs";
 import { labV2 } from "../../_lib/places";
 import { PrintBlankForms, RecordDowntime, RecordDrill } from "./_components/downtime-tasks";

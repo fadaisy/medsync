@@ -72,14 +72,16 @@ export interface NeedsYouGate {
 }
 
 const RULES: Record<NeedsYouKind, (g: NeedsYouGate) => boolean> = {
-  controlled: (g) => g.acting && g.permissions.has("pharmacy.manage") && g.tabs.has("shelf.controlled"),
+  controlled: (g) =>
+    g.acting && g.permissions.has("pharmacy.manage") && g.tabs.has("shelf.controlled"),
   lookBack: (g) => g.permissions.has("pharmacy.review") && g.tabs.has("window.supplied"),
   downtime: (g) => g.permissions.has("pharmacy.dispense") && g.tabs.has("setup.downtime"),
   delivery: (g) => g.permissions.has("pharmacy.store") && g.tabs.has("store.deliveries"),
   requisition: (g) => g.permissions.has("pharmacy.store") && g.tabs.has("store.issues"),
   confirm: (g) => g.permissions.has("pharmacy.stock") && g.tabs.has("store.issues"),
   reaction: (g) => g.permissions.has("pharmacy.review") && g.tabs.has("clinical.reactions"),
-  reconciliation: (g) => g.permissions.has("pharmacy.review") && g.tabs.has("clinical.reconciliation"),
+  reconciliation: (g) =>
+    g.permissions.has("pharmacy.review") && g.tabs.has("clinical.reconciliation"),
   pack: (g) => g.permissions.has("pharmacy.manage") && g.tabs.has("setup.packs"),
 };
 
@@ -104,7 +106,13 @@ const at = new Intl.DateTimeFormat("en-GB", {
 /** What each loader returned (only the fields used); a missing source is not shown. */
 export interface NeedsYouSources {
   /** getControlledRegister(…, acting point).differences */
-  controlled?: readonly { id: string; at: When; batchNumber: string; counted: number; recorded: number }[];
+  controlled?: readonly {
+    id: string;
+    at: When;
+    batchNumber: string;
+    counted: number;
+    recorded: number;
+  }[];
   /** getLookBack */
   lookBack?: readonly { supplyId: string; at: When }[];
   /** countSheetsToEnter */
@@ -119,11 +127,25 @@ export interface NeedsYouSources {
     state: string;
   }[];
   /** getIssuesPage().requisitions */
-  requisitions?: readonly { id: string; fromName: string; toName: string; raisedAt: When; state: string; lines: number }[];
+  requisitions?: readonly {
+    id: string;
+    fromName: string;
+    toName: string;
+    raisedAt: When;
+    state: string;
+    lines: number;
+  }[];
   /** getIssuesPage().toConfirm */
   toConfirm?: readonly { issueId: string; from: string; to: string; issuedAt: When }[];
   /** listReports */
-  reactions?: readonly { id: string; medicine: string; recordedAt: When; state: string; pastDue: boolean; dueAt: Date | null }[];
+  reactions?: readonly {
+    id: string;
+    medicine: string;
+    recordedAt: When;
+    state: string;
+    pastDue: boolean;
+    dueAt: Date | null;
+  }[];
   /** listReconciliations */
   reconciliations?: readonly { rec: { id: string; openedAt: When }; state: string }[];
   /** packRows */
@@ -143,7 +165,11 @@ export function buildNeedsYou(s: NeedsYouSources): NeedsYouItem[] {
       since: iso(d.at),
       attention: true,
       href: "/pharmacy/shelf?view=controlled",
-      detail: fill(T.controlled, { batch: d.batchNumber, counted: d.counted, recorded: d.recorded }),
+      detail: fill(T.controlled, {
+        batch: d.batchNumber,
+        counted: d.counted,
+        recorded: d.recorded,
+      }),
     });
   if (s.lookBack?.length)
     out.push({
@@ -204,7 +230,10 @@ export function buildNeedsYou(s: NeedsYouSources): NeedsYouItem[] {
   // Past due first, then oldest first (data-sources.md).
   const reactions = (s.reactions ?? [])
     .filter((r) => r.state === "to_submit")
-    .sort((a, b) => Number(b.pastDue) - Number(a.pastDue) || iso(a.recordedAt).localeCompare(iso(b.recordedAt)));
+    .sort(
+      (a, b) =>
+        Number(b.pastDue) - Number(a.pastDue) || iso(a.recordedAt).localeCompare(iso(b.recordedAt)),
+    );
   for (const r of reactions)
     out.push({
       kind: "reaction",

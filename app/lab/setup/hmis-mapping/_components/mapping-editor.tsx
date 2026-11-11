@@ -5,13 +5,13 @@ import type { HmisForm } from "@/lib/lab/hmis105";
 import { useState } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { saveHmisMappingAction, signHmisMappingAction } from "@/lib/lab/hmis-actions";
 import { Pop, selectClass } from "../../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { SignButton } from "../../drafts/_components/sign-button";
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { LABWS2_DOWNTIME } from "@/content/lab-workspace-v2-downtime";
 import { unitWords } from "@/lib/emr/unit-words";
@@ -13,7 +14,6 @@ import {
   findPatientAction,
   testComponentsAction,
 } from "@/lib/lab/downtime-actions";
-import { LabButton } from "@/components/tide/work/button";
 import { DateTimeField } from "../../_components/v2/fields";
 import { PAPER_TIMES_START } from "../../bench/downtime/_lib/steps";
 

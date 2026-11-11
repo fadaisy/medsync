@@ -45,8 +45,8 @@ import { withdrawListEntry, writeListEntries } from "@/lib/pharmacy/patient-list
 import { payFirstOn, priceFacts } from "@/lib/pharmacy/prices/store";
 import { foldWith, loadGroupOfLine, loadHospitalContext } from "@/lib/pharmacy/review/load";
 import { nudge } from "@/lib/pharmacy/review/store";
-import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { openChecksOnHandover } from "@/lib/pharmacy/rx-checks-store";
+import { localDate } from "@/lib/pharmacy/stock/ledger";
 import { recalledAmong } from "@/lib/pharmacy/stores/recall-read";
 import { lockLine } from "@/lib/pharmacy/write";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
@@ -348,7 +348,9 @@ export async function recordHandover(
   // Rework test 8: every check flag on a line being given is answered first.
   const open = await openChecksOnHandover(ctx.tx, hospitalId, group.lines, lineIds);
   if (open.length)
-    throw conflict(RX_CHECKS.refused.open.replace("{titles}", [...new Set(open.map((f) => f.title))].join(", ")));
+    throw conflict(
+      RX_CHECKS.refused.open.replace("{titles}", [...new Set(open.map((f) => f.title))].join(", ")),
+    );
   // A controlled line is refused by the re-check unless the controlled supply cleared it (CD-1, CD-2).
   if (input.payment.status === "exempt") throw conflict(REVIEW.review.exemptUnsigned);
 

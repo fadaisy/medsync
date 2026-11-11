@@ -53,9 +53,16 @@ export function slots(r: Regimen, from: number, to: number): number[] {
 
 /** What was charted for one dose time (the record that answers it). */
 export const doseAt = (r: Regimen, ts: number, recs: readonly MarRecord[]) =>
-  recs.find((x) => x.rxId === r.id && x.scheduledFor != null && Math.abs(x.scheduledFor - ts) < MIN) ?? null;
+  recs.find(
+    (x) => x.rxId === r.id && x.scheduledFor != null && Math.abs(x.scheduledFor - ts) < MIN,
+  ) ?? null;
 
-export function doseState(r: Regimen, ts: number, recs: readonly MarRecord[], now: number): DoseKind {
+export function doseState(
+  r: Regimen,
+  ts: number,
+  recs: readonly MarRecord[],
+  now: number,
+): DoseKind {
   const d = doseAt(r, ts, recs);
   if (d?.state === "administered") return d.at - ts > RULES.lateAfterMin * MIN ? "late" : "given";
   if (d) return d.reason && RULES.noStockReason.test(d.reason) ? "stock" : "not";
@@ -94,12 +101,23 @@ export function regStats(r: Regimen, recs: readonly MarRecord[], now: number): R
 
 /** Doses still to give in the next 24 h, against what the ward holds of that medicine. */
 export function coverage(r: Regimen, recs: readonly MarRecord[], wardHas: number, now: number) {
-  const n = r.prn ? 1 : slots(r, now - RULES.dueFromMin * MIN, now + DAY).filter((t) => !doseAt(r, t, recs)).length;
+  const n = r.prn
+    ? 1
+    : slots(r, now - RULES.dueFromMin * MIN, now + DAY).filter((t) => !doseAt(r, t, recs)).length;
   return { need: n, have: wardHas, ok: wardHas >= n, n };
 }
 
-export function ptStats(regs: readonly Regimen[], recs: readonly MarRecord[], wardHas: (med: string) => number, now: number) {
-  const rs = regs.map((r) => ({ r, s: regStats(r, recs, now), c: coverage(r, recs, wardHas(r.medicineId), now) }));
+export function ptStats(
+  regs: readonly Regimen[],
+  recs: readonly MarRecord[],
+  wardHas: (med: string) => number,
+  now: number,
+) {
+  const rs = regs.map((r) => ({
+    r,
+    s: regStats(r, recs, now),
+    c: coverage(r, recs, wardHas(r.medicineId), now),
+  }));
   const sum = (k: keyof RegStats) => rs.reduce((a, x) => a + ((x.s[k] as number | null) ?? 0), 0);
   const due = sum("due"),
     given = sum("given");
@@ -119,7 +137,9 @@ export function ptStats(regs: readonly Regimen[], recs: readonly MarRecord[], wa
 /** The next dose time of any of these regimens, after `now`. */
 export const nextDose = (regs: readonly Regimen[], recs: readonly MarRecord[], now: number) =>
   regs
-    .flatMap((r) => slots(r, now - RULES.dueFromMin * MIN, now + 2 * DAY).filter((t) => !doseAt(r, t, recs)))
+    .flatMap((r) =>
+      slots(r, now - RULES.dueFromMin * MIN, now + 2 * DAY).filter((t) => !doseAt(r, t, recs)),
+    )
     .sort((a, b) => a - b)[0] ?? null;
 
 export interface Supply {
@@ -185,7 +205,17 @@ export function roundLines(
   now: number,
 ) {
   const to = now + hours * HOUR;
-  const out = new Map<string, { medicineId: string; drug: string; pts: RoundPatient[]; need: number; have: number; pick: number }>();
+  const out = new Map<
+    string,
+    {
+      medicineId: string;
+      drug: string;
+      pts: RoundPatient[];
+      need: number;
+      have: number;
+      pick: number;
+    }
+  >();
   for (const r of regs) {
     if (r.prn) continue;
     const times = slots(r, now - RULES.dueFromMin * MIN, to).filter((t) => !doseAt(r, t, recs));
@@ -194,7 +224,14 @@ export function roundLines(
     const need = times.length,
       have = j.left + Math.max(0, j.onway),
       pick = Math.max(0, need - have);
-    const l = out.get(r.medicineId) ?? { medicineId: r.medicineId, drug: r.drug, pts: [], need: 0, have: 0, pick: 0 };
+    const l = out.get(r.medicineId) ?? {
+      medicineId: r.medicineId,
+      drug: r.drug,
+      pts: [],
+      need: 0,
+      have: 0,
+      pick: 0,
+    };
     l.pts.push({ r, n: times.length, need, have, pick, times });
     l.need += need;
     l.have += have;

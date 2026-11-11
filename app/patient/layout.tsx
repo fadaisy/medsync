@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { TideScope } from "@/components/medsync/tide-scope";
 import { MobileTabBar } from "@/components/responsive/mobile-tab-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { dataProcessingConsent, resolvePatientScope } from "@/lib/patient/scope";
 import { PatientNavRail } from "./_components/patient-nav-rail";
 import { RegisterServiceWorker } from "./_components/register-sw";
 import { LANDING_NAV, PATIENT_NAV } from "./_lib/nav";
-import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

@@ -50,7 +50,9 @@ export async function loadPharmacyDemoAction(): Promise<ActionResult> {
       ok: true,
       id: loadId,
       serverTime: new Date().toISOString(),
-      ...(stopped.length ? { warnings: [`Some sections stopped: ${stopped.join(", ")}. See Loads below.`] } : {}),
+      ...(stopped.length
+        ? { warnings: [`Some sections stopped: ${stopped.join(", ")}. See Loads below.`] }
+        : {}),
     };
   } catch (e) {
     unstable_rethrow(e);
@@ -58,7 +60,11 @@ export async function loadPharmacyDemoAction(): Promise<ActionResult> {
     // Anything else (an account that could not be made, a database refusal) is said on the page, never a crash.
     const message = e instanceof Error ? e.message : String(e);
     logger.error("pharmacy.demo.load_failed", { message: message.slice(0, 300) });
-    return { ok: false, code: "config", error: `The demo load stopped: ${message.slice(0, 200)}. See Loads below.` };
+    return {
+      ok: false,
+      code: "config",
+      error: `The demo load stopped: ${message.slice(0, 200)}. See Loads below.`,
+    };
   }
 }
 
@@ -83,7 +89,8 @@ export async function removePharmacyDemoAction(): Promise<ActionResult> {
     // "Failed query" hides the database's own words in `cause`.
     const cause = e instanceof Error && e.cause instanceof Error ? e.cause : e;
     const detail = (cause as { detail?: string }).detail;
-    const message = (cause instanceof Error ? cause.message : String(cause)) + (detail ? ` (${detail})` : "");
+    const message =
+      (cause instanceof Error ? cause.message : String(cause)) + (detail ? ` (${detail})` : "");
     logger.error("pharmacy.demo.remove_failed", { message: message.slice(0, 300) });
     return { ok: false, code: "config", error: `Nothing was removed: ${message.slice(0, 400)}.` };
   }

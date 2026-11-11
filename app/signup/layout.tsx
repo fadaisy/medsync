@@ -4,10 +4,10 @@ import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 
 import { EmergencyButton } from "@/components/landing/emergency-button";
+import { TideScope } from "@/components/medsync/tide-scope";
 import { SIGNUP_HOLD, SITE } from "@/content/landing";
 import { signupsClosedHere } from "@/lib/legal";
 import { SignupUnavailable } from "./_components/unavailable";
-import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

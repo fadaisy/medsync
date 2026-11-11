@@ -60,10 +60,15 @@ export const RULES = {
     /** OPV0 only within this many days of birth. */
     opv0WindowDays: 14,
     /** Open multi-dose vials: hours they may be kept once opened. */
-    vialHours: { bcg: 6, mr: 6, bopv: 24 * 28, ipv: 24 * 28, penta: 24 * 28, td: 24 * 28, pcv: 24 * 28 } as Record<
-      string,
-      number
-    >,
+    vialHours: {
+      bcg: 6,
+      mr: 6,
+      bopv: 24 * 28,
+      ipv: 24 * 28,
+      penta: 24 * 28,
+      td: 24 * 28,
+      pcv: 24 * 28,
+    } as Record<string, number>,
     /** Freeze-sensitive vaccines: a freezing excursion prompts the shake test. */
     freezeSensitive: ["ipv", "penta", "pcv", "rota", "hpv", "td"] as readonly string[],
     /** Days back for "used in the last 7 days" and the doses chart. */
@@ -173,7 +178,8 @@ export const PRW = {
       left: "Should still be on the ward",
       wardHas: "On the ward's ledger now",
     },
-    unaccounted: "The ward's ledger shows {has}: {gap} not accounted for. Count the ward cupboard and record the difference.",
+    unaccounted:
+      "The ward's ledger shows {has}: {gap} not accounted for. Count the ward cupboard and record the difference.",
     pickTitle: "Pick for this patient",
     next24: "Next 24 h: {n}",
     restOfCourse: "Rest of course: {n}",
@@ -244,7 +250,8 @@ export const PRW = {
     refillTitle: "Refill: {med}",
     broughtBack: "Pill count: how many did they bring back?",
     didNotBring: "Didn't bring them",
-    expectLeft: "{days} days since the last refill × {daily} a day: about {left} should be left if every dose was taken.",
+    expectLeft:
+      "{days} days since the last refill × {daily} a day: about {left} should be left if every dose was taken.",
     pctLine: "{taken} of {should} doses taken",
     low: "Below 80%: ask why (side effects, cost, forgetting) and counsel before refilling.",
     mid: "Some doses missed: reinforce.",
@@ -267,7 +274,8 @@ export const PRW = {
       not_started: "Not started",
     } as Record<string, string>,
     missedDoses: "Doses missed",
-    stoppedNote: "Stopping an antibiotic early risks relapse and resistance: encourage them to finish the course, and ask the prescriber if side effects are the reason.",
+    stoppedNote:
+      "Stopping an antibiotic early risks relapse and resistance: encourage them to finish the course, and ask the prescriber if side effects are the reason.",
     missedNote: "Advise taking the next dose on time (don't double up) and finishing the course.",
     sideEffects: "Side effects",
     se: ["None", "Nausea", "Diarrhoea", "Rash", "Dizziness"] as readonly string[],
@@ -278,7 +286,8 @@ export const PRW = {
   },
   epi: {
     notSetUp: "The EPI clinic is not set up yet.",
-    notSetUpNext: "Choose the clinic's place and its vaccines in Set-up, then this page fills from the ledger.",
+    notSetUpNext:
+      "Choose the clinic's place and its vaccines in Set-up, then this page fills from the ledger.",
     kpiRefill: "vaccines to refill from the cold room",
     kpiUsed: "doses given this month",
     kpiVials: "vials open now",
@@ -322,7 +331,8 @@ export const PRW = {
     discard: "Discard {n} left",
     discarded: "Leftover doses recorded as wasted.",
     control: "Monthly vaccine control",
-    controlHint: "Opening + received − given − wasted = balance (the ledger now). A month-end count should match it.",
+    controlHint:
+      "Opening + received − given − wasted = balance (the ledger now). A month-end count should match it.",
     opening: "Opening",
     received: "Received",
     given: "Given",
@@ -337,7 +347,10 @@ export const PRW = {
     defaultersNone: "No defaulters.",
     register: "Register a client",
     registerTitle: "Register a client",
-    kinds: { child: "Child (routine schedule)", woman: "Woman (Td)", girl: "Girl (HPV)" } as Record<string, string>,
+    kinds: { child: "Child (routine schedule)", woman: "Woman (Td)", girl: "Girl (HPV)" } as Record<
+      string,
+      string
+    >,
     kindShort: { child: "Child", woman: "Td", girl: "HPV" } as Record<string, string>,
     name: "Name",
     sex: "Sex",
@@ -388,11 +401,13 @@ export const PRW = {
     vaxAtEpi: "{n} doses at EPI",
     vaxChecked: "VVM, expiry and diluent checked",
     vaxObserve: "After 30 minutes' observation",
-    aefi: { none: "None", mild: "Mild: fever or local swelling", serious: "Serious: report AEFI now" } as Record<
-      string,
-      string
-    >,
-    aefiSerious: "Manage the child now, then fill the AEFI reporting form. The batch is flagged for review.",
+    aefi: {
+      none: "None",
+      mild: "Mild: fever or local swelling",
+      serious: "Serious: report AEFI now",
+    } as Record<string, string>,
+    aefiSerious:
+      "Manage the child now, then fill the AEFI reporting form. The batch is flagged for review.",
     comeBack: "Come back on",
     comeBackFor: "{rel} · for {lab} and the rest of that visit",
     weekLess: "−1 week",
@@ -408,7 +423,8 @@ export const PRW = {
     dobFuture: "The date of birth cannot be in the future.",
     // Indicators
     indicators: "Indicators this month",
-    indicatorsHint: "From this register and the ledger. Coverage against target needs the catchment population, which is set with the district.",
+    indicatorsHint:
+      "From this register and the ledger. Coverage against target needs the catchment population, which is set with the district.",
     dosesByAntigen: "Doses given by antigen",
     dropouts: "Dropout",
     fic: "Fully immunised children",
@@ -501,11 +517,15 @@ export const PRW = {
     live: "live",
     noLive: "No sensor reading in the last 30 minutes",
     noSensor: "No sensor: chart readings only",
-    status: { ok: "In range", high: "Too warm", low: "Too cold", freeze: "Freezing" } as Record<string, string>,
+    status: { ok: "In range", high: "Too warm", low: "Too cold", freeze: "Freezing" } as Record<
+      string,
+      string
+    >,
     minMax24: "24 h: min {min} · max {max}",
     toAct: "{n} to act on",
     ranges: { "24h": "24 h", "7d": "7 days", "30d": "30 days" } as Record<string, string>,
-    chartAlt: "Temperature over the last {range}, with the 2 to 8 °C band and the +8 and −0.5 alarm lines",
+    chartAlt:
+      "Temperature over the last {range}, with the 2 to 8 °C band and the +8 and −0.5 alarm lines",
     noReadings: "No readings in this period.",
     kpiNow: "Now",
     kpiMinMax: "Min / max (30 days)",
@@ -545,7 +565,8 @@ export const PRW = {
       "Quarantined the stock",
       "Reported to the in-charge",
     ] as readonly string[],
-    shakePrompt: "Freeze-sensitive vaccines here may be damaged: do the shake test on the adsorbed ones before using any of them.",
+    shakePrompt:
+      "Freeze-sensitive vaccines here may be damaged: do the shake test on the adsorbed ones before using any of them.",
     recordActions: "Record what was done",
     acked: "Recorded with the action taken.",
     month: "WHO monthly temperature chart",
@@ -561,9 +582,11 @@ export const PRW = {
       side: "Temperature chart",
       fi: "FI (X or OK)",
       highBand: ">+8 °C alarm",
-      highBandText: "Once every 24 hours: high alarm status and maximum temperature from the continuous temperature monitoring device",
+      highBandText:
+        "Once every 24 hours: high alarm status and maximum temperature from the continuous temperature monitoring device",
       lowBand: "< −0.5 °C alarm",
-      lowBandText: "Once every 24 hours: low alarm status and minimum temperature from the continuous temperature monitoring device",
+      lowBandText:
+        "Once every 24 hours: low alarm status and minimum temperature from the continuous temperature monitoring device",
       alarm: "Alarm time or OK",
       max: "Maximum °C",
       min: "Min °C",
@@ -590,10 +613,11 @@ export const PRW = {
     here: "Here now",
     takeOut: "Take out",
     takeOutTitle: "Take {med} out of {fridge}",
-    how: { move: "Move elsewhere", discard: "Discard as unusable", unlist: "Stop listing here" } as Record<
-      string,
-      string
-    >,
+    how: {
+      move: "Move elsewhere",
+      discard: "Discard as unusable",
+      unlist: "Stop listing here",
+    } as Record<string, string>,
     moveTo: "Move to",
     why: "Why it can't be used",
     causes: {
@@ -604,14 +628,19 @@ export const PRW = {
       damaged: "Broken or damaged",
       recalled: "Recalled",
     } as Record<string, string>,
-    discardHint: "Recorded as wastage on the ledger with your name and the reason. It shows in Records and in the monthly wastage figures.",
+    discardHint:
+      "Recorded as wastage on the ledger with your name and the reason. It shows in Records and in the monthly wastage figures.",
     unlistHint: "Removes it from this fridge's list. The stock stays on the ledger at this place.",
     batch: "Batch",
     fefo: "Earliest expiry first",
     all: "All {n}",
-    takeOutSave: { move: "Move out", discard: "Discard", unlist: "Stop listing it" } as Record<string, string>,
+    takeOutSave: { move: "Move out", discard: "Discard", unlist: "Stop listing it" } as Record<
+      string,
+      string
+    >,
     takenOut: "Done.",
-    noMoveFromHere: "Stock leaves this place by an issue only from the store or a dispensary. Return ward stock in Store, Issue.",
+    noMoveFromHere:
+      "Stock leaves this place by an issue only from the store or a dispensary. Return ward stock in Store, Issue.",
   },
   today: {
     marStock: "{ward}: {n} doses not given for lack of stock in the last 24 h",

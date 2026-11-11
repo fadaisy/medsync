@@ -1,5 +1,6 @@
 "use client";
 
+import type { PharmacyDialogProps } from "./pharmacy-dialog";
 import type { ReviewResult as ActionResult } from "@/lib/pharmacy/review/store";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
@@ -19,7 +20,7 @@ import {
   WITHOUT_PHARMACIST_REASONS,
 } from "@/content/pharmacy-review";
 import * as actions from "../review-actions";
-import { PharmacyDialog, Refusal, type PharmacyDialogProps } from "./pharmacy-dialog";
+import { PharmacyDialog, Refusal } from "./pharmacy-dialog";
 
 /**
  * The review's pop-ups (5.3, 5.4, 5.7; wireframes §4.1, §7.4): each a centred EditorDialog (ADR 0161,
@@ -42,9 +43,11 @@ const text = (d: FormData, k: string) => {
 export { Refusal };
 
 /** The review's dialog: the pharmacy's one dialog (D-PW-10) with the review's words. */
-export function ReviewDialog(props: Omit<PharmacyDialogProps, "width" | "onSave"> & {
-  onSave: (key: string, data: FormData) => Promise<ActionResult<unknown>>;
-}) {
+export function ReviewDialog(
+  props: Omit<PharmacyDialogProps, "width" | "onSave"> & {
+    onSave: (key: string, data: FormData) => Promise<ActionResult<unknown>>;
+  },
+) {
   return <PharmacyDialog {...props} cancelLabel={REVIEW.close.cancel} />;
 }
 

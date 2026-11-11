@@ -7,9 +7,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { PlusIcon } from "lucide-react";
 
-import { PillTabs } from "@/components/tide/work/space";
 import { HospitalProfiles } from "@/components/lab/test-menu/profiles";
 import { TestMenu } from "@/components/lab/test-menu/test-menu";
+import { PillTabs } from "@/components/tide/work/space";
 import { Button } from "@/components/ui/button";
 import { LAB_TEST_MENU } from "@/content/lab-test-menu";
 import { cn } from "@/lib/utils";

@@ -5,8 +5,8 @@
 import type { DemoLane } from "./_pharmacy-demo";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { demoLane } from "./_pharmacy-demo";
 import { laneOn } from "./_pglite";
+import { demoLane } from "./_pharmacy-demo";
 
 vi.mock("server-only", () => ({}));
 const held = vi.hoisted(() => ({ db: undefined as unknown }));
@@ -19,7 +19,8 @@ vi.mock("@/db", () => ({
 describe.skipIf(!laneOn)("Pharmacy demo: the stores section (ADR 0450)", () => {
   let d: DemoLane;
   let who: { userId: string; hospitalId: string };
-  const ids = async (q: string) => (await d.pg.query<{ id: string }>(q, [d.h])).rows.map((r) => r.id);
+  const ids = async (q: string) =>
+    (await d.pg.query<{ id: string }>(q, [d.h])).rows.map((r) => r.id);
 
   beforeAll(async () => {
     d = await demoLane((db) => (held.db = db));
@@ -43,7 +44,12 @@ describe.skipIf(!laneOn)("Pharmacy demo: the stores section (ADR 0450)", () => {
     expect(own.filter((l) => l.kind === "store").every((l) => l.lastCountedAt)).toBe(true);
     expect(page.locations.filter((l) => l.kind === "dispensing_point")).toHaveLength(8);
     expect(page.counterparties.map((c) => c.name)).toEqual(
-      expect.arrayContaining(["National Medical Stores", "Demo supplier A", "Demo donor programme", "Demo regional referral hospital"]),
+      expect.arrayContaining([
+        "National Medical Stores",
+        "Demo supplier A",
+        "Demo donor programme",
+        "Demo regional referral hospital",
+      ]),
     );
     expect(page.countBatches.length).toBeGreaterThan(100);
   });
@@ -60,7 +66,9 @@ describe.skipIf(!laneOn)("Pharmacy demo: the stores section (ADR 0450)", () => {
     const view = (await getDelivery(who, first.id, new Date(), d.lane.db))!;
     expect(view.lines).toHaveLength(13);
     expect(view.reportLineNos.size).toBe(2);
-    expect(view.lines.flatMap((l) => l.results.map((r) => r.kind))).toEqual(expect.arrayContaining(["fewer_than_note", "damaged"]));
+    expect(view.lines.flatMap((l) => l.results.map((r) => r.kind))).toEqual(
+      expect.arrayContaining(["fewer_than_note", "damaged"]),
+    );
     const counting = (await getDelivery(who, page.deliveries[0]!.id, new Date(), d.lane.db))!;
     expect(counting.lines).toHaveLength(5);
     expect(counting.delivery.state).toBe("counting");
@@ -77,14 +85,17 @@ describe.skipIf(!laneOn)("Pharmacy demo: the stores section (ADR 0450)", () => {
     expect(page.toConfirm.map((c) => c.to).sort()).toEqual(["Main store", "NCD clinic pharmacy"]);
     expect(page.loans.map((l) => l.direction).sort()).toEqual(["borrowed", "lent"]);
     expect(page.batches.length).toBeGreaterThan(100);
-    const open = page.requisitions.find((r) => r.state === "raised" && r.fromName === "Paediatric pharmacy")!;
+    const open = page.requisitions.find(
+      (r) => r.state === "raised" && r.fromName === "Paediatric pharmacy",
+    )!;
     const v = (await getRequisition(who, open.id, new Date(), d.lane.db))!;
     expect(v.lines).toHaveLength(4);
     expect(v.lines.every((l) => l.held > 0 && l.prefill > 0)).toBe(true);
   });
 
   it("/store/orders: a proposal from the ledger, orders part received, sent and draft, ordering ready", async () => {
-    const { getOrders, getProposal, orderingReadiness } = await import("@/lib/pharmacy/stores/order-read");
+    const { getOrders, getProposal, orderingReadiness } =
+      await import("@/lib/pharmacy/stores/order-read");
     const proposal = await getProposal(who, new Date(), null, d.lane.db);
     expect(proposal.parameters).not.toBeNull();
     expect(proposal.missing).toEqual([]);
@@ -103,7 +114,12 @@ describe.skipIf(!laneOn)("Pharmacy demo: the stores section (ADR 0450)", () => {
     const { asClinicalReader } = await import("@/lib/emr/db");
     const rows = await asClinicalReader(who, (tx) => packRows(tx, d.h), d.lane.db);
     const byKind = new Map(rows.map((r) => [r.kind, r]));
-    for (const k of ["order_parameters", "tracer_list", "stockout_day_rule", "stores_reason_lists"] as const)
+    for (const k of [
+      "order_parameters",
+      "tracer_list",
+      "stockout_day_rule",
+      "stores_reason_lists",
+    ] as const)
       expect(byKind.get(k)?.signed, k).not.toBeNull();
     expect(byKind.get("order_parameters")?.draft).not.toBeNull();
     const signers = await ids(

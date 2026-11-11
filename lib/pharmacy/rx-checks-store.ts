@@ -1,7 +1,7 @@
+import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import type { RxAnswer, RxFlag } from "@/lib/pharmacy/derive/checks";
 import type { GroupLine } from "@/lib/pharmacy/review/load";
 import type { PharmacyCtx } from "@/lib/pharmacy/write";
-import type { EmrDb, EmrTx } from "@/lib/emr/db";
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
@@ -31,7 +31,9 @@ export async function answerCheck(ctx: PharmacyCtx, input: z.infer<typeof Answer
       confirmedFlags: prescriptions.confirmedFlags,
     })
     .from(prescriptions)
-    .where(and(eq(prescriptions.id, input.lineId), eq(prescriptions.hospitalId, ctx.actor.hospitalId)));
+    .where(
+      and(eq(prescriptions.id, input.lineId), eq(prescriptions.hospitalId, ctx.actor.hospitalId)),
+    );
   if (!row) throw new EmrWriteError("not_found", RX_CHECKS.refused.notHere);
   const flag = rxFlags([
     {
@@ -77,7 +79,12 @@ export async function answersFor(
       at: pharmacyRxChecks.createdAt,
     })
     .from(pharmacyRxChecks)
-    .where(and(eq(pharmacyRxChecks.hospitalId, hospitalId), inArray(pharmacyRxChecks.lineId, [...lineIds])));
+    .where(
+      and(
+        eq(pharmacyRxChecks.hospitalId, hospitalId),
+        inArray(pharmacyRxChecks.lineId, [...lineIds]),
+      ),
+    );
   return rows;
 }
 

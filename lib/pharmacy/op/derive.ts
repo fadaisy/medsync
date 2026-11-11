@@ -1,6 +1,7 @@
 import type { CheckInStatus } from "@/db/schema/pharmacy-rework-patients";
+
 import { RULES } from "@/content/pharmacy-rework-patients";
-import { day0, DAY } from "@/lib/pharmacy/wards/derive";
+import { DAY, day0 } from "@/lib/pharmacy/wards/derive";
 
 /** Outpatient refills and antibiotic courses (prototype outpatients.js), logic for logic. Pure. */
 const days = (a: number, b: number) => Math.round((b - a) / DAY);
@@ -39,11 +40,22 @@ export function opRefill(hist: readonly Refill[], daily: number, now: number) {
   });
   const span = Math.max(1, days(day0(hist[0]!.at), Math.max(t0, day0(last.at))));
   const supplied =
-    hist.slice(0, -1).reduce((a, x) => a + x.qty / daily, 0) + Math.min(supply, days(day0(last.at), t0));
+    hist.slice(0, -1).reduce((a, x) => a + x.qty / daily, 0) +
+    Math.min(supply, days(day0(last.at), t0));
   const mpr = Math.min(100, Math.round((supplied / span) * 100));
   const until = days(t0, runOut);
   const k = until < 0 ? "overdue" : until <= RULES.refillDueDays ? "due" : "ok";
-  return { last, runOut, supply, left, counts, mpr, k, late: -until, lastPct: counts.at(-1)?.pct ?? null };
+  return {
+    last,
+    runOut,
+    supply,
+    left,
+    counts,
+    mpr,
+    k,
+    late: -until,
+    lastPct: counts.at(-1)?.pct ?? null,
+  };
 }
 
 /** Pill count at the window: doses taken since the last refill against what should have been taken. */
@@ -52,7 +64,10 @@ export function pillCount(last: Refill, daily: number, back: number | null, now:
   const expectLeft = Math.max(0, last.qty - since * daily);
   const should = Math.min(last.qty, since * daily);
   const taken = back == null ? null : last.qty - back;
-  const pct = taken == null || !should ? null : Math.max(0, Math.min(100, Math.round((taken / should) * 100)));
+  const pct =
+    taken == null || !should
+      ? null
+      : Math.max(0, Math.min(100, Math.round((taken / should) * 100)));
   return { since, expectLeft, should, taken, pct };
 }
 
@@ -63,7 +78,12 @@ export interface CheckIn {
 }
 
 /** Day n of N, whether a check-in is due (every 2 days), missed doses and a flag when not taking as prescribed. */
-export function opCourse(start: number, courseDays: number, checks: readonly CheckIn[], now: number) {
+export function opCourse(
+  start: number,
+  courseDays: number,
+  checks: readonly CheckIn[],
+  now: number,
+) {
   const t0 = day0(now),
     end = day0(start) + courseDays * DAY;
   const dayN = Math.min(courseDays, days(day0(start), t0) + 1);

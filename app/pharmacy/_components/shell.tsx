@@ -505,7 +505,12 @@ const START: { key: keyof typeof RW.start; icon: LucideIcon; href: string; page:
     href: "/pharmacy/dispense?tab=waiting&next=1",
     page: "dispense",
   },
-  { key: "receive", icon: TruckIcon, href: "/pharmacy/stock/store?tab=receive&start=1", page: "store" },
+  {
+    key: "receive",
+    icon: TruckIcon,
+    href: "/pharmacy/stock/store?tab=receive&start=1",
+    page: "store",
+  },
   {
     key: "issue",
     icon: SendIcon,

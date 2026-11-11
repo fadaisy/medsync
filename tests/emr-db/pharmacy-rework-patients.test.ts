@@ -4,9 +4,9 @@
  * refused, an opened vial's leftover doses leave as wastage, and an opted-out number is never sent to. Runs with
  * EMR_PGLITE=1.
  */
+import { randomUUID } from "node:crypto";
 import type { Lane, Pg } from "./_pglite";
 import type { PharmacyActor } from "@/lib/pharmacy/write";
-import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { authUser, bootLane, department, hospital, laneOn } from "./_pglite";
@@ -93,14 +93,18 @@ describe.skipIf(!laneOn)("Pharmacy rework P4: vaccinating, open vials, reminders
     const b = await batch("PENTA-1");
     await receive(b, 20);
     const c = await client();
-    const r = await vaccinate(actor(), {
-      clientKey: randomUUID(),
-      clientId: c,
-      doses: [{ antigen: "Penta1", site: "Left thigh, IM" }],
-      aefi: "none",
-      checked: true,
-      comeBackOn: null,
-    }, { database: lane.db });
+    const r = await vaccinate(
+      actor(),
+      {
+        clientKey: randomUUID(),
+        clientId: c,
+        doses: [{ antigen: "Penta1", site: "Left thigh, IM" }],
+        aefi: "none",
+        checked: true,
+        comeBackOn: null,
+      },
+      { database: lane.db },
+    );
     expect(r.ok).toBe(true);
     expect(await balance(b)).toBe(19);
     const vial = await pg.query<{ n: string }>(
@@ -142,14 +146,18 @@ describe.skipIf(!laneOn)("Pharmacy rework P4: vaccinating, open vials, reminders
     // Only this batch is usable before the VVM reading; after it, nothing is.
     const c = await client();
     const before = await balance(b);
-    const r = await vaccinate(actor(), {
-      clientKey: randomUUID(),
-      clientId: c,
-      doses: [{ antigen: "Penta1", site: "Left thigh, IM" }],
-      aefi: "none",
-      checked: true,
-      comeBackOn: null,
-    }, { database: lane.db });
+    const r = await vaccinate(
+      actor(),
+      {
+        clientKey: randomUUID(),
+        clientId: c,
+        doses: [{ antigen: "Penta1", site: "Left thigh, IM" }],
+        aefi: "none",
+        checked: true,
+        comeBackOn: null,
+      },
+      { database: lane.db },
+    );
     // Another usable batch (PENTA-1) is chosen, so this batch is untouched.
     expect(await balance(b)).toBe(before);
     expect(r.ok).toBe(true);
@@ -165,8 +173,12 @@ describe.skipIf(!laneOn)("Pharmacy rework P4: vaccinating, open vials, reminders
     ).rows;
     const before = await balance(v!.batch_id);
     const used = Number(
-      (await pg.query<{ n: string }>(`SELECT count(*) AS n FROM public.pharmacy_epi_doses WHERE vial_id = $1`, [v!.id]))
-        .rows[0]!.n,
+      (
+        await pg.query<{ n: string }>(
+          `SELECT count(*) AS n FROM public.pharmacy_epi_doses WHERE vial_id = $1`,
+          [v!.id],
+        )
+      ).rows[0]!.n,
     );
     const r = await discardVial(actor(), { vialId: v!.id }, { database: lane.db });
     expect(r.ok).toBe(true);
@@ -205,18 +217,44 @@ describe.skipIf(!laneOn)("Pharmacy rework P4: vaccinating, open vials, reminders
       [f.h, f.clinic, f.nurse],
     );
     // 50 minutes above +8 °C three hours ago: one excursion to act on.
-    for (const [m, t] of [[240, 5], [180, 9], [150, 9.4], [130, 9], [120, 5], [60, 5]] as const)
+    for (const [m, t] of [
+      [240, 5],
+      [180, 9],
+      [150, 9.4],
+      [130, 9],
+      [120, 5],
+      [60, 5],
+    ] as const)
       await pg.query(
         `INSERT INTO public.pharmacy_fridge_readings (hospital_id, fridge_id, read_at, temp_c, source)
          VALUES ($1, $2, now() - make_interval(mins => $3), $4, 'sensor')`,
         [f.h, fridge, m, t],
       );
-    const added = await cold.addToFridge(actor(), { clientKey: randomUUID(), fridgeId: fridge, productId: f.penta, moveFrom: null, quantity: null }, { database: lane.db });
+    const added = await cold.addToFridge(
+      actor(),
+      {
+        clientKey: randomUUID(),
+        fridgeId: fridge,
+        productId: f.penta,
+        moveFrom: null,
+        quantity: null,
+      },
+      { database: lane.db },
+    );
     expect(added.ok).toBe(true);
     const before = await balance(b);
     const out = await cold.takeOutOfFridge(
       actor(),
-      { clientKey: randomUUID(), fridgeId: fridge, productId: f.penta, how: "discard", quantity: 2, batchId: b, to: null, cause: "expired" },
+      {
+        clientKey: randomUUID(),
+        fridgeId: fridge,
+        productId: f.penta,
+        how: "discard",
+        quantity: 2,
+        batchId: b,
+        to: null,
+        cause: "expired",
+      },
       { database: lane.db },
     );
     expect(out.ok).toBe(true);
@@ -235,7 +273,8 @@ describe.skipIf(!laneOn)("Pharmacy rework P4: vaccinating, open vials, reminders
 
     const viewer = { userId: f.nurse!, hospitalId: f.h! };
     const epi = await import("@/lib/pharmacy/epi/read");
-    for (const tab of ["stock", "clinic", "cold"]) expect((await epi.immunisationData(f.h!, tab, now, lane.db)).setup).not.toBeNull();
+    for (const tab of ["stock", "clinic", "cold"])
+      expect((await epi.immunisationData(f.h!, tab, now, lane.db)).setup).not.toBeNull();
     const stock = await epi.immunisationData(f.h!, "stock", now, lane.db);
     expect(stock.tab === "stock" && stock.vials.length).toBeGreaterThanOrEqual(0);
     await epi.vaxTodayItems(f.h!, new Date(now), lane.db);

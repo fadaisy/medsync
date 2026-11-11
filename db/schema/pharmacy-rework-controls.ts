@@ -1,4 +1,14 @@
-import { boolean, integer, jsonb, numeric, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  jsonb,
+  numeric,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 /**
  * Pharmacy rework, Controls (migration 0267 — GATED, owner-applied). The SQL is the source of truth: the station rule,

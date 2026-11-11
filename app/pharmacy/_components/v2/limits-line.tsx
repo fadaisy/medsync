@@ -13,7 +13,8 @@ const L = PHWS2.limits;
 /** The words of the limits line from the signed state (D-PW-08); pure, so the test reads the same sentence. */
 export function limitsText(pairs: number | null, refs: { signed: number; total: number } | null) {
   const p = !pairs ? L.pairsNone : pairs === 1 ? L.pairsOne : fill(L.pairs, { n: pairs });
-  const d = refs && refs.signed > 0 ? fill(L.doses, { n: refs.signed, total: refs.total }) : L.dosesNone;
+  const d =
+    refs && refs.signed > 0 ? fill(L.doses, { n: refs.signed, total: refs.total }) : L.dosesNone;
   return fill(L.line, { pairs: p, doses: d });
 }
 

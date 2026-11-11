@@ -2,7 +2,11 @@ import "server-only";
 
 import type { PharmacyV2 } from "./v2";
 import type { EmrDb } from "@/lib/emr/db";
-import type { NeedsYouItem, NeedsYouKind, NeedsYouSources } from "@/lib/pharmacy/workspace-v2/needs-you";
+import type {
+  NeedsYouItem,
+  NeedsYouKind,
+  NeedsYouSources,
+} from "@/lib/pharmacy/workspace-v2/needs-you";
 import { cache } from "react";
 
 import { db } from "@/db";
@@ -37,7 +41,7 @@ export const needsYouFor = cache(async (v2: PharmacyV2): Promise<NeedsYouItem[]>
   const now = new Date();
   const on = (k: NeedsYouKind) => kinds.has(k);
   // The shell reads this on every pharmacy page: a source that fails is logged and left out, never the page.
-  const read = <T,>(yes: boolean, kind: string, fn: () => Promise<T>): Promise<T | undefined> =>
+  const read = <T>(yes: boolean, kind: string, fn: () => Promise<T>): Promise<T | undefined> =>
     yes
       ? within(fn(), SOURCE_MS, `needs_you.${kind}`).catch((e: unknown) => {
           logger.error("pharmacy.needs_you.source_failed", { kind, error: String(e) });

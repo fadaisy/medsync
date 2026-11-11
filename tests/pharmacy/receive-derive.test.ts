@@ -1,5 +1,13 @@
 /** RECEIVE §D, §E, §G: GS1, EAN-13, and every branch of the line checks at their edges. */
-import type { LineWorld, ReceiveDelivery, ReceiveLine, ReceiveMed, ReceiveOrder, ReceiveRules } from "@/lib/pharmacy/derive/receive";
+import type {
+  LineWorld,
+  ReceiveDelivery,
+  ReceiveLine,
+  ReceiveMed,
+  ReceiveOrder,
+  ReceiveRules,
+} from "@/lib/pharmacy/derive/receive";
+import type { DeviceDelivery } from "@/lib/pharmacy/receive/offline";
 import { describe, expect, it } from "vitest";
 
 import { checkDigit, ean13Bits, inHouseCode, labelDigits } from "@/lib/pharmacy/barcode";
@@ -19,42 +27,140 @@ import {
   supplierStats,
 } from "@/lib/pharmacy/derive/receive";
 import { parseCode } from "@/lib/pharmacy/gs1";
-import { syncQueue, type DeviceDelivery } from "@/lib/pharmacy/receive/offline";
+import { syncQueue } from "@/lib/pharmacy/receive/offline";
 
 const rules: ReceiveRules = {
-  look: 180, priceTol: 5, secondCheck: 2_000_000, invPct: 1, invUgx: 1000,
-  targetStock: 120, targetShelf: 60, targetMatched: 95, tempLow: 2, tempHigh: 8, coldMins: 30,
+  look: 180,
+  priceTol: 5,
+  secondCheck: 2_000_000,
+  invPct: 1,
+  invUgx: 1000,
+  targetStock: 120,
+  targetShelf: 60,
+  targetMatched: 95,
+  tempLow: 2,
+  tempHigh: 8,
+  coldMins: 30,
 };
 const today = "2026-11-04";
 const med = (over: Partial<ReceiveMed> = {}): ReceiveMed => ({
-  id: "m1", name: "Amoxicillin 500 mg", unit: "capsule", per: 100, cost: 1000, price: 0, hand: 0, shelf: "A-03", gtin: "", cold: false,
-  controlled: false, vaccine: false, regLapsed: false, local: false, itemType: "medicine" as const, sterile: false, kit: false, noExpiry: false, ownCode: false, short: null, ...over,
+  id: "m1",
+  name: "Amoxicillin 500 mg",
+  unit: "capsule",
+  per: 100,
+  cost: 1000,
+  price: 0,
+  hand: 0,
+  shelf: "A-03",
+  gtin: "",
+  cold: false,
+  controlled: false,
+  vaccine: false,
+  regLapsed: false,
+  local: false,
+  itemType: "medicine" as const,
+  sterile: false,
+  kit: false,
+  noExpiry: false,
+  ownCode: false,
+  short: null,
+  ...over,
 });
 const line = (over: Partial<ReceiveLine> = {}): ReceiveLine => ({
-  id: "l1", no: 1, medId: "m1", source: "typed", orderLineId: null, batch: "B1", exp: "2028-06", packs: "10", per: "100",
-  notePacks: "", cost: "", temp: "", decision: "", approvedBy: "", approvalAsked: false, regReason: "", regNote: "",
-  seal: "" as const, kitTemp: "" as const, rejOn: false, rejPacks: "", rejWhy: "", rejFate: "driver", vvm: "", freeze: "", rank: 0, owedFrozen: null, witnessName: "", ...over,
+  id: "l1",
+  no: 1,
+  medId: "m1",
+  source: "typed",
+  orderLineId: null,
+  batch: "B1",
+  exp: "2028-06",
+  packs: "10",
+  per: "100",
+  notePacks: "",
+  cost: "",
+  temp: "",
+  decision: "",
+  approvedBy: "",
+  approvalAsked: false,
+  regReason: "",
+  regNote: "",
+  seal: "" as const,
+  kitTemp: "" as const,
+  rejOn: false,
+  rejPacks: "",
+  rejWhy: "",
+  rejFate: "driver",
+  vvm: "",
+  freeze: "",
+  rank: 0,
+  owedFrozen: null,
+  witnessName: "",
+  ...over,
 });
 const delivery = (lines: ReceiveLine[], over: Partial<ReceiveDelivery> = {}): ReceiveDelivery => ({
-  id: "d1", kind: "supplier", supplierId: "s1", source: "NMS", from: "", fromPlace: null, orderId: null, note: "DN-1", place: "p1",
-  arrived: "2026-11-04 09:00", deliverer: "", vehicle: "", blind: false, invoice: "", invoiceTotal: "", state: "counting",
-  grn: "", finished: "", shelvedAt: "", abandonReason: "", secondCheck: "", claimRef: "", lines, put: [], photos: [], conflict: "", ...over,
+  id: "d1",
+  kind: "supplier",
+  supplierId: "s1",
+  source: "NMS",
+  from: "",
+  fromPlace: null,
+  orderId: null,
+  note: "DN-1",
+  place: "p1",
+  arrived: "2026-11-04 09:00",
+  deliverer: "",
+  vehicle: "",
+  blind: false,
+  invoice: "",
+  invoiceTotal: "",
+  state: "counting",
+  grn: "",
+  finished: "",
+  shelvedAt: "",
+  abandonReason: "",
+  secondCheck: "",
+  claimRef: "",
+  lines,
+  put: [],
+  photos: [],
+  conflict: "",
+  ...over,
 });
-const world = (m: ReceiveMed = med(), o: Partial<LineWorld> = {}): LineWorld => ({ meds: [m], orders: [], recalls: [], rules, today, ...o });
-const info = (l: ReceiveLine, m?: ReceiveMed, o?: Partial<LineWorld>, d?: Partial<ReceiveDelivery>) =>
-  lineInfo(l, delivery([l], d), world(m, o));
+const world = (m: ReceiveMed = med(), o: Partial<LineWorld> = {}): LineWorld => ({
+  meds: [m],
+  orders: [],
+  recalls: [],
+  rules,
+  today,
+  ...o,
+});
+const info = (
+  l: ReceiveLine,
+  m?: ReceiveMed,
+  o?: Partial<LineWorld>,
+  d?: Partial<ReceiveDelivery>,
+) => lineInfo(l, delivery([l], d), world(m, o));
 const words = (i: { words: { word: string }[] }) => i.words.map((x) => x.word);
 
 describe("gs1", () => {
   it("reads the bracketed form", () => {
     expect(parseCode("(01)08901234567890(17)280630(10)AMX2301(21)SN1")).toEqual({
-      gtin: "08901234567890", exp: "2028-06-30", batch: "AMX2301", serial: "SN1",
+      gtin: "08901234567890",
+      exp: "2028-06-30",
+      batch: "AMX2301",
+      serial: "SN1",
     });
   });
-  it("DD 00 means the month only", () => expect(parseCode("(01)08901234567890(17)280600")?.exp).toBe("2028-06"));
+  it("DD 00 means the month only", () =>
+    expect(parseCode("(01)08901234567890(17)280600")?.exp).toBe("2028-06"));
   it("reads the raw form with GS", () => {
     expect(parseCode("0108901234567890172806301 0AB".replace(" ", ""))?.exp).toBe("2028-06-30");
-    expect(parseCode("010890123456789010AB1\u001d21S9")).toEqual({ gtin: "08901234567890", exp: "", batch: "AB1", serial: "S9" });
+    expect(parseCode("010890123456789010AB1\u001d21S9")).toEqual({
+      gtin: "08901234567890",
+      exp: "",
+      batch: "AB1",
+      serial: "S9",
+    });
   });
   it("pads plain codes to 14", () => {
     expect(parseCode("12345678")?.gtin).toBe("00000012345678");
@@ -68,15 +174,43 @@ describe("gs1", () => {
 
 /** A decoder written from the standard, so the bars are checked by reading them back. */
 function decodeEan13(bits: string): string {
-  const L = ["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"];
-  const G = L.map((x) => [...x].reverse().map((c) => (c === "0" ? "1" : "0")).join(""));
+  const L = [
+    "0001101",
+    "0011001",
+    "0010011",
+    "0111101",
+    "0100011",
+    "0110001",
+    "0101111",
+    "0111011",
+    "0110111",
+    "0001011",
+  ];
+  const G = L.map((x) =>
+    [...x]
+      .reverse()
+      .map((c) => (c === "0" ? "1" : "0"))
+      .join(""),
+  );
   const R = L.map((x) => [...x].map((c) => (c === "0" ? "1" : "0")).join(""));
-  const FIRST = ["LLLLLL","LLGLGG","LLGGLG","LLGGGL","LGLLGG","LGGLLG","LGGGLL","LGLGLG","LGLGGL","LGGLGL"];
+  const FIRST = [
+    "LLLLLL",
+    "LLGLGG",
+    "LLGGLG",
+    "LLGGGL",
+    "LGLLGG",
+    "LGGLLG",
+    "LGGGLL",
+    "LGLGLG",
+    "LGLGGL",
+    "LGGLGL",
+  ];
   expect(bits).toHaveLength(95);
   expect(bits.slice(0, 3)).toBe("101");
   expect(bits.slice(45, 50)).toBe("01010");
   expect(bits.slice(92)).toBe("101");
-  let par = "", left = "";
+  let par = "",
+    left = "";
   for (let i = 0; i < 6; i++) {
     const c = bits.slice(3 + i * 7, 10 + i * 7);
     const l = L.indexOf(c);
@@ -94,9 +228,12 @@ describe("barcode", () => {
     expect(checkDigit("978020137962")).toBe("4");
     expect(checkDigit("590123412345")).toBe("7");
   });
-  it.each(["4006381333931", "9780201379624", "5901234123457", "0012345678905"])("bars decode to %s", (code) => {
-    expect(decodeEan13(ean13Bits(code))).toBe(code);
-  });
+  it.each(["4006381333931", "9780201379624", "5901234123457", "0012345678905"])(
+    "bars decode to %s",
+    (code) => {
+      expect(decodeEan13(ean13Bits(code))).toBe(code);
+    },
+  );
   it("in-house codes are 200 + nine + check, and decode", () => {
     const c = inHouseCode(12);
     expect(c).toMatch(/^200000000012\d$/);
@@ -115,7 +252,8 @@ describe("expiry", () => {
     expect(normExp("2028-06-30")).toBe("2028-06-30");
     expect(normExp("06/2028")).toBe("2028-06");
     expect(normExp("30/06/2028")).toBe("2028-06-30");
-    for (const bad of ["June 2028", "2028/06", "13/2028", "2028-13", ""]) expect(normExp(bad)).toBeNull();
+    for (const bad of ["June 2028", "2028/06", "13/2028", "2028-13", ""])
+      expect(normExp(bad)).toBeNull();
   });
   it("a month-only expiry runs to the month's end", () => {
     expect(daysLeft("2026-11", today)).toBe(26);
@@ -125,7 +263,9 @@ describe("expiry", () => {
   it("short-dated is under the rule: 179 yes, 180 no", () => {
     expect(info(line({ exp: addDaysIso(today, 179) })).short).toBe(true);
     expect(info(line({ exp: addDaysIso(today, 180) })).short).toBe(false);
-    expect(words(info(line({ exp: addDaysIso(today, 179) })))).toContain("Expires in under 180 days");
+    expect(words(info(line({ exp: addDaysIso(today, 179) })))).toContain(
+      "Expires in under 180 days",
+    );
   });
   it("the window follows the rule", () => {
     const l = line({ exp: addDaysIso(today, 100) });
@@ -154,7 +294,10 @@ describe("lineInfo", () => {
   it("expired blocks until rejected", () => {
     const l = line({ exp: "2026-11-03" });
     expect(info(l).problems.join()).toContain("has expired");
-    expect(info({ ...l, rejOn: true, rejPacks: "10", rejWhy: "expired", rejFate: "quarantine" }).problems).toEqual([]);
+    expect(
+      info({ ...l, rejOn: true, rejPacks: "10", rejWhy: "expired", rejFate: "quarantine" })
+        .problems,
+    ).toEqual([]);
   });
   it("note differences", () => {
     expect(words(info(line({ notePacks: "12" })))).toContain("2 packs fewer than the note");
@@ -162,22 +305,35 @@ describe("lineInfo", () => {
   });
   it("short of the order: plain while counting, caution after", () => {
     const o: ReceiveOrder = {
-      id: "o1", ref: "PO-1", supplierId: "s1", supplier: "NMS", place: "p1", leadDays: 7, sentOn: "2026-11-01", chasedOn: "",
-      editedOn: "", state: "sent", lines: [{ id: "ol1", medId: "m1", packs: 25, received: 5, price: 0 }],
+      id: "o1",
+      ref: "PO-1",
+      supplierId: "s1",
+      supplier: "NMS",
+      place: "p1",
+      leadDays: 7,
+      sentOn: "2026-11-01",
+      chasedOn: "",
+      editedOn: "",
+      state: "sent",
+      lines: [{ id: "ol1", medId: "m1", packs: 25, received: 5, price: 0 }],
     };
     const l = line({ orderLineId: "ol1" });
     const counting = info(l, undefined, { orders: [o] }, { orderId: "o1" });
     expect(counting.words[0]).toEqual({ word: "10 packs left on the order", caution: false });
     const after = info(l, undefined, { orders: [o] }, { orderId: "o1", state: "received" });
     expect(after.words[0]).toEqual({ word: "10 packs short of the order", caution: true });
-    expect(words(info(line(), undefined, { orders: [o] }, { orderId: "o1" }))).toContain("Not on the order");
+    expect(words(info(line(), undefined, { orders: [o] }, { orderId: "o1" }))).toContain(
+      "Not on the order",
+    );
   });
   it("price tolerance: 5 % passes, 6 % flags, order wins over usual", () => {
     expect(info(line({ cost: "1050" })).priceDiff).toBeNull();
     expect(info(line({ cost: "950" })).priceDiff).toBeNull();
     expect(info(line({ cost: "1060" })).priceDiff).toEqual({ pct: 6, ref: 1000, fromOrder: false });
     expect(words(info(line({ cost: "940" })))).toContain("Price 6% below the usual price");
-    expect(info(line({ cost: "1060" }), undefined, undefined, { kind: "donation" }).priceDiff).toBeNull();
+    expect(
+      info(line({ cost: "1060" }), undefined, undefined, { kind: "donation" }).priceDiff,
+    ).toBeNull();
   });
   it("cold: needs the temperature, in range to the rule", () => {
     const m = med({ cold: true });
@@ -194,15 +350,33 @@ describe("lineInfo", () => {
     expect(info({ ...l, decision: "accept" }).problems.join()).toContain("in-charge's approval");
     expect(info({ ...l, decision: "accept_tell", approvedBy: "x" }).problems).toEqual([]);
     const r = info({ ...l, decision: "reject" });
-    expect([r.acc, r.rej, r.why, r.fate, r.problems.length]).toEqual([0, 10, "short_dated", "driver", 0]);
+    expect([r.acc, r.rej, r.why, r.fate, r.problems.length]).toEqual([
+      0,
+      10,
+      "short_dated",
+      "driver",
+      0,
+    ]);
   });
   it("recall matches the batch, or every batch when the notice names none", () => {
     const recalls = [{ medId: "m1", batch: "AMX1", notice: "N-1", why: "", from: "NDA" }];
-    expect(info(line({ batch: "amx1 " }), undefined, { recalls }).problems.join()).toContain("is on recall (N-1)");
+    expect(info(line({ batch: "amx1 " }), undefined, { recalls }).problems.join()).toContain(
+      "is on recall (N-1)",
+    );
     expect(info(line({ batch: "OTHER" }), undefined, { recalls }).rc).toBeNull();
     expect(info(line(), undefined, { recalls: [{ ...recalls[0]!, batch: "" }] }).rc).not.toBeNull();
     expect(
-      info(line({ batch: "AMX1", rejOn: true, rejPacks: "10", rejWhy: "recall", rejFate: "quarantine" }), undefined, { recalls }).problems,
+      info(
+        line({
+          batch: "AMX1",
+          rejOn: true,
+          rejPacks: "10",
+          rejWhy: "recall",
+          rejFate: "quarantine",
+        }),
+        undefined,
+        { recalls },
+      ).problems,
     ).toEqual([]);
   });
   it("vaccine: VVM and freeze both required, 3–4 and tripped block", () => {
@@ -222,24 +396,36 @@ describe("lineInfo", () => {
     expect(info(line({ regReason: "donation" }), m).problems).toEqual([]);
   });
   it("rejections: not more than counted, and a reason", () => {
-    expect(info(line({ rejOn: true, rejPacks: "11", rejWhy: "damaged" })).problems.join()).toContain("more are rejected");
-    expect(info(line({ rejOn: true, rejPacks: "1" })).problems.join()).toContain("say why it was rejected");
-    expect(words(info(line({ rejOn: true, rejPacks: "1", rejWhy: "damaged" })))).toContain("Damaged");
+    expect(
+      info(line({ rejOn: true, rejPacks: "11", rejWhy: "damaged" })).problems.join(),
+    ).toContain("more are rejected");
+    expect(info(line({ rejOn: true, rejPacks: "1" })).problems.join()).toContain(
+      "say why it was rejected",
+    );
+    expect(words(info(line({ rejOn: true, rejPacks: "1", rejWhy: "damaged" })))).toContain(
+      "Damaged",
+    );
   });
 });
 
 describe("the delivery", () => {
   it("finishing needs no problems and one counted line", () => {
     const w = world();
-    expect(deliveryProblems(delivery([line({ packs: "", orderLineId: "x" })]), w).blocked).toBe(true);
+    expect(deliveryProblems(delivery([line({ packs: "", orderLineId: "x" })]), w).blocked).toBe(
+      true,
+    );
     expect(deliveryProblems(delivery([line()]), w).blocked).toBe(false);
   });
   it("invoice tolerance: the larger of 1 % and UGX 1,000", () => {
     const w = world(med({ cost: 0 }));
-    const d = (t: string, cost = "100000") => delivery([line({ cost, packs: "10" })], { invoiceTotal: t });
+    const d = (t: string, cost = "100000") =>
+      delivery([line({ cost, packs: "10" })], { invoiceTotal: t });
     const inv = (x: ReceiveDelivery) => matchRows(x, w, rules).at(-1)!;
     expect(inv(d("1010000")).cls).toBe("ok");
-    expect(inv(d("1010001"))).toEqual({ cls: "warn", text: "Invoice is UGX 10,001 more than what was counted" });
+    expect(inv(d("1010001"))).toEqual({
+      cls: "warn",
+      text: "Invoice is UGX 10,001 more than what was counted",
+    });
     expect(inv(d("989999")).text).toContain("less");
     expect(inv(d("11000", "1000")).cls).toBe("ok");
     expect(inv(d("11001", "1000")).cls).toBe("warn");
@@ -259,12 +445,31 @@ describe("the delivery", () => {
     ]);
   });
   it("due date crosses months and years, and tags follow", () => {
-    expect(orderDue({ sentOn: "2026-10-20", leadDays: 23, state: "sent" }, today).dueIso).toBe("2026-11-12");
-    expect(orderDue({ sentOn: "2026-12-20", leadDays: 23, state: "sent" }, "2026-12-21").dueIso).toBe("2027-01-12");
-    expect(orderDue({ sentOn: "2026-11-01", leadDays: 6, state: "sent" }, today)).toMatchObject({ text: "Due in 3 days", tone: "info", late: false });
-    expect(orderDue({ sentOn: "2026-11-01", leadDays: 3, state: "part" }, today)).toMatchObject({ text: "Due today", tone: "warn", late: true });
-    expect(orderDue({ sentOn: "2026-10-25", leadDays: 7, state: "sent" }, today)).toMatchObject({ text: "3 days late", tone: "bad", late: true });
-    expect(orderDue({ sentOn: "2026-10-25", leadDays: 7, state: "closed" }, today)).toMatchObject({ text: "", late: false });
+    expect(orderDue({ sentOn: "2026-10-20", leadDays: 23, state: "sent" }, today).dueIso).toBe(
+      "2026-11-12",
+    );
+    expect(
+      orderDue({ sentOn: "2026-12-20", leadDays: 23, state: "sent" }, "2026-12-21").dueIso,
+    ).toBe("2027-01-12");
+    expect(orderDue({ sentOn: "2026-11-01", leadDays: 6, state: "sent" }, today)).toMatchObject({
+      text: "Due in 3 days",
+      tone: "info",
+      late: false,
+    });
+    expect(orderDue({ sentOn: "2026-11-01", leadDays: 3, state: "part" }, today)).toMatchObject({
+      text: "Due today",
+      tone: "warn",
+      late: true,
+    });
+    expect(orderDue({ sentOn: "2026-10-25", leadDays: 7, state: "sent" }, today)).toMatchObject({
+      text: "3 days late",
+      tone: "bad",
+      late: true,
+    });
+    expect(orderDue({ sentOn: "2026-10-25", leadDays: 7, state: "closed" }, today)).toMatchObject({
+      text: "",
+      late: false,
+    });
   });
   it("cold timer: amber past two-thirds, red past the limit", () => {
     expect(coldTimer(20, 30).tone).toBe("");
@@ -272,7 +477,9 @@ describe("the delivery", () => {
     expect(coldTimer(30, 30).tone).toBe("warn");
     expect(coldTimer(31, 30)).toMatchObject({ tone: "bad" });
     expect(coldTimer(31, 30).text).toContain("over the 30 min limit");
-    expect(coldTimer(12, 30).text).toBe("Cold lines arrived 12 min ago. Into the fridge within 30 min (Rules › Cold chain).");
+    expect(coldTimer(12, 30).text).toBe(
+      "Cold lines arrived 12 min ago. Into the fridge within 30 min (Rules › Cold chain).",
+    );
   });
   it("order state", () => {
     expect(orderState([{ packs: 5, received: 0 }])).toBe("sent");
@@ -283,20 +490,37 @@ describe("the delivery", () => {
 
 describe("figures", () => {
   const row = (n: number, stock: number, shelf: number, matched: number) => ({
-    note: `DN-${n}`, supplierId: "s1", arrived: "2026-11-01 08:00",
+    note: `DN-${n}`,
+    supplierId: "s1",
+    arrived: "2026-11-01 08:00",
     finished: `2026-11-01 ${String(8 + Math.floor(stock / 60)).padStart(2, "0")}:${String(stock % 60).padStart(2, "0")}`,
     shelvedAt: `2026-11-02 ${String(8 + Math.floor(shelf / 60)).padStart(2, "0")}:${String(shelf % 60).padStart(2, "0")}`,
-    lines: 10, matched,
+    lines: 10,
+    matched,
   });
   it("median, target and delta", () => {
     const f = figures([row(1, 100, 0, 10), row(2, 200, 0, 9), row(3, 72, 0, 10)], [], rules);
-    expect(f[0]).toMatchObject({ label: "Arrival to in stock", value: "1 h 40 min", onTarget: true, sub: "Median · Down 2 h 8 min on the delivery before", subTone: "ok" });
-    expect(f[2]).toMatchObject({ value: "100%", onTarget: true, sub: "Last delivery · Up 10 points on the delivery before" });
+    expect(f[0]).toMatchObject({
+      label: "Arrival to in stock",
+      value: "1 h 40 min",
+      onTarget: true,
+      sub: "Median · Down 2 h 8 min on the delivery before",
+      subTone: "ok",
+    });
+    expect(f[2]).toMatchObject({
+      value: "100%",
+      onTarget: true,
+      sub: "Last delivery · Up 10 points on the delivery before",
+    });
     expect(figures([row(1, 121, 0, 9)], [], rules)[0]!.onTarget).toBe(false);
     expect(figures([row(1, 120, 0, 9)], [], rules)[0]!.onTarget).toBe(true);
   });
   it("the chart keeps the last 8, and the target follows the rule", () => {
-    const f = figures(Array.from({ length: 10 }, (_, i) => row(i, 60, 0, 10)), [], { ...rules, targetStock: 45 });
+    const f = figures(
+      Array.from({ length: 10 }, (_, i) => row(i, 60, 0, 10)),
+      [],
+      { ...rules, targetStock: 45 },
+    );
     const c = f[0]!.chart!;
     expect(c.bars).toHaveLength(8);
     expect(c.refLabel).toBe("Target 45 min");
@@ -305,36 +529,115 @@ describe("figures", () => {
   });
   it("claims open adds draft and sent only, oldest last", () => {
     const claim = (id: string, state: "draft" | "sent" | "credit", total: number) => ({
-      id, ref: id, note: "", grn: "", deliveryId: "", supplierId: "s", supplier: "NMS", state, made: "", total, creditNote: "", lines: [],
+      id,
+      ref: id,
+      note: "",
+      grn: "",
+      deliveryId: "",
+      supplierId: "s",
+      supplier: "NMS",
+      state,
+      made: "",
+      total,
+      creditNote: "",
+      lines: [],
     });
-    const f = figures([], [claim("new", "draft", 1000), claim("old", "sent", 2000), claim("c", "credit", 9000)], rules)[3]!;
-    expect(f).toMatchObject({ value: "UGX 3,000", sub: "2 claims waiting for credit", oldestClaimId: "old" });
+    const f = figures(
+      [],
+      [claim("new", "draft", 1000), claim("old", "sent", 2000), claim("c", "credit", 9000)],
+      rules,
+    )[3]!;
+    expect(f).toMatchObject({
+      value: "UGX 3,000",
+      sub: "2 claims waiting for credit",
+      oldestClaimId: "old",
+    });
   });
   it("suppliers: fill, lead against promised, on time", () => {
     const base = { supplierId: "s", leadDays: 7 };
     const [s] = supplierStats(
       [
-        { ...base, orderId: "a", sentOn: "2026-10-01", packs: 5, received: 5, firstAt: "2026-10-06" },
-        { ...base, orderId: "a", sentOn: "2026-10-01", packs: 5, received: 3, firstAt: "2026-10-06" },
-        { ...base, orderId: "b", sentOn: "2026-10-01", packs: 5, received: 5, firstAt: "2026-10-11" },
+        {
+          ...base,
+          orderId: "a",
+          sentOn: "2026-10-01",
+          packs: 5,
+          received: 5,
+          firstAt: "2026-10-06",
+        },
+        {
+          ...base,
+          orderId: "a",
+          sentOn: "2026-10-01",
+          packs: 5,
+          received: 3,
+          firstAt: "2026-10-06",
+        },
+        {
+          ...base,
+          orderId: "b",
+          sentOn: "2026-10-01",
+          packs: 5,
+          received: 5,
+          firstAt: "2026-10-11",
+        },
       ],
       new Map([["s", 4]]),
     );
-    expect(s).toEqual({ supplierId: "s", fill: 67, lead: 5, promised: 7, onTime: 50, differences: 4 });
+    expect(s).toEqual({
+      supplierId: "s",
+      fill: 67,
+      lead: 5,
+      promised: 7,
+      onTime: 50,
+      differences: 4,
+    });
   });
 });
 
 describe("stages", () => {
-  const w = { ...world(), hospitalId: "", facility: "", me: { id: "", name: "", inCharge: false }, placeId: "p1", suppliers: [], claims: [],
-    asks: [], figureRows: [], supplierRows: [], differencesBy: [], registration: [], dispatches: [],
-    places: [{ id: "p1", name: "Main store", kind: "store", direct: true }, { id: "p2", name: "OPD", kind: "dispensing_point", direct: false }],
-    deliveries: [], orders: [] };
+  const w = {
+    ...world(),
+    hospitalId: "",
+    facility: "",
+    me: { id: "", name: "", inCharge: false },
+    placeId: "p1",
+    suppliers: [],
+    claims: [],
+    asks: [],
+    figureRows: [],
+    supplierRows: [],
+    differencesBy: [],
+    registration: [],
+    dispatches: [],
+    places: [
+      { id: "p1", name: "Main store", kind: "store", direct: true },
+      { id: "p2", name: "OPD", kind: "dispensing_point", direct: false },
+    ],
+    deliveries: [],
+    orders: [],
+  };
   it("a receiving place has four columns, others two", () => {
-    expect(stages(w, "p1").stages.map((s) => s.key)).toEqual(["expected", "counting", "put", "received"]);
+    expect(stages(w, "p1").stages.map((s) => s.key)).toEqual([
+      "expected",
+      "counting",
+      "put",
+      "received",
+    ]);
     expect(stages(w, "p2").stages.map((s) => s.key)).toEqual(["way", "received"]);
   });
   it("a dispatch on its way adds the column first", () => {
-    const dispatches = [{ id: "x", voucher: "RIV-1", kindText: "Requisition", sentAt: "2026-11-04 09:00", state: "transit" as const, note: "", lines: [] }];
+    const dispatches = [
+      {
+        id: "x",
+        voucher: "RIV-1",
+        kindText: "Requisition",
+        sentAt: "2026-11-04 09:00",
+        state: "transit" as const,
+        note: "",
+        lines: [],
+      },
+    ];
     expect(stages({ ...w, dispatches }, "p1").stages[0]!.key).toBe("way");
   });
   it("a queued delivery waits for the network", () => {
@@ -354,9 +657,19 @@ describe("syncQueue (RECEIVE §H)", () => {
   const memory = () => {
     const put: DeviceDelivery[] = [];
     const dropped: string[] = [];
-    return { put, dropped, store: { put: async (d: DeviceDelivery) => put.push(d), drop: async (id: string) => dropped.push(id) } };
+    return {
+      put,
+      dropped,
+      store: {
+        put: async (d: DeviceDelivery) => put.push(d),
+        drop: async (id: string) => dropped.push(id),
+      },
+    };
   };
-  const ok = { push: async () => ({ ok: true as const }), finish: async () => ({ ok: true as const }) };
+  const ok = {
+    push: async () => ({ ok: true as const }),
+    finish: async () => ({ ok: true as const }),
+  };
 
   it("commits oldest first, once each, and skips what is not queued", async () => {
     const m = memory();
@@ -376,12 +689,19 @@ describe("syncQueue (RECEIVE §H)", () => {
     const m = memory();
     const r = await syncQueue(
       [device("a", 1), device("b", 2)],
-      { ...ok, finish: async (d) => (d.delivery.id === "a" ? { ok: false as const, error: "Recalled" } : { ok: true as const }) },
+      {
+        ...ok,
+        finish: async (d) =>
+          d.delivery.id === "a" ? { ok: false as const, error: "Recalled" } : { ok: true as const },
+      },
       "dup",
       m.store,
     );
     expect(r.conflicts).toEqual([{ id: "a", reason: "Recalled" }]);
-    expect(m.put[0]).toMatchObject({ queued: false, delivery: { state: "counting", conflict: "Recalled" } });
+    expect(m.put[0]).toMatchObject({
+      queued: false,
+      delivery: { state: "counting", conflict: "Recalled" },
+    });
     expect(r.added).toEqual(["b"]);
   });
 
@@ -390,7 +710,10 @@ describe("syncQueue (RECEIVE §H)", () => {
     let finished = 0;
     const r = await syncQueue(
       [device("a", 1)],
-      { push: async () => ({ ok: true as const, duplicate: true }), finish: async () => (finished++, { ok: true as const }) },
+      {
+        push: async () => ({ ok: true as const, duplicate: true }),
+        finish: async () => (finished++, { ok: true as const }),
+      },
       "Someone recorded it",
       m.store,
     );
@@ -402,7 +725,12 @@ describe("syncQueue (RECEIVE §H)", () => {
     const m = memory();
     const r = await syncQueue(
       [device("a", 1), device("b", 2)],
-      { ...ok, finish: async () => { throw new Error("offline"); } },
+      {
+        ...ok,
+        finish: async () => {
+          throw new Error("offline");
+        },
+      },
       "dup",
       m.store,
     );

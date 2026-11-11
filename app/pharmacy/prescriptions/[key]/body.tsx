@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ClockIcon } from "lucide-react";
 
+import { ChecksPanel } from "@/app/pharmacy/dispense/_components/checks-panel";
 import { StatusWord } from "@/components/emr/status-word";
 import { CautionNotice } from "@/components/medsync/caution-notice";
 import { PageHeader } from "@/components/medsync/page-header";
@@ -32,16 +33,14 @@ import { patientListLive } from "@/lib/pharmacy/patient-list";
 import { buildPrescriptionView } from "@/lib/pharmacy/prescription-view";
 import { getPrescription, logPrescriptionViewed, patientFacts } from "@/lib/pharmacy/read";
 import { getReview, prescribersHere } from "@/lib/pharmacy/review/read";
-import { requirePharmacyScope } from "@/lib/pharmacy/scope";
-import { ChecksPanel } from "@/app/pharmacy/dispense/_components/checks-panel";
 import { answersFor } from "@/lib/pharmacy/rx-checks-store";
+import { requirePharmacyScope } from "@/lib/pharmacy/scope";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { PharmacyNotice } from "../../_components/pharmacy-notice";
 import { BringInButton } from "../../_components/review-dialogs";
 import { ReviewScreen } from "../../_components/review-screen";
 import { RecordReactionDialog } from "../../clinical/reactions/_components/record-dialog";
 import { InteractionAlerts } from "./_components/interaction-alerts";
-
 
 /**
  * One prescription, read-only (§5.4; canvas 0.2). Exactly the signed read list (D-PH0-05); every
@@ -457,7 +456,13 @@ async function ReviewPage({
       <ChecksPanel
         lines={data.lines.map((l) => ({ id: l.id, name: l.input.drugName, checks: l.checks }))}
         answers={Object.fromEntries(
-          (await answersFor(db as unknown as EmrDb, scope.hospitalId, data.lines.map((l) => l.id)))
+          (
+            await answersFor(
+              db as unknown as EmrDb,
+              scope.hospitalId,
+              data.lines.map((l) => l.id),
+            )
+          )
             .sort((a, b) => a.at.getTime() - b.at.getTime())
             .map((a) => [`${a.lineId}:${a.code}`, { answer: a.answer, reason: a.reason }]),
         )}

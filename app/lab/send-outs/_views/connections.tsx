@@ -2,6 +2,7 @@ import type { LabTechScope } from "@/lib/lab-tech/scope";
 import Link from "next/link";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { KeyFigure, KeyFigureGrid, Panel } from "@/components/tide/work/kit";
 import { fill, LAB4 } from "@/content/lab-phase-4";
 import { LABWS2 } from "@/content/lab-workspace-v2";
 import { LABWS2_SEND_OUTS } from "@/content/lab-workspace-v2-send-outs";
@@ -20,7 +21,6 @@ import {
   RevokeDialog,
 } from "../_components/connection-forms";
 import { hrefWith, soLinks } from "../_lib/links";
-import { KeyFigure, KeyFigureGrid, Panel } from "@/components/tide/work/kit";
 import { dateWords, timeWords } from "../../_lib/days";
 
 const STATE: Record<string, string> = {

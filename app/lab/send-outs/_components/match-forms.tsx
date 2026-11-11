@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { resolveMatchAction } from "@/lib/lab/match-actions";
 import { inputClass, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 /* The decisions on a waiting item (Lab Phase 4 §5.7; MA-6, MA-7). "Ask the reference lab" is the first move. */

@@ -3,9 +3,9 @@
 import { useId, useState } from "react";
 
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { signConfigAsLeadAction } from "@/lib/lab/catalogue-v2-actions";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 
 /**

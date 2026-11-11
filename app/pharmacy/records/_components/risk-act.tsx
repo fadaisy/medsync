@@ -10,7 +10,15 @@ import { riskActionAction } from "../actions";
 type Act = keyof typeof RC.losses.actions;
 
 /** The three moves on stock at risk (prototype losses.js): each is recorded, with the value, on the audit trail. */
-export function RiskAct({ productId, batchNumber, value }: { productId: string; batchNumber: string; value: number }) {
+export function RiskAct({
+  productId,
+  batchNumber,
+  value,
+}: {
+  productId: string;
+  batchNumber: string;
+  value: number;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();

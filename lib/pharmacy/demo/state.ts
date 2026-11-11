@@ -1,16 +1,16 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import type { EmrDb } from "@/lib/emr/db";
 import type { PharmacyActor, PharmacyCtx, PharmacyNeed } from "@/lib/pharmacy/write";
 import type { SQL } from "drizzle-orm";
 import type { z } from "zod";
-import { randomUUID } from "node:crypto";
+import { sql } from "drizzle-orm";
 
 import { encrypt } from "@/lib/encryption";
 import { rowsOf } from "@/lib/exchange/store";
 import { PHARMACY_MAP_V2, pharmacyDispensingAccess } from "@/lib/pharmacy/access";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
-import { sql } from "drizzle-orm";
 
 /**
  * The pharmacy demo's shared state (ADR 0450). Sections run in order and add what later ones need. Every demo person
@@ -26,11 +26,24 @@ export interface DemoDeps {
   makeUser: (label: string) => Promise<string>;
 }
 
-export type PointKey = "opd" | "emergency" | "inpatient" | "paediatrics" | "maternity" | "art" | "ncd" | "private";
+export type PointKey =
+  | "opd"
+  | "emergency"
+  | "inpatient"
+  | "paediatrics"
+  | "maternity"
+  | "art"
+  | "ncd"
+  | "private";
 export type ClinicKey = "gopd" | "ncd" | "art" | "popd" | "anc" | "ed";
 export type WardKey = "medM" | "medF" | "surgical" | "paediatric" | "maternity" | "icu";
 
-export type DemoPoint = { key: PointKey; id: string; name: string; serves: "window" | "wards" | "emergency" | "all" };
+export type DemoPoint = {
+  key: PointKey;
+  id: string;
+  name: string;
+  serves: "window" | "wards" | "emergency" | "all";
+};
 export type DemoPatient = {
   id: string;
   n: number;
@@ -51,7 +64,17 @@ export type DemoMedicine = {
   name: string;
   /** The product's name on the shelf, e.g. "Amoxicillin capsules". */
   product: string;
-  unit: "tablet" | "capsule" | "vial" | "ampoule" | "bottle" | "sachet" | "bag" | "tube" | "pen" | "inhaler";
+  unit:
+    | "tablet"
+    | "capsule"
+    | "vial"
+    | "ampoule"
+    | "bottle"
+    | "sachet"
+    | "bag"
+    | "tube"
+    | "pen"
+    | "inhaler";
   controlled: boolean;
 };
 
@@ -127,13 +150,17 @@ export async function demoHead(
   user: string,
   opts: { acting?: boolean; startsAt?: string; setBy?: string | null } = {},
 ) {
-  await s.db.execute(sql`UPDATE department_heads h SET ends_at = greatest(now(), h.starts_at), updated_at = now()
+  await s.db
+    .execute(sql`UPDATE department_heads h SET ends_at = greatest(now(), h.starts_at), updated_at = now()
     FROM users u WHERE u.id = h.user_id AND h.department_id = ${dept} AND h.ends_at IS NULL
       AND u.email LIKE '%@demo.medsync.invalid'`);
   for (const acting of opts.acting ? [true] : [false, true]) {
-    const r = await q(s, sql`INSERT INTO department_heads (hospital_id, department_id, user_id, acting, starts_at, set_by_user_id)
+    const r = await q(
+      s,
+      sql`INSERT INTO department_heads (hospital_id, department_id, user_id, acting, starts_at, set_by_user_id)
       VALUES (${s.h}, ${dept}, ${user}, ${acting}, coalesce(${opts.startsAt ?? null}::timestamptz, now()), ${opts.setBy ?? null})
-      ON CONFLICT DO NOTHING RETURNING id`);
+      ON CONFLICT DO NOTHING RETURNING id`,
+    );
     if (r.length) return true;
   }
   return false;
@@ -148,30 +175,45 @@ export async function demoStaff(
   role: "clinician" | "nurse" | null = "clinician",
 ) {
   const id = await demoAccount(s, label);
-  await s.db.execute(sql`INSERT INTO staff_affiliations (user_id, hospital_id, department_id, cadre_id, role_id,
+  await s.db
+    .execute(sql`INSERT INTO staff_affiliations (user_id, hospital_id, department_id, cadre_id, role_id,
       employment_type, state, approved_at)
     SELECT ${id}, ${s.h}, ${dept}, c.id,
       coalesce((SELECT r.id FROM roles r WHERE r.cadre_id = c.id LIMIT 1), (SELECT r.id FROM roles r LIMIT 1)),
       'full_time', 'active', now() - interval '60 days'
       FROM cadres c WHERE c.code = ${cadre}`);
   if (role)
-    await s.db.execute(sql`INSERT INTO user_roles (user_id, role, hospital_id) VALUES (${id}, ${role}, ${s.h})
+    await s.db
+      .execute(sql`INSERT INTO user_roles (user_id, role, hospital_id) VALUES (${id}, ${role}, ${s.h})
       ON CONFLICT DO NOTHING`);
   return id;
 }
 
-export async function demoPatientProfile(s: DemoState, id: string, n: number, sex: "female" | "male", dob: string) {
+export async function demoPatientProfile(
+  s: DemoState,
+  id: string,
+  n: number,
+  sex: "female" | "male",
+  dob: string,
+) {
   const nn = String(n).padStart(2, "0");
-  await s.db.execute(sql`INSERT INTO patient_profiles (id, first_name_encrypted, surname_encrypted, sex, date_of_birth,
+  await s.db
+    .execute(sql`INSERT INTO patient_profiles (id, first_name_encrypted, surname_encrypted, sex, date_of_birth,
       id_type, phone_encrypted, district_id, primary_facility_id)
     VALUES (${id}, ${encrypt("Demo")}, ${encrypt(`patient ${nn}`)}, ${sex}, ${dob}, 'none', ${encrypt("+256700000000")},
       ${s.district}, ${s.h})`);
-  await s.db.execute(sql`INSERT INTO pharmacy_demo_patients (load_id, hospital_id, patient_user_id, label)
+  await s.db
+    .execute(sql`INSERT INTO pharmacy_demo_patients (load_id, hospital_id, patient_user_id, label)
     VALUES (${s.loadId}, ${s.h}, ${id}, ${`Demo patient ${nn}`})`);
 }
 
 /** A pharmacy actor as the app builds one, on permission map v2 (the demo hospital is listed in PHARMACY_DEV_HOSPITALS). */
-export function pharmacyActor(s: DemoState, userId: string, cadre: "PHARMACIST" | "PHARMACY_TECH", point: PointKey | null): PharmacyActor {
+export function pharmacyActor(
+  s: DemoState,
+  userId: string,
+  cadre: "PHARMACIST" | "PHARMACY_TECH",
+  point: PointKey | null,
+): PharmacyActor {
   return {
     userId,
     hospitalId: s.h,
@@ -192,7 +234,10 @@ export async function write<I, R extends { id: string }>(
   raw: Record<string, unknown>,
   now = s.now,
 ): Promise<R> {
-  const r = await runPharmacyWrite(schema, { clientKey: randomUUID(), ...raw }, actor, need, fn, { database: s.db, now });
+  const r = await runPharmacyWrite(schema, { clientKey: randomUUID(), ...raw }, actor, need, fn, {
+    database: s.db,
+    now,
+  });
   if (!r.ok) throw new Error(`${r.code}: ${r.error}`);
   return r.data!;
 }
@@ -223,7 +268,13 @@ export async function signSet(s: DemoState, kind: string, content: unknown) {
 /** The chief pharmacist at a point, with pharmacy.manage and pharmacy.store as the head of the PHARMACY department holds them. */
 export function chiefActor(s: DemoState, point: PointKey | null): PharmacyActor {
   const a = pharmacyActor(s, s.people.chief, "PHARMACIST", point);
-  return { ...a, access: { ...a.access, permissions: new Set([...a.access.permissions, "pharmacy.manage", "pharmacy.store"]) } } as PharmacyActor;
+  return {
+    ...a,
+    access: {
+      ...a.access,
+      permissions: new Set([...a.access.permissions, "pharmacy.manage", "pharmacy.store"]),
+    },
+  } as PharmacyActor;
 }
 
 /** A passed witness attestation (password and TOTP in the app), by another demo person, for a controlled step. */

@@ -4,12 +4,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { reasonWord } from "@/components/lab/lab-report-view";
-import { fill, LABWS2 } from "@/content/lab-workspace-v2";
-import { identitiesFor } from "@/lib/emr/read/results";
-import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
-import { BUCKET_LABELS, BUCKETS, PERIOD_DAYS } from "@/lib/lab/today";
-import { loadToday } from "@/lib/lab/today-read";
-import { formatDuration } from "@/lib/lab/turnaround";
 import {
   BulletBar,
   Histogram,
@@ -17,9 +11,15 @@ import {
   Sparkline,
   StageBar,
 } from "@/components/tide/work/charts";
-import { InboxRow } from "../_components/v2/inbox";
 import { EmptyState, KeyFigure, KeyFigureGrid, Panel, Pill } from "@/components/tide/work/kit";
 import { FilterChips, PillTabs, PrimaryLink } from "@/components/tide/work/space";
+import { fill, LABWS2 } from "@/content/lab-workspace-v2";
+import { identitiesFor } from "@/lib/emr/read/results";
+import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
+import { BUCKET_LABELS, BUCKETS, PERIOD_DAYS } from "@/lib/lab/today";
+import { loadToday } from "@/lib/lab/today-read";
+import { formatDuration } from "@/lib/lab/turnaround";
+import { InboxRow } from "../_components/v2/inbox";
 import { needsYouFor } from "../_lib/needs-you";
 import { one } from "../_lib/place-tabs";
 import { labV2 } from "../_lib/places";

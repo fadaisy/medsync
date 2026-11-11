@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,6 @@ import {
   setOperatorAction,
 } from "@/lib/lab/bedside-actions";
 import { SETTINGS } from "../_lib/copy";
-import { LabButton } from "@/components/tide/work/button";
 import { DateField } from "../../../_components/v2/fields";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 

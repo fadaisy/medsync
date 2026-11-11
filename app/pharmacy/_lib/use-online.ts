@@ -13,4 +13,8 @@ const subscribe = (cb: () => void) => {
 
 /** The browser's network state; true on the server. */
 export const useOnline = () =>
-  useSyncExternalStore(subscribe, () => navigator.onLine, () => true);
+  useSyncExternalStore(
+    subscribe,
+    () => navigator.onLine,
+    () => true,
+  );

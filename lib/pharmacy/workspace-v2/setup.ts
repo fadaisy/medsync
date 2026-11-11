@@ -13,7 +13,10 @@ export function packSummary(rows: readonly { signed: unknown; draft: unknown }[]
   return { signed: rows.filter((r) => packState(r) === "signed").length, total: rows.length };
 }
 
-export type PointState = { state: "live"; at: Date } | { state: "off"; at: Date } | { state: "notLive" };
+export type PointState =
+  | { state: "live"; at: Date }
+  | { state: "off"; at: Date }
+  | { state: "notLive" };
 
 /** A point's state, the same rule as `pointIsLive` (live = went live and not switched off). */
 export function pointState(p: { liveAt: Date | null; switchedOffAt: Date | null }): PointState {

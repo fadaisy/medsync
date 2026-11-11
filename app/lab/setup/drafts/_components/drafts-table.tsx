@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pill } from "@/components/ui/pill";
@@ -21,7 +22,6 @@ import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { recordDraftCheckAction, rejectBandAction } from "@/lib/lab/catalogue-v2-actions";
 import { signRangeAsLeadAction } from "@/lib/lab/measures-actions";
 import { DRAFTS } from "../_lib/copy";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { bandFromDays } from "../../ranges/_lib/ages";
 import { SignButton } from "./sign-button";

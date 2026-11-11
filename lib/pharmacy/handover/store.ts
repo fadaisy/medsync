@@ -87,17 +87,15 @@ export async function handOverStation(
       ),
     );
   if (input.items.length)
-    await who.tx
-      .insert(pharmacyShiftHandoverItems)
-      .values(
-        input.items.map((text, n) => ({
-          handoverId: input.clientKey,
-          hospitalId: who.hospitalId,
-          n,
-          text,
-          seenAt: who.now,
-        })),
-      );
+    await who.tx.insert(pharmacyShiftHandoverItems).values(
+      input.items.map((text, n) => ({
+        handoverId: input.clientKey,
+        hospitalId: who.hospitalId,
+        n,
+        text,
+        seenAt: who.now,
+      })),
+    );
   return { id: input.clientKey };
 }
 

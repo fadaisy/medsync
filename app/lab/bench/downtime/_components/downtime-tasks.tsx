@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
+import { Pill } from "@/components/tide/work/kit";
 import { Input } from "@/components/ui/input";
 import { fill } from "@/content/lab-workspace-v2";
 import { LABWS2_DOWNTIME } from "@/content/lab-workspace-v2-downtime";
@@ -11,9 +13,7 @@ import {
   reserveFormsAction,
 } from "@/lib/lab/downtime-actions";
 import { localValue } from "@/lib/lab/field-kit";
-import { LabButton } from "@/components/tide/work/button";
 import { DateField, DateTimeField, NumberStepper, PickField } from "../../../_components/v2/fields";
-import { Pill } from "@/components/tide/work/kit";
 import { Said, useAct } from "../../../setup/criticals/_components/setup-forms";
 
 const D = LABWS2_DOWNTIME;

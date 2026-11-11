@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { ClockIcon, TriangleAlertIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fill, LAB4 } from "@/content/lab-phase-4";
@@ -21,7 +22,6 @@ import {
 import { cn } from "@/lib/utils";
 import { soLinks } from "../_lib/links";
 import { inputClass, newKey, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 /* The To refer send panel (Lab Phase 4 §5.1, artboard 1; RF-1, RF-2, RF-6, RF-7). Every check shown here is

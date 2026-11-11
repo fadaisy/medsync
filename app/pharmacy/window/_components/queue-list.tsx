@@ -1,12 +1,12 @@
-import type { PatientIdentity } from "@/components/emr/orders/model";
 import type { QueueGroupKey } from "../_lib/groups";
+import type { PatientIdentity } from "@/components/emr/orders/model";
 import type { ReviewRow } from "@/lib/pharmacy/review/read";
 import Link from "next/link";
 
 import { EmptyState, Pill, TwoIds } from "@/components/tide/work/kit";
+import { REVIEW } from "@/content/pharmacy-review";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_WINDOW } from "@/content/pharmacy-workspace-v2-window";
-import { REVIEW } from "@/content/pharmacy-review";
 import { formatDuration } from "@/lib/lab/turnaround";
 import { cn } from "@/lib/utils";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
@@ -48,14 +48,22 @@ export function QueueList({
   const who = (r: ReviewRow) =>
     identities[r.patientUserId] ?? { name: W.nameWithheld, mrn: "", ageSex: "" };
   return (
-    <section aria-label={W.listLabel} className="bg-card shadow-tide-card rounded-tide-card overflow-hidden">
+    <section
+      aria-label={W.listLabel}
+      className="bg-card shadow-tide-card rounded-tide-card overflow-hidden"
+    >
       <header className="border-border flex items-baseline gap-2 border-b px-4 py-3">
         <h2 className="text-heading-s text-foreground">{W.title}</h2>
         <span className="text-tide-ink-3 tabular-nums">{total}</span>
         <span className="text-caption text-muted-foreground">· {W.oldestFirst}</span>
       </header>
       {groups.length === 0 ? (
-        <EmptyState compact title={W.empty} why={fill(W.emptyWhy, { point: pointName })} className="m-3" />
+        <EmptyState
+          compact
+          title={W.empty}
+          why={fill(W.emptyWhy, { point: pointName })}
+          className="m-3"
+        />
       ) : (
         groups.map((g) => (
           <div key={g.key}>
@@ -89,7 +97,9 @@ export function QueueList({
                     >
                       <span className="flex items-start justify-between gap-2">
                         <TwoIds name={p.name} mrn={p.mrn} className="text-body-s" />
-                        <span className="text-caption text-muted-foreground shrink-0 tabular-nums">{wait}</span>
+                        <span className="text-caption text-muted-foreground shrink-0 tabular-nums">
+                          {wait}
+                        </span>
                       </span>
                       <span className="text-caption text-ink-700">
                         {shown.join(", ")}
@@ -99,7 +109,10 @@ export function QueueList({
                         <span className="flex flex-wrap gap-1">
                           {g.key === "first"
                             ? r.reasons.slice(0, 2).map((c) => (
-                                <Pill key={c} tone={c === "overridden_stop" ? "caution" : "neutral"}>
+                                <Pill
+                                  key={c}
+                                  tone={c === "overridden_stop" ? "caution" : "neutral"}
+                                >
                                   {REVIEW.reason[c]}
                                 </Pill>
                               ))

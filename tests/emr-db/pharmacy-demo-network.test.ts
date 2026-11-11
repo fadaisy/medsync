@@ -7,8 +7,8 @@ import type { DemoLane } from "./_pharmacy-demo";
 import type { EmrDb } from "@/lib/emr/db";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { demoLane } from "./_pharmacy-demo";
 import { laneOn } from "./_pglite";
+import { demoLane } from "./_pharmacy-demo";
 
 vi.mock("server-only", () => ({}));
 const held = vi.hoisted(() => ({ db: undefined as unknown }));
@@ -50,7 +50,9 @@ describe.skipIf(!laneOn)("Pharmacy demo: network and go-live (ADR 0450)", () => 
     const { openRenewals } = await import("@/lib/emr/read/renewals");
     const { networkPack } = await import("@/lib/pharmacy/network-packs");
     const rows = await openRenewals({ userId: d.s.people.doctors[2]!, hospitalId: d.h }, db);
-    expect(new Set(rows.map((r) => r.reason))).toEqual(new Set(["none_left", "expired", "asked_by_pharmacy"]));
+    expect(new Set(rows.map((r) => r.reason))).toEqual(
+      new Set(["none_left", "expired", "asked_by_pharmacy"]),
+    );
     expect(rows.find((r) => r.reason === "none_left")).toMatchObject({ used: 1, authorised: 1 });
     expect(rows.every((r) => r.lastSuppliedOn && r.mrn !== undefined)).toBe(true);
     expect((await networkPack(db, d.h, "renewal_decline_reasons"))?.content.items.length).toBe(3);
@@ -62,7 +64,9 @@ describe.skipIf(!laneOn)("Pharmacy demo: network and go-live (ADR 0450)", () => 
     const p = d.s.patients.filter((x) => x.clinic === "ncd")[7]!;
     const mine = await patientRefills(db, p.id, new Date());
     expect(mine.repeats).toHaveLength(3);
-    expect(mine.repeats.some((r) => r.request?.startsWith("Ready to collect at NCD clinic pharmacy"))).toBe(true);
+    expect(
+      mine.repeats.some((r) => r.request?.startsWith("Ready to collect at NCD clinic pharmacy")),
+    ).toBe(true);
     expect(mine.repeats.some((r) => r.canAsk)).toBe(true);
     expect(mine.repeats.filter((r) => !r.canAsk && !r.request)).toHaveLength(1);
     expect(mine.collectors.map((c) => c.name)).toEqual(["Demo collector 02"]);
@@ -81,10 +85,14 @@ describe.skipIf(!laneOn)("Pharmacy demo: network and go-live (ADR 0450)", () => 
 
   it("/hospital-admin/departments/pharmacy/[pointId]: briefings, drill, in-charge, phone, pilot note met; legal answers missing", async () => {
     const { getPharmacyReadiness } = await import("@/lib/pharmacy/golive/read");
-    const legal = await d.pg.query<{ n: number }>(`SELECT count(*)::int AS n FROM pharmacy_legal_answers`);
+    const legal = await d.pg.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pharmacy_legal_answers`,
+    );
     expect(legal.rows[0]!.n).toBe(0);
     for (const k of Object.keys(d.s.points) as (keyof typeof d.s.points)[]) {
-      const r = (await db.transaction((tx) => getPharmacyReadiness(tx, d.h, d.s.points[k].id, new Date())))!;
+      const r = (await db.transaction((tx) =>
+        getPharmacyReadiness(tx, d.h, d.s.points[k].id, new Date()),
+      ))!;
       const words = JSON.stringify(r.readiness.conditions);
       expect(words).not.toContain("No drill recorded at this point");
       expect(r.readiness.pilotNote?.met).toBe(true);
@@ -103,7 +111,13 @@ describe.skipIf(!laneOn)("Pharmacy demo: network and go-live (ADR 0450)", () => 
   });
 
   it("records what it wrote on the load", () => {
-    expect(d.s.counts).toMatchObject({ repeat_lines: 19, refill_requests: 14, briefings: 10, drills: 8, golive_requests: 1 });
+    expect(d.s.counts).toMatchObject({
+      repeat_lines: 19,
+      refill_requests: 14,
+      briefings: 10,
+      drills: 8,
+      golive_requests: 1,
+    });
     expect(d.s.notes).toEqual({});
   });
 });

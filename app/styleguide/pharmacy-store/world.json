@@ -2540,42 +2540,28 @@
       {
         "id": "27e8a903-22da-497e-9982-eb240369b846",
         "placeId": "1b8244cf-cf51-4962-b91a-421bb78c3bca",
-        "weekdays": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7
-        ],
+        "weekdays": [1, 2, 3, 4, 5, 6, 7],
         "at": "08:30",
         "sentVoucher": null
       },
       {
         "id": "447a7331-5f8b-402d-9e03-185fcc0cf5e0",
         "placeId": "611a11d3-d28e-4cb4-9729-03aa2d98dec0",
-        "weekdays": [
-          3
-        ],
+        "weekdays": [3],
         "at": "10:00",
         "sentVoucher": null
       },
       {
         "id": "815676ac-c7e1-48ac-8956-899083a7f14d",
         "placeId": "652ef3a3-eed6-4390-b24b-83751ace883b",
-        "weekdays": [
-          4
-        ],
+        "weekdays": [4],
         "at": "10:00",
         "sentVoucher": null
       },
       {
         "id": "4901da8d-73aa-4b84-92f9-cbed4e4b5ab5",
         "placeId": "e8d00c33-38bb-473e-ba15-fcc681950bdd",
-        "weekdays": [
-          3
-        ],
+        "weekdays": [3],
         "at": "10:30",
         "sentVoucher": "RIV-0050"
       }
@@ -2637,9 +2623,7 @@
         "name": "NMS",
         "ordered": 13000,
         "received": 1800,
-        "leadDays": [
-          30
-        ],
+        "leadDays": [30],
         "promisedDays": 7,
         "openOrder": true
       }
@@ -2985,9 +2969,7 @@
         }
       ],
       "outOfRange7d": 0,
-      "lines": [
-        "Insulin (soluble) 100 IU/mL injection"
-      ]
+      "lines": ["Insulin (soluble) 100 IU/mL injection"]
     },
     "balances": [
       {

@@ -29,7 +29,12 @@ export async function requirePharmacyActor(): Promise<PharmacyActor & { points: 
     access: withStoreAccess(
       pharmacyDispensingAccess(
         scope.cadreCode,
-        dispensingMap(undefined, scope.hospitalId, undefined, process.env.VERCEL_ENV === "production" && (await legalQ1RecordedFor(scope.hospitalId))),
+        dispensingMap(
+          undefined,
+          scope.hospitalId,
+          undefined,
+          process.env.VERCEL_ENV === "production" && (await legalQ1RecordedFor(scope.hospitalId)),
+        ),
       ),
       scope.cadreCode,
       pharmacyStoreLiveFor(scope.hospitalId),

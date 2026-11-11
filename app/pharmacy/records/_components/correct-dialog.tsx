@@ -43,13 +43,16 @@ export function CorrectDialog({ m, onClose }: { m: AuditMovement; onClose: () =>
   const [pending, start] = useTransition();
 
   useEffect(() => {
-    if (reason === "wrong_batch" && batches === null) void otherBatchesAction(m.id).then(setBatches);
+    if (reason === "wrong_batch" && batches === null)
+      void otherBatchesAction(m.id).then(setBatches);
   }, [reason, batches, m.id]);
 
   const replace =
-    reason === "wrong_quantity" ? `${m.quantity < 0 ? "−" : "+"}${qty} ${m.unit}` : reason === "wrong_batch" && batch
-      ? `${m.quantity < 0 ? "−" : "+"}${abs} ${m.unit}, ${C.batchWord(batches?.find((b) => b.id === batch)?.batchNumber ?? "")}`
-      : null;
+    reason === "wrong_quantity"
+      ? `${m.quantity < 0 ? "−" : "+"}${qty} ${m.unit}`
+      : reason === "wrong_batch" && batch
+        ? `${m.quantity < 0 ? "−" : "+"}${abs} ${m.unit}, ${C.batchWord(batches?.find((b) => b.id === batch)?.batchNumber ?? "")}`
+        : null;
   const blocked = !reason
     ? C.chooseReason
     : reason === "wrong_quantity" && qty === abs
@@ -86,7 +89,12 @@ export function CorrectDialog({ m, onClose }: { m: AuditMovement; onClose: () =>
         <div className="flex flex-col gap-1 px-6 pt-5">
           <DialogTitle>{C.title(m.product)}</DialogTitle>
           <p className="text-body-s text-ink-600">
-            {C.sub(RC.kinds[m.kind] ?? m.kind, `${m.quantity > 0 ? "+" : "−"}${abs} ${m.unit}`, fmt(m.effectiveAt), m.who ?? "")}
+            {C.sub(
+              RC.kinds[m.kind] ?? m.kind,
+              `${m.quantity > 0 ? "+" : "−"}${abs} ${m.unit}`,
+              fmt(m.effectiveAt),
+              m.who ?? "",
+            )}
           </p>
         </div>
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
@@ -94,7 +102,13 @@ export function CorrectDialog({ m, onClose }: { m: AuditMovement; onClose: () =>
             <legend className="text-body-s mb-2 font-semibold">{C.what}</legend>
             <div className="flex flex-wrap gap-2">
               {REASONS.map((r) => (
-                <button key={r} type="button" aria-pressed={reason === r} onClick={() => setReason(r)} className={chip(reason === r)}>
+                <button
+                  key={r}
+                  type="button"
+                  aria-pressed={reason === r}
+                  onClick={() => setReason(r)}
+                  className={chip(reason === r)}
+                >
                   {C.reasons[r]}
                 </button>
               ))}
@@ -105,10 +119,17 @@ export function CorrectDialog({ m, onClose }: { m: AuditMovement; onClose: () =>
             <div className="flex flex-col gap-2">
               <span className="text-body-s font-semibold">{C.rightQty}</span>
               <div className="flex items-center gap-3">
-                <LabButton variant="secondary" aria-label={C.less} onClick={() => setQty(Math.max(1, qty - 1))}>
+                <LabButton
+                  variant="secondary"
+                  aria-label={C.less}
+                  onClick={() => setQty(Math.max(1, qty - 1))}
+                >
                   −
                 </LabButton>
-                <span className="text-heading-s min-w-16 text-center tabular-nums" aria-live="polite">
+                <span
+                  className="text-heading-s min-w-16 text-center tabular-nums"
+                  aria-live="polite"
+                >
                   {qty} {m.unit}
                 </span>
                 <LabButton variant="secondary" aria-label={C.more} onClick={() => setQty(qty + 1)}>
@@ -121,10 +142,18 @@ export function CorrectDialog({ m, onClose }: { m: AuditMovement; onClose: () =>
           {reason === "wrong_batch" ? (
             <fieldset className="flex flex-col gap-2">
               <legend className="text-body-s mb-2 font-semibold">{C.rightBatch}</legend>
-              {batches?.length === 0 ? <p className="text-body-s text-ink-600">{C.noOtherBatch}</p> : null}
+              {batches?.length === 0 ? (
+                <p className="text-body-s text-ink-600">{C.noOtherBatch}</p>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 {(batches ?? []).map((b) => (
-                  <button key={b.id} type="button" aria-pressed={batch === b.id} onClick={() => setBatch(b.id)} className={chip(batch === b.id)}>
+                  <button
+                    key={b.id}
+                    type="button"
+                    aria-pressed={batch === b.id}
+                    onClick={() => setBatch(b.id)}
+                    className={chip(batch === b.id)}
+                  >
                     {b.batchNumber} · {b.expires} · {b.n}
                   </button>
                 ))}
@@ -132,11 +161,17 @@ export function CorrectDialog({ m, onClose }: { m: AuditMovement; onClose: () =>
             </fieldset>
           ) : null}
 
-          {reason === "wrong_patient_or_place" ? <p className="text-body-s text-ink-700">{C.wrongPlace}</p> : null}
-          {reason ? (
-            <p className="text-body-s text-ink-700">{C.plan(`${m.quantity > 0 ? "−" : "+"}${abs} ${m.unit}`, replace)}</p>
+          {reason === "wrong_patient_or_place" ? (
+            <p className="text-body-s text-ink-700">{C.wrongPlace}</p>
           ) : null}
-          <p className="text-caption text-ink-600">{m.controlled ? C.controlledNote : C.plainNote}</p>
+          {reason ? (
+            <p className="text-body-s text-ink-700">
+              {C.plan(`${m.quantity > 0 ? "−" : "+"}${abs} ${m.unit}`, replace)}
+            </p>
+          ) : null}
+          <p className="text-caption text-ink-600">
+            {m.controlled ? C.controlledNote : C.plainNote}
+          </p>
           {error ? (
             <p role="alert" className="text-body-s text-ink-900 font-semibold">
               {error}

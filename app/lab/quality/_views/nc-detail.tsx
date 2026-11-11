@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { Ident, TwoIds } from "@/components/tide/work/kit";
 import { fill, LAB3 } from "@/content/lab-phase-3";
 import { LABWS2_QUALITY } from "@/content/lab-workspace-v2-quality";
 import { db } from "@/db";
@@ -20,7 +21,6 @@ import { QList } from "../_components/q-list";
 import { QcChip } from "../_components/qc-chip";
 import { QUALITY } from "../_lib/copy";
 import { ncLiveFor, requireQualityScope } from "../_lib/scope";
-import { Ident, TwoIds } from "@/components/tide/work/kit";
 import { ViewHeader } from "../../_components/v2/view-header";
 import { dateWords, dayWords, timeWords } from "../../_lib/days";
 

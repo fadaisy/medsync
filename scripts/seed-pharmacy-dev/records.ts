@@ -9,7 +9,8 @@
 import { sql } from "drizzle-orm";
 
 type Db = { execute: (q: ReturnType<typeof sql>) => Promise<unknown> };
-const rows = <T>(r: unknown): T[] => (Array.isArray(r) ? r : ((r as { rows?: T[] }).rows ?? [])) as T[];
+const rows = <T>(r: unknown): T[] =>
+  (Array.isArray(r) ? r : ((r as { rows?: T[] }).rows ?? [])) as T[];
 
 /** The prototype's medicines and prices (audit.js `P.PRICE`, UGX per issue unit). */
 const MEDS: Record<string, { name: string; unit: string; price: number }> = {
@@ -26,12 +27,60 @@ const MEDS: Record<string, { name: string; unit: string; price: number }> = {
 
 /** [medicine, batch, expiry, quantity, day of this month, cause, what happened] */
 const LOSSES: [string, string, string, number, number, string, string][] = [
-  ["proto_amox", "AX24050", "2026-09-30", 400, 3, "expired", "Expired 30 Sep, removed from the shelf"],
-  ["proto_ctx", "CT24112", "2026-09-30", 900, 7, "expired", "Expired 30 Sep, removed from the shelf"],
-  ["proto_ceft", "CF25002", "2027-03-31", 3, 12, "damaged", "Box dropped on the ward, 3 vials broken"],
-  ["proto_penta", "PE25120", "2027-02-28", 30, 20, "cold_chain", "Froze on the 20th: shake test failed"],
-  ["proto_ipv", "IP25041", "2027-01-31", 10, 20, "cold_chain", "Froze on the 20th: shake test failed"],
-  ["proto_oxy", "OX25040", "2027-02-28", 10, 23, "cold_chain", "Maternity fridge at +8.6 °C for 30 min, discarded"],
+  [
+    "proto_amox",
+    "AX24050",
+    "2026-09-30",
+    400,
+    3,
+    "expired",
+    "Expired 30 Sep, removed from the shelf",
+  ],
+  [
+    "proto_ctx",
+    "CT24112",
+    "2026-09-30",
+    900,
+    7,
+    "expired",
+    "Expired 30 Sep, removed from the shelf",
+  ],
+  [
+    "proto_ceft",
+    "CF25002",
+    "2027-03-31",
+    3,
+    12,
+    "damaged",
+    "Box dropped on the ward, 3 vials broken",
+  ],
+  [
+    "proto_penta",
+    "PE25120",
+    "2027-02-28",
+    30,
+    20,
+    "cold_chain",
+    "Froze on the 20th: shake test failed",
+  ],
+  [
+    "proto_ipv",
+    "IP25041",
+    "2027-01-31",
+    10,
+    20,
+    "cold_chain",
+    "Froze on the 20th: shake test failed",
+  ],
+  [
+    "proto_oxy",
+    "OX25040",
+    "2027-02-28",
+    10,
+    23,
+    "cold_chain",
+    "Maternity fridge at +8.6 °C for 30 min, discarded",
+  ],
   ["proto_ors", "OR25071", "2027-06-30", 12, 25, "damaged", "Water damage under the window"],
 ];
 /** Slow movers: more than will be used before expiry (Scenario 11: amlodipine at risk). */
@@ -69,9 +118,17 @@ export async function seedRecords(db: Db, hospitalId: string) {
 
   const now = new Date();
   const monthStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 7);
-  const dayOf = (d: number) => new Date(Math.min(monthStart + (d - 1) * 86_400_000, now.getTime() - 3_600_000));
+  const dayOf = (d: number) =>
+    new Date(Math.min(monthStart + (d - 1) * 86_400_000, now.getTime() - 3_600_000));
 
-  const book = async (medicineId: string, no: string, expiry: string, qty: number, at: Date, loss?: [string, string]) => {
+  const book = async (
+    medicineId: string,
+    no: string,
+    expiry: string,
+    qty: number,
+    at: Date,
+    loss?: [string, string],
+  ) => {
     const [b] = rows<{ id: string }>(
       await db.execute(sql`
       WITH ins AS (
@@ -104,7 +161,8 @@ export async function seedRecords(db: Db, hospitalId: string) {
         ON CONFLICT DO NOTHING`);
   };
 
-  for (const [med, no, exp, qty, day, cause, note] of LOSSES) await book(med, no, exp, qty, dayOf(day), [cause, note]);
+  for (const [med, no, exp, qty, day, cause, note] of LOSSES)
+    await book(med, no, exp, qty, dayOf(day), [cause, note]);
   for (const [med, no, exp, qty] of SLOW) await book(med, no, exp, qty, dayOf(1));
   return { losses: LOSSES.length, slowMovers: SLOW.length };
 }

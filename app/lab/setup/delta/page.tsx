@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { and, eq, inArray } from "drizzle-orm";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { EmptyState } from "@/components/tide/work/kit";
 import { LAB } from "@/content/lab";
 import { LAB5 } from "@/content/lab-phase-5";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
@@ -13,7 +14,6 @@ import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { deltaRulesWithReview } from "@/lib/lab/delta-read";
 import { labDeltaChecksLiveFor } from "@/lib/lab/feature";
 import { SetupHeader } from "../_components/setup-header";
-import { EmptyState } from "@/components/tide/work/kit";
 import {
   DeltaRuleDialog,
   PanelRuleDialog,

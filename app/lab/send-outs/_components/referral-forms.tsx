@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { REJECTION_REASON_TEXT } from "@/lib/emr/orders";
 import {
@@ -10,7 +11,6 @@ import {
   requestCancelAction,
 } from "@/lib/lab/referral-actions";
 import { inputClass, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { DateTimeField } from "../../_components/v2/fields";
 import { Field, Said, useAct } from "../../setup/criticals/_components/setup-forms";
 

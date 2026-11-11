@@ -683,7 +683,8 @@ export const asLine = (l: typeof pharmacyDeliveryLines.$inferSelect): DeliveryLi
   acceptedQuantity: l.acceptedQuantity,
   rejectedKeptQuantity: l.rejectedKeptQuantity,
   rejectedReturnedQuantity: l.rejectedReturnedQuantity,
-  rejectReason: l.rejectReason === "recall" || l.rejectReason === "cold_chain" ? "other" : l.rejectReason,
+  rejectReason:
+    l.rejectReason === "recall" || l.rejectReason === "cold_chain" ? "other" : l.rejectReason,
   batchNumber: l.batchNumber,
   expiry: l.expiry,
   expiryMonthOnly: l.expiryMonthOnly,

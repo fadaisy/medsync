@@ -54,12 +54,12 @@ sample is 10 × 4 = 40.
 
 **Q8. Catalogue file**
 
-| Check | Expected | Found |
-|---|---|---|
-| Tests | 291 | 291: 33 flagged existing, plus 7 more already in the repo (`test.rpr`, `test.tpha`, `test.dual_hiv_syphilis_rdt` from v1.6; `test.ogtt_75g`, `test.blood_gas`, `test.c_peptide`, `test.b12_folate` from the v1.5 NCD pack), so 40 existing and 251 new |
-| Concepts | 437 new | 437; 9 ids already exist (`obs.hb_phenotype`, `obs.magnesium`, `obs.phosphate`, `obs.uric_acid`, `obs.amylase`, `obs.lipase`, `obs.upcr`, `obs.c_peptide`, `obs.vitamin_b12`) and are kept as they are, so 428 are added |
-| Unknown component ids | 0 | 2: `obs.blood_culture_gram_stain` and `obs.blood_culture_organism`. Phase 2 F-4 held both for the microbiology phase, and the catalogue does not define them. They stay held |
-| Unverified codes | 13 | 13 |
+| Check                  | Expected                                | Found                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tests                  | 291                                     | 291: 33 flagged existing, plus 7 more already in the repo (`test.rpr`, `test.tpha`, `test.dual_hiv_syphilis_rdt` from v1.6; `test.ogtt_75g`, `test.blood_gas`, `test.c_peptide`, `test.b12_folate` from the v1.5 NCD pack), so 40 existing and 251 new                                                                                                                                                                                                                                                                                                       |
+| Concepts               | 437 new                                 | 437; 9 ids already exist (`obs.hb_phenotype`, `obs.magnesium`, `obs.phosphate`, `obs.uric_acid`, `obs.amylase`, `obs.lipase`, `obs.upcr`, `obs.c_peptide`, `obs.vitamin_b12`) and are kept as they are, so 428 are added                                                                                                                                                                                                                                                                                                                                     |
+| Unknown component ids  | 0                                       | 2: `obs.blood_culture_gram_stain` and `obs.blood_culture_organism`. Phase 2 F-4 held both for the microbiology phase, and the catalogue does not define them. They stay held                                                                                                                                                                                                                                                                                                                                                                                 |
+| Unverified codes       | 13                                      | 13                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Changed existing tests | troponin, uacr, blood_culture, syphilis | troponin +`obs.troponin_i`; uacr +`obs.urine_albumin`, +`obs.urine_creatinine`; blood_culture +`obs.ast_interpretation` (the two F-4 concepts held); syphilis already narrowed by v1.6. The four v1.5 NCD tests keep their result lists (another signed pack owns them; blood gas would otherwise carry both `obs.ph` and `obs.bg_ph`), listed in the import report. The file lists five tests with their v1 components where v1.6 changed them (d_dimer, blood_group, lipid_panel, hiv_rapid, tb_xpert). Nothing is removed (research note), so v1.6 stands |
 
 The TM-6 snapshot counts match the prompt exactly: HC III 33/69, HC IV 61/83, GH 110/69, RRH 151/64, NRH 197/88.
@@ -82,11 +82,11 @@ STOP 0 approved in advance.
 
 **RLS probes** (PGlite, `tests/emr-db/lab-test-menu.test.ts`), on profiles and requests:
 
-| Actor | Own hospital | Other hospital | Write |
-|---|---|---|---|
-| Staff (authenticated) | reads | none | refused |
-| Clinical reader | reads | none | — |
-| anon | none | none | — |
+| Actor                 | Own hospital | Other hospital | Write   |
+| --------------------- | ------------ | -------------- | ------- |
+| Staff (authenticated) | reads        | none           | refused |
+| Clinical reader       | reads        | none           | —       |
+| anon                  | none         | none           | —       |
 
 ## STOP 3: Catalogue v2 import
 
@@ -176,6 +176,7 @@ stores, then a production build on :4016). The fixture people signed `cfc-1.7.0`
 applied. Shots, axe results and the plan are in `shots/`.
 
 **Axe.** 0 violations of any impact on:
+
 - board 13: menu at 1440 and 1280;
 - board 14: level;
 - board 15: add;
@@ -185,10 +186,12 @@ applied. Shots, axe results and the plan are in `shots/`.
 **Horizontal scroll at 1280.** The first run found one: the grid column did not shrink, and sr-only labels escaped the table's scroller. Fixed with `minmax(0,1fr)` and a `relative` scroller; re-checked, there is no horizontal scroll at 1280 or 1440.
 
 **Tests.**
+
 - Law 9 (red reserved, nothing green, no gradients, no edge bars) and S26 are in `tests/lab/test-menu-hardening.test.ts`.
 - Budgets: search p95 < 50 ms and filter < 100 ms (unit tests); interactions, see S16.
 
 **Docs.**
+
 - `docs/lab/LAB-DOCUMENTATION.md`: the test menu, and the owner's open items.
 - ADRs 0350–0355, `CHANGELOG.md`, `docs/NUMBERS.md`.
 - The Handbook and Engineering Guide are artifacts the handbook session owns: a hand-over note is in the shared

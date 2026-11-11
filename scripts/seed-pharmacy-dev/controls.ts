@@ -11,7 +11,8 @@
 import { sql } from "drizzle-orm";
 
 type Db = { execute: (q: ReturnType<typeof sql>) => Promise<unknown> };
-const rows = <T>(r: unknown): T[] => (Array.isArray(r) ? r : ((r as { rows?: T[] }).rows ?? [])) as T[];
+const rows = <T>(r: unknown): T[] =>
+  (Array.isArray(r) ? r : ((r as { rows?: T[] }).rows ?? [])) as T[];
 const H = 3_600_000;
 
 /** [medicine id, name, class, opening balance on the ward] */
@@ -35,9 +36,13 @@ export async function seedControls(db: Db, hospitalId: string) {
   );
   if (staff.length < 2) return { skipped: "needs two staff at this hospital" };
   const [a, b] = [staff[0]!.user_id, staff[1]!.user_id];
-  const ward = await one<{ id: string }>(sql`SELECT id FROM public.pharmacy_locations WHERE hospital_id = ${hospitalId}::uuid
+  const ward = await one<{
+    id: string;
+  }>(sql`SELECT id FROM public.pharmacy_locations WHERE hospital_id = ${hospitalId}::uuid
       AND kind = 'ward' AND archived_at IS NULL ORDER BY name LIMIT 1`);
-  const store = await one<{ id: string }>(sql`SELECT id FROM public.pharmacy_locations WHERE hospital_id = ${hospitalId}::uuid
+  const store = await one<{
+    id: string;
+  }>(sql`SELECT id FROM public.pharmacy_locations WHERE hospital_id = ${hospitalId}::uuid
       AND kind IN ('store','dispensing_point') AND archived_at IS NULL ORDER BY kind, name LIMIT 1`);
   if (!ward || !store) return { skipped: "needs a ward place and a store place" };
   const done = await one<{ n: number }>(sql`SELECT count(*)::int AS n FROM public.pharmacy_cd_doses
@@ -56,22 +61,29 @@ export async function seedControls(db: Db, hospitalId: string) {
   await db.execute(sql`INSERT INTO public.pharmacy_cd_prescribers (hospital_id, user_id, department, created_by)
     VALUES (${hospitalId}::uuid, ${a}::uuid, 'Medical', ${a}::uuid)`);
   const witness = async (action: string) =>
-    (await one<{ id: string }>(sql`INSERT INTO public.pharmacy_attestations (hospital_id, actor_user_id, attester_user_id, purpose, action, outcome)
-      VALUES (${hospitalId}::uuid, ${a}::uuid, ${b}::uuid, 'witness', ${action}, 'passed') RETURNING id`))!.id;
+    (await one<{
+      id: string;
+    }>(sql`INSERT INTO public.pharmacy_attestations (hospital_id, actor_user_id, attester_user_id, purpose, action, outcome)
+      VALUES (${hospitalId}::uuid, ${a}::uuid, ${b}::uuid, 'witness', ${action}, 'passed') RETURNING id`))!
+      .id;
 
   const batch: Record<string, Record<string, string>> = {};
   for (const [med, name, cls, qty] of MEDS) {
     await db.execute(sql`INSERT INTO public.pharmacy_products (hospital_id, medicine_id, name, issue_unit, controlled_class, created_by)
       SELECT ${hospitalId}::uuid, ${med}, ${name}, 'ampoule', ${cls}, ${a}::uuid
        WHERE NOT EXISTS (SELECT 1 FROM public.pharmacy_products WHERE hospital_id = ${hospitalId}::uuid AND medicine_id = ${med})`);
-    const p = (await one<{ id: string }>(sql`SELECT id FROM public.pharmacy_products WHERE hospital_id = ${hospitalId}::uuid AND medicine_id = ${med} LIMIT 1`))!;
+    const p = (await one<{ id: string }>(
+      sql`SELECT id FROM public.pharmacy_products WHERE hospital_id = ${hospitalId}::uuid AND medicine_id = ${med} LIMIT 1`,
+    ))!;
     batch[med] = {};
     for (const [place, n] of [
       [ward.id, qty],
       [store.id, 20],
     ] as const) {
       const no = `${med.slice(6).toUpperCase()}-${place === ward.id ? "W" : "S"}1`;
-      const bt = (await one<{ id: string }>(sql`INSERT INTO public.pharmacy_batches (hospital_id, location_id, product_id, batch_number, expiry,
+      const bt = (await one<{
+        id: string;
+      }>(sql`INSERT INTO public.pharmacy_batches (hospital_id, location_id, product_id, batch_number, expiry,
           first_batch_number, first_expiry, created_by)
         VALUES (${hospitalId}::uuid, ${place}::uuid, ${p.id}::uuid, ${no}, current_date + 400, ${no}, current_date + 400, ${a}::uuid) RETURNING id`))!;
       batch[med][place] = bt.id;
@@ -84,7 +96,9 @@ export async function seedControls(db: Db, hospitalId: string) {
 
   // Witnessed doses on the ward (the last one leaves 7.5 mg residue not recorded).
   for (const [med, ago, patient, bed, mg, route, residue, disposed] of DOSES) {
-    const dose = (await one<{ id: string }>(sql`INSERT INTO public.pharmacy_cd_doses (hospital_id, location_id, medicine_id, patient_label, bed,
+    const dose = (await one<{
+      id: string;
+    }>(sql`INSERT INTO public.pharmacy_cd_doses (hospital_id, location_id, medicine_id, patient_label, bed,
         prescriber_user_id, dose_mg, route, units, residue_mg, residue_disposed, created_by)
       VALUES (${hospitalId}::uuid, ${ward.id}::uuid, ${med}, ${patient}, ${bed}, ${a}::uuid, ${mg}, ${route}, 1, ${residue}, ${disposed}, ${a}::uuid)
       RETURNING id`))!;
@@ -95,7 +109,9 @@ export async function seedControls(db: Db, hospitalId: string) {
   }
 
   // A balance check on the ward: diazepam one short, which opens a High case due in 24 h; the in-charge assigns it.
-  const check = (await one<{ id: string }>(sql`INSERT INTO public.pharmacy_cd_checks (hospital_id, location_id, checked_by, witness_attestation_id)
+  const check = (await one<{
+    id: string;
+  }>(sql`INSERT INTO public.pharmacy_cd_checks (hospital_id, location_id, checked_by, witness_attestation_id)
     VALUES (${hospitalId}::uuid, ${ward.id}::uuid, ${a}::uuid, ${await witness("controlled:cd_check")}::uuid) RETURNING id`))!;
   await db.execute(sql`INSERT INTO public.pharmacy_cd_check_lines (check_id, hospital_id, medicine_id, expected, counted) VALUES
     (${check.id}::uuid, ${hospitalId}::uuid, 'proto_morph', 7, 7), (${check.id}::uuid, ${hospitalId}::uuid, 'proto_diaz', 5, 4)`);
@@ -106,7 +122,9 @@ export async function seedControls(db: Db, hospitalId: string) {
 
   // Yesterday's 17:00 handover at the store, morphine counted; accepting it writes the store's balance check.
   const slot = new Date(Math.floor((now + 3 * H) / (24 * H)) * 24 * H - 3 * H - 7 * H);
-  const ho = (await one<{ id: string }>(sql`INSERT INTO public.pharmacy_shift_handovers (hospital_id, location_id, slot_at, from_user_id, to_user_id,
+  const ho = (await one<{
+    id: string;
+  }>(sql`INSERT INTO public.pharmacy_shift_handovers (hospital_id, location_id, slot_at, from_user_id, to_user_id,
       keys_handed, notes, created_at)
     VALUES (${hospitalId}::uuid, ${store.id}::uuid, ${slot}, ${a}::uuid, ${b}::uuid, true, 'Two patients owed metronidazole', ${new Date(slot.getTime() + 10 * 60_000)})
     RETURNING id`))!;
@@ -114,10 +132,14 @@ export async function seedControls(db: Db, hospitalId: string) {
     VALUES (${ho.id}::uuid, ${hospitalId}::uuid, 'proto_morph', false, 20, 20)`);
   await db.execute(sql`INSERT INTO public.pharmacy_shift_handover_items (handover_id, hospital_id, n, text, seen_at)
     VALUES (${ho.id}::uuid, ${hospitalId}::uuid, 0, '2 patients owed metronidazole', ${new Date(slot.getTime() + 10 * 60_000)})`);
-  await db.execute(sql`UPDATE public.pharmacy_shift_handovers SET accepted_at = ${new Date(slot.getTime() + 15 * 60_000)} WHERE id = ${ho.id}::uuid`);
+  await db.execute(
+    sql`UPDATE public.pharmacy_shift_handovers SET accepted_at = ${new Date(slot.getTime() + 15 * 60_000)} WHERE id = ${ho.id}::uuid`,
+  );
 
   // A case reported by hand, investigated, signed off.
-  const c = (await one<{ id: string }>(sql`INSERT INTO public.pharmacy_cases (hospital_id, source_type, medicine_id, location_id, qty, what, severity,
+  const c = (await one<{
+    id: string;
+  }>(sql`INSERT INTO public.pharmacy_cases (hospital_id, source_type, medicine_id, location_id, qty, what, severity,
       due_at, owner_user_id, assigned_by, assigned_at, findings, submitted_by, submitted_at, signed_off_by, signed_off_at, created_by, created_at)
     VALUES (${hospitalId}::uuid, 'manual', 'proto_morph', ${store.id}::uuid, 0, 'Ampoule seal looked tampered with', 'high',
       now() - interval '5 days', ${b}::uuid, ${a}::uuid, now() - interval '6 days',
@@ -134,5 +156,12 @@ export async function seedControls(db: Db, hospitalId: string) {
     await db.execute(sql`INSERT INTO public.pharmacy_case_events (hospital_id, case_id, kind, what, actor_user_id, created_at)
       VALUES (${hospitalId}::uuid, ${c.id}::uuid, ${kind}, ${what}, ${kind === "submitted" || kind === "step" ? b : a}::uuid, ${new Date(now - ago * H)})`);
 
-  return { ward: ward.id, store: store.id, doses: DOSES.length, check: check.id, handover: ho.id, cases: 2 };
+  return {
+    ward: ward.id,
+    store: store.id,
+    doses: DOSES.length,
+    check: check.id,
+    handover: ho.id,
+    cases: 2,
+  };
 }

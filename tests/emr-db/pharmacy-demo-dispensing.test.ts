@@ -6,8 +6,8 @@ import type { DemoLane } from "./_pharmacy-demo";
 import type { EmrTx } from "@/lib/emr/db";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { demoLane } from "./_pharmacy-demo";
 import { laneOn } from "./_pglite";
+import { demoLane } from "./_pharmacy-demo";
 
 vi.mock("server-only", () => ({}));
 const held = vi.hoisted(() => ({ db: undefined as unknown }));
@@ -45,8 +45,11 @@ describe.skipIf(!laneOn)("Pharmacy demo: the dispensing day (section 4)", () => 
     for (const k of ["opd", "inpatient"] as const) {
       const queue = await getReviewQueue(d.h, point(k), db());
       const stages = new Set(queue.rows.map((r) => r.stage));
-      for (const st of ["to_review", "queried", "ready", "awaiting_cosign"]) expect(stages, st).toContain(st);
-      expect(new Set(queue.rows.map((r) => r.lane))).toEqual(new Set(["standard", "pharmacist_first"]));
+      for (const st of ["to_review", "queried", "ready", "awaiting_cosign"])
+        expect(stages, st).toContain(st);
+      expect(new Set(queue.rows.map((r) => r.lane))).toEqual(
+        new Set(["standard", "pharmacist_first"]),
+      );
       expect(new Set(queue.rows.map((r) => r.origin))).toEqual(new Set(["window", "ward"]));
       expect(queue.rule.signed && queue.rule.highRiskSigned).toBe(true);
       expect(queue.rows.length).toBeGreaterThan(30);
@@ -63,7 +66,13 @@ describe.skipIf(!laneOn)("Pharmacy demo: the dispensing day (section 4)", () => 
     expect(rv!.queries.some((q) => q.state === "open")).toBe(true);
     const ready = rows.filter((r) => r.stage === "ready" && r.origin === "window");
     expect(ready.length).toBeGreaterThan(2);
-    const ho = await getHandover(d.h, ready[0]!.key, { id: point("opd"), labelMode: "printed" }, null, db());
+    const ho = await getHandover(
+      d.h,
+      ready[0]!.key,
+      { id: point("opd"), labelMode: "printed" },
+      null,
+      db(),
+    );
     expect(ho!.lines.length).toBeGreaterThan(0);
     for (const l of ho!.lines) expect(l.staged?.batches?.length).toBeGreaterThan(0);
     expect(ho!.lines[0]!.directions).toContain("[demo dose]");
@@ -84,17 +93,25 @@ describe.skipIf(!laneOn)("Pharmacy demo: the dispensing day (section 4)", () => 
     for (const k of ["opd", "inpatient"] as const) {
       const today = await getSupplied(d.h, point(k), localDate(now), db());
       expect(today.rows.length, k).toBeGreaterThanOrEqual(4);
-      const before = await getSupplied(d.h, point(k), localDate(new Date(now.getTime() - 2 * DAY)), db());
+      const before = await getSupplied(
+        d.h,
+        point(k),
+        localDate(new Date(now.getTime() - 2 * DAY)),
+        db(),
+      );
       expect(before.rows.length, k).toBeGreaterThanOrEqual(2);
     }
-    expect(JSON.stringify((await getSupplied(d.h, point("opd"), localDate(now), db())).rows)).toMatch(/handed_back|reversed|Handed back/i);
+    expect(
+      JSON.stringify((await getSupplied(d.h, point("opd"), localDate(now), db())).rows),
+    ).toMatch(/handed_back|reversed|Handed back/i);
     expect(Array.isArray(await getLookBack(d.h, db()))).toBe(true);
   });
 
   it("/pharmacy/supplied/log: the day's log, with a struck row three days ago and log prints logged", async () => {
     const { getDispensingLog } = await import("@/lib/pharmacy/print/log-read");
     const { localDate } = await import("@/lib/pharmacy/stock/ledger");
-    const names = async (ids: string[]) => new Map(ids.map((id) => [id, { name: "Demo patient", mrn: "MS-DEMO" }]));
+    const names = async (ids: string[]) =>
+      new Map(ids.map((id) => [id, { name: "Demo patient", mrn: "MS-DEMO" }]));
     const day = localDate(new Date(Date.now() - 3 * DAY));
     const log = await getDispensingLog(d.h, point("opd"), day, names, db());
     expect(log.rows.length).toBeGreaterThan(3);
@@ -116,7 +133,11 @@ describe.skipIf(!laneOn)("Pharmacy demo: the dispensing day (section 4)", () => 
     const src = await getLabelSource(d.h, made.handovers.at(-1)!, db());
     expect(src!.supplies.length).toBeGreaterThan(0);
     expect(src!.supplies[0]!.batchNumber).toMatch(/^DEMO-/);
-    const who = async () => ({ name: "Demo patient", medsyncNumber: "MS-DEMO", sexAndAge: "F · 40 y" });
+    const who = async () => ({
+      name: "Demo patient",
+      medsyncNumber: "MS-DEMO",
+      sexAndAge: "F · 40 y",
+    });
     // The last slip's line was later confirmed filled elsewhere: its slip has no line left to fill.
     for (const id of made.slips.slice(0, -1)) {
       const slip = await getSlip(d.h, id, who, db());
@@ -140,7 +161,8 @@ describe.skipIf(!laneOn)("Pharmacy demo: the dispensing day (section 4)", () => 
     const facts = await nameWards(read, d.h, db());
     const r = interventionReport(facts, from, to);
     expect(r.total.sent).toBeGreaterThanOrEqual(25);
-    for (const k of ["kept", "changed", "stopped", "withdrawn", "open"] as const) expect(r.total[k], k).toBeGreaterThan(0);
+    for (const k of ["kept", "changed", "stopped", "withdrawn", "open"] as const)
+      expect(r.total[k], k).toBeGreaterThan(0);
     expect(r.byType.length).toBeGreaterThanOrEqual(5);
     expect(r.byWard.length).toBeGreaterThanOrEqual(5);
     expect(r.byWard.some((w) => w.key === "Main outpatient pharmacy")).toBe(true);
@@ -148,7 +170,14 @@ describe.skipIf(!laneOn)("Pharmacy demo: the dispensing day (section 4)", () => 
 
   it("/pharmacy/stock: supplied in the last 7 days shows at the window", async () => {
     const { getStockPage } = await import("@/lib/pharmacy/stock/read");
-    const page = await getStockPage({ userId: d.s.people.pharmacists[0]!, hospitalId: d.h }, { id: point("opd") }, new Date(), db());
-    expect(page.rows.filter((row) => (row as { supplied7?: number }).supplied7! > 0).length).toBeGreaterThan(5);
+    const page = await getStockPage(
+      { userId: d.s.people.pharmacists[0]!, hospitalId: d.h },
+      { id: point("opd") },
+      new Date(),
+      db(),
+    );
+    expect(
+      page.rows.filter((row) => (row as { supplied7?: number }).supplied7! > 0).length,
+    ).toBeGreaterThan(5);
   });
 });

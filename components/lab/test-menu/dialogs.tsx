@@ -12,8 +12,8 @@ import type { Surface, TestMenuData } from "@/lib/lab/test-menu-read";
 import { useMemo, useState } from "react";
 import { InfoIcon } from "lucide-react";
 
-import { LabButton } from "@/components/tide/work/button";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { LabButton } from "@/components/tide/work/button";
 import {
   SheetBody,
   SheetDescription,

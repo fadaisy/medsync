@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Avatar } from "@/components/medsync/avatar";
 import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
 import { SidebarGroupLabel, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
+import { TideScope } from "@/components/medsync/tide-scope";
 import { facilityStatus } from "@/lib/ncdreg/admin";
 import { can } from "@/lib/ncdreg/context";
 import { sidebarCounts } from "@/lib/ncdreg/read/counts";
@@ -13,7 +14,6 @@ import { NcdNavItem } from "./_components/nav-item";
 import { NoticeBanner } from "./_components/notice-banner";
 import { OutboxProvider, SignOutButton } from "./_components/outbox-provider";
 import { NAV } from "./_lib/nav";
-import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   title: "NCD registry",
@@ -76,7 +76,9 @@ export default async function NcdLayout({ children }: { children: ReactNode }) {
             <SignOutButton />
           </header>
           <NoticeBanner status={status} canManageDemo={can(ctx, "demo_data_manage")} />
-          <main className="min-w-0 flex-1"><TideScope group="ncd">{children}</TideScope></main>
+          <main className="min-w-0 flex-1">
+            <TideScope group="ncd">{children}</TideScope>
+          </main>
         </div>
       </div>
     </OutboxProvider>

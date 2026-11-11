@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
 import { Input } from "@/components/ui/input";
 import { LAB3_HMIS } from "@/content/lab-phase-3";
 import {
@@ -12,7 +13,6 @@ import {
   saveManualCellsAction,
 } from "@/lib/lab/hmis-actions";
 import { Pop } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../setup/criticals/_components/setup-forms";
 
 const H = LAB3_HMIS;

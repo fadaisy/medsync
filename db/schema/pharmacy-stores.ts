@@ -189,7 +189,10 @@ export const pharmacyDeliveries = pgTable("pharmacy_deliveries", {
   finishedAt: timestamp("finished_at", tz),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
   // 0276: Stock › Receive a delivery.
-  kind: text("kind").$type<"supplier" | "donation" | "facility" | "ward">().notNull().default("supplier"),
+  kind: text("kind")
+    .$type<"supplier" | "donation" | "facility" | "ward">()
+    .notNull()
+    .default("supplier"),
   pharmacySupplierId: uuid("pharmacy_supplier_id"),
   fromText: text("from_text"),
   fromLocationId: uuid("from_location_id"),

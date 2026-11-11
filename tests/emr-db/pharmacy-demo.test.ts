@@ -59,7 +59,12 @@ describe.skipIf(!laneOn)("Pharmacy demo loader: every page (ADR 0450)", () => {
       ).id,
   };
   const pointOf = async (name: string) =>
-    (await one<{ id: string }>(`SELECT id FROM hospital_departments WHERE hospital_id = $1 AND name = $2`, [h, name])).id;
+    (
+      await one<{ id: string }>(
+        `SELECT id FROM hospital_departments WHERE hospital_id = $1 AND name = $2`,
+        [h, name],
+      )
+    ).id;
   const pharmacistAt = async (point: string) =>
     (
       await one<{ id: string }>(
@@ -79,26 +84,34 @@ describe.skipIf(!laneOn)("Pharmacy demo loader: every page (ADR 0450)", () => {
     real = await hospital(pg, "Real");
     const sa = await superadmin(pg);
     admin = sa;
-    await pg.query(`INSERT INTO lab_demo_hospitals (hospital_id, marked_by, note) VALUES ($1, $2, 'Demo sandbox')`, [h, sa]);
+    await pg.query(
+      `INSERT INTO lab_demo_hospitals (hospital_id, marked_by, note) VALUES ($1, $2, 'Demo sandbox')`,
+      [h, sa],
+    );
     // As at Test Hospital-1 (27 Oct): the pharmacy already exists with a real head, which the demo must not displace.
     const pharm = await one<{ id: string }>(
       `INSERT INTO hospital_departments (hospital_id, name, slug, kind, catalogue_code)
        VALUES ($1, 'Pharmacy', 'pharmacy', 'support', 'PHARMACY') RETURNING id`,
       [h],
     );
-    realHead = (await one<{ id: string }>(`INSERT INTO auth.users (email) VALUES ('real-head@example.org') RETURNING id`)).id;
-    await pg.query(`INSERT INTO department_heads (hospital_id, department_id, user_id, acting) VALUES ($1, $2, $3, false)`, [
-      h,
-      pharm.id,
-      realHead,
-    ]);
+    realHead = (
+      await one<{ id: string }>(
+        `INSERT INTO auth.users (email) VALUES ('real-head@example.org') RETURNING id`,
+      )
+    ).id;
+    await pg.query(
+      `INSERT INTO department_heads (hospital_id, department_id, user_id, acting) VALUES ($1, $2, $3, false)`,
+      [h, pharm.id, realHead],
+    );
     const { loadPharmacyDemo } = await import("@/lib/pharmacy/demo");
     result = await loadPharmacyDemo(lane.db, { userId: admin, hospitalId: h }, deps);
   }, 900_000);
 
   it("refuses a hospital that is not a demo hospital", async () => {
     const { loadPharmacyDemo } = await import("@/lib/pharmacy/demo");
-    await expect(loadPharmacyDemo(lane.db, { userId: admin, hospitalId: real }, deps)).rejects.toThrow(/not a demo hospital/);
+    await expect(
+      loadPharmacyDemo(lane.db, { userId: admin, hospitalId: real }, deps),
+    ).rejects.toThrow(/not a demo hospital/);
   });
 
   it("loads with no section failing", () => {
@@ -116,18 +129,28 @@ describe.skipIf(!laneOn)("Pharmacy demo loader: every page (ADR 0450)", () => {
     expect(heads.rows).toHaveLength(2);
     expect(heads.rows[0]).toMatchObject({ user_id: realHead, acting: false });
     const { loadPharmacyDemo } = await import("@/lib/pharmacy/demo");
-    await expect(loadPharmacyDemo(lane.db, { userId: admin, hospitalId: h }, deps)).rejects.toThrow(/already loaded/);
+    await expect(loadPharmacyDemo(lane.db, { userId: admin, hospitalId: h }, deps)).rejects.toThrow(
+      /already loaded/,
+    );
   });
 
   it("every demo patient is recorded against the load and named Demo", async () => {
-    const r = await one<{ n: number }>(`SELECT count(*)::int AS n FROM pharmacy_demo_patients WHERE load_id = $1 AND label LIKE 'Demo patient %'`, [result.loadId]);
+    const r = await one<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pharmacy_demo_patients WHERE load_id = $1 AND label LIKE 'Demo patient %'`,
+      [result.loadId],
+    );
     expect(r.n).toBe(60);
   });
 
   it("stock: the main outpatient pharmacy's shelf, counted, with one medicine out", async () => {
     const { getStockPage } = await import("@/lib/pharmacy/stock/read");
     const point = await pointOf("Main outpatient pharmacy");
-    const page = await getStockPage({ userId: await pharmacistAt(point), hospitalId: h }, { id: point }, new Date(), lane.db);
+    const page = await getStockPage(
+      { userId: await pharmacistAt(point), hospitalId: h },
+      { id: point },
+      new Date(),
+      lane.db,
+    );
     expect(page.rows.length).toBeGreaterThan(30);
     expect(page.rows.some((r) => JSON.stringify(r).includes("artemether_lumefantrine"))).toBe(true);
   });

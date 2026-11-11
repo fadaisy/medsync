@@ -8,6 +8,16 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ClockIcon, TriangleAlertIcon } from "lucide-react";
 
+import {
+  EmptyState,
+  Ident,
+  KeyFigure,
+  KeyFigureGrid,
+  Panel,
+  Pill,
+  TwoIds,
+} from "@/components/tide/work/kit";
+import { FilterChips, PrimaryLink, SecondaryLink } from "@/components/tide/work/space";
 import { fill } from "@/content/lab-phase-4";
 import { LABWS2_SEND_OUTS as S } from "@/content/lab-workspace-v2-send-outs";
 import { db } from "@/db";
@@ -40,16 +50,6 @@ import { CallDialog, CancelDialog, LostDialog, UpdateDialog } from "../_componen
 import { SendPanel } from "../_components/send-panel";
 import { hrefWith, soLinks } from "../_lib/links";
 import { loadToRefer } from "../_lib/to-refer";
-import {
-  EmptyState,
-  Ident,
-  KeyFigure,
-  KeyFigureGrid,
-  Panel,
-  Pill,
-  TwoIds,
-} from "@/components/tide/work/kit";
-import { FilterChips, PrimaryLink, SecondaryLink } from "@/components/tide/work/space";
 import { dateWords } from "../../_lib/days";
 
 const TERMINAL = new Set(["completed", "failed", "lost", "cancelled", "rejected"]);

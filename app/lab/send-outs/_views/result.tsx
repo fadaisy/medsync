@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { Tag } from "@/components/medsync/tag";
+import { Ident } from "@/components/tide/work/kit";
 import { LABWS2_SEND_OUTS } from "@/content/lab-workspace-v2-send-outs";
 import { db } from "@/db";
 import {
@@ -21,7 +22,6 @@ import { identitiesFor } from "@/lib/emr/read/results";
 import { scansFor } from "@/lib/lab/referral-read";
 import { referralForEntry } from "@/lib/lab/referral-results-store";
 import { ResultForm } from "../_components/result-form";
-import { Ident } from "@/components/tide/work/kit";
 import { dateWords } from "../../_lib/days";
 
 /**

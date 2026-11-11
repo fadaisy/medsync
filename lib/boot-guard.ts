@@ -3,7 +3,9 @@
  */
 export const DEV_OVERRIDES = ["PHARMACY_DEV_HOSPITALS", "DEV_SKIP_MFA"] as const;
 
-export function productionOverrides(env: Record<string, string | undefined> = process.env): string[] {
+export function productionOverrides(
+  env: Record<string, string | undefined> = process.env,
+): string[] {
   if (env.VERCEL_ENV !== "production") return [];
   return DEV_OVERRIDES.filter((k) => (env[k] ?? "").trim() !== "");
 }

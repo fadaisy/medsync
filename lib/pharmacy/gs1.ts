@@ -7,7 +7,9 @@ export interface PackCode {
 }
 
 const expiryOf = (e: string) =>
-  e.length === 6 ? `20${e.slice(0, 2)}-${e.slice(2, 4)}${e.slice(4, 6) === "00" ? "" : `-${e.slice(4, 6)}`}` : "";
+  e.length === 6
+    ? `20${e.slice(0, 2)}-${e.slice(2, 4)}${e.slice(4, 6) === "00" ? "" : `-${e.slice(4, 6)}`}`
+    : "";
 
 const GS = "\u001d";
 

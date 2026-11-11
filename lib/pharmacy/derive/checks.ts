@@ -1,5 +1,5 @@
-import type { LineChecks } from "@/lib/pharmacy/checks";
 import type { RxCheckAnswer } from "@/db/schema/pharmacy-rework";
+import type { LineChecks } from "@/lib/pharmacy/checks";
 
 import { answeredChecks } from "@/lib/pharmacy/checks";
 

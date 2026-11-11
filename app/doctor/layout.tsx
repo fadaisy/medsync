@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { CriticalLive } from "@/components/medsync/critical-live";
+import { TideScope } from "@/components/medsync/tide-scope";
 import { ArrestAlarm } from "@/components/resus/arrest-alarm";
 import { signedAvatarUrl } from "@/lib/avatars";
 import { requireDoctorScope } from "@/lib/doctor/scope";
@@ -10,7 +11,6 @@ import { doctorWorkspace } from "@/lib/workspace/feature";
 import { newestAnnouncement } from "./_components/critical-alerts";
 import { DoctorShell } from "./_components/doctor-shell";
 import { myCriticals } from "./_lib/criticals";
-import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

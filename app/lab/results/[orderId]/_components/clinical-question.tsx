@@ -4,10 +4,10 @@ import type { RevealResult } from "@/lib/lab/bench-actions";
 import { useState, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { LAB } from "@/content/lab";
 import { LAB2 } from "@/content/lab-phase-2";
 import { revealWorkingDiagnosisAction } from "@/lib/lab/bench-actions";
-import { LabButton } from "@/components/tide/work/button";
 
 const B = LAB.bench;
 const when = new Intl.DateTimeFormat("en-GB", {

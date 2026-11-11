@@ -114,7 +114,12 @@ export function cdRegisters(moves: readonly CdMove[]): Register[] {
   const by = new Map<string, Register>();
   for (const m of moves) {
     const k = `${m.medicineId}|${m.placeId}`;
-    const r = by.get(k) ?? { medicineId: m.medicineId, medicineName: m.medicineName, placeId: m.placeId, balance: 0 };
+    const r = by.get(k) ?? {
+      medicineId: m.medicineId,
+      medicineName: m.medicineName,
+      placeId: m.placeId,
+      balance: 0,
+    };
     r.balance += m.qty;
     by.set(k, r);
   }
@@ -123,7 +128,8 @@ export function cdRegisters(moves: readonly CdMove[]): Register[] {
 
 /** A handover that counted the controlled drugs writes a check, so it counts as one too. */
 export const lastCheck = (checks: readonly CdCheck[], placeId: string) =>
-  checks.filter((c) => c.placeId === placeId).sort((a, b) => b.at.getTime() - a.at.getTime())[0] ?? null;
+  checks.filter((c) => c.placeId === placeId).sort((a, b) => b.at.getTime() - a.at.getTime())[0] ??
+  null;
 
 export function checkDue(checks: readonly CdCheck[], place: CdPlace, now: Date) {
   const c = lastCheck(checks, place.id);
@@ -135,9 +141,25 @@ export type CdFlagKind = "disc" | "wit" | "res" | "gap" | "due" | "paper";
 export const FLAG_ORDER: readonly CdFlagKind[] = ["disc", "wit", "res", "gap", "due", "paper"];
 
 export type CdFlag =
-  | { k: "disc"; id: string; placeId: string; medicineId: string; check: CdCheck; line: CdCheckLine }
+  | {
+      k: "disc";
+      id: string;
+      placeId: string;
+      medicineId: string;
+      check: CdCheck;
+      line: CdCheckLine;
+    }
   | { k: "wit" | "res" | "paper"; id: string; placeId: string; medicineId: string; move: CdMove }
-  | { k: "gap"; id: string; placeId: string; medicineId: string; move: CdMove; prev: CdMove; hours: number; gapHours: number }
+  | {
+      k: "gap";
+      id: string;
+      placeId: string;
+      medicineId: string;
+      move: CdMove;
+      prev: CdMove;
+      hours: number;
+      gapHours: number;
+    }
   | { k: "due"; id: string; placeId: string; last: CdCheck | null };
 
 const has = (m: CdMove, k: CdEvent["kind"]) => m.events.some((e) => e.kind === k);
@@ -153,7 +175,13 @@ export function cdFlags(input: {
   for (const m of input.moves) {
     if (m.qty < 0 && !m.reversed && m.kind !== "reversed") {
       if (m.paperWitness && !has(m, "paper_checked"))
-        f.push({ k: "paper", id: `pw${m.id}`, placeId: m.placeId, medicineId: m.medicineId, move: m });
+        f.push({
+          k: "paper",
+          id: `pw${m.id}`,
+          placeId: m.placeId,
+          medicineId: m.medicineId,
+          move: m,
+        });
       else if (!m.witness && !m.paperWitness && !has(m, "witness_added"))
         f.push({ k: "wit", id: `w${m.id}`, placeId: m.placeId, medicineId: m.medicineId, move: m });
     }
@@ -161,7 +189,9 @@ export function cdFlags(input: {
       f.push({ k: "res", id: `r${m.id}`, placeId: m.placeId, medicineId: m.medicineId, move: m });
   }
   const last = new Map<string, CdMove>();
-  for (const m of [...input.moves].filter((x) => x.dose).sort((a, b) => a.at.getTime() - b.at.getTime())) {
+  for (const m of [...input.moves]
+    .filter((x) => x.dose)
+    .sort((a, b) => a.at.getTime() - b.at.getTime())) {
     const gapHours = cdUnit(m.medicineName)?.gapHours;
     if (!gapHours) continue;
     const key = `${m.medicineId}|${m.dose!.patient}`;
@@ -169,14 +199,30 @@ export function cdFlags(input: {
     if (prev && m.dose!.id !== prev.dose!.id) {
       const hours = (m.at.getTime() - prev.at.getTime()) / HOUR;
       if (hours < gapHours && !has(m, "early_reviewed"))
-        f.push({ k: "gap", id: `p${m.id}`, placeId: m.placeId, medicineId: m.medicineId, move: m, prev, hours, gapHours });
+        f.push({
+          k: "gap",
+          id: `p${m.id}`,
+          placeId: m.placeId,
+          medicineId: m.medicineId,
+          move: m,
+          prev,
+          hours,
+          gapHours,
+        });
     }
     last.set(key, m);
   }
   for (const c of input.checks)
     for (const l of c.lines)
       if (l.counted !== l.expected && !l.resolution)
-        f.push({ k: "disc", id: `d${c.id}${l.medicineId}`, placeId: c.placeId, medicineId: l.medicineId, check: c, line: l });
+        f.push({
+          k: "disc",
+          id: `d${c.id}${l.medicineId}`,
+          placeId: c.placeId,
+          medicineId: l.medicineId,
+          check: c,
+          line: l,
+        });
   const held = new Set(cdRegisters(input.moves).map((r) => r.placeId));
   for (const p of input.places)
     if (held.has(p.id) && checkDue(input.checks, p, input.now))

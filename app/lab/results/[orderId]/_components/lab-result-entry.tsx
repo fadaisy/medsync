@@ -7,9 +7,9 @@ import { useRef, useState } from "react";
 import { autoCritical, fixedFlag, toResultValues } from "@/components/emr/results/model";
 import { useResultEntry } from "@/components/emr/results/result-entry";
 import { ResultEntryView } from "@/components/emr/results/result-entry-view";
+import { LabButton } from "@/components/tide/work/button";
 import { CRITICALS_COPY, CRITICALS_UI } from "@/content/lab-criticals";
 import { releaseWithCriticalMarkAction } from "@/lib/lab/criticals/actions";
-import { LabButton } from "@/components/tide/work/button";
 import { MarkPanel } from "./mark-panel";
 
 export interface PanelPreview {

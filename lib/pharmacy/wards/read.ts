@@ -21,9 +21,20 @@ export interface WardPlace {
 }
 
 type RxRow = {
-  id: string; patient_id: string; drug_id: string; drug_name: string; dose: string; route: string;
-  frequency: string | null; prn: boolean; start: string | null; created_at: string; duration: string | null;
-  mar: { at: string; for: string | null; state: MarRecord["state"]; reason: string | null }[] | null;
+  id: string;
+  patient_id: string;
+  drug_id: string;
+  drug_name: string;
+  dose: string;
+  route: string;
+  frequency: string | null;
+  prn: boolean;
+  start: string | null;
+  created_at: string;
+  duration: string | null;
+  mar:
+    | { at: string; for: string | null; state: MarRecord["state"]; reason: string | null }[]
+    | null;
 };
 
 const regimenOf = (r: RxRow): Regimen => {
@@ -76,7 +87,10 @@ async function regimensOf(db: EmrDb, hospitalId: string, patients: string[]) {
                                   AND a.hospital_id = p.hospital_id
                                   AND p.encounter_id IN (a.source_encounter_id, a.inpatient_encounter_id)
          WHERE p.hospital_id = ${hospitalId}::uuid AND p.state = 'active' AND p.kind = 'drug'
-           AND p.patient_user_id IN (${sql.join(patients.map((p) => sql`${p}::uuid`), sql`, `)})
+           AND p.patient_user_id IN (${sql.join(
+             patients.map((p) => sql`${p}::uuid`),
+             sql`, `,
+           )})
          ORDER BY p.created_at`,
   );
   const recs: MarRecord[] = rows.flatMap((r) =>
@@ -93,7 +107,12 @@ async function regimensOf(db: EmrDb, hospitalId: string, patients: string[]) {
 
 /** Picks per prescription, the ward's and the pharmacy places' balances per medicine, and the patient's notes. */
 async function stockOf(db: EmrDb, hospitalId: string, rxIds: string[], pt: string | null) {
-  const ids = rxIds.length ? sql.join(rxIds.map((i) => sql`${i}::uuid`), sql`, `) : sql`NULL::uuid`;
+  const ids = rxIds.length
+    ? sql.join(
+        rxIds.map((i) => sql`${i}::uuid`),
+        sql`, `,
+      )
+    : sql`NULL::uuid`;
   const [row] = await q<{
     picks: { rx: string; qty: number; at: string; recv: string | null; ward: string }[] | null;
     bal: { loc: string; kind: string; name: string; med: string; n: number }[] | null;
@@ -126,24 +145,46 @@ async function stockOf(db: EmrDb, hospitalId: string, rxIds: string[], pt: strin
   );
   const supplies = new Map<string, Supply[]>();
   for (const p of row?.picks ?? [])
-    supplies.set(p.rx, [...(supplies.get(p.rx) ?? []), { qty: p.qty, at: Date.parse(p.at), receivedAt: p.recv ? Date.parse(p.recv) : null }]);
+    supplies.set(p.rx, [
+      ...(supplies.get(p.rx) ?? []),
+      { qty: p.qty, at: Date.parse(p.at), receivedAt: p.recv ? Date.parse(p.recv) : null },
+    ]);
   return {
     supplies,
     balances: row?.bal ?? [],
     notes: (row?.notes ?? []).map((n) => ({ id: n.id, body: n.body, at: Date.parse(n.at) })),
-    lastRound: new Map((row?.last ?? []).map((l) => [l.ward, { at: Date.parse(l.at), recv: l.recv ? Date.parse(l.recv) : null }])),
+    lastRound: new Map(
+      (row?.last ?? []).map((l) => [
+        l.ward,
+        { at: Date.parse(l.at), recv: l.recv ? Date.parse(l.recv) : null },
+      ]),
+    ),
   };
 }
 
 export const inpatientsData = cache(
-  async (viewer: { userId: string; hospitalId: string }, wardParam: string | null, pt: string | null, database?: EmrDb) => {
+  async (
+    viewer: { userId: string; hospitalId: string },
+    wardParam: string | null,
+    pt: string | null,
+    database?: EmrDb,
+  ) => {
     const db = database ?? (await appDb());
     const wards = await wardsOf(db, viewer.hospitalId);
-    const ward = wards.find((w) => w.id === wardParam) ?? wards.find((w) => w.patients.length) ?? wards[0] ?? null;
+    const ward =
+      wards.find((w) => w.id === wardParam) ??
+      wards.find((w) => w.patients.length) ??
+      wards[0] ??
+      null;
     const patients = ward?.patients ?? [];
     const { regs, recs } = await regimensOf(db, viewer.hospitalId, patients);
     const patient = pt && patients.includes(pt) ? pt : null;
-    const stock = await stockOf(db, viewer.hospitalId, regs.map((r) => r.id), patient);
+    const stock = await stockOf(
+      db,
+      viewer.hospitalId,
+      regs.map((r) => r.id),
+      patient,
+    );
     const ids = await identitiesFor(viewer, patients, "pharmacy_inpatients", database);
     return { wards, ward, patient, regs, recs, ids, ...stock };
   },
@@ -154,7 +195,11 @@ export type InpatientsData = Awaited<ReturnType<typeof inpatientsData>>;
  * Today, kind `mar`: per ward, doses not given for lack of stock in the last 24 h, and doses due and not yet recorded.
  * No names (a count per ward).
  */
-export async function marTodayItems(hospitalId: string, now = new Date(), database?: EmrDb): Promise<TodayItem[]> {
+export async function marTodayItems(
+  hospitalId: string,
+  now = new Date(),
+  database?: EmrDb,
+): Promise<TodayItem[]> {
   const db = database ?? (await appDb());
   const wards = await wardsOf(db, hospitalId);
   const all = wards.flatMap((w) => w.patients);
@@ -164,14 +209,34 @@ export async function marTodayItems(hospitalId: string, now = new Date(), databa
   for (const w of wards) {
     const mine = regs.filter((r) => w.patients.includes(r.patientId));
     const stock = recs.filter(
-      (x) => x.state !== "administered" && x.at > t - DAY && x.reason && /stock/i.test(x.reason) && mine.some((r) => r.id === x.rxId),
+      (x) =>
+        x.state !== "administered" &&
+        x.at > t - DAY &&
+        x.reason &&
+        /stock/i.test(x.reason) &&
+        mine.some((r) => r.id === x.rxId),
     ).length;
     const late = mine.reduce((a, r) => a + regStats(r, recs, t).overdue, 0);
     const href = `/pharmacy/patients/inpatients?ward=${w.id}`;
     if (stock)
-      out.push({ kind: "mar", key: `mar:stock:${w.id}`, title: fill(PRW.today.marStock, { ward: w.name, n: stock }), meta: "", action: PRW.today.marOpen, href, late: true });
+      out.push({
+        kind: "mar",
+        key: `mar:stock:${w.id}`,
+        title: fill(PRW.today.marStock, { ward: w.name, n: stock }),
+        meta: "",
+        action: PRW.today.marOpen,
+        href,
+        late: true,
+      });
     if (late)
-      out.push({ kind: "mar", key: `mar:late:${w.id}`, title: fill(PRW.today.marLate, { ward: w.name, n: late }), meta: "", action: PRW.today.marOpen, href });
+      out.push({
+        kind: "mar",
+        key: `mar:late:${w.id}`,
+        title: fill(PRW.today.marLate, { ward: w.name, n: late }),
+        meta: "",
+        action: PRW.today.marOpen,
+        href,
+      });
   }
   return out;
 }

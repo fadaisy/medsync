@@ -43,7 +43,10 @@ export async function demoLane(onDb: (db: unknown) => void): Promise<DemoLane> {
   const h = await hospital(pg, "Demo national referral");
   const real = await hospital(pg, "Real");
   const admin = await superadmin(pg);
-  await pg.query(`INSERT INTO lab_demo_hospitals (hospital_id, marked_by, note) VALUES ($1, $2, 'Demo sandbox')`, [h, admin]);
+  await pg.query(
+    `INSERT INTO lab_demo_hospitals (hospital_id, marked_by, note) VALUES ($1, $2, 'Demo sandbox')`,
+    [h, admin],
+  );
   const deps = {
     makeUser: async () =>
       (

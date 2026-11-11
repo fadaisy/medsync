@@ -115,8 +115,7 @@ export const CLINICAL_UI = {
     pharmacy_in_charge: "Pharmacy in charge",
   },
   exception: "Exception, if you sign alone",
-  exceptionHint:
-    "For example: CSO signs alone. No second signer is named at this hospital yet.",
+  exceptionHint: "For example: CSO signs alone. No second signer is named at this hospital yet.",
   withdraw: "Withdraw",
   withdrawTitle: (k: string) => `Withdraw ${k}`,
   withdrawReason: "Why",

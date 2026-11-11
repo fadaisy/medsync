@@ -51,17 +51,19 @@ export default async function PharmacyDemoPage() {
       </header>
       <section className="border-border bg-card text-body-s flex flex-col gap-3 rounded-lg border p-4">
         <p>
-          This is a demo hospital. Loading the demo fills every pharmacy page as a national referral hospital: eight
-          dispensing points, about sixty patients named &ldquo;Demo patient NN&rdquo; with prescriptions at every
-          stage, queries and interventions, the controlled register, downtime forms, emergency doses, stores and
-          deliveries, ward stock and carts, expiry and a recall, a closed month, clinical pharmacy, refills and
-          renewals, and the going-live records.
+          This is a demo hospital. Loading the demo fills every pharmacy page as a national referral
+          hospital: eight dispensing points, about sixty patients named &ldquo;Demo patient
+          NN&rdquo; with prescriptions at every stage, queries and interventions, the controlled
+          register, downtime forms, emergency doses, stores and deliveries, ward stock and carts,
+          expiry and a recall, a closed month, clinical pharmacy, refills and renewals, and the
+          going-live records.
         </p>
         <p className="text-muted-foreground">
-          Every dose reads &ldquo;[demo dose]&rdquo;. Packs and content are signed by demo staff (&ldquo;Demo chief
-          pharmacist&rdquo;, &ldquo;Demo clinical safety officer&rdquo;) in this hospital only. Legal answers are never
-          filled in. Nobody can sign in as demo staff or a demo patient, and demo records never reach a real hospital.
-          The demo loads once per hospital; removing it deletes every demo record and lets it load again.
+          Every dose reads &ldquo;[demo dose]&rdquo;. Packs and content are signed by demo staff
+          (&ldquo;Demo chief pharmacist&rdquo;, &ldquo;Demo clinical safety officer&rdquo;) in this
+          hospital only. Legal answers are never filled in. Nobody can sign in as demo staff or a
+          demo patient, and demo records never reach a real hospital. The demo loads once per
+          hospital; removing it deletes every demo record and lets it load again.
         </p>
         {loaded ? (
           <p>The demo is loaded. Open the pharmacy workspace to walk through it.</p>

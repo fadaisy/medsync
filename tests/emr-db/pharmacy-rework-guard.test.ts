@@ -123,7 +123,9 @@ describe.skipIf(!laneOn)("Pharmacy rework: the ledger guard (safety tests 1–3,
     // Witnessing yourself is refused when the approval is made; someone else's approval does not stand for you.
     await expect(approval({ witness: f.actor })).rejects.toThrow(/pa_not_self/);
     const theirs = await approval({ actor: f.offDuty, witness: f.witness });
-    await expect(move(b, "transfer_out", -1, { witness: theirs })).rejects.toThrow(/does not stand/);
+    await expect(move(b, "transfer_out", -1, { witness: theirs })).rejects.toThrow(
+      /does not stand/,
+    );
 
     const stale = await approval({ minutesAgo: 11 });
     await expect(move(b, "transfer_out", -1, { witness: stale })).rejects.toThrow(/10 minutes/);
@@ -157,7 +159,9 @@ describe.skipIf(!laneOn)("Pharmacy rework: the ledger guard (safety tests 1–3,
 
     const q = await batch(f.para!, "S2-Q", f.quarantine);
     await move(q, "received", 2, { place: f.quarantine });
-    await expect(move(q, "transfer_out", -1, { place: f.quarantine })).rejects.toThrow(/quarantine/);
+    await expect(move(q, "transfer_out", -1, { place: f.quarantine })).rejects.toThrow(
+      /quarantine/,
+    );
 
     const r = await batch(f.para!, "S2-R");
     await move(r, "received", 2);
@@ -190,7 +194,9 @@ describe.skipIf(!laneOn)("Pharmacy rework: the ledger guard (safety tests 1–3,
     // A controlled back-entry needs the paper witness's name.
     const cd = await batch(f.morphine!, "S2-CD");
     await move(cd, "received", 2);
-    await expect(move(cd, "transfer_out", -1, { downtime: true })).rejects.toThrow(/only with a witness/);
+    await expect(move(cd, "transfer_out", -1, { downtime: true })).rejects.toThrow(
+      /only with a witness/,
+    );
     await move(cd, "transfer_out", -1, { downtime: true, paper: "Fixture paper witness" });
   });
 
@@ -200,7 +206,9 @@ describe.skipIf(!laneOn)("Pharmacy rework: the ledger guard (safety tests 1–3,
     const handed = await move(b, "transfer_out", -15);
     await expect(move(b, "reversed", 10, { reverses: handed })).rejects.toThrow(/mirrors/);
     await move(b, "reversed", 15, { reverses: handed });
-    await expect(move(b, "reversed", 15, { reverses: handed })).rejects.toThrow(/psm_one_reversal|duplicate/);
+    await expect(move(b, "reversed", 15, { reverses: handed })).rejects.toThrow(
+      /psm_one_reversal|duplicate/,
+    );
     // The replacement: 10, not 15.
     await move(b, "transfer_out", -10);
     expect(await balance(b)).toBe(10);
@@ -218,13 +226,17 @@ describe.skipIf(!laneOn)("Pharmacy rework: the ledger guard (safety tests 1–3,
     const b = await batch(f.para!, "S7-A");
     await move(b, "received", 5);
     await move(b, "transfer_out", -2, { key: "handover:fixture-1" });
-    await expect(move(b, "transfer_out", -2, { key: "handover:fixture-1" })).rejects.toThrow(/psm_idempotency|duplicate/);
+    await expect(move(b, "transfer_out", -2, { key: "handover:fixture-1" })).rejects.toThrow(
+      /psm_idempotency|duplicate/,
+    );
     expect(await balance(b)).toBe(3);
   });
 
   it("marks a line entered more than 30 minutes after it happened as late, for good", async () => {
     const b = await batch(f.para!, "LATE-A");
-    const m = await move(b, "received", 5, { effectiveAt: new Date(Date.now() - 3_600_000).toISOString() });
+    const m = await move(b, "received", 5, {
+      effectiveAt: new Date(Date.now() - 3_600_000).toISOString(),
+    });
     const row = await pg.query<{ late: boolean }>(
       `SELECT late FROM public.pharmacy_stock_movements WHERE id = $1`,
       [m],

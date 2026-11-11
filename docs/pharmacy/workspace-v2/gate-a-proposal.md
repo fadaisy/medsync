@@ -12,49 +12,49 @@ These are the thirteen rows of STOP 0 §disagreements, as written there. Each bo
 
 ## 2. Decisions
 
-| # | Decision | Adopted |
-| --- | --- | --- |
-| D-PW-01 | Design system | MedSync Tide (`data-ds="tide"` on the shell root), the same tokens the lab desk uses. No new tokens. The place hue is grape (`bg-tide-area-lab`, the Pharmacy & lab domain), not the board's plum |
-| D-PW-02 | Reuse | The lab v2 kit (`app/lab/_components/v2`: charts, fields, kit, button, space, loading) is imported, not copied. Pharmacy-own pieces go in `app/pharmacy/_components/v2/` |
-| D-PW-03 | Places | Today, Window, Shelf, Store, Clinical, Set-up, plus the Needs you inbox. Every tab exists exactly when the old nav item it replaces is visible (`lib/pharmacy/workspace-v2/places.ts`), so the flags and permissions are the old ones, unchanged |
-| D-PW-04 | Landing | `pharmacy.manage` → Today; everyone else → Window |
-| D-PW-05 | Acting point | One pill naming the point and Live / Not live. With several points it opens the chooser (`chooseActingPoint`, unchanged) |
-| D-PW-06 | Needs you | One inbox over the §7 sources, each shown only to someone holding the permission that acts on it. An item leaves only when its source changes |
-| D-PW-07 | Rows | Every work row shows "Next: …" and one action. The rest sit in a More menu |
-| D-PW-08 | Limits | The amber notice becomes one slim line built from the same signed state (`interactionsStateFor`, `pharmacyChecksState`). "Read the full notice" opens the existing signed wording (`PharmacyNotice`) unchanged. **CSO** (wording) |
-| D-PW-09 | Rollout | Flag `PHARMACY_WORKSPACE_V2` (per hospital, `1` or ids; needs `PHARMACY_WORKSPACE`). While it is on, old list pages answer a temporary redirect (307) to their new home, because a 308 is cached by browsers and would survive switching the flag off. Detail, print and form routes stay where they are, inside the new shell. Step 11 (deleting the old UI and moving to 308s in `next.config.ts`) waits for the parity signature and a pilot |
-| D-PW-10 | Dialogs | One wrapper: `StoreDialog`, `ActionDialog` and `ReviewDialog` become thin re-exports of `EditorDialog`'s props, as the NavMap asks |
-| D-PW-11 | Today definitions | §6. **CSO** |
-| D-PW-12 | "Live" | No realtime channel exists. Screens say "As of {time}" and offer Refresh. Nothing claims to update live |
+| #       | Decision          | Adopted                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-PW-01 | Design system     | MedSync Tide (`data-ds="tide"` on the shell root), the same tokens the lab desk uses. No new tokens. The place hue is grape (`bg-tide-area-lab`, the Pharmacy & lab domain), not the board's plum                                                                                                                                                                                                                                               |
+| D-PW-02 | Reuse             | The lab v2 kit (`app/lab/_components/v2`: charts, fields, kit, button, space, loading) is imported, not copied. Pharmacy-own pieces go in `app/pharmacy/_components/v2/`                                                                                                                                                                                                                                                                        |
+| D-PW-03 | Places            | Today, Window, Shelf, Store, Clinical, Set-up, plus the Needs you inbox. Every tab exists exactly when the old nav item it replaces is visible (`lib/pharmacy/workspace-v2/places.ts`), so the flags and permissions are the old ones, unchanged                                                                                                                                                                                                |
+| D-PW-04 | Landing           | `pharmacy.manage` → Today; everyone else → Window                                                                                                                                                                                                                                                                                                                                                                                               |
+| D-PW-05 | Acting point      | One pill naming the point and Live / Not live. With several points it opens the chooser (`chooseActingPoint`, unchanged)                                                                                                                                                                                                                                                                                                                        |
+| D-PW-06 | Needs you         | One inbox over the §7 sources, each shown only to someone holding the permission that acts on it. An item leaves only when its source changes                                                                                                                                                                                                                                                                                                   |
+| D-PW-07 | Rows              | Every work row shows "Next: …" and one action. The rest sit in a More menu                                                                                                                                                                                                                                                                                                                                                                      |
+| D-PW-08 | Limits            | The amber notice becomes one slim line built from the same signed state (`interactionsStateFor`, `pharmacyChecksState`). "Read the full notice" opens the existing signed wording (`PharmacyNotice`) unchanged. **CSO** (wording)                                                                                                                                                                                                               |
+| D-PW-09 | Rollout           | Flag `PHARMACY_WORKSPACE_V2` (per hospital, `1` or ids; needs `PHARMACY_WORKSPACE`). While it is on, old list pages answer a temporary redirect (307) to their new home, because a 308 is cached by browsers and would survive switching the flag off. Detail, print and form routes stay where they are, inside the new shell. Step 11 (deleting the old UI and moving to 308s in `next.config.ts`) waits for the parity signature and a pilot |
+| D-PW-10 | Dialogs           | One wrapper: `StoreDialog`, `ActionDialog` and `ReviewDialog` become thin re-exports of `EditorDialog`'s props, as the NavMap asks                                                                                                                                                                                                                                                                                                              |
+| D-PW-11 | Today definitions | §6. **CSO**                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| D-PW-12 | "Live"            | No realtime channel exists. Screens say "As of {time}" and offer Refresh. Nothing claims to update live                                                                                                                                                                                                                                                                                                                                         |
 
 ## 3. Route map
 
-| Old | New (flag on) | How |
-| --- | --- | --- |
-| `/pharmacy` (queue) | `/pharmacy/today` (`pharmacy.manage`) or `/pharmacy/window` | redirect (307) |
-| — | `/pharmacy/today` | new |
-| — | `/pharmacy/needs-you` | new |
-| — | `/pharmacy/window?view=queue\|ready\|open\|refills\|supplied&rx=` | new; queue in three panes |
-| `/pharmacy/prescriptions/[key]` | stays (full page), also opens in Window's middle pane via `rx=` | inside the shell |
-| `/pharmacy/prescriptions/[key]/handover` | stays | inside the shell |
-| `/pharmacy/open-lines` | `/pharmacy/window?view=open` | 307 |
-| `/pharmacy/refills` | `/pharmacy/window?view=refills` | 307 |
-| `/pharmacy/supplied` | `/pharmacy/window?view=supplied` | 307 |
-| `/pharmacy/supplied/log`, `/labels/[id]`, `/slip/[id]` | stay (print) | unchanged |
-| `/pharmacy/downtime` | `/pharmacy/setup?view=downtime`; Window shows "Enter downtime sheets {n}" when sheets wait | 307 |
-| `/pharmacy/downtime/enter/[sheet]`, `/downtime/sheets/[from]/[to]` | stay | unchanged |
-| `/pharmacy/stock` | `/pharmacy/shelf` | 307 |
-| `/pharmacy/stock/[medicineId]` | stays | inside the shell |
-| `/pharmacy/stock/national-list` | `/pharmacy/setup?view=national` | 307 |
-| `/pharmacy/controlled` | `/pharmacy/shelf?view=controlled` | 307 |
-| `/pharmacy/controlled/register/[entryId]` | stays | inside the shell |
-| `/pharmacy/emergency-doses` | `/pharmacy/shelf?view=emergency` | 307 |
-| `/pharmacy/store/{deliveries,issues,wards,carts,expiry,orders,month-end}` | `/pharmacy/store?tab=…` | 307 |
-| `/pharmacy/store/*/[id]`, `/store/expiry/recalls…` | stay | inside the shell |
-| `/pharmacy/store/packs` | `/pharmacy/setup` | 307 |
-| `/pharmacy/store/places` | `/pharmacy/setup?view=places` | 307 |
-| `/pharmacy/clinical/content` | `/pharmacy/setup?view=content` | 307 |
-| `/pharmacy/clinical/{reconciliation,reactions,stewardship,interventions}` and `[id]` | stay; `/pharmacy/clinical` is the new hub | inside the shell |
+| Old                                                                                  | New (flag on)                                                                              | How                       |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | ------------------------- |
+| `/pharmacy` (queue)                                                                  | `/pharmacy/today` (`pharmacy.manage`) or `/pharmacy/window`                                | redirect (307)            |
+| —                                                                                    | `/pharmacy/today`                                                                          | new                       |
+| —                                                                                    | `/pharmacy/needs-you`                                                                      | new                       |
+| —                                                                                    | `/pharmacy/window?view=queue\|ready\|open\|refills\|supplied&rx=`                          | new; queue in three panes |
+| `/pharmacy/prescriptions/[key]`                                                      | stays (full page), also opens in Window's middle pane via `rx=`                            | inside the shell          |
+| `/pharmacy/prescriptions/[key]/handover`                                             | stays                                                                                      | inside the shell          |
+| `/pharmacy/open-lines`                                                               | `/pharmacy/window?view=open`                                                               | 307                       |
+| `/pharmacy/refills`                                                                  | `/pharmacy/window?view=refills`                                                            | 307                       |
+| `/pharmacy/supplied`                                                                 | `/pharmacy/window?view=supplied`                                                           | 307                       |
+| `/pharmacy/supplied/log`, `/labels/[id]`, `/slip/[id]`                               | stay (print)                                                                               | unchanged                 |
+| `/pharmacy/downtime`                                                                 | `/pharmacy/setup?view=downtime`; Window shows "Enter downtime sheets {n}" when sheets wait | 307                       |
+| `/pharmacy/downtime/enter/[sheet]`, `/downtime/sheets/[from]/[to]`                   | stay                                                                                       | unchanged                 |
+| `/pharmacy/stock`                                                                    | `/pharmacy/shelf`                                                                          | 307                       |
+| `/pharmacy/stock/[medicineId]`                                                       | stays                                                                                      | inside the shell          |
+| `/pharmacy/stock/national-list`                                                      | `/pharmacy/setup?view=national`                                                            | 307                       |
+| `/pharmacy/controlled`                                                               | `/pharmacy/shelf?view=controlled`                                                          | 307                       |
+| `/pharmacy/controlled/register/[entryId]`                                            | stays                                                                                      | inside the shell          |
+| `/pharmacy/emergency-doses`                                                          | `/pharmacy/shelf?view=emergency`                                                           | 307                       |
+| `/pharmacy/store/{deliveries,issues,wards,carts,expiry,orders,month-end}`            | `/pharmacy/store?tab=…`                                                                    | 307                       |
+| `/pharmacy/store/*/[id]`, `/store/expiry/recalls…`                                   | stay                                                                                       | inside the shell          |
+| `/pharmacy/store/packs`                                                              | `/pharmacy/setup`                                                                          | 307                       |
+| `/pharmacy/store/places`                                                             | `/pharmacy/setup?view=places`                                                              | 307                       |
+| `/pharmacy/clinical/content`                                                         | `/pharmacy/setup?view=content`                                                             | 307                       |
+| `/pharmacy/clinical/{reconciliation,reactions,stewardship,interventions}` and `[id]` | stay; `/pharmacy/clinical` is the new hub                                                  | inside the shell          |
 
 Query strings are carried across. `tests/pharmacy/workspace-v2/redirects.test.ts` walks this table. The tab pages render the old page's own component, so filters and actions are the same code (parity by construction).
 
@@ -64,16 +64,16 @@ The design is Tide at desk density, exactly as `DESIGN-medsync.md` § Laboratory
 
 ## 5. Components
 
-| New (`app/pharmacy/_components/v2/`) | Replaces |
-| --- | --- |
-| `PharmacyShellV2` (rail, top bar, point pill, Needs you, Emergency, Find, "Where everything went") | `WorkspaceShell`, `PharmacySidebarNav`, `PharmacyPhoneNav`, `PharmacyCrumb`, `FindField`, `PointChooser` |
-| `LimitsLine` | the large amber `PharmacyNotice` at the top of pages (the full notice stays one click away) |
-| `FlowStrip` | the store pages' separate headers |
-| `WorkRow` (`Next:` + one action + More) | per-page action columns |
-| `PaceChart`, `WeekBars` | none (new read models) |
-| `PackRow` | the packs table rows |
-| `InboxRow` | none |
-| Lab kit: `KeyFigure`, `Panel`, `Pill`, `EmptyState`, `NotSet`, `PillTabs`, `FilterChips`, `SpaceHeader`, `PlaceLoading` | segment tabs and tiles |
+| New (`app/pharmacy/_components/v2/`)                                                                                    | Replaces                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `PharmacyShellV2` (rail, top bar, point pill, Needs you, Emergency, Find, "Where everything went")                      | `WorkspaceShell`, `PharmacySidebarNav`, `PharmacyPhoneNav`, `PharmacyCrumb`, `FindField`, `PointChooser` |
+| `LimitsLine`                                                                                                            | the large amber `PharmacyNotice` at the top of pages (the full notice stays one click away)              |
+| `FlowStrip`                                                                                                             | the store pages' separate headers                                                                        |
+| `WorkRow` (`Next:` + one action + More)                                                                                 | per-page action columns                                                                                  |
+| `PaceChart`, `WeekBars`                                                                                                 | none (new read models)                                                                                   |
+| `PackRow`                                                                                                               | the packs table rows                                                                                     |
+| `InboxRow`                                                                                                              | none                                                                                                     |
+| Lab kit: `KeyFigure`, `Panel`, `Pill`, `EmptyState`, `NotSet`, `PillTabs`, `FilterChips`, `SpaceHeader`, `PlaceLoading` | segment tabs and tiles                                                                                   |
 
 ## 6. Today definitions (read model `lib/pharmacy/workspace-v2/today.ts`, pure, plus `today-read.ts`)
 
@@ -143,10 +143,10 @@ These are drafts in `docs/adr/`, numbered after the newest on this branch.
 
 ## 11. Signature block
 
-| Item | Approved | Signed (CSO) |
-| --- | --- | --- |
-| D-PW-01…12, §1 resolutions | Owner, "go through all gates", 27 Oct 2026 | ☐ Fadhul |
-| Today definitions (§6) | as above | ☐ Fadhul |
-| Limits line wording (D-PW-08) | as above | ☐ Fadhul |
-| `content/pharmacy-workspace-v2*.ts` | — | ☐ Fadhul (until then the flag stays off in production) |
-| Parity checklist (Step 11) | — | ☐ Fadhul |
+| Item                                | Approved                                   | Signed (CSO)                                           |
+| ----------------------------------- | ------------------------------------------ | ------------------------------------------------------ |
+| D-PW-01…12, §1 resolutions          | Owner, "go through all gates", 27 Oct 2026 | ☐ Fadhul                                               |
+| Today definitions (§6)              | as above                                   | ☐ Fadhul                                               |
+| Limits line wording (D-PW-08)       | as above                                   | ☐ Fadhul                                               |
+| `content/pharmacy-workspace-v2*.ts` | —                                          | ☐ Fadhul (until then the flag stays off in production) |
+| Parity checklist (Step 11)          | —                                          | ☐ Fadhul                                               |

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { CheckIcon, CircleIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fill, LAB3 } from "@/content/lab-phase-3";
@@ -22,7 +23,6 @@ import { quarantineLotAction } from "@/lib/lab/stock-actions";
 import { cn } from "@/lib/utils";
 import { EQUIPMENT as C } from "../_lib/copy";
 import { inputClass, newKey, num, Pop, selectClass } from "../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { DateField, DateTimeField } from "../../_components/v2/fields";
 import { dateWords, timeWords } from "../../_lib/days";
 import { ActButton } from "../../quality/_components/act-button";

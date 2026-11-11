@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { TideScope } from "@/components/medsync/tide-scope";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { availabilityCount } from "@/lib/services/data";
 import { HospitalShell } from "./_components/hospital-shell";
 import { getHospitalPendingStaffCount } from "./_lib/staff-pending-count";
-import { TideScope } from "@/components/medsync/tide-scope";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

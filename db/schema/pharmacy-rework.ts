@@ -1,4 +1,14 @@
-import { bigint, boolean, date, integer, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  bigint,
+  boolean,
+  date,
+  integer,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 /**
  * Pharmacy rework (migration 0265 onwards — GATED, owner-applied). The SQL is the source of truth: the witness
@@ -52,7 +62,10 @@ export const pharmacyWitnessRequests = pgTable("pharmacy_witness_requests", {
   locationId: uuid("location_id"),
   purpose: text("purpose").notNull(),
   summary: text("summary").notNull(),
-  status: text("status").$type<"waiting" | "approved" | "declined" | "withdrawn">().notNull().default("waiting"),
+  status: text("status")
+    .$type<"waiting" | "approved" | "declined" | "withdrawn">()
+    .notNull()
+    .default("waiting"),
   attestationId: uuid("attestation_id"),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
   decidedAt: timestamp("decided_at", tz),

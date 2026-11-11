@@ -19,8 +19,8 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { EmergencyInline } from "@/components/lab/emergency-inline";
 import { RestrictedMark } from "@/components/emr/chips";
+import { EmergencyInline } from "@/components/lab/emergency-inline";
 import { LabLive } from "@/components/lab/lab-live";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

@@ -5,11 +5,11 @@ import { useState } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { FreshFactor, needsFreshFactor } from "@/components/medsync/fresh-factor";
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LABWS2_SETUP } from "@/content/lab-workspace-v2-setup";
 import { saveLimitsDraftAction, signLimitsAsLeadAction } from "@/lib/lab/measures-actions";
-import { LabButton } from "@/components/tide/work/button";
 import { Said, useAct } from "../../criticals/_components/setup-forms";
 import { toDays } from "../../ranges/_lib/ages";
 

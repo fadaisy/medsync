@@ -26,13 +26,16 @@ async function act<I, R extends { id: string }>(
 ) {
   try {
     const actor = await requirePharmacyActor();
-    if (!pharmacyTiersFor(actor.hospitalId).core) return { ok: false as const, code: "config", error: RC.refused.failed };
+    if (!pharmacyTiersFor(actor.hospitalId).core)
+      return { ok: false as const, code: "config", error: RC.refused.failed };
     const r = await runPharmacyWrite(schema, raw, actor, need, write);
     if (r.ok) revalidatePath("/pharmacy", "layout");
     return r;
   } catch (e) {
     unstable_rethrow(e);
-    logger.error("pharmacy.records.action_failed", { error: e instanceof Error ? e.name : "unknown" });
+    logger.error("pharmacy.records.action_failed", {
+      error: e instanceof Error ? e.name : "unknown",
+    });
     return { ok: false as const, code: "conflict", error: RC.refused.failed };
   }
 }

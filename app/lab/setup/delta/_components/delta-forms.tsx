@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 
+import { LabButton } from "@/components/tide/work/button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signConfigAsLeadAction } from "@/lib/lab/catalogue-v2-actions";
 import { rcv, rcvLogNormal } from "@/lib/lab/delta";
 import { saveDeltaRuleAction, trialDeltaRuleAction } from "@/lib/lab/delta-actions";
 import { inputClass, Pop, selectClass } from "../../../_components/pop";
-import { LabButton } from "@/components/tide/work/button";
 import { Field, Said, useAct } from "../../criticals/_components/setup-forms";
 import { SignButton } from "../../drafts/_components/sign-button";
 

@@ -2,14 +2,14 @@ import type { NeedsYouFilter } from "@/lib/lab/needs-you";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { EmptyState, FigureValue, Panel } from "@/components/tide/work/kit";
+import { FilterChips } from "@/components/tide/work/space";
 import { fill, LABWS2 } from "@/content/lab-workspace-v2";
 import { identitiesFor } from "@/lib/emr/read/results";
 import { FILTER_OF, filterNeedsYou, groupNeedsYou } from "@/lib/lab/needs-you";
 import { loadNeedsYouWeek } from "@/lib/lab/needs-you-read";
 import { LAB_TIME_ZONE, requestNow } from "@/lib/lab/page-data";
 import { InboxRow } from "../_components/v2/inbox";
-import { EmptyState, FigureValue, Panel } from "@/components/tide/work/kit";
-import { FilterChips } from "@/components/tide/work/space";
 import { needsYouFor } from "../_lib/needs-you";
 import { one } from "../_lib/place-tabs";
 import { labV2 } from "../_lib/places";
