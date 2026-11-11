@@ -77,7 +77,7 @@ export async function raiseIvTaskOnSend(
   input: { patientUserId: string; encounterId: string; lines: PlanRx[]; prescriptionIds: string[] },
 ): Promise<string | null> {
   const iv = input.lines.flatMap((rx, i) =>
-    rx.route === "iv" ? [{ rx, id: input.prescriptionIds[i]! }] : [],
+    rx.route === "iv" || rx.route === "infusion" ? [{ rx, id: input.prescriptionIds[i]! }] : [],
   );
   if (!iv.length) return null;
   const [has] = await ctx.tx

@@ -25,6 +25,7 @@ import { authUsers } from "./_auth";
 import { conditions, medicationStatements } from "./emr";
 import { hospitalDepartments } from "./hospital-departments";
 import { hospitals } from "./hospitals";
+import { protocolVersions } from "./protocols";
 import { resusEpisodes } from "./resus";
 import { encounters } from "./scheduling";
 
@@ -133,6 +134,12 @@ export const prescriptions = pgTable(
     prescribePlace: text("prescribe_place"),
     /** 0279: the brand chosen (a pharmacy_products id); null = any brand. */
     productId: uuid("product_id"),
+    /** 0282 (prescribing kit P3): the protocol version this line was sent under. */
+    protocolVersionId: uuid("protocol_version_id").references(() => protocolVersions.id, {
+      onDelete: "restrict",
+    }),
+    /** 0282: what the prescriber saw (starting values, holds, answers to the protocol checks). */
+    protocolStart: jsonb("protocol_start"),
   },
   (t) => [
     check(

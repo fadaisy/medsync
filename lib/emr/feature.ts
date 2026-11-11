@@ -3,6 +3,7 @@ import "server-only";
 import { NURSE_TASKS_COPY } from "@/content/nurse-tasks";
 import { PRESCRIBE_HANDOFF_COPY } from "@/content/pharmacy-prescriber";
 import { PRESCRIBE_COPY } from "@/content/prescribing";
+import { PROTOCOLS_COPY } from "@/content/protocols";
 import { encounterEngineLive } from "@/lib/encounter/feature";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
@@ -115,5 +116,17 @@ export function nurseTasksLiveFor(hospitalId: string): boolean {
     hospitalId,
     [PRESCRIBE_COPY, NURSE_TASKS_COPY],
     "nurse_tasks",
+  );
+}
+
+/** Quick protocols inside Prescribe (kit P3): PRESCRIBE_V2's Protocols mode. Needs migration 0282; off in
+ *  production while the protocols wording is draft too. */
+export function protocolsLiveFor(hospitalId: string): boolean {
+  if (!emrPrescribingLive(hospitalId)) return false;
+  return workspaceLiveFor(
+    process.env.PRESCRIBE_V2,
+    hospitalId,
+    [PRESCRIBE_COPY, PROTOCOLS_COPY],
+    "prescribe_protocols",
   );
 }

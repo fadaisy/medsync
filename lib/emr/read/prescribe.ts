@@ -14,9 +14,14 @@ import { pharmacyProducts } from "@/db/schema/pharmacy-dispensing";
 import { prescriptionDrafts } from "@/db/schema/prescribing";
 import { encounters } from "@/db/schema/scheduling";
 import { isOpen } from "@/lib/emr/encounter";
+import { protocolsLiveFor } from "@/lib/emr/feature";
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { loadPlanFacts } from "@/lib/emr/write/plan";
-import { encounterPrescriptions, prescribeRequirement } from "@/lib/emr/write/prescriptions";
+import {
+  encounterPrescriptions,
+  prescribeRequirement,
+  PRESCRIBING_CADRES,
+} from "@/lib/emr/write/prescriptions";
 import { decrypt } from "@/lib/encryption";
 import { interactionContextFor } from "@/lib/pharmacy/clinical/read";
 import {
@@ -60,6 +65,8 @@ export interface PrescribeSession {
   stockAnswer: boolean;
   /** Draft order sets show outside production only. */
   production: boolean;
+  /** Kit P3: the Protocols mode is on here (PRESCRIBE_V2 + its wording, migration 0282). */
+  protocols: boolean;
   placed: PlacedLine[];
   /** Kit F4: the pharmacy's questions and each line's stage, where dispensing is on (doctor surface). */
   pharmacy: PrescriberPharmacyView | null;
@@ -175,6 +182,7 @@ export async function loadPrescribeSession(
       : null,
     stockAnswer: pharmacyStockAnswerLiveFor(actor.hospitalId),
     production: process.env.VERCEL_ENV === "production",
+    protocols: protocolsLiveFor(actor.hospitalId) && PRESCRIBING_CADRES.includes(actor.cadreCode),
     placed: rows.map((r) => ({
       id: r.id,
       drugId: r.drugId,

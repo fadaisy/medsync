@@ -13,6 +13,7 @@ import { PillIcon } from "lucide-react";
 import { EmrDialog } from "@/components/emr/emr-dialog";
 import { Button } from "@/components/ui/button";
 import { PRESCRIBE_COPY as C, fill } from "@/content/prescribing";
+import { PROTOCOLS_COPY as P } from "@/content/protocols";
 import { stockLines } from "@/lib/emr/actions/pharmacy-stock";
 import {
   keepPrescribeDraft,
@@ -28,6 +29,7 @@ import { FactChips } from "./medicines";
 import { Caution, inputClass, Tag } from "./parts";
 import { PharmacyCount, PharmacyItemBlock } from "./pharmacy";
 import { PlanPrescribeDialog } from "./prescribe-dialog";
+import { ProtocolsMode } from "./protocols-mode";
 
 /**
  * The one Prescribe (prescribing kit F1–F3) for every place that is not the clerking Plan: the
@@ -144,6 +146,9 @@ export function PrescribeSessionDialog({
   const [stopping, setStopping] = useState<{ id: string; reason: string } | null>(null);
   // Kit F4: the line a pharmacy question is being answered "Change it" for.
   const [replacing, setReplacing] = useState<PlanBasketRx["replaces"] | null>(null);
+  // Kit P3: "Medicines | Protocols · N".
+  const [mode, setMode] = useState<"medicines" | "protocols">("medicines");
+  const [protocolCount, setProtocolCount] = useState<number | null>(null);
   const reasonId = useId();
   const s = session;
   const who = { surface, patientUserId: s.patientUserId, place: s.place };
@@ -328,27 +333,29 @@ export function PrescribeSessionDialog({
       kicker={fill(C.kicker, { place: PLACE[s.place].label, collect: s.collect })}
       title={`${s.patient.name || C.title}${s.patient.mrn ? ` · ${s.patient.mrn}` : ""}`}
       footer={
-        <div className="flex w-full flex-wrap items-center justify-end gap-3">
-          {msg ? (
-            <span className="text-body-s text-muted-foreground mr-auto" aria-live="polite">
-              {msg}
-            </span>
-          ) : null}
-          {reviewing ? (
-            <>
-              <Button variant="secondary" onClick={() => setReviewing(false)} disabled={busy}>
-                {C.back}
+        mode === "protocols" ? undefined : (
+          <div className="flex w-full flex-wrap items-center justify-end gap-3">
+            {msg ? (
+              <span className="text-body-s text-muted-foreground mr-auto" aria-live="polite">
+                {msg}
+              </span>
+            ) : null}
+            {reviewing ? (
+              <>
+                <Button variant="secondary" onClick={() => setReviewing(false)} disabled={busy}>
+                  {C.back}
+                </Button>
+                <Button onClick={() => void send()} disabled={busy || !lines.length}>
+                  {busy ? C.sending : C.sign}
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => setReviewing(true)} disabled={!lines.length}>
+                {C.review}
               </Button>
-              <Button onClick={() => void send()} disabled={busy || !lines.length}>
-                {busy ? C.sending : C.sign}
-              </Button>
-            </>
-          ) : (
-            <Button onClick={() => setReviewing(true)} disabled={!lines.length}>
-              {C.review}
-            </Button>
-          )}
-        </div>
+            )}
+          </div>
+        )
       }
     >
       <div className="flex flex-col gap-5">
@@ -357,213 +364,258 @@ export function PrescribeSessionDialog({
           <p className="text-caption text-muted-foreground">{C.resusNote}</p>
         ) : null}
 
-        {draft && !lines.length && !reviewing ? (
-          <section
-            aria-label={C.draftTitle}
-            className="border-border flex flex-wrap items-center gap-3 rounded-lg border p-3"
-          >
-            <div className="flex min-w-0 flex-1 flex-col">
-              <span className="text-body-m text-foreground">{C.draftTitle}</span>
-              <span className="text-body-s text-muted-foreground">
-                {fill(C.draftBody, { n: draft.lines.length, time: time(draft.at) })}
-              </span>
-            </div>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setLines(draft.lines);
-                setDraft(null);
-              }}
-            >
-              {C.resume}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setDraft(null);
-                void keepPrescribeDraft({ ...who, encounterId: s.encounterId, lines: [] });
-              }}
-            >
-              {C.discard}
-            </Button>
-          </section>
+        {s.protocols && !reviewing ? (
+          <div role="group" aria-label={P.protocols} className="flex flex-wrap gap-1.5">
+            {(["medicines", "protocols"] as const).map((m) => (
+              <Button
+                key={m}
+                size="sm"
+                variant={mode === m ? "primary" : "secondary"}
+                aria-pressed={mode === m}
+                onClick={() => setMode(m)}
+              >
+                {m === "medicines"
+                  ? P.medicines
+                  : protocolCount != null
+                    ? fill(P.protocolsN, { n: protocolCount })
+                    : P.protocols}
+              </Button>
+            ))}
+          </div>
         ) : null}
 
-        {reviewing ? (
-          <section aria-labelledby="rx-review" className="flex flex-col gap-3">
-            <h3 id="rx-review" className="text-label text-foreground">
-              {C.review}
-            </h3>
-            <ul className="flex flex-col gap-3">
-              {lines.map((l) => (
-                <li key={l.clientKey} className="border-border flex flex-col gap-1 border-t pt-3">
-                  <span className="text-body-m text-foreground">{l.display}</span>
-                  <span className="text-caption text-muted-foreground">
-                    {`${C.confirmed}: `}
-                    {l.answers.length
-                      ? l.answers.map((a) => a.code.replace(/_/g, " ")).join(", ")
-                      : C.noneConfirmed}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
+        {mode === "protocols" ? (
+          <ProtocolsMode
+            surface={surface}
+            patientUserId={s.patientUserId}
+            encounterId={s.encounterId}
+            place={s.place}
+            facts={s.facts}
+            onCount={setProtocolCount}
+            onSent={(m) => {
+              setMsg(m);
+              setMode("medicines");
+              void reload();
+            }}
+          />
         ) : (
           <>
-            <section aria-labelledby="rx-basket" className="flex flex-col gap-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 id="rx-basket" className="text-label text-foreground">
-                  {C.thisPrescription}
-                </h3>
+            {draft && !lines.length && !reviewing ? (
+              <section
+                aria-label={C.draftTitle}
+                className="border-border flex flex-wrap items-center gap-3 rounded-lg border p-3"
+              >
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-body-m text-foreground">{C.draftTitle}</span>
+                  <span className="text-body-s text-muted-foreground">
+                    {fill(C.draftBody, { n: draft.lines.length, time: time(draft.at) })}
+                  </span>
+                </div>
                 <Button
                   variant="secondary"
-                  size="sm"
-                  onClick={() => setEditing({ target: {}, at: null })}
+                  onClick={() => {
+                    setLines(draft.lines);
+                    setDraft(null);
+                  }}
                 >
-                  {C.addMedicine}
+                  {C.resume}
                 </Button>
-              </div>
-              {sets.length ? (
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-caption text-muted-foreground">{C.sets}</span>
-                    <Caution>{C.setsDraft}</Caution>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {sets.map((set) => (
-                      <Button
-                        key={set.id}
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => void applySet(set.drugIds)}
-                      >
-                        {`${set.name} · ${set.drugIds.length}`}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              {lines.length ? (
-                <ul className="flex flex-col">
-                  {lines.map((l, i) => (
-                    <li
-                      key={l.clientKey}
-                      className="border-border flex flex-wrap items-center gap-2 border-t py-2.5 first:border-t-0"
-                    >
-                      <span className="text-body-s text-foreground min-w-0 flex-1">
-                        {l.display}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditing({ target: { from: l }, at: i })}
-                      >
-                        {C.edit}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setLines((x) => [...x, { ...l, clientKey: newKey() }])}
-                      >
-                        {C.again}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setLines((x) => x.filter((_, j) => j !== i))}
-                      >
-                        {C.remove}
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-body-s text-muted-foreground">{C.empty}</p>
-              )}
-            </section>
-
-            <section aria-labelledby="rx-already" className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 id="rx-already" className="text-label text-foreground">
-                  {C.already}
-                </h3>
-                <PharmacyCount view={pharmacy} />
-              </div>
-              {elsewhere.length ? asked(null) : null}
-              {s.placed.length ? (
-                <ul className="flex flex-col">
-                  {s.placed.map((p) => (
-                    <li
-                      key={p.id}
-                      className="border-border flex flex-col gap-2 border-t py-2.5 first:border-t-0"
-                    >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-body-s text-foreground min-w-0 flex-1">
-                          {p.display}
-                        </span>
-                        <Tag>{p.word}</Tag>
-                        {drugById(p.drugId) ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setEditing({ target: { drugId: p.drugId }, at: null })}
-                          >
-                            {C.prescribeAgain}
-                          </Button>
-                        ) : null}
-                        {p.stoppable ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setStopping({ id: p.id, reason: "" })}
-                          >
-                            {C.stop}
-                          </Button>
-                        ) : null}
-                      </div>
-                      {stopping?.id === p.id ? (
-                        <div className="flex flex-wrap items-end gap-2">
-                          <div className="flex min-w-0 flex-1 flex-col gap-1">
-                            <label
-                              htmlFor={reasonId}
-                              className="text-caption text-muted-foreground"
-                            >
-                              {C.stopReason}
-                            </label>
-                            <input
-                              id={reasonId}
-                              value={stopping.reason}
-                              maxLength={500}
-                              onChange={(e) => setStopping({ id: p.id, reason: e.target.value })}
-                              className={inputClass}
-                            />
-                          </div>
-                          <Button
-                            variant="secondary"
-                            disabled={busy || stopping.reason.trim().length < 3}
-                            onClick={() => void stop()}
-                          >
-                            {C.stop}
-                          </Button>
-                        </div>
-                      ) : null}
-                      {asked(p.id)}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-body-s text-muted-foreground">{C.alreadyNone}</p>
-              )}
-            </section>
-
-            {s.home.length ? (
-              <section aria-labelledby="rx-home" className="flex flex-col gap-2">
-                <h3 id="rx-home" className="text-label text-foreground">
-                  {C.takingAtHome}
-                </h3>
-                <p className="text-body-s text-foreground">{s.home.join(", ")}</p>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setDraft(null);
+                    void keepPrescribeDraft({ ...who, encounterId: s.encounterId, lines: [] });
+                  }}
+                >
+                  {C.discard}
+                </Button>
               </section>
             ) : null}
+
+            {reviewing ? (
+              <section aria-labelledby="rx-review" className="flex flex-col gap-3">
+                <h3 id="rx-review" className="text-label text-foreground">
+                  {C.review}
+                </h3>
+                <ul className="flex flex-col gap-3">
+                  {lines.map((l) => (
+                    <li
+                      key={l.clientKey}
+                      className="border-border flex flex-col gap-1 border-t pt-3"
+                    >
+                      <span className="text-body-m text-foreground">{l.display}</span>
+                      <span className="text-caption text-muted-foreground">
+                        {`${C.confirmed}: `}
+                        {l.answers.length
+                          ? l.answers.map((a) => a.code.replace(/_/g, " ")).join(", ")
+                          : C.noneConfirmed}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : (
+              <>
+                <section aria-labelledby="rx-basket" className="flex flex-col gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 id="rx-basket" className="text-label text-foreground">
+                      {C.thisPrescription}
+                    </h3>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setEditing({ target: {}, at: null })}
+                    >
+                      {C.addMedicine}
+                    </Button>
+                  </div>
+                  {sets.length ? (
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-caption text-muted-foreground">{C.sets}</span>
+                        <Caution>{C.setsDraft}</Caution>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {sets.map((set) => (
+                          <Button
+                            key={set.id}
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => void applySet(set.drugIds)}
+                          >
+                            {`${set.name} · ${set.drugIds.length}`}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {lines.length ? (
+                    <ul className="flex flex-col">
+                      {lines.map((l, i) => (
+                        <li
+                          key={l.clientKey}
+                          className="border-border flex flex-wrap items-center gap-2 border-t py-2.5 first:border-t-0"
+                        >
+                          <span className="text-body-s text-foreground min-w-0 flex-1">
+                            {l.display}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditing({ target: { from: l }, at: i })}
+                          >
+                            {C.edit}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setLines((x) => [...x, { ...l, clientKey: newKey() }])}
+                          >
+                            {C.again}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setLines((x) => x.filter((_, j) => j !== i))}
+                          >
+                            {C.remove}
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-body-s text-muted-foreground">{C.empty}</p>
+                  )}
+                </section>
+
+                <section aria-labelledby="rx-already" className="flex flex-col gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 id="rx-already" className="text-label text-foreground">
+                      {C.already}
+                    </h3>
+                    <PharmacyCount view={pharmacy} />
+                  </div>
+                  {elsewhere.length ? asked(null) : null}
+                  {s.placed.length ? (
+                    <ul className="flex flex-col">
+                      {s.placed.map((p) => (
+                        <li
+                          key={p.id}
+                          className="border-border flex flex-col gap-2 border-t py-2.5 first:border-t-0"
+                        >
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-body-s text-foreground min-w-0 flex-1">
+                              {p.display}
+                            </span>
+                            <Tag>{p.word}</Tag>
+                            {drugById(p.drugId) ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  setEditing({ target: { drugId: p.drugId }, at: null })
+                                }
+                              >
+                                {C.prescribeAgain}
+                              </Button>
+                            ) : null}
+                            {p.stoppable ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setStopping({ id: p.id, reason: "" })}
+                              >
+                                {C.stop}
+                              </Button>
+                            ) : null}
+                          </div>
+                          {stopping?.id === p.id ? (
+                            <div className="flex flex-wrap items-end gap-2">
+                              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                                <label
+                                  htmlFor={reasonId}
+                                  className="text-caption text-muted-foreground"
+                                >
+                                  {C.stopReason}
+                                </label>
+                                <input
+                                  id={reasonId}
+                                  value={stopping.reason}
+                                  maxLength={500}
+                                  onChange={(e) =>
+                                    setStopping({ id: p.id, reason: e.target.value })
+                                  }
+                                  className={inputClass}
+                                />
+                              </div>
+                              <Button
+                                variant="secondary"
+                                disabled={busy || stopping.reason.trim().length < 3}
+                                onClick={() => void stop()}
+                              >
+                                {C.stop}
+                              </Button>
+                            </div>
+                          ) : null}
+                          {asked(p.id)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-body-s text-muted-foreground">{C.alreadyNone}</p>
+                  )}
+                </section>
+
+                {s.home.length ? (
+                  <section aria-labelledby="rx-home" className="flex flex-col gap-2">
+                    <h3 id="rx-home" className="text-label text-foreground">
+                      {C.takingAtHome}
+                    </h3>
+                    <p className="text-body-s text-foreground">{s.home.join(", ")}</p>
+                  </section>
+                ) : null}
+              </>
+            )}
           </>
         )}
       </div>

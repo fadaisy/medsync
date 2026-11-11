@@ -223,6 +223,16 @@ async function currentProblem(ctx: WriteCtx, patientUserId: string, conditionId:
 const doseWords = (rx: PlanRx) =>
   rx.kind === "fluid" && rx.fluid ? `${rx.fluid.volumeMl} mL` : `${rx.doseNum} ${rx.unit}`;
 
+/**
+ * Prescribing kit P3 (F6): a protocol's first supply, sent as one placement. The server built each
+ * line from the signed version; `lines` carries the dose words and quantity it worked out per line.
+ */
+export interface ProtocolSend {
+  versionId: string;
+  start: Record<string, unknown>;
+  lines: Record<string, { dose: string; quantity: string | null }>;
+}
+
 async function prescribeFromPlan(
   ctx: WriteCtx,
   input: {
@@ -233,6 +243,7 @@ async function prescribeFromPlan(
     rx: PlanRx;
     /** Prescribing kit F1 (PRESCRIBE_V2): where it was written; only the clerking Plan needs a problem. */
     place?: PrescribePlace;
+    protocol?: ProtocolSend;
   },
   facts: PlanFacts,
   earlier: OtherMedicine[],
@@ -256,7 +267,9 @@ async function prescribeFromPlan(
     );
   if (!drug.routes.includes(rx.route))
     throw new EmrWriteError("invalid", `${drug.generic} is not given by that route.`);
-  if (rx.kind === "drug" && rx.doseNum == null)
+  // A protocol line's dose is the protocol's, in words (insulin by weight, by the potassium, …).
+  const fromProtocol = input.protocol?.lines[rx.clientKey];
+  if (rx.kind === "drug" && rx.doseNum == null && !fromProtocol)
     throw new EmrWriteError("invalid", `Write the ${drug.generic} dose.`);
   const needsProblem = !input.place || input.place === "clerking";
   if (!rx.conditionId && needsProblem)
@@ -355,11 +368,12 @@ async function prescribeFromPlan(
       prescriberCadre: actor.cadreCode,
       drugId: drug.id,
       drugName: drug.generic,
-      dose: doseWords(rx),
+      dose: fromProtocol ? fromProtocol.dose : doseWords(rx),
       concentration: rx.strength ?? product?.strength ?? null,
       // Kit F2: worked out again here from the product's own strength and pack, never taken from the screen.
-      quantity:
-        rx.kind === "drug" && product
+      quantity: fromProtocol
+        ? fromProtocol.quantity
+        : rx.kind === "drug" && product
           ? (supplyQuantity({
               doseNum: rx.doseNum,
               unit: rx.unit,
@@ -410,6 +424,8 @@ async function prescribeFromPlan(
       placementLine: input.placementLine,
       prescribePlace: input.place ?? null,
       productId: product?.id ?? null,
+      protocolVersionId: fromProtocol ? input.protocol!.versionId : null,
+      protocolStart: fromProtocol ? input.protocol!.start : null,
       createdAt: now,
     })
     .returning({ id: prescriptions.id });
@@ -639,6 +655,8 @@ export interface PlacePlanInput {
   measureUrine: boolean;
   /** Prescribing kit F1 (PRESCRIBE_V2): the place it was sent from, stored on every line. */
   place?: PrescribePlace;
+  /** Prescribing kit P3: the lines are a protocol's first supply. */
+  protocol?: ProtocolSend;
 }
 
 export async function placePlan(
@@ -729,6 +747,7 @@ export async function placePlan(
         placementLine: i + 1,
         rx,
         place: input.place,
+        protocol: input.protocol,
       },
       facts,
       others,
@@ -821,9 +840,11 @@ export async function sendPrescribed(
     encounterId: string;
     place: PrescribePlace;
     lines: PlanRx[];
+    protocol?: ProtocolSend;
   },
 ): Promise<WriteResult & { prescriptionIds: string[] }> {
   const placed = await placePlan(ctx, {
+    protocol: input.protocol,
     patientUserId: input.patientUserId,
     encounterId: input.encounterId,
     orders: [],

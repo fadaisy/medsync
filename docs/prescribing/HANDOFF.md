@@ -163,3 +163,81 @@ are the pharmacy rework's, plugged into, not rebuilt. Flag off: no column is req
   pharmacy-review, pharmacy-downtime-entry, prescribe-scenarios, pharmacy-clinical-data, pharmacy-demo-\*,
   pharmacy-stores-supply, pharmacy-reads; unit `tests/pharmacy` + `tests/prescribing` (1468).
   drizzle-parity: the same 12 pre-existing failures; `pharmacy_handovers` passes.
+
+---
+
+# P3 Quick protocols in Prescribe (F6)
+
+Behind **`PRESCRIBE_V2`** (`protocolsLiveFor`, `lib/emr/feature.ts`: + `EMR_PRESCRIBING`, off in production while
+`PRESCRIBE_COPY` or `PROTOCOLS_COPY` is draft). Flag off, or a non-prescribing cadre: no mode switch, nothing changes.
+
+## Owner to do
+
+1. Apply **0282** (GATED, after 0279–0281): `cd /Users/airm1/Desktop/medsync-rx && npm run db:migrate`. Tables
+   `protocols`, `protocol_versions` (RLS forced, reader's SELECT of seeds + own hospital, no client grants);
+   `prescriptions.protocol_version_id` + `protocol_start`; the 10 seed protocols as DRAFT version 1. The Drizzle
+   schema names the new prescriptions columns, so apply before deploying this branch.
+2. Sign the draft copy `content/protocols.ts` (`PROTOCOLS_COPY`, `PROTOCOL_GROUPS`).
+3. Clinical sign-off of each protocol happens in the app: two different consultants press "Sign off this version".
+
+## Where it landed
+
+| F6 item                                  | Where                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mode switch "Medicines \| Protocols · N" | `prescribe-session.tsx` (five non-clerking places; the clerking Plan's own basket has no Protocols mode yet)                                                                                                                                                                                                                                               |
+| List by group, signed/draft              | `components/clerking/plan/protocols-mode.tsx` over `listProtocols` (`lib/emr/write/protocols.ts`): a hospital's own newest signed version, else its draft copy, else the seed                                                                                                                                                                              |
+| Rules (data) and pure functions          | `lib/protocols/quick.ts`: `QuickRules` zod shape, `bandOf`/`effectsOf` (holds + word changes), `doseOf`, `planOf`, `supplyOf`, `protocolChecks`, `verifyProtocol`, `canStart`, `fromBuilder`                                                                                                                                                               |
+| Starting values from results             | `loadFactSnapshot` concepts named by the version (`obs.potassium`, `obs.sodium`, `obs.bp_*`, `obs.heart_rate`), with source and time; "Enter one" (typed, stored as "entered here"); "Order it" → `placeOrders` (`orderStartTest`, U&E)                                                                                                                    |
+| Checks                                   | protocol: not signed, who (age/sex/pregnant), weight, starting value missing (hard), blocking bands (DKA K < 3.3 → insulin held, labetalol pulse < 60), indication, already running (active lines of the same protocol), IV access (P2 cannula or open task); medicines: each supply line's `planChecks`, answered in the same list (allergy: senior only) |
+| Plan                                     | step list (`planOf`): times, dose worked out for this patient with the arithmetic, "Before each dose", ranges, On hold                                                                                                                                                                                                                                     |
+| Pharmacy supply                          | one placement through `sendPrescribed(…, protocol)`: lines built on the server from the version; dose = the protocol's words for this patient, quantity = the supply (`prescriptions.quantity`); `protocol_start` on every line (start values, holds, answers)                                                                                             |
+| Builder                                  | `saveProtocolDraft`: a hospital protocol (`custom-<uuid>`, group custom) + draft version 1; live preview for the current patient (`planOf` on the client)                                                                                                                                                                                                  |
+| Sign-off                                 | `signProtocolVersion`: CONSULTANT / SENIOR_CONSULTANT; a seed is copied for the hospital on the first signature; the second must be another person; then signed and frozen                                                                                                                                                                                 |
+| Server gates                             | `lib/emr/actions/protocols.ts` (flag), cadre in each write, `canStart` + `verifyProtocol` + witness in `startProtocol`, every medicine check again in `placePlan`                                                                                                                                                                                          |
+| [DB]                                     | 0282: signed ⇔ two signatures; signers distinct; roles CONSULTANT/SENIOR_CONSULTANT/DTC_CHAIR, not two DTC chairs; seed never signed; trigger: signed frozen, never deleted, content fixed once the first signer signed                                                                                                                                    |
+
+## Defaults taken
+
+- `canStart`: signed only in production (`VERCEL_ENV=production`); in dev and Vercel preview a draft starts, labelled
+  "prototype values, need local sign-off". The DB does not refuse a draft start (it cannot know the environment).
+- Signers: 2 consultants (CONSULTANT or SENIOR_CONSULTANT). The DTC chair has no role in MedSync: the DB allows
+  `DTC_CHAIR`, but nothing grants it yet.
+- Local sign-off: seeds (hospital NULL) are never signed; the first signature makes the hospital's own copy.
+- Supply lines are `kind: drug`, `frequency: stat`, `course: single`, no `doseNum`; the protocol's dose words are the
+  line's `dose`. Protocol lines still show on the nurse's MAR as P2 lines (P4 must give them on the chart and drop
+  them from the MAR: `protocol_version_id IS NOT NULL`).
+- IV task: raised for `iv` and now also `infusion` routes (`raiseIvTaskOnSend`).
+- "Adult" = age 12 or more (the prototype's line, stored in each version as `who.minAge`).
+- Builder protocols chart in 1 h × 24 slots (`ponytail:` in `saveProtocolDraft`); Give steps take the medicine's
+  first route.
+- A typed starting value is not saved to results (P5 applies to chart values, P4).
+
+## Seeded, and what P4/P5 complete
+
+Seeded (0282, all DRAFT): the 10 protocols, each with §2's slot, source, confirm list, starting values and bands,
+the step list (§2 numbers) and the first supply. Supply counts §2 does not give are the prototype's
+`PROTOS.supply` (DKA KCl 8, 10% glucose 3; labetalol 3; salbutamol 4; atropine 50; insulin 1 vial) and its ampoule
+sizes (MgSO4 5 g, acetylcysteine 2 g, phenobarbital 200 mg, diazepam 10 mg).
+
+TODO P4/P5: `protocol_versions.seed` is `{}`: put the rule modules' named numbers there (`lib/protocols/rules/<module>`
+reads `rules.module`); the rest of each §2 sheet is in `rules` only as words (rules steps): severity/HDU triggers,
+reassess triggers, targets with their alerts, resolution tests, causes, hyperkalaemia grades as actions, labetalol
+MAP aim/floor maths, OP atropinised signs, NAC treatment line, SSI suggestion rules, HHS fluid balance. A seed
+change is a new draft version (signed versions are frozen).
+
+## Not done, and why
+
+- Flow chart view: P4 (step list only).
+- "Open the full chart": P4 (no charts yet).
+- Protocols mode in the clerking Plan dialog: it has its own basket; add when the Plan moves to the session dialog.
+- No browser check at 390 px: needs 0282 on a database and a doctor sign-in; layouts are single-column flex-wrap,
+  the builder grid is one column under 640 px.
+
+## Tests
+
+- `tests/prescribing/protocols-quick.test.ts` (unit, 9): seeds read and use formulary routes, DKA K 3.2 hold, insulin
+  by weight and cap, supply counts, checks, Mg who, SSI scale, `canStart`, builder.
+- `tests/emr-db/protocols-s6.test.ts` (PGlite, 2): S6 end to end (order missing K, K 3.2 from results, draft refused
+  in production, sign-off rules in the server and [DB], sign and send, already running) and the builder draft.
+- Re-run green: prescribe-scenarios (3), prescribe-handoff (4), nurse-tasks-scenarios (3); unit `tests/prescribing`
+  (138). drizzle-parity: the same 12 old failures; `protocols`, `protocol_versions`, `prescriptions` pass.
