@@ -1,6 +1,8 @@
 import "server-only";
 
+import { PRESCRIBE_COPY } from "@/content/prescribing";
 import { encounterEngineLive } from "@/lib/encounter/feature";
+import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
  * EMR v1 flags (HARMONISATION §4). Migrations 0071–0073 are GATED: until the owner applies them
@@ -85,4 +87,14 @@ export function patientVisitSummaryLiveFor(hospitalId: string): boolean {
   const value = process.env.PATIENT_VISIT_SUMMARY?.trim();
   if (!value || !encounterCloseV2LiveFor(hospitalId)) return false;
   return value === "1" || value.split(",").some((id) => id.trim() === hospitalId);
+}
+
+/**
+ * One Prescribe dialog from every place that prescribes (prescribing kit P1), per hospital, off by
+ * default: `PRESCRIBE_V2=1` or a comma list of hospital ids, and only where EMR_PRESCRIBING is on. Needs
+ * migration 0279. Off in production while its wording is draft. Off, every place keeps its old form.
+ */
+export function prescribeV2LiveFor(hospitalId: string): boolean {
+  if (!emrPrescribingLive(hospitalId)) return false;
+  return workspaceLiveFor(process.env.PRESCRIBE_V2, hospitalId, [PRESCRIBE_COPY], "prescribe_v2");
 }
