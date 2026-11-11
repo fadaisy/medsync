@@ -44,11 +44,7 @@ export function itemById(id: string, products: Product[] = []): Item | null {
   return BY_ID.get(id) ?? null;
 }
 
-const fold = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
+const fold = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 const hayOf = (i: Item) => {
   const names = i.kind === "food" ? i.food.localNames : i.combo.localNames;
@@ -73,7 +69,8 @@ export function searchItems(
 ): Item[] {
   const words = fold(query).split(/\s+/).filter(Boolean);
   const groupOf = (i: Item) => (i.kind === "food" ? i.food.group : i.combo.group);
-  const match = (i: Item) => (!group || groupOf(i) === group) && words.every((w) => hay(i).includes(w));
+  const match = (i: Item) =>
+    (!group || groupOf(i) === group) && words.every((w) => hay(i).includes(w));
   const rank = (list: Item[]) => {
     const hits = list.filter(match);
     if (!words.length) return hits;

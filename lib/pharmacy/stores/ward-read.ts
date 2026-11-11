@@ -574,7 +574,9 @@ export async function pendingIssues(
           FROM public.pharmacy_issues i
           JOIN public.pharmacy_locations f ON f.id = i.from_location_id
           JOIN public.pharmacy_stock_movements m
-            ON m.source_id = i.id AND m.kind = 'received_from_issue' AND m.location_id = i.to_location_id
+            ON m.source_id = i.id AND m.kind = 'received_from_issue'
+           AND m.location_id = CASE WHEN i.voucher IS NULL THEN i.to_location_id
+                 ELSE (SELECT t.id FROM public.pharmacy_locations t WHERE t.hospital_id = i.hospital_id AND t.kind = 'transit') END
           JOIN public.pharmacy_batches b ON b.id = m.batch_id
           JOIN public.pharmacy_products p ON p.id = b.product_id
          WHERE i.hospital_id = ${hospitalId}::uuid AND i.to_location_id = ${locationId}::uuid

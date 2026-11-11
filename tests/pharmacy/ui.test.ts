@@ -230,6 +230,8 @@ describe("source rules", () => {
       "app/pharmacy/downtime/entry-actions.ts",
       // Workspace v2: Find, reads only (GATE A §1).
       "app/pharmacy/find-actions.ts",
+      // Set-up › Medicines (MEDICINES-TAB.md): the master data, through runPharmacyWrite.
+      "app/pharmacy/medicines-actions.ts",
       "app/pharmacy/open-lines/actions.ts",
       // Rework P4 and P5: Patients, Records.
       "app/pharmacy/patients/actions.ts",
@@ -238,14 +240,16 @@ describe("source rules", () => {
       "app/pharmacy/refill-actions.ts",
       "app/pharmacy/review-actions.ts",
       "app/pharmacy/setup/actions.ts",
+      // Set-up › People and roster (PEOPLE-ROSTER.md §18), through runPharmacyWrite.
+      "app/pharmacy/setup/roster-actions.ts",
+      "app/pharmacy/setup/setup-actions.ts",
       "app/pharmacy/stock/actions.ts",
-      "app/pharmacy/stock/store/count-actions.ts",
+      // Stock › Main store (STORE.md §I), through runPharmacyWrite.
+      "app/pharmacy/stock/store/receive-actions.ts",
+      "app/pharmacy/stock/store/store-actions.ts",
       // Pharmacy Phase 2: the Store group (Steps 4 to 9).
       "app/pharmacy/store/actions.ts",
-      "app/pharmacy/store/deliveries/actions.ts",
       "app/pharmacy/store/expiry/actions.ts",
-      "app/pharmacy/store/issues/actions.ts",
-      "app/pharmacy/store/orders/actions.ts",
       "app/pharmacy/store/packs/actions.ts",
       "app/pharmacy/store/wards/actions.ts",
       "app/pharmacy/supply-actions.ts",

@@ -2,9 +2,16 @@ import type { SaveResult } from "@/offline/outbox";
 import type { DoseSlot } from "@patient-core/dose-slots";
 import type { MedRow, TakeRec } from "@patient-core/medicines";
 import { useEffect } from "react";
-import { pendingSlotAt } from "@patient/doses";
 import { hhmm, patternFor, SLOT_TIMES, slotOf } from "@patient-core/dose-slots";
-import { dayDoses, doseStatus, takeFor, toDose, weekCounts, whenWords } from "@patient-core/medicines";
+import {
+  dayDoses,
+  doseStatus,
+  takeFor,
+  toDose,
+  weekCounts,
+  whenWords,
+} from "@patient-core/medicines";
+import { pendingSlotAt } from "@patient/doses";
 
 import { onAccountChange } from "@/data/health-log";
 import { createStore, useStore } from "@/data/store";
@@ -25,7 +32,14 @@ import { currentUserId, db, insertOrQueue, newId, unqueue } from "@/offline/outb
 export type { DoseSlot } from "@patient-core/dose-slots";
 export { hhmm, patternFor, SLOT_TIMES, SLOT_WORDS, slotOf } from "@patient-core/dose-slots";
 export type { Dose, DoseStatus, MedRow, TakeRec } from "@patient-core/medicines";
-export { dayDoses, doseStatus, takesForDay, toDose, weekCounts, whenWords } from "@patient-core/medicines";
+export {
+  dayDoses,
+  doseStatus,
+  takesForDay,
+  toDose,
+  weekCounts,
+  whenWords,
+} from "@patient-core/medicines";
 
 export interface Medicine {
   id: string;

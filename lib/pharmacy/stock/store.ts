@@ -396,6 +396,7 @@ async function move(
     deliveryFrom?: string | null;
     deliveryRef?: string | null;
     witnessAttestationId?: string | null;
+    unitCost?: string | null;
   },
 ): Promise<string> {
   const { pointId, ...rest } = m;
@@ -472,6 +473,7 @@ export async function receiveStock(
   ctx: PharmacyCtx,
   input: z.infer<typeof ReceiveInput>,
   witness: string | null = null,
+  extra: { unitCost?: string | null; reasonNote?: string | null } = {},
 ) {
   const point = pointOf(ctx);
   if (await replayed(ctx.tx, pharmacyStockMovements, input.clientKey, ctx.actor.hospitalId))
@@ -493,6 +495,7 @@ export async function receiveStock(
     deliveryFrom: input.from,
     deliveryRef: input.deliveryRef,
     witnessAttestationId,
+    ...extra,
   });
   return { id, batchId, medicineId: product.medicineId };
 }

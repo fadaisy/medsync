@@ -136,7 +136,10 @@ export function ProductForm({
     const r = await labelFromPhoto();
     setReading(false);
     if (r.ok) {
-      setV((old) => ({ ...old, ...Object.fromEntries(Object.entries(r.values).filter(([, x]) => x)) }));
+      setV((old) => ({
+        ...old,
+        ...Object.fromEntries(Object.entries(r.values).filter(([, x]) => x)),
+      }));
       setSource("label_photo");
       setNote("Check each value against the label before you go on.");
     } else if (!("cancelled" in r)) setNote(r.message);

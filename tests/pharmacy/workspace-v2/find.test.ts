@@ -84,7 +84,7 @@ describe("Find rows", () => {
     expect(r).toMatchObject({
       group: "delivery",
       label: "INV-1",
-      href: "/pharmacy/store/deliveries/d1",
+      href: "/pharmacy/stock/store?tab=receive&delivery=d1",
     });
   });
 });

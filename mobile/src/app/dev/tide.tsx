@@ -36,8 +36,8 @@ import {
   TideNav,
   Toast,
 } from "@/components/tide";
-import { tSpace, tType } from "@/theme/tide";
 import { useTheme, useTide } from "@/theme/theme";
+import { tSpace, tType } from "@/theme/tide";
 
 /**
  * `/dev/tide`: every Tide primitive in every state, in whichever theme is
@@ -94,7 +94,12 @@ export default function TideGallery() {
       <View style={{ gap: tSpace[2] }}>
         <Pill label="Now · 13:00" dot={t.ink} />
         <Pill label="Open now · until 16:00" dot={t.accent} bg={t.accentTint} fg={t.accentText} />
-        <Pill label="Next open day: Tue 20 Oct" dot={t.area.visits} bg={t.place.tint} fg={t.place.text} />
+        <Pill
+          label="Next open day: Tue 20 Oct"
+          dot={t.area.visits}
+          bg={t.place.tint}
+          fg={t.place.text}
+        />
         <View style={{ flexDirection: "row", gap: tSpace[2], flexWrap: "wrap" }}>
           <StatusPill tone="stable" label="In your range" />
           <StatusPill tone="caution" label="Above target" />
@@ -136,7 +141,12 @@ export default function TideGallery() {
       </ChipRow>
 
       {label("Fields")}
-      <TextField label="First name" value={name} onChangeText={setName} state={name ? "good" : "idle"} />
+      <TextField
+        label="First name"
+        value={name}
+        onChangeText={setName}
+        state={name ? "good" : "idle"}
+      />
       <TextField
         label="Password"
         value={pw}
@@ -147,11 +157,24 @@ export default function TideGallery() {
         state={pw.length >= 12 ? "good" : pw.length > 0 ? "error" : "idle"}
         error="Use 12 or more characters"
       />
-      <PhoneField label="Mobile number" value={phone} onChangeText={setPhone} error="Ugandan mobile numbers start with 7" />
+      <PhoneField
+        label="Mobile number"
+        value={phone}
+        onChangeText={setPhone}
+        error="Ugandan mobile numbers start with 7"
+      />
       <PhoneField large value={phone} onChangeText={setPhone} />
       <OtpBoxes value={otp} onChangeText={setOtp} />
       <View style={{ flexDirection: "row", gap: tSpace[2] }}>
-        <Stepper label="Top number" unit="mmHg" value={top} onChange={setTop} step={2} min={60} max={260} />
+        <Stepper
+          label="Top number"
+          unit="mmHg"
+          value={top}
+          onChange={setTop}
+          step={2}
+          min={60}
+          max={260}
+        />
       </View>
 
       {label("Surfaces")}
@@ -184,8 +207,20 @@ export default function TideGallery() {
       {label("Cascade")}
       <Cascade>
         <CascadeStep step={0} icon="pill" title="Morning medicine" line="07:12 · taken" done />
-        <CascadeStep step={1} icon="activity" title="Blood pressure · 138/86" line="07:40 · above your target" done />
-        <CascadeStep step={2} icon="message" title="Your care team replied" line="09:15 · about this morning" last />
+        <CascadeStep
+          step={1}
+          icon="activity"
+          title="Blood pressure · 138/86"
+          line="07:40 · above your target"
+          done
+        />
+        <CascadeStep
+          step={2}
+          icon="message"
+          title="Your care team replied"
+          line="09:15 · about this morning"
+          last
+        />
       </Cascade>
 
       {label("Charts")}
@@ -218,7 +253,13 @@ export default function TideGallery() {
 
       {label("Nav")}
       <View style={{ marginHorizontal: -tSpace[1] }}>
-        <TideNav width={width - 32} current={place} onNavigate={setPlace} onPlus={() => setSheet(true)} careCount={1} />
+        <TideNav
+          width={width - 32}
+          current={place}
+          onNavigate={setPlace}
+          onPlus={() => setSheet(true)}
+          careCount={1}
+        />
       </View>
 
       {label("Sheet and toast")}
@@ -227,8 +268,15 @@ export default function TideGallery() {
         <Toast text="Your care team can see it" actionLabel="Undo" bottom={0} />
       </View>
 
-      <Sheet visible={sheet} onClose={() => setSheet(false)} overline="Today · 1 of 3 taken" title="Which one did you take?">
-        <Note>Missed one? Do not take two at once. Tell your care team and they will advise you.</Note>
+      <Sheet
+        visible={sheet}
+        onClose={() => setSheet(false)}
+        overline="Today · 1 of 3 taken"
+        title="Which one did you take?"
+      >
+        <Note>
+          Missed one? Do not take two at once. Tell your care team and they will advise you.
+        </Note>
         <Button label="Done" onPress={() => setSheet(false)} />
       </Sheet>
     </Screen>

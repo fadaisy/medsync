@@ -7,10 +7,11 @@ import { RC } from "@/content/pharmacy-rework-records";
 import { logger } from "@/lib/logger";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
 import * as cold from "@/lib/pharmacy/cold/setup";
-import * as roster from "@/lib/pharmacy/team/roster";
+import * as receiving from "@/lib/pharmacy/stores/receiving-store";
+import { storeAct } from "@/lib/pharmacy/stores/store-action";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
 
-/** Set-up › People (rework PRD §6.7): the in-charge adds or ends a duty roster line. */
+/** Every Set-up action: a refusal comes back in words; success refreshes the page. */
 async function guarded<T extends { ok: boolean }>(fn: () => Promise<T>) {
   try {
     const r = await fn();
@@ -25,43 +26,7 @@ async function guarded<T extends { ok: boolean }>(fn: () => Promise<T>) {
   }
 }
 
-export async function addRosterLineAction(raw: unknown) {
-  return guarded(async () =>
-    runPharmacyWrite(
-      roster.AddRosterInput,
-      raw,
-      await requirePharmacyActor(),
-      roster.ROSTER_NEED,
-      roster.addRosterLine,
-    ),
-  );
-}
-
-export async function endRosterLineAction(raw: unknown) {
-  return guarded(async () =>
-    runPharmacyWrite(
-      roster.EndRosterInput,
-      raw,
-      await requirePharmacyActor(),
-      roster.ROSTER_NEED,
-      roster.endRosterLine,
-    ),
-  );
-}
-
-/** Set-up › Places: fridges, the immunisation clinic and its vaccines. */
-export async function addFridgeAction(raw: unknown) {
-  return guarded(async () =>
-    runPharmacyWrite(
-      cold.AddFridgeInput,
-      raw,
-      await requirePharmacyActor(),
-      cold.SETUP_NEED,
-      cold.addFridge,
-    ),
-  );
-}
-
+/** Set-up › Places: the immunisation clinic and its vaccines. */
 export async function setEpiClinicAction(raw: unknown) {
   return guarded(async () =>
     runPharmacyWrite(
@@ -84,4 +49,17 @@ export async function setEpiVaccineAction(raw: unknown) {
       cold.setEpiVaccine,
     ),
   );
+}
+
+/** Set-up › Medicines: picks from MedSync's catalogue become the hospital's products. */
+export async function addFromCatalogueAction(raw: unknown) {
+  const r = await storeAct(
+    "addFromCatalogue",
+    receiving.CataloguePicksInput,
+    raw,
+    "pharmacy.store",
+    receiving.addFromCatalogue,
+  );
+  if (r.ok) revalidatePath("/pharmacy/setup");
+  return r;
 }

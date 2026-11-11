@@ -11,29 +11,30 @@ Inputs it replaces: the current workspace reviewed in "Pharmacy Workspace Review
 Turn the pharmacy module into a workspace one to three pharmacists at a Ugandan hospital can run every day on a phone, tablet or 1366 px laptop, with stock and controlled drugs that are accountable by construction.
 
 Success means:
+
 - The four critical review findings are closed: C1 view-only in production, C2 unwitnessed controlled drugs on wards and carts, C3 demo data in production, and C4 the month-end count.
 - Each daily task meets its click target:
 
-| Task | Target |
-|---|---|
-| Dispense 3 lines | 1 screen, about 6 taps |
-| Receive an expected delivery of 10 lines | 1 screen, 1 witness |
-| Issue to a ward | about 3 taps |
-| Count a shelf | Resumable |
-| Recall a batch | About 5 taps |
+| Task                                     | Target                 |
+| ---------------------------------------- | ---------------------- |
+| Dispense 3 lines                         | 1 screen, about 6 taps |
+| Receive an expected delivery of 10 lines | 1 screen, 1 witness    |
+| Issue to a ward                          | about 3 taps           |
+| Count a shelf                            | Resumable              |
+| Recall a batch                           | About 5 taps           |
 
 - Every stock change is attributable to a named person, plus a witness for controlled drugs. Nothing is edited or deleted; mistakes are corrected with a reversal.
 - The facility can file the monthly HMIS 105 sections, the controlled-drugs return and a losses report without retyping anything.
 
 ## 2. Users, roles, stations
 
-| Role | Works at | Can |
-|---|---|---|
-| Pharmacist / pharmacy technician | One **station** (OPD dispensary or Main store), chosen with the place chip | Dispense, receive, issue, count, record CD doses at the station, hand over their own station, take investigation cases, correct own entries |
-| Store keeper | Main store | Receive, issue, count, order, store handover |
-| In-charge pharmacist | Any station; **oversees all** | Everything, plus: approve counts, sign off cases, confirm a CD loss, submit reports, assign cases, explain missed handovers anywhere, resolve differences |
-| Ward nurse / midwife (ward tablet) | Their ward | Record doses (MAR), confirm ward receipts, sign as witness, do ward handovers. The pharmacy sees these records but does not perform them |
-| EPI nurse / focal person | EPI clinic | Vaccinate, manage EPI stock and fridge, file HMIS 105 EPI |
+| Role                               | Works at                                                                   | Can                                                                                                                                                       |
+| ---------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pharmacist / pharmacy technician   | One **station** (OPD dispensary or Main store), chosen with the place chip | Dispense, receive, issue, count, record CD doses at the station, hand over their own station, take investigation cases, correct own entries               |
+| Store keeper                       | Main store                                                                 | Receive, issue, count, order, store handover                                                                                                              |
+| In-charge pharmacist               | Any station; **oversees all**                                              | Everything, plus: approve counts, sign off cases, confirm a CD loss, submit reports, assign cases, explain missed handovers anywhere, resolve differences |
+| Ward nurse / midwife (ward tablet) | Their ward                                                                 | Record doses (MAR), confirm ward receipts, sign as witness, do ward handovers. The pharmacy sees these records but does not perform them                  |
+| EPI nurse / focal person           | EPI clinic                                                                 | Vaccinate, manage EPI stock and fridge, file HMIS 105 EPI                                                                                                 |
 
 - **Station rule:** a non-in-charge user acts only on their own station (handover, CD dose recording at a ward is the ward's, counts at their station). The in-charge sees every station.
 - **Duty roster:** staff by place, role and shift. Day is 08:00–17:00 and night is 17:00–08:00; consultants can be on call for 24 h. The roster drives who can be a witness, who can take over at a handover, and the named people on records.
@@ -42,16 +43,17 @@ Success means:
 
 The side bar has **6 sections**. A section with more than one page shows its pages as tabs above the page title; each tab carries its own count, and the section badge is the sum of its tabs. Clicking a section opens the page you last had open in it.
 
-| Section | Pages (tabs) |
-|---|---|
-| Today | Dashboard + ranked work list |
-| Dispense | Waiting · Ready to collect · Owed · Handed over |
-| Patients | Inpatients · Outpatients · Immunisation · Reminders |
-| Stock | Medicines · Store (Receive · Issue · Count · Order · Cold chain) |
-| Controls | Controlled drugs · Shift handover · Investigations |
-| Records | Records (Audit trail · Losses (UGX) · Paper sheets · Reports) · Team |
+| Section  | Pages (tabs)                                                         |
+| -------- | -------------------------------------------------------------------- |
+| Today    | Dashboard + ranked work list                                         |
+| Dispense | Waiting · Ready to collect · Owed · Handed over                      |
+| Patients | Inpatients · Outpatients · Immunisation · Reminders                  |
+| Stock    | Medicines · Store (Receive · Issue · Count · Order · Cold chain)     |
+| Controls | Controlled drugs · Shift handover · Investigations                   |
+| Records  | Records (Audit trail · Losses (UGX) · Paper sheets · Reports) · Team |
 
 The global bar has:
+
 - the "+" Start a job button
 - Find or scan (Ctrl K or /)
 - the place chip, which sets your station
@@ -63,27 +65,27 @@ On a phone (below 761 px) the bottom pill holds Today, Dispense, +, Patients and
 
 ## 4. Glossary — one word for one thing
 
-| Word | Means only |
-|---|---|
-| Hand over | Give medicine to a patient |
-| Issue | Send stock to a ward, clinic or another place |
-| Receive | Take a delivery into stock (the GRN is its printout) |
-| Place | A physical location: Main store, OPD dispensary, Ward 3, Maternity, Paediatrics, EPI clinic |
-| Station | The place a pharmacy user is working at now |
-| Owed | Medicine a patient is still owed after a stock-out |
-| On the way | Issued, not yet confirmed by the receiving place |
-| Rules | Signed hospital settings |
-| Expiry warning | How far ahead expiry is flagged (90 days) |
-| Witness | A second named person who approves on their own device |
-| Late entry | Recorded after the event, stamped with both times |
-| Correction | A reversal line plus, if needed, the right line. The original stays |
-| Case | An investigation of a discrepancy |
+| Word           | Means only                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| Hand over      | Give medicine to a patient                                                                  |
+| Issue          | Send stock to a ward, clinic or another place                                               |
+| Receive        | Take a delivery into stock (the GRN is its printout)                                        |
+| Place          | A physical location: Main store, OPD dispensary, Ward 3, Maternity, Paediatrics, EPI clinic |
+| Station        | The place a pharmacy user is working at now                                                 |
+| Owed           | Medicine a patient is still owed after a stock-out                                          |
+| On the way     | Issued, not yet confirmed by the receiving place                                            |
+| Rules          | Signed hospital settings                                                                    |
+| Expiry warning | How far ahead expiry is flagged (90 days)                                                   |
+| Witness        | A second named person who approves on their own device                                      |
+| Late entry     | Recorded after the event, stamped with both times                                           |
+| Correction     | A reversal line plus, if needed, the right line. The original stays                         |
+| Case           | An investigation of a discrepancy                                                           |
 
 ## 5. Safety invariants (non-negotiable; enforce in SQL where marked [DB])
 
 - **S1 [DB]:** The ledger is append-only. Balances are always summed from movements, never stored and never edited.
 - **S2 [DB]:** No movement may take a batch below zero, or move expired, recalled or quarantined stock out. The only exception is a downtime back-entry: it is flagged, and the next live supply of the affected batch needs a count first (fixes H6).
-- **S3 [DB]:** Any movement of a **controlled** medicine *out of* a place needs a `witness_attestation_id` **that has not been used before**. One attestation covers one action and lasts 10 minutes (fixes C2 and M3). This applies at every place: store, dispensary, ward, cart and clinic. The only exception is a downtime back-entry with a paper witness name, which is flagged for the in-charge.
+- **S3 [DB]:** Any movement of a **controlled** medicine _out of_ a place needs a `witness_attestation_id` **that has not been used before**. One attestation covers one action and lasts 10 minutes (fixes C2 and M3). This applies at every place: store, dispensary, ward, cart and clinic. The only exception is a downtime back-entry with a paper witness name, which is flagged for the in-charge.
 - **S4 [DB]:** Controlled entries carry a `place_id`, not just a dispensing point. Registers exist per medicine per place (fixes C2).
 - **S5:** Counts are blind. The ledger figure shows only after every line is counted.
 - **S6:** Quantities to hand over are typed or stepped, never pre-filled (rule SU-6). Doses are never written by the system.
@@ -101,6 +103,7 @@ On a phone (below 761 px) the bottom pill holds Today, Dispense, +, Patients and
 The acceptance criteria (AC) are written so they can be tested. The prototype file named in each heading is the behavioural reference.
 
 ### 6.1 Today (`today.js`)
+
 - **Tiles** (each opens its page, and its number is coloured only when it needs action):
   - OPD queue (longest wait)
   - Stock (out, or under a month left)
@@ -117,6 +120,7 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
 - **AC:** every item opens the exact screen where it is resolved. Item order follows the role's order table.
 
 ### 6.2 Dispense (`dispense.js`, `checks.js`)
+
 - **Tabs:** Waiting, Ready to collect, Owed, Handed over. A prescription is one screen.
 - **Each line:**
   - name with tags (route, IV, cold chain, controlled) and an "Rx info" card showing:
@@ -154,7 +158,9 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
   - The check answers and the query are stored and appear in the audit trail.
 
 ### 6.3 Patients
+
 **Inpatients (`inpatients.js`, `rounds.js`)**
+
 - The pharmacy's view of the nurses' medicine charts (MAR): per ward, patient cards showing adherence (% of due doses given), flags and next dose.
 - **Patient chart:**
   - each dose is given, late, not given (with a reason), no stock, or due
@@ -173,6 +179,7 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
   - Ward confirmation moves the stock to the ward.
 
 **Outpatients (`outpatients.js`)**
+
 - **Chronic refills:**
   - run-out date = last supply ÷ daily dose
   - status: OK, due within 5 days, overdue
@@ -182,6 +189,7 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
 - **Refill dialog** with a pill counter. Alerts go to Today.
 
 **Immunisation (`epi.js`)**
+
 - **Vaccine stock (default tab).** For each vaccine:
   - batch in use, with expiry and VVM ("VVM 2: use first", VVM 3–4 blocked)
   - level bar against min (half the level) and max
@@ -214,6 +222,7 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
 - **AC:** vaccinating records a `vaccinate` movement with batch and client.
 
 **Reminders (`productivity.js` › RemindersView)**
+
 - Rules, each switchable on or off, with English and Luganda templates:
   - refill due in 3 days
   - missed refill (day 1 and day 7)
@@ -225,7 +234,9 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
 - **AC:** messages are generated from the real refill and EPI data, and no message goes to a patient who opted out. The Luganda templates stay `draft` until a native speaker signs them.
 
 ### 6.4 Stock
+
 **Medicines (`medicines.js`, `kit.js`)**
+
 - One list with filters: all, under a month, out, expiring within 90 days, controlled, cold chain.
 - Grouped by therapeutic class: antibiotics, analgesics, fluids & electrolytes, antihypertensives, anticonvulsants, antidiabetics, haematinics, obstetric (uterotonics), vaccines.
 - **Medicine page:**
@@ -237,6 +248,7 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
 - **Recall** (started from a batch): quarantine everything held with one tap, tell each ward, list every patient who received the batch with a contact chip, and close only when nothing is left on a shelf and every patient has an outcome.
 
 **Store (`store.js`, `cold.js`)**
+
 - **Receive:**
   - an expected delivery (from an order) opens as one grid of lines
   - per line: "✓ As ordered" or a counted pack number, batch and expiry (scanned or typed), a condition (OK, damaged → quarantine, send back), pack size (10, 25, 50, 100 or custom), and brand from the catalogue
@@ -276,7 +288,9 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
       - stop listing; the quantity starts empty
 
 ### 6.5 Controls
+
 **Controlled drugs (`cd.js`)**
+
 - A register per medicine per place. Each line has:
   - running number
   - date
@@ -319,6 +333,7 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
 - **Paper witness tab:** the in-charge checks entries against the paper register.
 
 **Shift handover (`handover.js`)**
+
 - Slots are 08:00 and 17:00. A handover within ±2 h of a slot is that shift change; otherwise it is "mid-shift".
 - **The user's own station only:**
   - "Your station" card: shift, the items counted, the last handover and its result, the next slot with a countdown, and who is on duty from then
@@ -332,6 +347,7 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
   5. Notes.
 
   The incoming person accepts on their phone.
+
 - **Controlled-drug lines** also create a balance check.
 - **Flags:**
   - missed handover: no record 2 h after a slot; explained by chips (done on paper, same person covered both shifts, not done and reported, which needs a note)
@@ -347,6 +363,7 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
 - Non-in-charge users see only their station's flags and log.
 
 **Investigations (`cases.js`)**
+
 - **Sources** (cases open themselves):
   - controlled-drug checks
   - handover differences
@@ -370,7 +387,9 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
 - Controlled drugs and handover flags show "investigating: owner (overdue)".
 
 ### 6.6 Records
+
 **Audit trail (`audit.js`)**
+
 - **One timeline built from:**
   - ledger movements
   - controlled-drug checks
@@ -392,6 +411,7 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
   - the original is struck through with "Corrected <when> by <who>: <reason>"
 
 **Losses (UGX) (`audit.js`)**
+
 - **KPIs:** lost this month (versus last month), expired on the shelf, will expire before it's used (next 6 months), unaccounted for (open cases).
 - **Charts:** by cause (expired, opened-vial wastage, cold chain, damaged, unexplained shortfall, recall), by place, and monthly for 6 months. All single-series bars.
 - **"Will expire before it's used":** per medicine, earliest expiry first, can-use = AMC × months to expiry − earlier batches. Actions: offer to another facility, ask NMS to swap, use first everywhere; each is recorded with who.
@@ -401,12 +421,14 @@ The acceptance criteria (AC) are written so they can be tested. The prototype fi
 **Paper sheets:** printed hand-over sheets for long outages, entered back row by row with the real time.
 
 **Reports (`productivity.js` › ReportsView):**
+
 - HMIS 105 essential medicines (tracer items: opening, received, consumed, closing, days out of stock, months of stock)
 - HMIS 105 immunisation (doses by antigen, vaccine used, wastage)
 - the controlled-drugs monthly return to the National Drug Authority (opening, received, given, destroyed or lost, closing, open cases)
 - monthly losses and expiries
 
 Each report:
+
 - is filled from data, with nothing typed
 - lists issues: stop items block submission (e.g. an open controlled-drug case); remark items need a reason chip (e.g. "18 days out of stock: Not supplied by NMS this cycle"); info items
 - moves Draft → Checked (anyone) → Submitted (in-charge), and the figures are snapshotted at submission
@@ -415,14 +437,16 @@ Each report:
 > Map the columns to the official HMIS 105 and NDA forms with the pilot in-charge before go-live.
 
 **Team (`productivity.js` › TeamView):**
+
 - Prescriptions per hour by hour of day, for planning.
 - The in-charge sees a table per person and shift: prescriptions, per hour on shift, median wait, owed lines, counts matched, handovers on time, late entries, no witness, cases closed. Red is shown as "something to talk about".
 - Everyone else sees only their own numbers.
 
 ### 6.7 Set-up (account menu)
+
 - **Going live:** a checklist of readiness conditions, each shown as met or missing, with who fixes it and a link (fixes H5), including the legal answers that gate permissions (S13).
 - **Places:** places and fridges.
-- **Medicines:** prices, VEN class, controlled flag, levels per place.
+- **Medicines:** superseded. Build exactly what `MEDICINES-TAB.md` describes (reference: `prototype/medicines-tab.dc.html`).
 - **Rules (read-only):**
   - signed values: witness rules, minimum CD gaps, handover slots, case deadlines, count reasons, check rules
   - for a one-person lab, the CSO or medical superintendent can be named as the second signer
@@ -431,12 +455,14 @@ Each report:
 - **Labels:** printer.
 
 ### 6.8 Cross-cutting
+
 - **Find or scan:** medicine, batch number, patient, ward, delivery note. The result offers its actions (open, recall, count, issue).
 - **+ Start a job:** dispense next, receive, issue, count, recall, record a CD dose, hand over, report a discrepancy.
 - **Emergency supply:** give it first, record it in two taps (controlled → witness), and finish the prescription within the shift (it shows on Today).
 - **Offline:** writes are queued on the device (IndexedDB outbox) with idempotency keys and show a count of changes still to send. Paper is only for when the device is dead. A paper witness is used when the network is down.
 
 ## 7. Non-functional
+
 - **Phone:** works at 390 px with no horizontal page scroll, except inside tables with a card fallback. Touch targets are at least 44 px. One gutter.
 - **Performance:** a page loads in at most 4 queries. Shared loaders are wrapped in `React.cache`. Only the active tab's data loads. Lists are paginated past 100 rows. The target is p95 under 300 ms on 3G-like latency.
 - **Security:** write checks are enforced in SQL (RLS or guard triggers) as well as in TypeScript (fixes M4). Idempotency keys are stored per action and never regenerated on remount (fixes M10).
@@ -449,20 +475,22 @@ Each report:
 - **Copy:** signed content only; new strings are drafts; the lint in S12 applies.
 
 ## 8. Out of scope for this build (leave behind flags, do not delete)
+
 Partner network, imports and GS1 seals, reactions and stewardship modules beyond the Rx info card, emergency carts as a separate module, and price management beyond a UGX unit price.
 
 ## 9. Open decisions — build the default, keep it switchable
 
-| Decision | Default to build |
-|---|---|
-| Legal Q1: who may hand over without a pharmacist | Gate permissions on the recorded answer; strict until it is recorded |
-| Who may witness, and may nurses witness | Pharmacy staff and ward roster roles. Nurse witnessing is behind a Rule, default on for ward doses |
-| Quantity chips at dispensing (SU-6) | Keep typed |
-| How long a device may hold CD entries offline | 12 h, then block new CD entries until synced |
-| Luganda wording | Draft until a native speaker signs |
-| HMIS 105 / NDA exact columns | Simplified layout; map with the pilot in-charge |
+| Decision                                         | Default to build                                                                                   |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Legal Q1: who may hand over without a pharmacist | Gate permissions on the recorded answer; strict until it is recorded                               |
+| Who may witness, and may nurses witness          | Pharmacy staff and ward roster roles. Nurse witnessing is behind a Rule, default on for ward doses |
+| Quantity chips at dispensing (SU-6)              | Keep typed                                                                                         |
+| How long a device may hold CD entries offline    | 12 h, then block new CD entries until synced                                                       |
+| Luganda wording                                  | Draft until a native speaker signs                                                                 |
+| HMIS 105 / NDA exact columns                     | Simplified layout; map with the pilot in-charge                                                    |
 
 ## 10. Acceptance scenarios (end to end; also the demo script)
+
 1. Pharmacist at the OPD dispenses r1: the allergy stop blocks; "Talk to the prescriber" holds amoxicillin; paracetamol is handed over with identity checked; the query appears on Today.
 2. A child's paracetamol dose flags 25 mg/kg; "Prescriber aware" is chosen; hand over succeeds; the audit trail shows the check answer.
 3. The store receives the expected NMS delivery (10 lines, 1 controlled) with one witness, and on-hand stock rises.

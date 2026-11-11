@@ -1,5 +1,5 @@
 import { PageLoading } from "@/app/pharmacy/_components/page-loading";
 
 export default function Loading() {
-  return <PageLoading page="store" tabs={5} />;
+  return <PageLoading page="store" tabs={2} />;
 }

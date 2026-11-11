@@ -4,6 +4,9 @@ import type { PharmacyAccess, PharmacyPermission } from "@/lib/pharmacy/access";
 import type { z } from "zod";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
+import { ROSTER_REFUSAL } from "@/content/pharmacy-roster";
+import { SETUP_REFUSAL } from "@/content/pharmacy-setup";
+import { STORE_REFUSAL } from "@/content/pharmacy-store";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { pharmacyDispensingPoints } from "@/db/schema/pharmacy";
 import { asClinicalWriter } from "@/lib/emr/db";
@@ -208,17 +211,48 @@ export function databaseRefusal(e: unknown): string | null {
     return "The supply and its stock movement did not match. Nothing was recorded.";
   // Rework 0265: the witness and back-entry rules, in words.
   const words: [string, string][] = [
-    ["leaves only with a witness", "A controlled medicine needs a witness. Ask someone on duty to approve it."],
-    ["approval was already used", "That witness approval was already used. Ask the witness to approve this one."],
+    [
+      "leaves only with a witness",
+      "A controlled medicine needs a witness. Ask someone on duty to approve it.",
+    ],
+    [
+      "approval was already used",
+      "That witness approval was already used. Ask the witness to approve this one.",
+    ],
     ["more than 10 minutes old", "The witness approval is more than 10 minutes old. Ask again."],
     ["not on duty here now", "That witness is not on duty here now. Choose someone on the roster."],
     ["does not stand for this person", "That witness approval was for someone else. Ask again."],
-    ["mirrors one movement exactly", "A correction must mirror the original line exactly. Nothing was recorded."],
+    [
+      "mirrors one movement exactly",
+      "A correction must mirror the original line exactly. Nothing was recorded.",
+    ],
+    // 0273: the roster's guard.
+    ["not making the roster", ROSTER_REFUSAL.viewOnly],
+    ["this week is published", ROSTER_REFUSAL.locked],
+    ["pharmacy_duty_roster: on leave", ROSTER_REFUSAL.onLeave],
+    ["licence expired or not recorded", ROSTER_REFUSAL.licence],
+    ["the shift is full", ROSTER_REFUSAL.full],
+    ["not listed at this place", ROSTER_REFUSAL.notHere],
+    ["one duty is one date", ROSTER_REFUSAL.oneDuty],
+    ["only pharmacy places are rostered", ROSTER_REFUSAL.pharmacyOnly],
+    ["pharmacy_roster_requests:", ROSTER_REFUSAL.requestMoved],
+    ["a delegate who can publish", ROSTER_REFUSAL.publishOnly],
+    ["only the in-charge hands", ROSTER_REFUSAL.inChargeOnly],
+    ["the proposer cannot be the second signer", ROSTER_REFUSAL.proposerNotSecond],
+    ["pharmacy_roster_delegations: the end date", ROSTER_REFUSAL.endPassed],
+    ["pharmacy_roster_week_events: the week is already", ROSTER_REFUSAL.weekState],
+    // 0274: the set-up tabs' guards.
+    ...SETUP_REFUSAL,
+    // 0275: the main store's guards.
+    ...STORE_REFUSAL,
   ];
+  const lines = msg.match(/pharmacy_locations: (\d+) lines are still here/);
+  if (lines) return `Move or issue out its stock first: ${lines[1]} lines are still here.`;
   const w = words.find(([k]) => msg.includes(k));
   if (w) return w[1];
   const count = msg.match(/pharmacy_stock: batch (\S+) needs a count/);
-  if (count) return `Batch ${count[1]} was entered from paper after a network cut. Count it before giving more.`;
+  if (count)
+    return `Batch ${count[1]} was entered from paper after a network cut. Count it before giving more.`;
   const cause = e && typeof e === "object" && "cause" in e ? (e as { cause: unknown }).cause : null;
   return cause ? databaseRefusal(cause) : null;
 }

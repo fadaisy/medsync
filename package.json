@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev.mjs dev",
     "prebuild": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-founder-portraits.mjs",
     "build": "next build",
     "analyze": "ANALYZE=true next build --webpack",
@@ -25,6 +25,8 @@
     "lab:import-loinc": "node --experimental-strip-types scripts/lab/import-loinc.ts",
     "lab:trial": "node --experimental-strip-types scripts/lab/trial.ts",
     "pharmacy:catalogue-names": "NODE_PATH=node_modules/next/dist/compiled tsx --conditions=react-server scripts/pharmacy/load-catalogue-names.ts",
+    "pharmacy:import-catalogue": "NODE_PATH=node_modules/next/dist/compiled tsx --conditions=react-server scripts/pharmacy/import-catalogue.ts",
+    "pharmacy:seed-dev": "NODE_PATH=node_modules/next/dist/compiled tsx --conditions=react-server scripts/pharmacy/seed-pharmacy-dev.ts",
     "pharmacy:seed-catalogue": "NODE_PATH=node_modules/next/dist/compiled tsx --conditions=react-server scripts/pharmacy/seed-catalogue-from-emhslu.ts",
     "lab:migrate-offerings": "NODE_PATH=node_modules/next/dist/compiled tsx --conditions=react-server scripts/lab/migrate-offerings.ts",
     "pharmacy:backfill-access": "node --experimental-strip-types scripts/pharmacy/backfill-pharmacy-access.ts",

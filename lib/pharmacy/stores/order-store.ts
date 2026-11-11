@@ -1,8 +1,9 @@
 import type { Cut, TrimLine } from "./order";
 import type { PharmacyCtx } from "@/lib/pharmacy/write";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { MEDICINES } from "@/content/pharmacy-medicines";
 import { STORES_B } from "@/content/pharmacy-stores";
 import { ORDERS, SUPPLY_COMMON } from "@/content/pharmacy-stores-supply";
 import {
@@ -11,6 +12,7 @@ import {
   pharmacyOrders,
 } from "@/db/schema/pharmacy-stores";
 import { pharmacyOrderComparisons } from "@/db/schema/pharmacy-stores-0184";
+import { rowsOf } from "@/lib/pharmacy/audit/read";
 import { confirmCutRefusal, trimToBudget, wholePack } from "./order";
 import { buildProposal, loadOrders } from "./order-read";
 import { fail, storeNeed } from "./write";
@@ -89,6 +91,20 @@ export async function saveOrderProposal(ctx: PharmacyCtx, input: z.infer<typeof 
       STORES_B.parameterMissing(missingWords(proposal.missing), ORDERS.roleSetsIt),
     );
   const chosen = new Map(input.chosen.map((c) => [c.productId, c]));
+  // "Add to the order" from Medicines (0270): an open ask becomes the line's chosen quantity unless one is typed here.
+  const [reg] = rowsOf<{ on: boolean }>(
+    await ctx.tx.execute(sql`SELECT to_regclass('public.pharmacy_order_asks') IS NOT NULL AS on`),
+  );
+  const asks = new Map(
+    reg?.on
+      ? rowsOf<{ product_id: string; quantity: number }>(
+          await ctx.tx.execute(sql`
+        SELECT product_id, quantity FROM public.pharmacy_order_asks
+         WHERE hospital_id = ${hospitalId}::uuid AND withdrawn_at IS NULL
+           AND (order_id IS NULL OR order_id = ${input.clientKey}::uuid)`),
+        ).map((a) => [a.product_id, Number(a.quantity)])
+      : [],
+  );
   if (existing)
     await ctx.tx.delete(pharmacyOrderLines).where(eq(pharmacyOrderLines.orderId, existing.id));
   else
@@ -123,11 +139,20 @@ export async function saveOrderProposal(ctx: PharmacyCtx, input: z.infer<typeof 
           },
           proposedUnits: l.row.proposedUnits,
           proposedPacks: l.row.proposedPacks,
-          chosenUnits: c?.units ?? null,
-          reason: c?.reason ?? null,
+          chosenUnits: c?.units ?? asks.get(l.productId) ?? null,
+          reason: c?.reason ?? (asks.has(l.productId) ? MEDICINES.refused.orderAsk : null),
         };
       }),
     );
+  const taken = proposal.lines.map((l) => l.productId).filter((id) => asks.has(id));
+  if (taken.length)
+    await ctx.tx.execute(sql`
+      UPDATE public.pharmacy_order_asks SET order_id = ${input.clientKey}::uuid
+       WHERE hospital_id = ${hospitalId}::uuid AND withdrawn_at IS NULL AND order_id IS NULL
+         AND product_id IN (${sql.join(
+           taken.map((id) => sql`${id}::uuid`),
+           sql`, `,
+         )})`);
   return { id: input.clientKey, lines: proposal.lines.length };
 }
 

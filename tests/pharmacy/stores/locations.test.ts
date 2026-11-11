@@ -70,7 +70,7 @@ const kindModel = (p: Place) =>
       : ([p, null] as const);
 
 describe("LC-1 location kinds", () => {
-  it("has the five kinds of 0180 and 0230's `prepared`, and each non-ward kind is its own column", () => {
+  it("has the five kinds of 0180, 0230's `prepared` and 0275's `transit`, and each non-ward kind is its own column", () => {
     expect(LOCATION_KINDS).toEqual([
       "store",
       "dispensing_point",
@@ -78,8 +78,11 @@ describe("LC-1 location kinds", () => {
       "cart",
       "quarantine",
       "prepared",
+      "transit",
     ]);
-    for (const k of LOCATION_KINDS.filter((k) => k !== "ward")) expect(placeOf(k, null)).toBe(k);
+    for (const k of LOCATION_KINDS.filter((k) => k !== "ward" && k !== "transit"))
+      expect(placeOf(k, null)).toBe(k);
+    expect(placeOf("transit", null)).toBeNull();
   });
 });
 

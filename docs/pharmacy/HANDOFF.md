@@ -88,6 +88,125 @@ worktree `~/Desktop/medsync-rework`, cut from the stock-up polish branch (fe6f44
   refills due within 5 days, check-in every 2 days, adherence bands 80 % and 95 %; SMS on by default, English only.
 - **Reports:** simplified HMIS 105 and NDA layout; tracer list = every product moved or held that month.
 
+## Set-up › Medicines (3 Nov 2026, branch `feat/pharmacy-medicines`, ADR 0471)
+
+Before it goes live (owner):
+
+1. Apply GATED 0270 from the main folder: `cd ~/Desktop/medsync && npm run db:migrate`. Until then Set-up › Medicines
+   says it needs the update and Stock › Medicines keeps the old table.
+2. Sign the copy: `PHARMACY_MEDICINES_COPY` (`content/pharmacy-medicines.ts`) is draft. The prescription-check dose
+   lines (`RX_CHECKS`) need the CSO's sign-off.
+3. Confirm the national controlled list (`data/pharmacy/national-list/controlled.v1.json`, `unconfirmed`) and the
+   starter brands against the NDA register.
+4. Decide who the second rule signer is. Today it is anyone with `pharmacy.view` other than the first signer.
+
+Checks: `tests/emr-db/pharmacy-medicines.test.ts` (PGlite: identity index, local line, national lock, two signatures,
+bulk history, top-up and Undo), `tests/pharmacy/medicines-derive.test.ts`, `tests/pharmacy/medicines-source.test.ts`.
+
+## Set-up › People and roster (3 Nov 2026, branch `feat/pharmacy-roster`)
+
+Spec: `docs/pharmacy/rework/PEOPLE-ROSTER.md`; map: `RECON-ROSTER.md`. Before it goes live (owner):
+
+1. Apply GATED 0273 (after 0271, 0272) from this branch's folder: `cd ~/Desktop/medsync && npm run db:migrate`.
+   Until then the tab says it needs the update. The strict duty rules switch on per hospital once it lists its people.
+2. Sign the copy: `PHARMACY_ROSTER_COPY` is draft (`content/pharmacy-roster*.ts`). Wording added beyond the spec:
+   the unlock dialog, "n could not be copied without breaking a rule", "Signed in.", the swap form's "no shifts" line,
+   "Everyone at this hospital is already on the roster", and the licence-number field on Record renewal.
+3. Confirm the rules the roster enforces: 2 per shift, 6 day/night shifts a week, 10 and 15 minutes, 30 days, 7 days
+   (each a signed number in Rules), and that PSU (pharmacists) and AHPC (technicians, dispensers) are the bodies.
+4. Confirm the Eid dates: the dev seed stores 2027 estimates as `confirmed = false`; the gazette replaces them.
+5. Decide the sign-in device: sign-in is a button on On duty now; no attendance device is linked.
+
+Not built, no source yet: ward rosters (the Doctors and nurses view shows its empty state), in-app staff messaging
+(the contact card has Call and SMS only), and the prescriptions/doses lists on that card. On duty now re-reads every
+30 s (no realtime channel). Swap and leave states use ink chips, not green, because green is the patient's state only.
+
+Checks: `tests/emr-db/pharmacy-roster.test.ts` (database rules), `tests/emr-db/pharmacy-roster-actions.test.ts`
+(actions on the demo lane), `tests/pharmacy/roster-derive.test.ts`. Visual: `/styleguide/pharmacy-roster` (dev only).
+
+## Set-up › Going live, Places, Rules and Messages (3 Nov 2026, branch `feat/pharmacy-setup-tabs`)
+
+Spec: `docs/pharmacy/rework/SETUP-TABS.md`; map: `RECON-SETUP.md`. Old `?tab=live` and `?tab=sms` links still work.
+Before it goes live (owner):
+
+1. Apply GATED 0274 (after 0273) from this branch's folder: `cd ~/Desktop/medsync && npm run db:migrate`.
+   Until then the four tabs say they need the update.
+2. Sign the copy: `content/pharmacy-setup-{going-live,places,rules,messages}.ts` are draft, including the test SMS
+   wording, the hold notes ("Quiet hours: goes at 07:00", "Monthly budget reached: sending stopped") and "Replied STOP".
+3. Supply: the SMS provider account (Africa's Talking username in "Provider", sender ID, API key), Luganda text from a
+   native speaker for each patient template, supplier contacts and budgets, the HMIS 105 and NDA column maps, the
+   second signer's name, and the go-live date.
+4. Point the provider's delivery and STOP callbacks at `/api/pharmacy/sms/delivery` and `/api/pharmacy/sms/inbound`, both with
+   `PHARMACY_SMS_INBOUND_KEY`.
+
+Defaults taken (change in one place if wrong):
+
+- The medical superintendent is the hospital's `hospital_admin`; "witness on the ward" becomes a two-signature
+  `cd.witness_ward` proposal; practice writes go to their own schema and are discarded on Go live.
+- Places: a store needs a hub unit, a ward a hub ward; dispensing points come from the hub; kind is locked except
+  clinic ↔ theatre. Typed fridge readings turn late after the handover "missed" minutes and count for the 08:00 or
+  17:00 check within 90 minutes. The fridge range is `RULES.cold` (2–8 °C).
+- Budget bars: supplier amber at 75 %, red at 90 %; SMS amber at 80 %, stops at the signed cap. These two warning
+  levels are display only, not rules.
+- The SMS API key is stored with `encrypt()`; an empty phone or key on edit keeps the saved one. A disconnected
+  hospital account sends nothing; with no account saved, the platform sender is used.
+- Not wired: the excursion push alert, a device heartbeat (devices show their last roster sign-in), and un-marking
+  the Luganda check. Consent counts are platform-wide. Quiet-held messages go at the next daily run.
+- Rules: group signatures and the Places badge show "on record", not names; a new rule's "applies to" may be empty.
+  "Opening and closing" has no rule badge; "Open in Medicines" from Places is not filtered by place.
+
+Checks: `tests/emr-db/pharmacy-setup.test.ts` (0274 guards), `tests/emr-db/pharmacy-setup-actions.test.ts` (every tab
+loads, §I.1–I.12 on the demo lane), `tests/pharmacy/setup-derive.test.ts`. Visual: `/styleguide/pharmacy-setup`
+(dev only, `?tab=` and `?empty=1`), checked at 1440 and 390 px.
+
+## Stock › Main store (4 Nov 2026, branch `feat/pharmacy-main-store`, no ADR)
+
+The store's work behind the Store page's Main store tab: Overview, Send out (requisitions, top-up runs, dispatches),
+The places (stock everywhere, place balances), Bring in (orders, put away), Look after the stock (store stock, expiry,
+stock cards, counts, quarantine and losses, conditions). Spec: `docs/pharmacy/rework/STORE.md`.
+
+The owner:
+
+1. Apply GATED 0275 (after 0271–0274) from this branch's folder: `cd ~/Desktop/medsync && npm run db:migrate`. Until it
+   is applied, Main store shows "The main store is not set up yet".
+2. CSO: sign the copy (`content/pharmacy-store.ts` and its `-sendout`, `-places`, `-bringin`, `-lookafter` files; all
+   draft) and the three new rules below.
+3. Supply: the shelves (Counts › Add a shelf), each place's run days (Top-up runs › Change the schedule), a supplier that
+   takes returns, and "expired" and "recalled" in the signed quarantine reasons. Without those two codes, Move to
+   quarantine refuses and says which is missing.
+
+How it works:
+
+- One `StoreWorld` per request (`lib/pharmacy/store/read.ts`), the section in the URL (`?tab=main&section=`), everything
+  else pure derivations in `lib/pharmacy/derive/store/*`. Charts: `components/pharmacy/charts/*`, palette
+  `lib/pharmacy/charts/palette.ts`.
+- A dispatch leaves the store into a `transit` location and reaches the place on confirmation.
+- `?ward=<place>` still opens a place's own stock page: places raise requisitions there until the place tab exists.
+
+Defaults taken:
+
+- Three rules added beyond §K, from numbers the spec states or the prototype hard-codes: `running_out_bad` (3 days),
+  `over_level` (1.5 ×), `asks_less` (0.5 ×).
+- Added because nothing could create them otherwise: Add a shelf, Change the schedule, Move to quarantine on expired or
+  recalled rows. Records › Losses lists the closed stock-take reports.
+- A witness must approve on their own phone; a paper witness is refused for store actions.
+- Open requisitions: urgent, then longest wait. Closed ones: latest first.
+- The chart grid uses theme tokens, so it follows dark mode; the data colours stay as validated in §B3.
+- The old cold chain tab went: Today's cold item now links to Set-up › Places. The old count sheet went too: sheets left
+  open on it no longer show, and any count line still queued offline on a device stays unsent.
+
+Not built:
+
+- Place side: proposing returns and raising urgent requisitions (no screen yet; the store's Accept is ready).
+- "Print the packing list", per-line received on order rows, the order's "cycle closing" date: no data or print exists.
+- Issuing from the actions was tested on PGlite only; the fixture page renders without a database, so nothing was pressed
+  against a real one.
+
+Checks: `tests/emr-db/pharmacy-store.test.ts` (0275 guards), `tests/emr-db/pharmacy-store-actions.test.ts` (§M1–13 on the
+seed), `tests/pharmacy/store-derive.test.ts`, `tests/pharmacy/store-ui.test.ts` (§M13–14, axe without contrast). Visual:
+`/styleguide/pharmacy-store` (dev only, `?section=`), checked at 1440 and 375 px; `world.json` there is a saved
+`loadStoreWorld` over the seed.
+
 ## Still open
 
 - Luganda wording: draft until a native speaker signs.
@@ -105,3 +224,68 @@ worktree `~/Desktop/medsync-rework`, cut from the stock-up polish branch (fe6f44
 - Set-up has no screens yet to add fridges, EPI clinics and vaccines; only the dev seed creates them.
 - Dev seed: `PHARMACY_SEED_OK=1 DATABASE_URL=… npx tsx scripts/seed-pharmacy-dev.ts <hospital-id>` (test
   hospitals only).
+
+## Stock › Receive a delivery (RECEIVE.md, branch `feat/pharmacy-receive`)
+
+Built: the stage board, the one start dialog, order detail, edit and chase, counting with scanning, finishing with witness and second check, claims, put away with shelf labels, papers, receiving figures, working offline. Old delivery pages and the Medicines delivery dialog are gone; `/pharmacy/store/deliveries*` redirect here. Dev fixture: `/styleguide/pharmacy-receive` with `MEDSYNC_FIXTURES=1`.
+
+**Before deploying:** apply GATED migration 0276 (`cd ~/Desktop/medsync-receive && npm run db:migrate`). The Main store reads it too, so app and migration go together. Copy is `draft`.
+
+**Defaults taken:**
+- A queued delivery that needs a witness, second check or in-charge approval comes back to Counting on reconnect: those need people online. Offline works only with the tab already open (no service worker).
+- One witness confirmation per controlled line, in one dialog (an attestation is single use).
+- A place receives directly when it is the store, or a dispensing point or clinic with nothing supplying it.
+- A medicine added during a count is a local line, `health_supply`, not controlled until reviewed in Set-up › Medicines.
+- An unknown barcode links on `pharmacy_products.gtin`. Offline it is counted and linked after.
+- Purchase order references are shown as `PO-000n` by position, since orders have no reference column.
+- Figures use the last 8 deliveries; the suppliers table the last 6 months.
+- `lib/pharmacy/stores/receiving-store.ts` still holds the older writer, because the pharmacy demo seed and helpers (`productForPick`, `registrationList`) use it. No page calls its delivery writes. The finish guard skips a delivery naming an old counterparty, so only that writer keeps the older rules; move the demo to the Receive actions when convenient.
+- Vaccine has no Set-up field yet, so `pharmacy_products.vaccine` is set by hand for now.
+
+**Not tested in a browser against a database:** 0276 is unapplied, so server paths are covered by the PGlite lane, and the screens by the fixture in headless Chrome at 1440 and 390 px (axe, console, scroll, the offline flow). This repo has no Playwright. The side-by-side with the prototype was by reading its code and wording, since it needs its host to render.
+
+**The owner still supplies:** supplier lead days; receiving targets and limits (registry defaults until signed); HMIS 087 columns; the recall feed source; label printer and label size; the in-house code prefix (`200` now).
+
+**TODO:** send chase and claim through the Messages integration. They are drafted and copied only.
+
+## Health and lab supplies (SUPPLIES.md, branch `feat/pharmacy-supplies`, cut from `feat/pharmacy-receive`)
+
+Supplies are items: same table, ledger and screens as medicines, no parallel module. All copy is `draft`. Nothing is deployed.
+
+**Built**
+- **Data:** `data/emhslu-2023-supplies.csv` (1,917 rows parsed from the PDF: B 512, C 243, D 1,162; never hand-typed), loaded by `0278` into `cat_supply_items` (1,914 distinct items). `0277` adds the item columns, `seal` and `kit_temp`, and the guards. Seed: `scripts/seed-pharmacy-dev/supplies.ts` (28 supplies, shelves E and L, ward requisitions with supply lines).
+- **Guards in the database, each tested in `tests/emr-db/pharmacy-supplies-guards.test.ts`:** type derived from the section, Section C behind the switch, sterile seal, kit temperature, no supplied movement (Dispense), no bill line without a price or for a free item, `no_expiry` batches held at the far date.
+- **Screens:** Set-up › Medicines and supplies (shared type switch, Items tile, flags, EMHSLU row group, Section C switch, catalogue under EMHSLU categories), Main store (switch filters table and chart, tags, E and L, pickers), Receive (tags, seal, kit, no expiry, picker chips), Rules (group `sup`, 5 rules, unsigned), Going live (`supplies`, `suplevels`).
+
+**Apply:** `0276` (Receive) first, then:
+
+```bash
+cd /Users/airm1/Desktop/medsync-supplies && npm run db:migrate
+```
+
+**Defaults taken**
+- The master list is loaded by migration, not through curator proposals.
+- No expiry is stored as the sentinel 2099-12-31; every screen shows "no expiry", and Expiry and At risk skip it.
+- Sections B and C print no unit, so the issue unit starts at piece (surgical gloves at pair). It stays editable.
+- Flags start from a name rule, all editable except the type: sterile; test kit for rapid tests and strips; safety box no expiry; HIV and malaria rapid tests free.
+- Section D's other headings are kept as "Laboratory: <heading>". Levels map HC IV to HC4, GH to H, RRH to RR, NTRL/NRTL/UBTS to NR.
+- Supply form is derived by name rule for the filter, not stored.
+- The PDF's summary tables (738 B+C, 1,350 D) disagree with its own lists (755, 1,162). The lists were used. 2 rows have no VEN and 1 has no level; these stay blank.
+- The kit range text lives once in `content/pharmacy-rules.ts` (`KIT_RANGE`, `kitAbove`). The 60-day warning comes from rule `sup.kit_warn`.
+- Going live: levels and prices now count medicines only; supplies need no price. `rules` needs 12 groups. `0277` also adds `recv` to the signature check, which `0276` missed.
+- A kit counts in Expiry only inside its warning days. The Section C switch sits at the foot of the Set-up grid, for editors.
+- The kit's `prototype/` Receive has no supply strings, so Receive uses SUPPLIES.md §E wording.
+
+**Not done or not proved**
+- No Playwright in this repo. §H is covered by Vitest, the PGlite lane and axe, plus a manual browser pass at 1440 and 390 px on the fixtures (axe clean, no horizontal scroll; the only console error is the fixture's realtime socket with no local Supabase).
+- Nothing has run against a real database yet. The catalogue dialog needs one, so only the lane covers it.
+- There is a bill-line table with its guard, but no screen bills a supply yet.
+- `tests/emr-db/pharmacy-stores-data.test.ts` has one failure ("a saved order's lines change only by closing"). It fails the same way on `feat/pharmacy-receive`, so it is not from this work and was not touched.
+- `pharmacy-store-actions.test.ts` failed two tests in one crowded parallel run and passed alone and on the rerun, so treat those as a flake under load.
+
+**The owner supplies**
+- The EMHSLU PDF, committed at `docs/pharmacy/rework/EMHSLU-2023.pdf` (parsed from your copy).
+- Whether Section C is used (off by default).
+- Supply prices, if any are billed.
+- Supply top-up levels.
+- Signatures: the copy, and the rules group.

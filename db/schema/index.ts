@@ -157,5 +157,6 @@ export * from "./pharmacy-rework";
 export * from "./pharmacy-rework-controls";
 export * from "./pharmacy-rework-patients";
 export * from "./pharmacy-rework-records";
+export * from "./pharmacy-store";
 export * from "./pharmacy-imports";
 export * from "./pharmacy-distribution";

@@ -441,9 +441,9 @@ type Refusal = { kind: "refused" | "no_product" | "several"; note: string };
  * (whose signed class it takes), or (ADR 0470) a medicine off the prescribing list as a local medicine under its
  * catalogue key, its class from the signed substance list. Anything else is refused in words, nothing written.
  */
-async function productForPick(
+export async function productForPick(
   ctx: PharmacyCtx,
-  pick: { packId: string } | { medicineId: string },
+  pick: { packId: string } | { medicineId: string; issueUnit?: string },
 ): Promise<{ id: string; said: string | null } | Refusal> {
   const h = ctx.actor.hospitalId;
   const R = CATALOGUE.receive;
@@ -523,7 +523,9 @@ async function productForPick(
     return { id: unlinked[0]!.id, said: P.linked(unlinked[0]!.name) };
   }
 
-  if (!m.issue_unit_kind) return { kind: "refused", note: P.noIssueUnit };
+  // Set-up › Medicines may name the unit the catalogue leaves blank; the catalogue's own unit always wins.
+  const issueUnit = m.issue_unit_kind ?? ("issueUnit" in pick ? pick.issueUnit : undefined);
+  if (!issueUnit) return { kind: "refused", note: P.noIssueUnit };
   const name = pack?.brand ?? m.display_name;
   const [row] = await ctx.tx
     .insert(pharmacyProducts)
@@ -535,7 +537,7 @@ async function productForPick(
       manufacturer: pack?.maker ?? null,
       strength: m.strength_text,
       packSize: pack?.description ?? null,
-      issueUnit: m.issue_unit_kind,
+      issueUnit,
       catalogueMedicineId: medicineId!,
       cataloguePackId,
       addedAtWindow: false,
@@ -588,6 +590,26 @@ export async function pickIntoDelivery(
   });
   const note = said ? `${R.added(lineNo)} ${said}` : R.added(lineNo);
   return { id: d.id, kind: "added", lineNo, counted: 0, note };
+}
+
+/** Set-up › Medicines: each catalogue pick becomes one of the hospital's products (`productForPick`), no typing. */
+export const CataloguePicksInput = z.object({
+  picks: z
+    .array(z.union([z.object({ packId: z.uuid() }), z.object({ medicineId: z.uuid() })]))
+    .min(1)
+    .max(50),
+});
+
+export async function addFromCatalogue(
+  ctx: PharmacyCtx,
+  input: z.infer<typeof CataloguePicksInput>,
+): Promise<{ id: string; notes: (string | null)[] }> {
+  const notes: (string | null)[] = [];
+  for (const pick of input.picks) {
+    const r = await productForPick(ctx, pick);
+    notes.push("id" in r ? r.said : r.note);
+  }
+  return { id: ctx.actor.hospitalId, notes };
 }
 
 /** 4.3 for a delivery: the order's lines not counted yet whose product has a catalogue pack (never a guess). */
@@ -661,7 +683,7 @@ export const asLine = (l: typeof pharmacyDeliveryLines.$inferSelect): DeliveryLi
   acceptedQuantity: l.acceptedQuantity,
   rejectedKeptQuantity: l.rejectedKeptQuantity,
   rejectedReturnedQuantity: l.rejectedReturnedQuantity,
-  rejectReason: l.rejectReason,
+  rejectReason: l.rejectReason === "recall" || l.rejectReason === "cold_chain" ? "other" : l.rejectReason,
   batchNumber: l.batchNumber,
   expiry: l.expiry,
   expiryMonthOnly: l.expiryMonthOnly,

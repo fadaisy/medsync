@@ -11,7 +11,10 @@ import lg from "@/i18n/lg.json";
 export type Lang = "en" | "lg";
 export type StringKey = keyof typeof en;
 
-const tables: Record<Lang, Partial<Record<StringKey, string>>> = { en, lg: lg as Partial<Record<StringKey, string>> };
+const tables: Record<Lang, Partial<Record<StringKey, string>>> = {
+  en,
+  lg: lg as Partial<Record<StringKey, string>>,
+};
 
 export function deviceLang(): Lang {
   return getLocales()[0]?.languageCode === "lg" ? "lg" : "en";

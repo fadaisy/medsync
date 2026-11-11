@@ -47,6 +47,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // The Expo app has its own eslint config, RN globals and plugin set.
     "mobile/**",
+    // The rework kit's clickable prototype: reference only, never shipped (MEDICINES-TAB.md §20).
+    "docs/pharmacy/rework/prototype/**",
     // Self-contained Vite subproject with its own toolchain.
     "bionic-islet-bench/**",
     // Static assets served verbatim, including the sensor bench's built

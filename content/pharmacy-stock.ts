@@ -207,16 +207,15 @@ export const STOCK = {
   } as Record<string, string>,
 
   receive: {
-    title: "Receive stock",
     product: "Product",
     batch: "Batch number",
     expiry: "Expiry",
     monthOnly: "The pack gives a month only",
     quantity: (medicine: string, unit: string) => `${medicine}, quantity in ${unit}`,
-    from: "From",
-    ref: "Delivery reference (optional)",
-    submit: "Add to stock",
-    noProduct: "Add a product first.",
+  },
+  /** The delivery dialog: a delivery note line by line (Stock › Receive a delivery). */
+  delivery: {
+    open: "Receive a delivery",
   },
   count: {
     title: (what: string) => `Count · ${what}`,

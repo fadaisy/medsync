@@ -8,13 +8,19 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { PRW } from "@/content/pharmacy-rework-patients";
-import { pharmacySmsMessages, pharmacySmsOptouts, pharmacySmsRules } from "@/db/schema/pharmacy-rework-patients";
+import { SMS_TEMPLATES } from "@/content/pharmacy-setup";
+import {
+  pharmacySmsMessages,
+  pharmacySmsOptouts,
+  pharmacySmsRules,
+} from "@/db/schema/pharmacy-rework-patients";
 import { blindIndex, decrypt, encrypt } from "@/lib/encryption";
+import { smsParts } from "@/lib/pharmacy/derive/setup/messages";
 import { epiPlan, epiStatus } from "@/lib/pharmacy/epi/derive";
 import { e164, runPatientsWrite } from "@/lib/pharmacy/epi/store";
 import { opCourse, opRefill } from "@/lib/pharmacy/op/derive";
 import { courseRows, refillRows } from "@/lib/pharmacy/op/read";
-import { smsQueue, templateOf } from "@/lib/pharmacy/sms/derive";
+import { smsQueue, templateOf, timingDays } from "@/lib/pharmacy/sms/derive";
 import { fail } from "@/lib/pharmacy/stores/write";
 import { q } from "@/lib/pharmacy/wards/sql";
 
@@ -24,20 +30,49 @@ import { q } from "@/lib/pharmacy/wards/sql";
  * says so. Rules are versioned rows (append-only); the latest per rule wins. Default: on, signed default wording.
  */
 type Opts = { database?: EmrDb; now?: Date };
-export const SMS_NEED: PharmacyNeed = { permission: ["pharmacy.dispense", "pharmacy.review", "pharmacy.store"], point: "none" };
-const RULE_KEYS = ["refill_due", "refill_missed", "course", "epi_tomorrow", "epi_defaulter"] as const;
+export const SMS_NEED: PharmacyNeed = {
+  permission: ["pharmacy.dispense", "pharmacy.review", "pharmacy.store"],
+  point: "none",
+};
+const RULE_KEYS = [
+  "refill_due",
+  "refill_missed",
+  "course",
+  "epi_tomorrow",
+  "epi_defaulter",
+] as const;
 const kampalaDay = (t: number) => new Date(t + 3 * 3_600_000).toISOString().slice(0, 10);
 
 /** The rule in force per rule key (latest row), with defaults for rules never set. */
 export async function rulesOf(d: EmrDb | EmrTx, hospitalId: string) {
-  const rows = await q<{ rule: SmsRule; enabled: boolean; template_en: string | null; template_lg: string | null; status: string }>(
+  const rows = await q<{
+    rule: SmsRule;
+    enabled: boolean;
+    template_en: string | null;
+    template_lg: string | null;
+    status: string;
+    timing: string | null;
+    lg_checked_by: string | null;
+    lg_checked_at: string | null;
+  }>(
     d,
-    sql`SELECT DISTINCT ON (rule) rule, enabled, template_en, template_lg, status FROM public.pharmacy_sms_rules
-         WHERE hospital_id = ${hospitalId}::uuid ORDER BY rule, set_at DESC`,
+    sql`SELECT DISTINCT ON (rule) rule, enabled, template_en, template_lg, status, timing, lg_checked_by,
+           lg_checked_at::text AS lg_checked_at
+         FROM public.pharmacy_sms_rules WHERE hospital_id = ${hospitalId}::uuid ORDER BY rule, set_at DESC`,
   );
   return RULE_KEYS.map((rule) => {
     const r = rows.find((x) => x.rule === rule);
-    return { rule, enabled: r?.enabled ?? true, en: r?.template_en ?? null, lg: r?.template_lg ?? null, edited: !!(r?.template_en || r?.template_lg) };
+    const def = SMS_TEMPLATES.find((t) => t.key === rule)!;
+    return {
+      rule,
+      enabled: r?.enabled ?? def.on,
+      en: r?.template_en ?? null,
+      lg: r?.template_lg ?? null,
+      edited: !!(r?.template_en || r?.template_lg),
+      timing: r?.timing ?? def.timing,
+      lgCheckedBy: r?.lg_checked_by ?? null,
+      lgCheckedAt: r?.lg_checked_at ?? null,
+    };
   });
 }
 
@@ -45,11 +80,23 @@ export async function rulesOf(d: EmrDb | EmrTx, hospitalId: string) {
 export async function buildQueue(db: EmrDb | EmrTx, hospitalId: string, now: Date) {
   const t = now.getTime();
   const rules = await rulesOf(db, hospitalId);
-  const [h] = await q<{ name: string }>(db, sql`SELECT name FROM public.hospitals WHERE id = ${hospitalId}::uuid`);
+  const [h] = await q<{ name: string }>(
+    db,
+    sql`SELECT coalesce((SELECT facility_label FROM public.pharmacy_sms_provider WHERE hospital_id = ${hospitalId}::uuid),
+               name) AS name FROM public.hospitals WHERE id = ${hospitalId}::uuid`,
+  );
   const [refills, courses, clients] = await Promise.all([
     refillRows(db, hospitalId),
     courseRows(db, hospitalId),
-    q<{ id: string; kind: "child" | "woman" | "girl"; name: string; dob: string; phone: string; appt: string | null; doses: { lab: string; at: string; batch: string }[] | null }>(
+    q<{
+      id: string;
+      kind: "child" | "woman" | "girl";
+      name: string;
+      dob: string;
+      phone: string;
+      appt: string | null;
+      doses: { lab: string; at: string; batch: string }[] | null;
+    }>(
       db,
       sql`SELECT c.id, c.kind, c.name, c.dob::text AS dob, c.phone_encrypted AS phone,
                  (SELECT a.come_back_on::text FROM public.pharmacy_epi_appointments a WHERE a.client_id = c.id ORDER BY a.set_at DESC LIMIT 1) AS appt,
@@ -57,12 +104,17 @@ export async function buildQueue(db: EmrDb | EmrTx, hospitalId: string, now: Dat
             FROM public.pharmacy_epi_clients c WHERE c.hospital_id = ${hospitalId}::uuid`,
     ),
   ]);
-  const patients = [...new Set([...refills.map((r) => r.patientId), ...(courses ?? []).map((c) => c.patientId)])];
+  const patients = [
+    ...new Set([...refills.map((r) => r.patientId), ...(courses ?? []).map((c) => c.patientId)]),
+  ];
   const profiles = patients.length
     ? await q<{ id: string; first: string | null; phone: string }>(
         db,
         sql`SELECT id, first_name_encrypted AS first, phone_encrypted AS phone FROM public.patient_profiles
-             WHERE id IN (${sql.join(patients.map((p) => sql`${p}::uuid`), sql`, `)})`,
+             WHERE id IN (${sql.join(
+               patients.map((p) => sql`${p}::uuid`),
+               sql`, `,
+             )})`,
       )
     : [];
   const pr = new Map(profiles.map((p) => [p.id, p]));
@@ -80,18 +132,38 @@ export async function buildQueue(db: EmrDb | EmrTx, hospitalId: string, now: Dat
     hospital: h?.name ?? "",
     enabled: (r) => rules.find((x) => x.rule === r)!.enabled,
     template: (r) => templateOf(r, rules.find((x) => x.rule === r)!.en),
-    refills: refills.filter((r) => pr.has(r.patientId)).map((r) => ({ rxId: r.rxId, patientId: r.patientId, name: first(r.patientId), med: r.med, runOut: opRefill(r.hist, r.daily, t).runOut })),
+    days: (r) => timingDays(r, rules.find((x) => x.rule === r)!.timing),
+    refills: refills
+      .filter((r) => pr.has(r.patientId))
+      .map((r) => ({
+        rxId: r.rxId,
+        patientId: r.patientId,
+        name: first(r.patientId),
+        med: r.med,
+        runOut: opRefill(r.hist, r.daily, t).runOut,
+      })),
     courses: (courses ?? [])
       .filter((c) => pr.has(c.patientId))
-      .map((c) => ({ rxId: c.rxId, patientId: c.patientId, name: first(c.patientId), med: c.med, needCheck: opCourse(c.start, c.days, c.checks, t).needCheck })),
+      .map((c) => ({
+        rxId: c.rxId,
+        patientId: c.patientId,
+        name: first(c.patientId),
+        med: c.med,
+        needCheck: opCourse(c.start, c.days, c.checks, t).needCheck,
+      })),
     epi: clients.map((c) => {
       const plan = epiPlan(
         { id: c.id, kind: c.kind, dob: day(c.dob) },
-        Object.fromEntries((c.doses ?? []).map((x) => [x.lab, { at: Date.parse(x.at), batchId: x.batch }])),
+        Object.fromEntries(
+          (c.doses ?? []).map((x) => [x.lab, { at: Date.parse(x.at), batchId: x.batch }]),
+        ),
         t,
       );
       const st = epiStatus(plan, c.appt ? day(c.appt) : null);
-      const oldest = st.k === "overdue" ? st.due.reduce((a, x) => Math.min(a, x.due ?? Infinity), Infinity) : null;
+      const oldest =
+        st.k === "overdue"
+          ? st.due.reduce((a, x) => Math.min(a, x.due ?? Infinity), Infinity)
+          : null;
       return {
         clientId: c.id,
         name: c.name.split(" ")[0]!,
@@ -102,11 +174,17 @@ export async function buildQueue(db: EmrDb | EmrTx, hospitalId: string, now: Dat
   }).filter((c) => c.recipient);
   if (!cand.length) return 0;
   const optouts = new Set(
-    (await q<{ h: string }>(db, sql`SELECT phone_hmac AS h FROM public.pharmacy_sms_optouts WHERE hospital_id = ${hospitalId}::uuid`)).map((o) => o.h),
+    (
+      await q<{ h: string }>(
+        db,
+        sql`SELECT phone_hmac AS h FROM public.pharmacy_sms_optouts WHERE hospital_id = ${hospitalId}::uuid`,
+      )
+    ).map((o) => o.h),
   );
   const cl = new Map(clients.map((c) => [c.id, c.phone]));
   const rows = cand.flatMap((c) => {
-    const enc = "patient" in c.phoneOf ? pr.get(c.phoneOf.patient)?.phone : cl.get(c.phoneOf.client);
+    const enc =
+      "patient" in c.phoneOf ? pr.get(c.phoneOf.patient)?.phone : cl.get(c.phoneOf.client);
     if (!enc) return [];
     let phone: string;
     try {
@@ -115,101 +193,241 @@ export async function buildQueue(db: EmrDb | EmrTx, hospitalId: string, now: Dat
       return [];
     }
     const hmac = blindIndex(phone);
-    return [{
-      hospitalId,
-      day: kampalaDay(t),
-      rule: c.rule,
-      refKey: c.refKey.slice(0, 120),
-      recipient: c.recipient.slice(0, 120),
-      phoneEncrypted: encrypt(phone),
-      phoneHmac: hmac,
-      lang: "en" as const,
-      body: c.body,
-      status: optouts.has(hmac) ? ("skipped" as const) : ("scheduled" as const),
-      failure: optouts.has(hmac) ? PRW.sms.optOut : null,
-    }];
+    return [
+      {
+        hospitalId,
+        day: kampalaDay(t),
+        rule: c.rule,
+        refKey: c.refKey.slice(0, 120),
+        recipient: c.recipient.slice(0, 120),
+        phoneEncrypted: encrypt(phone),
+        phoneHmac: hmac,
+        lang: "en" as const,
+        body: c.body,
+        status: optouts.has(hmac) ? ("skipped" as const) : ("scheduled" as const),
+        failure: optouts.has(hmac) ? PRW.sms.optOut : null,
+      },
+    ];
   });
   if (rows.length) await db.insert(pharmacySmsMessages).values(rows).onConflictDoNothing();
   return rows.length;
 }
 
-/** Send one scheduled or failed message. Not connected → nothing changes. */
-async function sendOne(tx: EmrDb | EmrTx, sender: SmsSender, m: typeof pharmacySmsMessages.$inferSelect, by: string | null, now: Date) {
+/** The database's refusals (0274 `pharmacy_sms_optout_guard`): what happens to the message instead. */
+const HOLDS = [
+  ["opted out", "skipped", PRW.sms.optOut],
+  ["quiet hours", "queued", "Quiet hours: goes at 07:00"],
+  ["weekly cap", "skipped", "Weekly limit for this patient reached"],
+  ["monthly budget cap", "queued", "Monthly budget reached: sending stopped"],
+] as const;
+const errText = (e: unknown): string =>
+  e instanceof Error
+    ? `${e.message} ${errText((e as { cause?: unknown }).cause ?? "")}`
+    : String(e ?? "");
+
+/**
+ * Send one scheduled, queued or failed message. The row becomes `sent` first (inside a savepoint), so the database's
+ * opt-out, quiet-hours, weekly and budget guards run before the provider is paid; a refusal holds or skips it instead.
+ */
+export async function sendOne(
+  tx: EmrDb | EmrTx,
+  sender: SmsSender,
+  m: Pick<typeof pharmacySmsMessages.$inferSelect, "id" | "status" | "phoneEncrypted" | "body">,
+  by: string | null,
+  now: Date,
+  costUgx = 0,
+) {
+  const at = { statusBy: by, statusAt: now };
+  try {
+    await tx.transaction((sp) =>
+      sp
+        .update(pharmacySmsMessages)
+        .set({
+          status: "sent",
+          parts: smsParts(m.body).parts,
+          costUgx,
+          sentAt: now,
+          note: null,
+          failure: null,
+          ...at,
+        })
+        .where(eq(pharmacySmsMessages.id, m.id)),
+    );
+  } catch (e) {
+    const t = errText(e);
+    const hold = HOLDS.find(([k]) =>
+      t.includes(`pharmacy_sms: ${k === "opted out" ? "that number opted out" : k}`),
+    );
+    if (!hold) throw e;
+    // A failed message stays failed (it moves only to sent or called); the note says why.
+    const status = m.status === "failed" ? "failed" : hold[1];
+    await tx
+      .update(pharmacySmsMessages)
+      .set({ status, note: hold[2], ...at })
+      .where(eq(pharmacySmsMessages.id, m.id));
+    return false;
+  }
   const r = await sender.send({ toE164: decrypt(m.phoneEncrypted), body: m.body });
   await tx
     .update(pharmacySmsMessages)
     .set(
       r.ok
-        ? { status: "sent", providerId: r.providerMessageId ?? null, cost: r.cost ? `${r.cost.currency} ${r.cost.amount}` : null, sentAt: now, statusBy: by, statusAt: now }
-        : { status: "failed", failure: r.reason.slice(0, 200), statusBy: by, statusAt: now },
+        ? {
+            status: "sent",
+            providerId: r.providerMessageId ?? null,
+            cost: r.cost ? `${r.cost.currency} ${r.cost.amount}` : null,
+          }
+        : {
+            status: "failed",
+            failure: r.reason.slice(0, 200),
+            note: "Not delivered: try again",
+            ...at,
+          },
     )
     .where(eq(pharmacySmsMessages.id, m.id));
   return r.ok;
 }
 
-/** The cron: build today's queue for the hospital and send what is scheduled, when a transport exists. */
-export async function runDaily(db: EmrDb, hospitalId: string, sender: SmsSender | null, now = new Date()) {
+/** The hospital's cost per SMS (Set-up › Messages), 0 when none is saved. */
+export const costPerSms = async (d: EmrDb | EmrTx, hospitalId: string) =>
+  (
+    await q<{ c: number }>(
+      d,
+      sql`SELECT cost_ugx AS c FROM public.pharmacy_sms_provider WHERE hospital_id = ${hospitalId}::uuid`,
+    )
+  )[0]?.c ?? 0;
+
+/** The cron: build today's queue for the hospital and send what is scheduled (and what quiet hours held), when a transport exists. */
+export async function runDaily(
+  db: EmrDb,
+  hospitalId: string,
+  sender: SmsSender | null,
+  now = new Date(),
+) {
   const queued = await buildQueue(db, hospitalId, now);
   if (!sender) return { queued, sent: 0, connected: false };
   const due = await db
     .select()
     .from(pharmacySmsMessages)
-    .where(and(eq(pharmacySmsMessages.hospitalId, hospitalId), eq(pharmacySmsMessages.day, kampalaDay(now.getTime())), eq(pharmacySmsMessages.status, "scheduled")));
+    .where(
+      and(
+        eq(pharmacySmsMessages.hospitalId, hospitalId),
+        sql`(${pharmacySmsMessages.status} = 'queued' OR (${pharmacySmsMessages.status} = 'scheduled' AND ${pharmacySmsMessages.day} = ${kampalaDay(now.getTime())}::date))`,
+      ),
+    );
+  const cost = await costPerSms(db, hospitalId);
   let sent = 0;
-  for (const m of due) if (await sendOne(db, sender, m, null, now)) sent++;
+  for (const m of due) if (await sendOne(db, sender, m, null, now, cost)) sent++;
   return { queued, sent, connected: true };
 }
 
 /* ─── Staff actions ─────────────────────────────────────────────────── */
 export const buildToday = (actor: PharmacyActor, raw: unknown, o?: Opts) =>
-  runPatientsWrite(z.object({}), raw, actor, SMS_NEED, async (ctx) => {
-    await buildQueue(ctx.tx, ctx.actor.hospitalId, ctx.now);
-    return { id: ctx.actor.hospitalId };
-  }, o);
+  runPatientsWrite(
+    z.object({}),
+    raw,
+    actor,
+    SMS_NEED,
+    async (ctx) => {
+      await buildQueue(ctx.tx, ctx.actor.hospitalId, ctx.now);
+      return { id: ctx.actor.hospitalId };
+    },
+    o,
+  );
 
-export const MessageInput = z.object({ id: z.uuid(), act: z.enum(["send", "skip", "called", "optout"]) });
+export const MessageInput = z.object({
+  id: z.uuid(),
+  act: z.enum(["send", "skip", "called", "optout"]),
+});
 
 /** Send now, skip, record "called instead", or stop messages to the number. `sender` is null when not connected. */
-export const actOnMessage = (actor: PharmacyActor, raw: unknown, sender: SmsSender | null, o?: Opts) =>
-  runPatientsWrite(MessageInput, raw, actor, SMS_NEED, async (ctx, i) => {
-    const [m] = await ctx.tx
-      .select()
-      .from(pharmacySmsMessages)
-      .where(and(eq(pharmacySmsMessages.id, i.id), eq(pharmacySmsMessages.hospitalId, ctx.actor.hospitalId)))
-      .for("update");
-    if (!m) throw fail("not_found", PRW.sms.queueNone);
-    const by = ctx.actor.userId;
-    if (i.act === "send") {
-      if (!sender) throw fail("config", PRW.sms.notConnected);
-      // ponytail: the provider call runs inside the row lock; a queue of hundreds belongs to the cron, not this button.
-      await sendOne(ctx.tx, sender, m, by, ctx.now);
-    } else if (i.act === "optout") {
-      await ctx.tx
-        .insert(pharmacySmsOptouts)
-        .values({ hospitalId: m.hospitalId, phoneHmac: m.phoneHmac, source: "staff", recordedBy: by, recordedAt: ctx.now })
-        .onConflictDoNothing();
-      if (m.status === "scheduled")
-        await ctx.tx.update(pharmacySmsMessages).set({ status: "skipped", failure: PRW.sms.optOut, statusBy: by, statusAt: ctx.now }).where(eq(pharmacySmsMessages.id, m.id));
-    } else
-      await ctx.tx
-        .update(pharmacySmsMessages)
-        .set({ status: i.act === "skip" ? "skipped" : "called", statusBy: by, statusAt: ctx.now })
-        .where(eq(pharmacySmsMessages.id, m.id));
-    return { id: m.id };
-  }, o);
+export const actOnMessage = (
+  actor: PharmacyActor,
+  raw: unknown,
+  sender: SmsSender | null,
+  o?: Opts,
+) =>
+  runPatientsWrite(
+    MessageInput,
+    raw,
+    actor,
+    SMS_NEED,
+    async (ctx, i) => {
+      const [m] = await ctx.tx
+        .select()
+        .from(pharmacySmsMessages)
+        .where(
+          and(
+            eq(pharmacySmsMessages.id, i.id),
+            eq(pharmacySmsMessages.hospitalId, ctx.actor.hospitalId),
+          ),
+        )
+        .for("update");
+      if (!m) throw fail("not_found", PRW.sms.queueNone);
+      const by = ctx.actor.userId;
+      if (i.act === "send") {
+        if (!sender) throw fail("config", PRW.sms.notConnected);
+        // ponytail: the provider call runs inside the row lock; a queue of hundreds belongs to the cron, not this button.
+        await sendOne(
+          ctx.tx,
+          sender,
+          m,
+          by,
+          ctx.now,
+          await costPerSms(ctx.tx, ctx.actor.hospitalId),
+        );
+      } else if (i.act === "optout") {
+        await ctx.tx
+          .insert(pharmacySmsOptouts)
+          .values({
+            hospitalId: m.hospitalId,
+            phoneHmac: m.phoneHmac,
+            source: "staff",
+            recordedBy: by,
+            recordedAt: ctx.now,
+          })
+          .onConflictDoNothing();
+        if (m.status === "scheduled")
+          await ctx.tx
+            .update(pharmacySmsMessages)
+            .set({ status: "skipped", failure: PRW.sms.optOut, statusBy: by, statusAt: ctx.now })
+            .where(eq(pharmacySmsMessages.id, m.id));
+      } else
+        await ctx.tx
+          .update(pharmacySmsMessages)
+          .set({ status: i.act === "skip" ? "skipped" : "called", statusBy: by, statusAt: ctx.now })
+          .where(eq(pharmacySmsMessages.id, m.id));
+      return { id: m.id };
+    },
+    o,
+  );
 
 export const SendAllInput = z.object({ ids: z.array(z.uuid()).min(1).max(500) });
 
 export const sendAll = (actor: PharmacyActor, raw: unknown, sender: SmsSender | null, o?: Opts) =>
-  runPatientsWrite(SendAllInput, raw, actor, SMS_NEED, async (ctx, i) => {
-    if (!sender) throw fail("config", PRW.sms.notConnected);
-    const due = await ctx.tx
-      .select()
-      .from(pharmacySmsMessages)
-      .where(and(eq(pharmacySmsMessages.hospitalId, ctx.actor.hospitalId), eq(pharmacySmsMessages.status, "scheduled"), inArray(pharmacySmsMessages.id, i.ids)));
-    for (const m of due) await sendOne(ctx.tx, sender, m, ctx.actor.userId, ctx.now);
-    return { id: i.ids[0]! };
-  }, o);
+  runPatientsWrite(
+    SendAllInput,
+    raw,
+    actor,
+    SMS_NEED,
+    async (ctx, i) => {
+      if (!sender) throw fail("config", PRW.sms.notConnected);
+      const due = await ctx.tx
+        .select()
+        .from(pharmacySmsMessages)
+        .where(
+          and(
+            eq(pharmacySmsMessages.hospitalId, ctx.actor.hospitalId),
+            eq(pharmacySmsMessages.status, "scheduled"),
+            inArray(pharmacySmsMessages.id, i.ids),
+          ),
+        );
+      const cost = await costPerSms(ctx.tx, ctx.actor.hospitalId);
+      for (const m of due) await sendOne(ctx.tx, sender, m, ctx.actor.userId, ctx.now, cost);
+      return { id: i.ids[0]! };
+    },
+    o,
+  );
 
 export const RuleInput = z.object({
   rule: z.enum(RULE_KEYS),
@@ -220,22 +438,74 @@ export const RuleInput = z.object({
 
 /** A new version of a rule: on/off and its wording (an edit is a draft until signed). */
 export const setRule = (actor: PharmacyActor, raw: unknown, o?: Opts) =>
-  runPatientsWrite(RuleInput, raw, actor, SMS_NEED, async (ctx, i) => {
-    const [r] = await ctx.tx
-      .insert(pharmacySmsRules)
-      .values({ hospitalId: ctx.actor.hospitalId, rule: i.rule, enabled: i.enabled, templateEn: i.en, templateLg: i.lg, status: "draft", setBy: ctx.actor.userId, setAt: ctx.now })
-      .returning({ id: pharmacySmsRules.id });
-    return { id: r!.id };
-  }, o);
+  runPatientsWrite(
+    RuleInput,
+    raw,
+    actor,
+    SMS_NEED,
+    async (ctx, i) => {
+      const [r] = await ctx.tx
+        .insert(pharmacySmsRules)
+        .values({
+          hospitalId: ctx.actor.hospitalId,
+          rule: i.rule,
+          enabled: i.enabled,
+          templateEn: i.en,
+          templateLg: i.lg,
+          status: "draft",
+          setBy: ctx.actor.userId,
+          setAt: ctx.now,
+        })
+        .returning({ id: pharmacySmsRules.id });
+      return { id: r!.id };
+    },
+    o,
+  );
 
 /** A reply of STOP from a number: no more messages to it at any hospital that messaged it. */
 export async function optOutReply(db: EmrDb, fromE164: string) {
   const hmac = blindIndex(e164(fromE164));
-  const hs = await q<{ h: string }>(db, sql`SELECT DISTINCT hospital_id AS h FROM public.pharmacy_sms_messages WHERE phone_hmac = ${hmac}`);
+  const hs = await q<{ h: string }>(
+    db,
+    sql`SELECT DISTINCT hospital_id AS h FROM public.pharmacy_sms_messages WHERE phone_hmac = ${hmac}`,
+  );
   if (hs.length)
     await db
       .insert(pharmacySmsOptouts)
-      .values(hs.map((x) => ({ hospitalId: x.h, phoneHmac: hmac, source: "reply_stop" as const })))
+      .values(
+        hs.map((x) => ({
+          hospitalId: x.h,
+          phoneHmac: hmac,
+          source: "reply_stop" as const,
+          reason: "Replied STOP",
+          phoneEncrypted: encrypt(e164(fromE164)),
+        })),
+      )
       .onConflictDoNothing();
   return hs.length;
+}
+
+/**
+ * The provider's delivery report. Idempotent: only a `sent` message with that provider id moves, so a repeated
+ * callback changes nothing.
+ */
+export async function deliveryReport(db: EmrDb, providerId: string, ok: boolean, reason: string) {
+  const now = new Date();
+  const r = await db
+    .update(pharmacySmsMessages)
+    .set(
+      ok
+        ? { status: "delivered", deliveredAt: now, statusAt: now }
+        : {
+            status: "failed",
+            failure: reason.slice(0, 200) || "Not delivered",
+            note: reason.slice(0, 200) || null,
+            statusAt: now,
+          },
+    )
+    .where(
+      and(eq(pharmacySmsMessages.providerId, providerId), eq(pharmacySmsMessages.status, "sent")),
+    )
+    .returning({ id: pharmacySmsMessages.id });
+  return r.length;
 }

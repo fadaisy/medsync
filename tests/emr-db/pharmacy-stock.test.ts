@@ -761,4 +761,5 @@ describe.skipIf(!laneOn)("Stock at the dispensing point (Step 4, S1–S11)", () 
     const asHead = await page({ userId: f.head!, hospitalId: f.h! });
     expect(asHead.manages).toBe(true);
   });
+
 });

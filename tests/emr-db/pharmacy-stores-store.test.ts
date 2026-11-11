@@ -24,6 +24,7 @@ import * as phase1 from "@/lib/pharmacy/stock/store";
 import * as iss from "@/lib/pharmacy/stores/issue-store";
 import * as loc from "@/lib/pharmacy/stores/location-store";
 import * as rcv from "@/lib/pharmacy/stores/receiving-store";
+import * as shelf from "@/lib/pharmacy/stores/shelves";
 import { getDelivery, getIssuesPage, getRequisition } from "@/lib/pharmacy/stores/store-read";
 import { loadLocation, storeNeed } from "@/lib/pharmacy/stores/write";
 import { runPharmacyWrite } from "@/lib/pharmacy/write";
@@ -620,7 +621,8 @@ describe.skipIf(!laneOn)("The store (Step 4: S11–S17b)", () => {
       lane.db,
     ))!;
     const l3 = v.lines.find((l) => l.productId === products[3])!;
-    expect(l3).toMatchObject({ asked: 10, held: 150, prefill: 10, first: { batchNumber: "B-4" } });
+    expect(l3).toMatchObject({ asked: 10, held: 150, prefill: 10, cold: false });
+    expect(l3.stock[0]).toMatchObject({ batchNumber: "B-4" });
     const l5 = v.lines.find((l) => l.productId === products[5])!;
     // A line issued as zero needs its reason.
     const noReason = await write(iss.IssueRequisitionInput, iss.issueRequisition, {
@@ -761,11 +763,40 @@ describe.skipIf(!laneOn)("The store (Step 4: S11–S17b)", () => {
 
   it("rework scenario 3: one witness covers every controlled line of a delivery, and stock rises", async () => {
     const d = await delivery("DN-RW3");
-    ok(await line(d, 1, { productId: f.morphine, batchNumber: "RW3-A", expiry: FAR, noteQuantity: 5, accepted: 5 }));
-    ok(await line(d, 2, { productId: f.morphine, batchNumber: "RW3-B", expiry: FAR, noteQuantity: 4, accepted: 4 }));
-    ok(await line(d, 3, { productId: products[0], batchNumber: "RW3-C", expiry: FAR, noteQuantity: 6, accepted: 6 }));
+    ok(
+      await line(d, 1, {
+        productId: f.morphine,
+        batchNumber: "RW3-A",
+        expiry: FAR,
+        noteQuantity: 5,
+        accepted: 5,
+      }),
+    );
+    ok(
+      await line(d, 2, {
+        productId: f.morphine,
+        batchNumber: "RW3-B",
+        expiry: FAR,
+        noteQuantity: 4,
+        accepted: 4,
+      }),
+    );
+    ok(
+      await line(d, 3, {
+        productId: products[0],
+        batchNumber: "RW3-C",
+        expiry: FAR,
+        noteQuantity: 6,
+        accepted: 6,
+      }),
+    );
     const one = await witnessFor(f.pharmacist!);
-    ok(await receive(d, pharmacist(), [{ lineNo: 1, attestationId: one }, { lineNo: 2, attestationId: one }]));
+    ok(
+      await receive(d, pharmacist(), [
+        { lineNo: 1, attestationId: one },
+        { lineNo: 2, attestationId: one },
+      ]),
+    );
     const r = await pg.query<{ n: number }>(
       `SELECT coalesce(sum(m.quantity), 0)::int AS n FROM public.pharmacy_stock_movements m
          JOIN public.pharmacy_batches b ON b.id = m.batch_id WHERE b.batch_number IN ('RW3-A','RW3-B','RW3-C')`,
@@ -1031,5 +1062,48 @@ describe.skipIf(!laneOn)("The store (Step 4: S11–S17b)", () => {
         WHERE m.pair_id IS NOT NULL AND (SELECT count(*) FROM public.pharmacy_stock_movements o WHERE o.pair_id = m.pair_id) <> 2`,
     );
     expect(one_leg.n).toBe(0);
+  });
+
+  it("put-away (0272): a store batch goes on a shelf, leaves the list, and shows on the pick list", async () => {
+    const list = (await shelf.getPutAway(admin(f.pharmacist!), lane.db))!;
+    expect(list.length).toBeGreaterThan(0);
+    const b = list[0]!;
+    const put = await write(shelf.PutAwayInput, shelf.putAway, {
+      clientKey: randomUUID(),
+      batchId: b.batchId,
+      shelf: " a-02 ",
+    });
+    expect(put.ok).toBe(true);
+    const after = (await shelf.getPutAway(admin(f.pharmacist!), lane.db))!;
+    expect(after.find((r) => r.batchId === b.batchId)).toBeUndefined();
+    const saved = await pg.query(
+      `SELECT shelf FROM public.pharmacy_batch_shelves WHERE batch_id = $1`,
+      [b.batchId],
+    );
+    expect(saved.rows).toEqual([{ shelf: "A-02" }]);
+    // A bad name and a batch outside the store are refused; a shelf row is never changed.
+    const bad = await write(shelf.PutAwayInput, shelf.putAway, {
+      clientKey: randomUUID(),
+      batchId: b.batchId,
+      shelf: "<A>",
+    });
+    expect(bad.ok).toBe(false);
+    const [atPoint] = (
+      await pg.query<{ id: string }>(
+        `SELECT id FROM public.pharmacy_batches WHERE dispensing_point_id IS NOT NULL OR location_id IN
+           (SELECT id FROM public.pharmacy_locations WHERE kind <> 'store') LIMIT 1`,
+      )
+    ).rows;
+    if (atPoint) {
+      const away = await write(shelf.PutAwayInput, shelf.putAway, {
+        clientKey: randomUUID(),
+        batchId: atPoint.id,
+        shelf: "B-01",
+      });
+      expect(away.ok).toBe(false);
+    }
+    await expect(
+      pg.query(`UPDATE public.pharmacy_batch_shelves SET shelf = 'Z'`),
+    ).rejects.toThrow();
   });
 });

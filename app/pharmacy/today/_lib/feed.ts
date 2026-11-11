@@ -3,7 +3,6 @@ import "server-only";
 import type { TodayItem, TodayKind, TodayRole } from "@/lib/pharmacy/derive/today-types";
 import type { NeedsYouKind } from "@/lib/pharmacy/workspace-v2/needs-you";
 
-import { TODAY } from "@/content/pharmacy-rework-daily";
 import { fill } from "@/content/pharmacy-workspace-v2";
 import { PHWS2_NEEDS_YOU as N } from "@/content/pharmacy-workspace-v2-needs-you";
 import { requirePharmacyActor } from "@/lib/pharmacy/actor";
@@ -14,7 +13,6 @@ import { vaxTodayItems } from "@/lib/pharmacy/epi/read";
 import { pharmacyTiersFor } from "@/lib/pharmacy/feature";
 import { opTodayItems } from "@/lib/pharmacy/op/read";
 import { recordsTodayItems } from "@/lib/pharmacy/reports/today";
-import { countTab } from "@/lib/pharmacy/stores/count-sheet-read";
 import { marTodayItems } from "@/lib/pharmacy/wards/read";
 import { needsYouFor } from "../../_lib/needs-you";
 import { pharmacyV2 } from "../../_lib/v2";
@@ -44,10 +42,9 @@ export async function todayFeed(): Promise<{ role: TodayRole; items: TodayItem[]
   const h = actor.hospitalId;
   const tiers = pharmacyTiersFor(h);
   const none = Promise.resolve([] as TodayItem[]);
-  const [v2, manages, counts, ...areas] = await Promise.all([
+  const [v2, manages, ...areas] = await Promise.all([
     pharmacyV2(),
     managesPharmacy(actor.userId, h),
-    countTab(h),
     controlsTodayItems({ hospitalId: h, userId: actor.userId, station: actor.pointId }),
     coldTodayItems(h),
     opTodayItems(h),
@@ -74,17 +71,5 @@ export async function todayFeed(): Promise<{ role: TodayRole; items: TodayItem[]
       href: n.href,
       late: n.attention,
     }));
-  for (const s of counts.sheets) {
-    const run = s.status === "counting";
-    if (!run && s.status !== "approval") continue;
-    items.push({
-      kind: run ? "countrun" : "approve",
-      key: `count:${s.id}`,
-      title: fill(run ? TODAY.count.run : TODAY.count.approve, { label: s.label }),
-      meta: run ? TODAY.count.runMeta : TODAY.count.approveMeta,
-      action: run ? TODAY.count.continue : TODAY.count.review,
-      href: `/pharmacy/stock/store?tab=count&count=${s.id}`,
-    });
-  }
   return { role, items: [...items, ...areas.flat()] };
 }

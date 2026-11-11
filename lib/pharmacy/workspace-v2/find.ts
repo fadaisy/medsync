@@ -128,7 +128,7 @@ export function deliveryRows(
     group: "delivery",
     label: d.noteNumber,
     sub: fill(W.delivery, { supplier: d.supplier, place: d.placeName, at: dayTime.format(d.arrivedAt) }),
-    href: `/pharmacy/store/deliveries/${d.id}`,
+    href: `/pharmacy/stock/store?tab=receive&delivery=${d.id}`,
     mono: true,
   }));
 }

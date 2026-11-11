@@ -9,8 +9,8 @@ import { LabButton } from "@/components/tide/work/button";
 import { DialogTitle } from "@/components/ui/dialog";
 import { VACCINE_NAMES } from "@/content/pharmacy-rework-patients";
 import { RC } from "@/content/pharmacy-rework-records";
-import { addFridgeAction, setEpiClinicAction, setEpiVaccineAction } from "../actions";
-import { Chips } from "./roster";
+import { setEpiClinicAction, setEpiVaccineAction } from "../actions";
+import { Chips } from "./chips";
 
 const C = RC.setup.places.cold;
 type Place = { id: string; name: string };
@@ -91,96 +91,6 @@ function SetupDialog({
         </div>
       </EditorDialog>
     </>
-  );
-}
-
-/** A fridge: place, code and name; the sensor key is generated here and shown once after saving. */
-export function AddFridgeDialog({ places }: { places: Place[] }) {
-  const fresh = () => `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
-  const [key, setKey] = useState(() => crypto.randomUUID());
-  const [sensorKey, setSensorKey] = useState(fresh);
-  const [place, setPlace] = useState<string | null>(null);
-  const [code, setCode] = useState("");
-  const [name, setName] = useState("");
-  const [model, setModel] = useState("");
-  const [sensor, setSensor] = useState<string | null>("no");
-  return (
-    <SetupDialog
-      label={C.addFridge}
-      title={C.addFridgeTitle}
-      ready={!!place && !!code.trim() && name.trim().length >= 2}
-      after={
-        sensor === "yes" ? (
-          <div className="flex flex-col gap-2">
-            <p className="text-body-s">{C.sensorKey}</p>
-            <code className="bg-tide-sunken rounded-tide-field p-3 text-[13px] break-all select-all">
-              {sensorKey}
-            </code>
-          </div>
-        ) : undefined
-      }
-      onClosed={() => {
-        setKey(crypto.randomUUID());
-        setSensorKey(fresh());
-        setCode("");
-        setName("");
-        setModel("");
-      }}
-      save={() =>
-        addFridgeAction({
-          clientKey: key,
-          locationId: place,
-          code,
-          name,
-          model: model || null,
-          sensorKey: sensor === "yes" ? sensorKey : null,
-        })
-      }
-    >
-      <>
-        <Chips
-          label={C.place}
-          keys={places.map((p) => p.id)}
-          words={names(places)}
-          value={place}
-          set={setPlace}
-        />
-        <label className="flex flex-col gap-2">
-          <span className="text-body-s font-semibold">{C.code}</span>
-          <input
-            value={code}
-            maxLength={20}
-            onChange={(e) => setCode(e.target.value)}
-            className={field}
-          />
-        </label>
-        <label className="flex flex-col gap-2">
-          <span className="text-body-s font-semibold">{C.name}</span>
-          <input
-            value={name}
-            maxLength={120}
-            onChange={(e) => setName(e.target.value)}
-            className={field}
-          />
-        </label>
-        <label className="flex flex-col gap-2">
-          <span className="text-body-s font-semibold">{C.model}</span>
-          <input
-            value={model}
-            maxLength={120}
-            onChange={(e) => setModel(e.target.value)}
-            className={field}
-          />
-        </label>
-        <Chips
-          label={C.sensor}
-          keys={["no", "yes"]}
-          words={{ no: C.sensorNone, yes: C.sensorYes }}
-          value={sensor}
-          set={setSensor}
-        />
-      </>
-    </SetupDialog>
   );
 }
 

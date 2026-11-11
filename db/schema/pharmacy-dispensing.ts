@@ -75,6 +75,10 @@ export const pharmacyProducts = pgTable("pharmacy_products", {
   localProposalId: uuid("local_proposal_id"),
   /** Rework 0265: the controlled class from the signed list, so the ledger guard can tell a controlled batch. */
   controlledClass: text("controlled_class"),
+  /** 0276: Receive checks VVM and freeze on a vaccine; `ownCode` = the GTIN is our in-house 200… code; the shelf it lives on. */
+  vaccine: boolean("vaccine").notNull().default(false),
+  ownCode: boolean("own_code").notNull().default(false),
+  usualShelf: text("usual_shelf"),
   active: boolean("active").notNull().default(true),
   addedAtWindow: boolean("added_at_window").notNull().default(false),
   createdBy: uuid("created_by").notNull(),

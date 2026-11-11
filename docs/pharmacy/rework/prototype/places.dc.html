@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Set-up › Places</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f6f7f9}
+a{color:#0f766e}a:hover{color:#1b2540}
+button{cursor:pointer}
+button:disabled{cursor:default}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #0f766e;outline-offset:2px}
+.pl-row:hover{background:#fafbfc}
+.pl-head{display:grid}
+@media (max-width: 760px){.pl-head{display:none !important}.pl-cells{grid-template-columns:1fr 1fr !important}.pl-name{grid-column:1 / -1}}
+</style>
+</helmet>
+<div style="min-height: 2400px; background: #f6f7f9; color: #1b2540; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; display: flex; flex-wrap: wrap; gap: 24px; padding: 24px 20px; box-sizing: border-box">
+  <nav aria-label="Pharmacy" style="flex: 0 0 112px; align-self: flex-start; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); padding: 12px 8px; display: flex; flex-direction: column; gap: 4px">
+    <div style="width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 14px; background: #1b2540; color: #ffffff; display: grid; place-items: center; font-size: 16px; font-weight: 700">Rx</div>
+    <sc-for list="{{sections}}" as="s" hint-placeholder-count="7">
+      <a href="#" style="{{s.style}}">{{s.label}}</a>
+    </sc-for>
+  </nav>
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+    <h1 style="margin: 8px 0 0; font-size: 36px; line-height: 40px; font-weight: 500; letter-spacing: -0.03em">Set-up</h1>
+    <nav aria-label="Set-up" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: #e4e7ee; border-radius: 999px; align-self: flex-start">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+        <a href="{{t.href}}" aria-current="{{t.current}}" style="{{t.style}}">{{t.label}}</a>
+      </sc-for>
+    </nav>
+
+    <!-- Places grid -->
+    <section aria-label="Places" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Places that hold stock <span style="font-weight: 400; color: #5f6987">· {{placeCount}}</span></h2>
+          <p style="margin: 0; font-size: 13px; line-height: 17px; color: #5f6987">Each place has its own stock, counts and handover. People hand over only the place they are working at.</p>
+        </div>
+        <button type="button" onClick="{{addPlace}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px Figtree, sans-serif; box-shadow: 0 8px 22px -6px rgba(45,212,191,0.65)">Add a place</button>
+      </div>
+
+      <div role="group" aria-label="Rules for places" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+        <span style="margin-right: 2px; font-size: 12px; font-weight: 600; color: #5f6987">Rules</span>
+        <sc-for list="{{ruleGroups}}" as="rg" hint-placeholder-count="5">
+          <button type="button" aria-haspopup="dialog" aria-label="{{rg.badgeAria}}" onClick="{{rg.open}}" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 13px Figtree, sans-serif; white-space: nowrap">
+            {{rg.scope}} <span style="font-weight: 500; color: #5f6987">· {{rg.n}}</span>
+            <sc-if value="{{rg.hasIssue}}" hint-placeholder-val="{{false}}"><span style="{{rg.issueStyle}}">{{rg.issue}}</span></sc-if>
+            <sc-if value="{{rg.hasPending}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 600">{{rg.pendingN}} to sign</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+
+      <div role="group" aria-label="Places at a glance" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px">
+        <sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+          <button type="button" aria-pressed="{{k.on}}" onClick="{{k.pick}}" style="{{k.style}}">
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 500; color: #4a5574"><span aria-hidden="true" style="{{k.dot}}"></span>{{k.label}}</span>
+            <span style="font-size: 22px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums; color: #1b2540">{{k.value}}</span>
+            <span style="font-size: 11px; line-height: 14px; color: #5f6987">{{k.sub}}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div aria-label="Where stock comes from" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 10px 12px; border-radius: 14px; background: #f6f7f9; font-size: 13px">
+        <span style="font-size: 12px; font-weight: 600; color: #5f6987; margin-right: 2px">Stock flow</span>
+        <sc-for list="{{flow}}" as="fl" hint-placeholder-count="5">
+          <span style="{{fl.style}}">{{fl.label}}</span>
+          <sc-if value="{{fl.arrow}}" hint-placeholder-val="{{true}}"><span aria-hidden="true" style="color: #8a93ab; font-weight: 700">→</span></sc-if>
+          <sc-if value="{{fl.sep}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" style="width: 1px; height: 18px; background: #c5cbd8; margin: 0 4px"></span></sc-if>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+        <div role="group" aria-label="Kind" style="display: flex; flex-wrap: wrap; gap: 6px">
+          <sc-for list="{{kindChips}}" as="kc" hint-placeholder-count="6"><button type="button" aria-pressed="{{kc.on}}" onClick="{{kc.pick}}" style="{{kc.style}}">{{kc.label}}</button></sc-for>
+        </div>
+        <label style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5f6987" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input aria-label="Search places" placeholder="Search places" value="{{q}}" onChange="{{setQ}}" style="width: 12rem; height: 32px; border: 0; background: transparent; font: 400 14px Figtree, sans-serif; color: #1b2540">
+        </label>
+      </div>
+
+      <div style="overflow-x: auto">
+        <div style="min-width: 0">
+          <div class="pl-head" style="grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr); gap: 0 12px; padding: 0 8px">
+            <sc-for list="{{cols}}" as="c" hint-placeholder-count="6"><span style="padding: 8px 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6987">{{c}}</span></sc-for>
+          </div>
+          <sc-for list="{{rows}}" as="p" hint-placeholder-count="6">
+            <div style="border-top: 1px solid #dde1e9">
+              <div class="pl-row pl-cells" style="display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr); gap: 6px 12px; align-items: center; padding: 10px 8px; border-radius: 12px">
+                <span class="pl-name" style="display: flex; align-items: center; gap: 8px; min-width: 0">
+                  <button type="button" aria-expanded="{{p.openAttr}}" aria-label="{{p.openAria}}" onClick="{{p.toggle}}" style="display: inline-flex; align-items: center; gap: 8px; min-width: 0; padding: 4px 0; border: 0; background: transparent; text-align: left; font-family: Figtree, sans-serif; color: #1b2540">
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5f6987" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="{{p.chevStyle}}"><path d="m9 6 6 6-6 6"></path></svg>
+                    <span style="display: flex; flex-direction: column; min-width: 0">
+                      <span style="font-size: 15px; line-height: 20px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.name}}</span>
+                      <span style="font-size: 12px; line-height: 16px; color: #5f6987">{{p.kindLine}}</span>
+                    </span>
+                  </button>
+                  <sc-if value="{{p.closed}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #e4e7ee; color: #4a5574; font-size: 11px; font-weight: 700">CLOSED</span></sc-if>
+                </span>
+                <span style="font-size: 13px; color: #4a5574">{{p.from}}</span>
+                <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px">
+                  <span style="font-variant-numeric: tabular-nums; color: #4a5574">{{p.lines}}</span>
+                  <sc-for list="{{p.stockChips}}" as="sc" hint-placeholder-count="2"><span style="{{sc.style}}">{{sc.label}}</span></sc-for>
+                </span>
+                <span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px">
+                  <sc-for list="{{p.fridgeLines}}" as="fr" hint-placeholder-count="1"><span style="display: flex; align-items: center; gap: 6px"><span style="color: #4a5574">{{fr.id}}</span><span style="{{fr.style}}">{{fr.temp}}</span></span></sc-for>
+                  <sc-if value="{{p.noFridge}}" hint-placeholder-val="{{true}}"><span style="{{p.noFridgeStyle}}">{{p.noFridgeText}}</span></sc-if>
+                </span>
+                <span style="display: flex; flex-wrap: wrap; gap: 4px">
+                  <sc-for list="{{p.hoChips}}" as="hc" hint-placeholder-count="2"><span title="{{hc.tip}}" style="{{hc.style}}">{{hc.label}}</span></sc-for>
+                  <sc-if value="{{p.noHo}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f6987">No handover</span></sc-if>
+                </span>
+                <span style="display: flex; align-items: center">
+                  <sc-for list="{{p.faces}}" as="fc" hint-placeholder-count="2"><span title="{{fc.name}}" aria-label="{{fc.name}}" style="{{fc.style}}">{{fc.initials}}</span></sc-for>
+                  <sc-if value="{{p.noFaces}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f6987">Nobody now</span></sc-if>
+                </span>
+              </div>
+
+              <sc-if value="{{p.isOpen}}" hint-placeholder-val="{{false}}">
+                <div style="margin: 0 8px 14px 30px; padding: 14px 16px; border-radius: 16px; background: #f6f7f9; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px 20px">
+                  <!-- About -->
+                  <div style="display: flex; flex-direction: column; gap: 10px">
+                    <span style="font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5f6987">About</span>
+                    <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #4a5574">Name</span><input value="{{p.ed.name}}" onChange="{{p.setName}}" style="height: 38px; padding: 0 10px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"></label>
+                    <span style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+                      <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #4a5574">Kind</span>
+                        <select value="{{p.ed.kind}}" onChange="{{p.setKind}}" style="height: 38px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"><option>Store</option><option>Dispensing point</option><option>Ward</option><option>Clinic</option><option>Theatre</option></select></label>
+                      <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #4a5574">Open</span>
+                        <select value="{{p.ed.hours}}" onChange="{{p.setHours}}" style="height: 38px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"><option>24 hours</option><option>Day only, 08:00–17:00</option><option>Weekdays, 08:00–17:00</option></select></label>
+                    </span>
+                    <span style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+                      <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #4a5574">Supplied from</span>
+                        <select value="{{p.ed.from}}" onChange="{{p.setFrom}}" style="height: 38px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"><sc-for list="{{p.fromOpts}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for></select></label>
+                      <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #4a5574">Worked from</span>
+                        <select value="{{p.ed.device}}" onChange="{{p.setDevice}}" style="height: 38px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 10px; background: #ffffff; font: 400 14px Figtree, sans-serif; color: #1b2540"><option>Store desk</option><option>OPD station</option><option>Ward tablet</option><option>EPI tablet</option><option>Shared station</option></select></label>
+                    </span>
+                    <span style="{{p.devStyle}}">{{p.devLine}}</span>
+                    <sc-if value="{{p.isDisp}}" hint-placeholder-val="{{false}}">
+                      <span style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 12px; background: #ffffff">
+                        <span style="font-size: 12px; font-weight: 600; color: #4a5574">Billing at this point · from today</span>
+                        <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer"><input type="checkbox" checked="{{p.ed.free}}" onChange="{{p.toggleFree}}" style="width: 18px; height: 18px; margin: 0; accent-color: #0f766e"><span>Free point: every line here is billed as free</span></label>
+                        <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer"><input type="checkbox" checked="{{p.ed.pay}}" onChange="{{p.togglePay}}" style="width: 18px; height: 18px; margin: 0; accent-color: #0f766e"><span>Pay before collecting. An emergency or an admitted patient is never held.</span></label>
+                      </span>
+                    </sc-if>
+                  </div>
+                  <!-- Stock and handover -->
+                  <div style="display: flex; flex-direction: column; gap: 10px">
+                    <span style="font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5f6987">Stock here</span>
+                    <span style="font-size: 14px; line-height: 20px">{{p.stockLine}}</span>
+                    <sc-if value="{{p.hasShort}}" hint-placeholder-val="{{true}}">
+                      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px">
+                        <sc-for list="{{p.short}}" as="sh" hint-placeholder-count="3"><li style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px"><span>{{sh.name}}</span><span style="{{sh.style}}">{{sh.label}}</span></li></sc-for>
+                      </ul>
+                    </sc-if>
+                    <a href="Main.dc.html" style="align-self: flex-start; font-size: 13px; font-weight: 600">Open in Medicines</a>
+                    <span style="margin-top: 4px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5f6987">Handover</span>
+                    <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                      <sc-for list="{{p.slotChips}}" as="t" hint-placeholder-count="3"><button type="button" aria-pressed="{{t.on}}" onClick="{{t.toggle}}" style="{{t.style}}">{{t.label}}</button></sc-for>
+                    </span>
+                    <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px">
+                      <sc-for list="{{p.hoHist}}" as="hh" hint-placeholder-count="3"><li style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px; font-size: 12px; line-height: 16px"><span><b style="font-weight: 600">{{hh.when}}</b> · {{hh.who}}</span><span style="{{hh.style}}">{{hh.result}}</span></li></sc-for>
+                    </ul>
+                  </div>
+                  <!-- Cold chain and people -->
+                  <div style="display: flex; flex-direction: column; gap: 10px">
+                    <span style="font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5f6987">Cold chain</span>
+                    <sc-for list="{{p.fridgeCards}}" as="fc" hint-placeholder-count="1">
+                      <span style="display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #ffffff">
+                        <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px"><b style="font-size: 13px; font-weight: 600">{{fc.name}}</b><span style="{{fc.style}}">{{fc.temp}}</span></span>
+                        <span style="font-size: 12px; color: #5f6987">{{fc.sub}}</span>
+                        <sc-if value="{{fc.canRecord}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{fc.record}}" style="align-self: flex-start; height: 30px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Record a reading</button></sc-if>
+                      </span>
+                    </sc-for>
+                    <sc-if value="{{p.coldWarn}}" hint-placeholder-val="{{false}}"><span style="padding: 10px 12px; border-radius: 12px; background: #fef3c7; color: #92400e; font-size: 13px; line-height: 18px; font-weight: 600">{{p.coldWarnText}}</span></sc-if>
+                    <sc-if value="{{p.noColdNeed}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f6987">No fridge here, and no cold-chain medicines are kept here.</span></sc-if>
+                    <span style="margin-top: 4px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5f6987">On duty today</span>
+                    <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                      <sc-for list="{{p.people}}" as="pp" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 3px; border-radius: 999px; background: #ffffff; box-shadow: inset 0 0 0 1px #dde1e9; font-size: 12px"><span aria-hidden="true" style="{{pp.style}}">{{pp.initials}}</span>{{pp.name}} <span style="color: #5f6987">· {{pp.shift}}</span></span></sc-for>
+                      <sc-if value="{{p.noFaces}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f6987">Nobody rostered.</span></sc-if>
+                    </span>
+                    <a href="People.dc.html" style="align-self: flex-start; font-size: 13px; font-weight: 600">Open the roster</a>
+                  </div>
+                  <!-- Footer -->
+                  <div style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-top: 12px; border-top: 1px solid #dde1e9">
+                    <span style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+                      <button type="button" onClick="{{p.toggleClose}}" style="height: 40px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 14px Figtree, sans-serif">{{p.closeLabel}}</button>
+                      <sc-if value="{{p.hasError}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; font-weight: 600; color: #9f1d1d">{{p.error}}</span></sc-if>
+                    </span>
+                    <span style="display: flex; gap: 8px">
+                      <button type="button" onClick="{{p.cancel}}" style="height: 40px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 14px Figtree, sans-serif">Cancel</button>
+                      <button type="button" onClick="{{p.save}}" style="height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 14px Figtree, sans-serif">Save changes</button>
+                    </span>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{noRows}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 16px 8px; border-top: 1px solid #dde1e9; font-size: 14px; color: #5f6987">No places match. <button type="button" onClick="{{clearFilters}}" style="padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 14px Figtree, sans-serif; text-decoration: underline">Show all</button></p></sc-if>
+        </div>
+      </div>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 16px; align-items: start">
+      <!-- Cold chain -->
+      <section aria-label="Cold chain" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 12px; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 12px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <h2 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 24px; font-weight: 600">Cold chain <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #166534"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 999px; background: #16a34a"></span>Live</span></h2>
+            <p style="margin: 0; font-size: 13px; line-height: 17px; color: #5f6987">2–8 °C. Sensors report every 15 minutes; fridges without one are typed at 08:00 and 17:00.</p>
+          </div>
+          <button type="button" onClick="{{addFridge}}" style="height: 40px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 15px Figtree, sans-serif; white-space: nowrap">Add a fridge</button>
+        </div>
+        <ul style="list-style: none; margin: 0; padding: 0">
+          <sc-for list="{{fridges}}" as="f" hint-placeholder-count="3">
+            <li style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid #dde1e9">
+              <span style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px">
+                <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                  <span style="font-size: 15px; line-height: 21px; font-weight: 600">{{f.name}}</span>
+                  <span style="font-size: 13px; line-height: 17px; color: #5f6987">{{f.where}}</span>
+                </span>
+                <span style="display: flex; align-items: center; gap: 8px">
+                  <span style="font-size: 22px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">{{f.temp}}</span>
+                  <span style="{{f.stStyle}}">{{f.st}}</span>
+                </span>
+              </span>
+              <span aria-hidden="true" style="position: relative; display: block; height: 8px; border-radius: 999px; background: linear-gradient(90deg, #fde2e1 0 13%, #fef3c7 13% 19%, #dcfce7 19% 81%, #fef3c7 81% 87%, #fde2e1 87% 100%)"><span style="{{f.markStyle}}"></span></span>
+              <span style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; font-size: 12px; color: #4a5574">
+                <span>{{f.stats}}</span>
+                <span style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+                  <sc-for list="{{f.due}}" as="du" hint-placeholder-count="2"><span style="{{du.style}}">{{du.label}}</span></sc-for>
+                  <sc-if value="{{f.canRecord}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{f.record}}" style="height: 30px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Record a reading</button></sc-if>
+                  <button type="button" onClick="{{f.act}}" aria-label="{{f.actAria}}" style="{{f.actStyle}}">{{f.actLabel}}</button>
+                  <label style="display: inline-flex; align-items: center; gap: 4px">Kept at
+                    <select aria-label="{{f.moveAria}}" value="{{f.placeId}}" onChange="{{f.move}}" style="height: 30px; padding: 0 6px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 600 12px Figtree, sans-serif; color: #1b2540">
+                      <option value="">Not placed</option>
+                      <sc-for list="{{placeOpts}}" as="o" hint-placeholder-count="6"><option value="{{o.v}}">{{o.label}}</option></sc-for>
+                    </select>
+                  </label>
+                </span>
+              </span>
+              <sc-if value="{{f.hasExc}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; line-height: 16px; color: #92400e; font-weight: 600">{{f.exc}}</span></sc-if>
+            </li>
+          </sc-for>
+        </ul>
+      </section>
+
+      <!-- Suppliers -->
+      <section aria-label="Suppliers" style="background: #ffffff; border-radius: 22px; box-shadow: 0 1px 2px rgba(27,37,64,0.06), 0 10px 24px -14px rgba(27,37,64,0.22); padding: 16px 20px 12px; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 12px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Suppliers</h2>
+            <p style="margin: 0; font-size: 13px; line-height: 17px; color: #5f6987">The order builder uses the cycle, the lead time and the budget.</p>
+          </div>
+          <button type="button" onClick="{{addSupplier}}" style="height: 40px; padding: 0 16px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 15px Figtree, sans-serif; white-space: nowrap">Add a supplier</button>
+        </div>
+        <ul style="list-style: none; margin: 0; padding: 0">
+          <sc-for list="{{suppliers}}" as="s" hint-placeholder-count="3">
+            <li style="display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-top: 1px solid #dde1e9">
+              <span style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px">
+                <span style="display: flex; align-items: center; gap: 8px"><span style="font-size: 15px; line-height: 21px; font-weight: 600">{{s.name}}</span><sc-if value="{{s.hasDue}}" hint-placeholder-val="{{false}}"><span style="{{s.dueStyle}}">{{s.due}}</span></sc-if></span>
+                <span style="display: flex; align-items: center; gap: 6px">
+                  <sc-if value="{{s.hasTel}}" hint-placeholder-val="{{false}}"><a href="{{s.tel}}" style="display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; color: #1b2540; font-size: 12px; font-weight: 600; text-decoration: none">Call</a></sc-if>
+                  <button type="button" aria-label="{{s.editLabel}}" onClick="{{s.edit}}" style="height: 30px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Edit</button>
+                </span>
+              </span>
+              <span style="font-size: 13px; line-height: 17px; color: #4a5574">{{s.what}}</span>
+              <span style="font-size: 12px; line-height: 16px; color: #5f6987; font-variant-numeric: tabular-nums">{{s.terms}}</span>
+              <sc-if value="{{s.hasBudget}}" hint-placeholder-val="{{false}}">
+                <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #4a5574; font-variant-numeric: tabular-nums">
+                  <span aria-hidden="true" style="flex: 1 1 auto; height: 8px; border-radius: 999px; background: #eef0f4; overflow: hidden"><span style="{{s.barStyle}}"></span></span>
+                  <span style="white-space: nowrap">{{s.budget}}</span>
+                </span>
+              </sc-if>
+              <span style="font-size: 12px; color: #5f6987">{{s.contact}}</span>
+            </li>
+          </sc-for>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <!-- Add place -->
+  <sc-if value="{{addOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="Add a place" style="width: 600px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <h2 style="margin: 0; padding: 20px 24px 8px; font-size: 22px; line-height: 28px; font-weight: 600">Add a place</h2>
+        <div style="padding: 8px 24px 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px">
+          <label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Name</span><input value="{{ad.name}}" onChange="{{setAdName}}" placeholder="e.g. Ward 5 · Surgical" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540"></label>
+          <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Kind</span>
+            <select value="{{ad.kind}}" onChange="{{setAdKind}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option>Store</option><option>Dispensing point</option><option>Ward</option><option>Clinic</option><option>Theatre</option></select></label>
+          <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Open</span>
+            <select value="{{ad.hours}}" onChange="{{setAdHours}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option>24 hours</option><option>Day only, 08:00–17:00</option><option>Weekdays, 08:00–17:00</option></select></label>
+          <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Supplied from</span>
+            <select value="{{ad.from}}" onChange="{{setAdFrom}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><sc-for list="{{ad.fromOpts}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for></select></label>
+          <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: #4a5574">Worked from</span>
+            <select value="{{ad.device}}" onChange="{{setAdDevice}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; background: #ffffff; font: 400 15px Figtree, sans-serif; color: #1b2540"><option>Store desk</option><option>OPD station</option><option>Ward tablet</option><option>EPI tablet</option><option>Shared station</option></select></label>
+          <p style="grid-column: 1 / -1; margin: 0; font-size: 13px; line-height: 18px; color: #5f6987">{{ad.hint}}</p>
+          <sc-if value="{{ad.hasError}}" hint-placeholder-val="{{false}}"><p role="alert" style="grid-column: 1 / -1; margin: 0; padding: 10px 14px; border-radius: 14px; background: #e4e7ee; font-size: 14px; font-weight: 600">{{ad.error}}</p></sc-if>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 24px; border-top: 1px solid #dde1e9">
+          <button type="button" onClick="{{closeDlg}}" style="height: 44px; padding: 0 18px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 16px Figtree, sans-serif">Cancel</button>
+          <button type="button" onClick="{{saveAdd}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px Figtree, sans-serif">Add place</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Generic form dialog (fridge, sensor, supplier, reading) -->
+  <sc-if value="{{simpleDlg}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="{{sd.title}}" style="width: 560px; max-width: 100%; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="padding: 20px 24px 8px; display: flex; flex-direction: column; gap: 4px">
+          <h2 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">{{sd.title}}</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 20px; color: #4a5574">{{sd.lead}}</p>
+        </div>
+        <div style="padding: 8px 24px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px 16px">
+          <sc-for list="{{sd.fields}}" as="f" hint-placeholder-count="2">
+            <label style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 13px; font-weight: 600; color: #4a5574">{{f.label}}</span>
+              <input type="{{f.type}}" inputmode="{{f.mode}}" value="{{f.value}}" onChange="{{f.set}}" placeholder="{{f.ph}}" style="height: 44px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 12px; font: 400 15px Figtree, sans-serif; color: #1b2540">
+            </label>
+          </sc-for>
+          <sc-if value="{{sd.hasNote}}" hint-placeholder-val="{{false}}"><p style="grid-column: 1 / -1; margin: 0; padding: 10px 14px; border-radius: 14px; background: #fde2e1; color: #9f1d1d; font-size: 13px; font-weight: 600">{{sd.note}}</p></sc-if>
+          <sc-if value="{{sd.hasError}}" hint-placeholder-val="{{false}}"><p role="alert" style="grid-column: 1 / -1; margin: 0; padding: 10px 14px; border-radius: 14px; background: #e4e7ee; font-size: 14px; font-weight: 600">{{sd.error}}</p></sc-if>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 24px; border-top: 1px solid #dde1e9">
+          <button type="button" onClick="{{closeDlg}}" style="height: 44px; padding: 0 18px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 16px Figtree, sans-serif">Cancel</button>
+          <button type="button" onClick="{{saveSimple}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 16px Figtree, sans-serif">{{sd.save}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Rules dialog -->
+  <sc-if value="{{ruleDlgOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: fixed; inset: 0; z-index: 10; background: rgba(27,37,64,0.45); overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 64px 16px; box-sizing: border-box">
+      <div role="dialog" aria-modal="true" aria-label="{{ruleDlgTitle}}" style="width: 600px; max-width: 100%; background: #f6f7f9; border-radius: 28px; box-shadow: 0 2px 6px rgba(27,37,64,0.08), 0 16px 36px -12px rgba(27,37,64,0.32); display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px 8px">
+          <h2 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 600">{{ruleDlgTitle}}</h2>
+          <button type="button" aria-label="Close" onClick="{{closeRuleDlg}}" style="width: 40px; height: 40px; border: 0; border-radius: 12px; background: #ffffff; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1b2540" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        </div>
+        <div style="padding: 4px 20px 12px">
+          <sc-for list="{{ruleDlgList}}" as="rg" hint-placeholder-count="1">
+            <div style="background: #ffffff; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px"><span style="font-size: 14px; line-height: 19px; font-weight: 600">{{rg.scope}}</span><span style="font-size: 12px; color: #5f6987; white-space: nowrap">{{rg.affects}}</span></div>
+              <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 18px; color: #4a5574">
+                <sc-for list="{{rg.rules}}" as="r" hint-placeholder-count="3">
+                  <li>
+                    <span style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px"><span>{{r.t}}</span><sc-if value="{{r.idle}}" hint-placeholder-val="{{true}}"><button type="button" aria-label="{{r.changeAria}}" onClick="{{r.change}}" style="height: 24px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Change</button></sc-if></span>
+                    <sc-if value="{{r.editing}}" hint-placeholder-val="{{false}}">
+                      <span style="display: flex; flex-direction: column; gap: 6px; margin: 6px 0 4px; padding: 8px; border-radius: 10px; background: #f6f7f9">
+                        <input aria-label="New wording" value="{{r.ev}}" onChange="{{r.setV}}" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                        <input aria-label="Why the change" placeholder="Why the change" value="{{r.er}}" onChange="{{r.setR}}" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid #c5cbd8; border-radius: 8px; background: #ffffff; font: 400 13px Figtree, sans-serif; color: #1b2540; box-sizing: border-box">
+                        <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                          <button type="button" onClick="{{r.save}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #2dd4bf; color: #1b2540; font: 600 12px Figtree, sans-serif">Send for signing</button>
+                          <button type="button" onClick="{{r.cancel}}" style="height: 32px; padding: 0 12px; border: 1px solid #c5cbd8; border-radius: 999px; background: #ffffff; color: #1b2540; font: 600 12px Figtree, sans-serif">Cancel</button>
+                        </span>
+                      </span>
+                    </sc-if>
+                    <sc-if value="{{r.pending}}" hint-placeholder-val="{{false}}">
+                      <span style="display: flex; flex-direction: column; gap: 4px; margin: 6px 0 4px; padding: 8px; border-radius: 10px; background: #f6f7f9; color: #1b2540">
+                        <span style="font-size: 12px; line-height: 16px"><b>Proposed:</b> {{r.pv}}</span>
+                        <span style="font-size: 11px; line-height: 15px; color: #4a5574">Why: {{r.pr}} · applies once both have signed</span>
+                        <span style="display: flex; flex-wrap: wrap; gap: 6px">
+                          <sc-for list="{{r.signers}}" as="sg" hint-placeholder-count="2"><button type="button" disabled="{{sg.done}}" onClick="{{sg.sign}}" style="{{sg.style}}">{{sg.label}}</button></sc-for>
+                          <button type="button" onClick="{{r.withdraw}}" style="height: 28px; padding: 0 4px; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">Withdraw</button>
+                        </span>
+                      </span>
+                    </sc-if>
+                  </li>
+                </sc-for>
+              </ul>
+              <sc-if value="{{rg.canAdd}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{rg.add}}" style="align-self: flex-start; height: 28px; padding: 0; border: 0; background: transparent; color: #0f766e; font: 600 12px Figtree, sans-serif; text-decoration: underline">+ Add a rule here</button></sc-if>
+              <sc-if value="{{rg.hasNow}}" hint-placeholder-val="{{false}}">
+                <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 6px; border-top: 1px solid #dde1e9">
+                  <span style="font-size: 12px; font-weight: 700; color: #4a5574">Right now</span>
+                  <sc-for list="{{rg.now}}" as="nw" hint-placeholder-count="2"><span style="font-size: 12px; line-height: 16px; color: #1b2540">{{nw}}</span></sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin: 0; padding: 12px 20px 18px; border-top: 1px solid #dde1e9; font-size: 12px; line-height: 16px; color: #5f6987">A change applies once the in-charge and a second signer sign. <a href="Rules.dc.html" style="font-weight: 600">See all rules</a></p>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 20; padding: 12px 20px; border-radius: 999px; background: #1b2540; color: #ffffff; font-size: 15px; font-weight: 500; box-shadow: 0 10px 24px -10px rgba(27,37,64,0.5)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var P = function (o) { return Object.assign({ slots: ['08:00', '17:00'], fridges: [], free: false, pay: false, closed: false, hours: '24 hours', from: 'store' }, o); };
+    this.RRULES = [
+      { id: 'handover', scope: 'Handover', affects: 'Every place with handover times', rules: ['Each place hands over at its set times', 'Controlled and high-risk medicines are counted blind', 'A handover not started 30 minutes after its time is marked missed and the in-charge is told', 'Both people sign; a difference opens a case'] },
+      { id: 'cold', scope: 'Cold chain', affects: 'Every fridge', rules: ['Fridges are kept at 2–8 °C', 'Within 0.5 °C of a limit shows as near the limit', 'Without a sensor, readings are typed at 08:00 and 17:00', 'A reading outside 2–8 °C opens an excursion and needs a note on what was done', 'A cold-chain medicine kept where there is no fridge is flagged here and on Medicines'] },
+      { id: 'billing', scope: 'Billing', affects: 'Dispensing points', rules: ['A free point bills every line as free', 'Pay before collecting never holds an emergency or an admitted patient', 'Billing changes apply from today and are logged'] },
+      { id: 'supply', scope: 'Supply', affects: 'Every place', rules: ['Wards and dispensing points are topped up from the Main store', 'The Main store orders from NMS each cycle and from JMS between cycles', 'Vaccines come from UNEPI straight to the EPI clinic', 'An order is due 7 days before the cycle date, allowing for the lead time'] },
+      { id: 'places', scope: 'Opening and closing', affects: 'Every place', rules: ['A place can be closed only when it holds no stock and has no handover open', 'A closed place keeps its history and can be reopened'] }
+    ];
+    this.state = {
+      places: [
+        P({ id: 'store', name: 'Main store', kind: 'Store', device: 'Store desk', hours: 'Weekdays, 08:00–17:00', from: 'NMS, JMS', slots: ['08:00', '17:00'], fridges: ['CR-01'], stock: { lines: 186, low: 4, out: 0, value: 61400000 }, short: [['Ceftriaxone 1 g injection', 'Low'], ['Amoxicillin 250 mg/5 mL suspension', 'Low'], ['Metformin 500 mg tablet', 'Low']], cold: [], seen: 2 }),
+        P({ id: 'opd', name: 'OPD dispensary', kind: 'Dispensing point', device: 'OPD station', hours: 'Day only, 08:00–17:00', slots: ['08:00', '17:00'], stock: { lines: 94, low: 6, out: 2, value: 8900000 }, short: [['Artemether-lumefantrine 20/120 mg tablet', 'Out'], ['Paracetamol 500 mg tablet', 'Out'], ['Amlodipine 5 mg tablet', 'Low']], cold: ['Insulin (soluble) 100 IU/mL'], seen: 1 }),
+        P({ id: 'w3', name: 'Ward 3 · Medical', kind: 'Ward', device: 'Ward tablet', slots: ['08:00', '17:00', '20:00'], stock: { lines: 58, low: 3, out: 1, value: 4100000 }, short: [['Morphine 10 mg/mL injection', 'Low'], ['Furosemide 40 mg tablet', 'Out']], cold: ['Insulin (soluble) 100 IU/mL'], seen: 220 }),
+        P({ id: 'mat', name: 'Maternity', kind: 'Ward', device: 'Ward tablet', slots: ['08:00', '17:00'], fridges: ['RF-02'], stock: { lines: 47, low: 2, out: 0, value: 3600000 }, short: [['Oxytocin 10 IU/mL injection', 'Low'], ['Magnesium sulfate 50% injection', 'Low']], cold: ['Oxytocin 10 IU/mL injection'], seen: 4 }),
+        P({ id: 'paed', name: 'Paediatrics', kind: 'Ward', device: 'Ward tablet', slots: ['08:00', '17:00'], stock: { lines: 52, low: 1, out: 0, value: 2800000 }, short: [['Artesunate 60 mg injection', 'Low']], cold: [], seen: 9 }),
+        P({ id: 'epi', name: 'EPI clinic', kind: 'Clinic', device: 'EPI tablet', hours: 'Weekdays, 08:00–17:00', from: 'UNEPI', slots: ['08:00'], fridges: ['RF-03'], stock: { lines: 14, low: 0, out: 0, value: 0 }, short: [], cold: ['BCG vaccine', 'bOPV', 'Measles-rubella vaccine'], seen: 35 }),
+        P({ id: 'oldth', name: 'Old theatre store', kind: 'Theatre', device: 'Shared station', hours: 'Day only, 08:00–17:00', slots: [], stock: { lines: 0, low: 0, out: 0, value: 0 }, short: [], cold: [], closed: true, closedNote: 'Closed 14 Aug 2026 by Grace Namutebi · theatre moved to the new block', seen: 99999 })
+      ],
+      handovers: {
+        store: [['3 Nov', '08:00', 'Grace Namutebi → Prossy Nakato', 'done', '08:06', 0], ['2 Nov', '17:00', 'Brian Okello → Grace Namutebi', 'done', '17:03', 0], ['2 Nov', '08:00', 'Moses Wanyama → Brian Okello', 'done', '08:11', 0]],
+        opd: [['3 Nov', '08:00', 'Brian Okello → Joseph Ssemakula', 'done', '08:12', 1], ['2 Nov', '17:00', 'Esther Achieng → Brian Okello', 'done', '17:20', 0], ['2 Nov', '08:00', 'Joseph Ssemakula → Esther Achieng', 'done', '08:04', 0]],
+        w3: [['3 Nov', '08:00', 'Ruth Nansubuga → Sarah Akello', 'missed', '', 0], ['2 Nov', '20:00', 'Peter Mugisha → Ruth Nansubuga', 'done', '20:09', 0], ['2 Nov', '17:00', 'Sarah Akello → Peter Mugisha', 'done', '17:05', 0]],
+        mat: [['3 Nov', '08:00', 'Florence Adong → Harriet Nalwoga', 'done', '08:02', 0], ['2 Nov', '17:00', 'Juliet Kyomugisha → Florence Adong', 'done', '17:10', 0]],
+        paed: [['3 Nov', '08:00', 'Rebecca Nabirye → Brenda Akot', 'done', '08:07', 0], ['2 Nov', '17:00', 'Christine Auma → Rebecca Nabirye', 'done', '17:14', 2]],
+        epi: [['3 Nov', '08:00', 'Margaret Nakimuli (opening count)', 'done', '07:58', 0]],
+        oldth: []
+      },
+      duty: {
+        store: [['Grace Namutebi', 'Day'], ['Prossy Nakato', 'Day'], ['Joseph Ssemakula', 'On call']],
+        opd: [['Joseph Ssemakula', 'Day'], ['Esther Achieng', 'Day']],
+        w3: [['Sarah Akello', 'Day'], ['Ruth Nansubuga', 'Day'], ['Dr Samuel Kato', 'On call']],
+        mat: [['Harriet Nalwoga', 'Day'], ['Florence Adong', 'Day'], ['Dr Patience Ainembabazi', 'On call']],
+        paed: [['Brenda Akot', 'Day'], ['Ivan Tumusiime', 'Day']],
+        epi: [['Margaret Nakimuli', 'Day']],
+        oldth: []
+      },
+      fridges: [
+        { id: 'CR-01', name: 'Main store cold room', sensor: 'SN-44A1', temp: 4.6, min: 4.1, max: 5.2, at: '', typed: {}, exc: [] },
+        { id: 'RF-02', name: 'Maternity ice-lined fridge', sensor: 'SN-44B7', temp: 5.3, min: 4.8, max: 6.0, at: '', typed: {}, exc: ['8.6 °C for 40 min on 31 Oct · door left open · checked by Harriet Nalwoga'] },
+        { id: 'RF-03', name: 'EPI solar fridge', sensor: '', temp: 6.1, min: 6.1, max: 6.1, at: '08:00', typed: { '08:00': [6.1, 'Margaret Nakimuli'] }, exc: [] }
+      ],
+      suppliers: [
+        { name: 'NMS', what: 'National Medical Stores · main supply, on the cycle', cycle: 2, next: '2026-11-16', lead: 21, budget: 48000000, used: 31200000, period: 'this cycle', contact: 'Account manager', phone: '' },
+        { name: 'JMS', what: 'Joint Medical Store · top-ups between NMS cycles', cycle: 0, next: '', lead: 7, budget: 12000000, used: 7450000, period: 'this quarter', contact: 'Sales desk', phone: '' },
+        { name: 'UNEPI', what: 'Vaccines and diluents for the EPI clinic, through the district', cycle: 1, next: '2026-11-30', lead: 5, budget: 0, used: 0, period: '', contact: 'District cold chain officer', phone: '' }
+      ],
+      open: '', edit: {}, kindF: 'All', tile: '', q: '', add: null, sd: null, toast: '',
+      ruleDlg: '', ruleEdit: null, pend: {}, rrules: this.RRULES.map(function (g) { return Object.assign({}, g, { rules: g.rules.slice() }); })
+    };
+  }
+  componentDidMount() {
+    var self = this;
+    this._live = setInterval(function () {
+      var now = new Date(), hm = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+      self.setState({ fridges: self.state.fridges.map(function (f) {
+        if (!f.sensor) return f;
+        var t = Math.round(Math.min(7.95, Math.max(2.1, f.temp + (Math.random() - 0.5) * 0.3)) * 10) / 10;
+        return Object.assign({}, f, { temp: t, min: Math.min(f.min, t), max: Math.max(f.max, t), at: hm });
+      }) });
+    }, 4000);
+  }
+  flash(msg) { var self = this; this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(function () { self.setState({ toast: '' }); }, 3200); }
+  componentWillUnmount() { clearTimeout(this._t); clearInterval(this._live); }
+  avatar(name, size) {
+    var nm = String(name || '?').replace(/^Dr\.?\s+/, '').trim(), parts = nm.split(/\s+/);
+    var ini = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : nm.slice(0, 2);
+    var TINTS = [['#ccfbf1', '#0f766e'], ['#dbeafe', '#1e40af'], ['#fde2e1', '#9f1d1d'], ['#fef3c7', '#92400e'], ['#ede9fe', '#5b21b6'], ['#dcfce7', '#166534']];
+    var h = 0; for (var i = 0; i < nm.length; i++) h = (h * 31 + nm.charCodeAt(i)) % 997;
+    var t = TINTS[h % TINTS.length];
+    return { initials: ini.toUpperCase(), style: 'flex:0 0 ' + size + 'px;width:' + size + 'px;height:' + size + 'px;border-radius:999px;display:inline-grid;place-items:center;font-size:' + Math.max(9, Math.round(size * 0.4)) + 'px;font-weight:700;box-shadow:0 0 0 2px #ffffff;background:' + t[0] + ';color:' + t[1] };
+  }
+  renderVals() {
+    var self = this, s = this.state, set = function (p) { self.setState(p); };
+    var base = 'display:block;padding:10px 8px;border-radius:14px;text-align:center;font-size:13px;line-height:17px;font-weight:500;text-decoration:none;';
+    var pill = 'display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;font-size:15px;font-weight:600;text-decoration:none;';
+    var chip = function (bg, fg) { return 'display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;background:' + bg + ';color:' + fg; };
+    var C = { ok: ['#dcfce7', '#166534'], low: ['#fef3c7', '#92400e'], out: ['#fde2e1', '#9f1d1d'], over: ['#dbeafe', '#1e40af'], grey: ['#e4e7ee', '#4a5574'], teal: ['#ccfbf1', '#0f766e'] };
+    var onS = 'border:0;background:#ccfbf1;color:#1b2540', offS = 'border:1px solid #c5cbd8;background:#ffffff;color:#4a5574';
+    var TODAY = '2026-11-03', NOW = new Date(), nowMin = NOW.getHours() * 60 + NOW.getMinutes();
+    var toMin = function (t) { return +t.slice(0, 2) * 60 + +t.slice(3, 5); };
+    var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var fmtD = function (iso) { return +iso.slice(8, 10) + ' ' + MON[+iso.slice(5, 7) - 1]; };
+    var daysTo = function (iso) { return Math.round((Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) - Date.UTC(2026, 10, 3)) / 864e5); };
+    var ugx = function (n) { return n >= 1e6 ? 'UGX ' + (Math.round(n / 1e5) / 10) + ' m' : 'UGX ' + n.toLocaleString('en-GB'); };
+    var fState = function (t) { return t < 2 || t > 8 ? 'out' : (t < 2.5 || t > 7.5) ? 'near' : 'ok'; };
+    var FST = { ok: ['In range', C.ok], near: ['Near limit', C.low], out: ['Out of range', C.out] };
+    var fridgeById = {}; s.fridges.forEach(function (f) { fridgeById[f.id] = f; });
+    var placeById = {}; s.places.forEach(function (p) { placeById[p.id] = p; });
+    var placeOfFridge = function (fid) { return s.places.filter(function (p) { return p.fridges.indexOf(fid) >= 0; })[0] || null; };
+    var stores = s.places.filter(function (p) { return p.kind === 'Store' && !p.closed; });
+    var fromLabel = function (v) { return v === 'store' ? (stores[0] ? stores[0].name : 'Main store') : v; };
+    var fromOpts = [{ v: 'store', label: 'Main store' }, { v: 'NMS, JMS', label: 'NMS, JMS (direct)' }, { v: 'UNEPI', label: 'UNEPI (direct)' }, { v: 'JMS', label: 'JMS (direct)' }];
+    // handover today per slot
+    var hoToday = function (p) {
+      var hist = s.handovers[p.id] || [];
+      return p.slots.map(function (t) {
+        var h = hist.filter(function (x) { return x[0] === '3 Nov' && x[1] === t; })[0];
+        var st = h ? h[3] : (nowMin >= toMin(t) + 30 ? 'missed' : nowMin >= toMin(t) ? 'now' : 'due');
+        var label = st === 'done' ? t + ' ✓' : st === 'missed' ? t + ' missed' : st === 'now' ? t + ' now' : t + ' due';
+        var col = st === 'done' ? (h && h[5] ? C.low : C.ok) : st === 'missed' ? C.out : st === 'now' ? C.over : C.grey;
+        var tip = h ? (h[2] + (h[4] ? ' · at ' + h[4] : '') + (h[5] ? ' · ' + h[5] + (h[5] === 1 ? ' difference' : ' differences') : ' · no differences')) : st === 'missed' ? 'Not started 30 minutes after ' + t : 'Due at ' + t;
+        return { t: t, st: st, label: label + (h && h[5] ? ' · ' + h[5] + ' diff' : ''), tip: tip, style: chip(col[0], col[1]) };
+      });
+    };
+    // rules
+    var mkRule = function (key, shown, raw, applyNew) {
+      var ed = s.ruleEdit && s.ruleEdit.key === key ? s.ruleEdit : null, pd = s.pend[key];
+      var updE = function (patch) { set({ ruleEdit: Object.assign({}, self.state.ruleEdit, patch) }); };
+      return { t: shown, idle: !ed && !pd, editing: !!ed, pending: !!pd, ev: ed ? ed.v : '', er: ed ? ed.r : '', pv: pd ? pd.v : '', pr: pd ? pd.r : '', changeAria: 'Change: ' + shown,
+        change: function () { set({ ruleEdit: { key: key, v: raw, r: '' } }); },
+        setV: function (ev) { updE({ v: ev.target.value }); }, setR: function (ev) { updE({ r: ev.target.value }); },
+        cancel: function () { set({ ruleEdit: null }); },
+        save: function () {
+          var x = self.state.ruleEdit;
+          if (!x.v.trim() || x.v.trim() === raw) { self.flash('Type the new wording first.'); return; }
+          if (!x.r.trim()) { self.flash('Say why, so the signers can decide.'); return; }
+          var pp = Object.assign({}, self.state.pend); pp[key] = { v: x.v.trim(), r: x.r.trim(), a: false, b: false }; set({ pend: pp, ruleEdit: null }); self.flash('Sent for signing');
+        },
+        withdraw: function () { var pp = Object.assign({}, self.state.pend); delete pp[key]; set({ pend: pp }); self.flash('Proposal withdrawn'); },
+        signers: pd ? [['a', 'In-charge'], ['b', 'Second signer']].map(function (sg) {
+          var done = !!pd[sg[0]];
+          return { label: done ? sg[1] + ' signed' : 'Sign as ' + sg[1].toLowerCase(), done: done, style: 'height:28px;padding:0 10px;border-radius:999px;font:600 12px Figtree,sans-serif;' + (done ? 'border:0;background:#ccfbf1;color:#1b2540' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+            sign: function () { var pp = Object.assign({}, self.state.pend), q2 = Object.assign({}, pp[key]); q2[sg[0]] = true; if (q2.a && q2.b) { delete pp[key]; set({ pend: pp }); applyNew(q2.v); self.flash('Both signed. The rule now reads: ' + q2.v); } else { pp[key] = q2; set({ pend: pp }); self.flash('Signed. Waiting for the other signer.'); } } };
+        }) : [] };
+    };
+    var openPlaces = s.places.filter(function (p) { return !p.closed; });
+    var missed = [], coldIssues = [], due = [], noFridge = [];
+    openPlaces.forEach(function (p) {
+      hoToday(p).forEach(function (h) { if (h.st === 'missed') missed.push(p.name + ': ' + h.t + ' handover not started'); });
+      if (p.cold.length && !p.fridges.length) noFridge.push(p.name + ': ' + p.cold.join(', ') + ' kept with no fridge');
+    });
+    s.fridges.forEach(function (f) {
+      var st = fState(f.temp); if (st !== 'ok') coldIssues.push(f.id + ': ' + f.temp.toFixed(1) + ' °C, ' + FST[st][0].toLowerCase());
+      if (!f.sensor) ['08:00', '17:00'].forEach(function (t) { if (!f.typed[t] && nowMin >= toMin(t) + 30) coldIssues.push(f.id + ': ' + t + ' reading not typed'); });
+    });
+    s.suppliers.forEach(function (x) { if (x.next) { var dd = daysTo(x.next) - 7; if (dd <= 14) due.push(x.name + ': order due ' + (dd <= 0 ? 'now' : 'in ' + dd + ' days') + ' (cycle ' + fmtD(x.next) + ', lead time ' + x.lead + ' days)'); } });
+    var issues = {
+      handover: missed.length ? { t: missed.length + ' missed today', red: true, now: missed } : null,
+      cold: coldIssues.length || noFridge.length ? { t: (coldIssues.length ? coldIssues.length + ' to act on' : '') + (coldIssues.length && noFridge.length ? ' · ' : '') + (noFridge.length ? noFridge.length + ' no fridge' : ''), red: coldIssues.some(function (c) { return /out of range/.test(c); }), now: coldIssues.concat(noFridge) } : null,
+      supply: due.length ? { t: due.length + ' order' + (due.length === 1 ? '' : 's') + ' due soon', now: due } : null
+    };
+    var ruleGroups = s.rrules.map(function (g) {
+      var rules = g.rules.map(function (t, i) { return mkRule(g.id + '|' + i, t, t, function (v) { set({ rrules: self.state.rrules.map(function (h) { return h.id !== g.id ? h : Object.assign({}, h, { rules: h.rules.map(function (u, j) { return j === i ? v : u; }) }); }) }); }); });
+      var addKey = 'add|' + g.id, adder = mkRule(addKey, 'New rule', '', function (v) { set({ rrules: self.state.rrules.map(function (h) { return h.id !== g.id ? h : Object.assign({}, h, { rules: h.rules.concat([v]) }); }) }); });
+      if (adder.editing || adder.pending) rules.push(adder);
+      var nPend = Object.keys(s.pend).filter(function (k) { return k.indexOf(g.id + '|') === 0 || k === addKey; }).length, is = issues[g.id];
+      return { id: g.id, scope: g.scope, affects: g.affects, rules: rules, n: String(g.rules.length), canAdd: !adder.editing && !adder.pending, add: function () { set({ ruleEdit: { key: addKey, v: '', r: '' } }); },
+        hasIssue: !!is, issue: is ? is.t : '', issueStyle: is && is.red ? chip(C.out[0], C.out[1]) : chip(C.low[0], C.low[1]), hasNow: !!is, now: is ? is.now : [],
+        hasPending: nPend > 0, pendingN: String(nPend), badgeAria: g.scope + ' rules, ' + g.rules.length + (is ? ', ' + is.t : ''), open: function () { set({ ruleDlg: g.id, ruleEdit: null }); } };
+    });
+    // tiles and filters
+    var fridgesOk = s.fridges.filter(function (f) { return fState(f.temp) === 'ok'; }).length;
+    var placesOut = openPlaces.filter(function (p) { return p.stock.out > 0; });
+    var missedPlaces = openPlaces.filter(function (p) { return hoToday(p).some(function (h) { return h.st === 'missed'; }); });
+    var tile = function (id, label, value, sub, dot) {
+      var on = s.tile === id;
+      return { label: label, value: value, sub: sub, on: on ? 'true' : 'false', dot: dot ? 'flex:0 0 8px;width:8px;height:8px;border-radius:999px;background:' + dot : 'display:none',
+        pick: function () { set({ tile: on ? '' : id, open: '' }); },
+        style: 'display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;text-align:left;font-family:Figtree,sans-serif;' + (on ? 'border:1px solid #2dd4bf;background:#ccfbf1' : 'border:1px solid #dde1e9;background:#ffffff') };
+    };
+    var kinds = ['All', 'Store', 'Dispensing point', 'Ward', 'Clinic', 'Theatre'].filter(function (k) { return k === 'All' || openPlaces.some(function (p) { return p.kind === k; }); });
+    var closedN = s.places.length - openPlaces.length;
+    var shown = s.places.filter(function (p) {
+      if (s.kindF === 'Closed') { if (!p.closed) return false; } else { if (p.closed) return false; if (s.kindF !== 'All' && p.kind !== s.kindF) return false; }
+      if (s.tile === 'fridge' && !p.fridges.length && !p.cold.length) return false;
+      if (s.tile === 'missed' && missedPlaces.indexOf(p) < 0) return false;
+      if (s.tile === 'out' && !p.stock.out) return false;
+      if (s.q && (p.name + ' ' + p.kind).toLowerCase().indexOf(s.q.toLowerCase()) < 0) return false;
+      return true;
+    });
+    // flow strip
+    var flowStyle = function (k) { return 'display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;' + (k === 'sup' ? 'background:#e4e7ee;color:#1b2540' : k === 'store' ? 'background:#ccfbf1;color:#0f766e' : 'background:#ffffff;color:#1b2540;box-shadow:inset 0 0 0 1px #dde1e9'); };
+    var viaStore = openPlaces.filter(function (p) { return p.from === 'store' && p.kind !== 'Store'; });
+    var direct = openPlaces.filter(function (p) { return p.from !== 'store' && p.kind !== 'Store'; });
+    var flow = [{ label: 'NMS · JMS', style: flowStyle('sup'), arrow: true, sep: false }].concat(stores.map(function (st, i) { return { label: st.name, style: flowStyle('store'), arrow: i === stores.length - 1, sep: false }; }))
+      .concat(viaStore.map(function (p, i) { return { label: p.name, style: flowStyle('p'), arrow: false, sep: i === viaStore.length - 1 && direct.length > 0 }; }));
+    direct.forEach(function (p) { flow.push({ label: p.from, style: flowStyle('sup'), arrow: true, sep: false }); flow.push({ label: p.name, style: flowStyle('p'), arrow: false, sep: false }); });
+    var upEd = function (pid, patch) { var e = Object.assign({}, self.state.edit); e[pid] = Object.assign({}, e[pid], patch, { error: '' }); set({ edit: e }); };
+    var hhmm = function (m) { return ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + (m % 60)).slice(-2); };
+    var snapSlot = function (t) { var m = toMin(t); return ['08:00', '17:00'].filter(function (sl) { return Math.abs(m - toMin(sl)) <= 90; })[0] || t; };
+    var readingDlg = function (f) {
+      var pre = hhmm(nowMin);
+      set({ sd: { kind: 'reading', fid: f.id, title: 'Record a reading · ' + f.id, lead: f.name + '. Read the thermometer and type the temperature. Readings within 90 minutes of 08:00 or 17:00 count for that check.', save: 'Save reading',
+        fields: [['time', 'Time', pre, 'text', 'numeric'], ['temp', 'Temperature (°C)', 'e.g. 5.2', 'text', 'decimal'], ['note', 'If outside 2–8 °C: what did you do?', 'e.g. moved vaccines to CR-01, called the technician', 'text', 'text']],
+        values: { time: pre }, error: '' } });
+    };
+    var sdVals = s.sd ? s.sd.values : {};
+    var sd = {};
+    if (s.sd) {
+      var tv = parseFloat((sdVals.temp || '').replace(',', '.'));
+      sd = { title: s.sd.title, lead: s.sd.lead, save: s.sd.save, hasError: !!s.sd.error, error: s.sd.error,
+        hasNote: s.sd.kind === 'reading' && !isNaN(tv) && (tv < 2 || tv > 8), note: 'Outside 2–8 °C. Saving opens an excursion; say what you did below.',
+        fields: s.sd.fields.map(function (f) { return { label: f[1], ph: f[2], type: f[3] || 'text', mode: f[4] || 'text', value: sdVals[f[0]] || '', set: function (ev) { var v = Object.assign({}, self.state.sd.values); v[f[0]] = ev.target.value; set({ sd: Object.assign({}, self.state.sd, { values: v, error: '' }) }); } }; }) };
+    }
+    var supFields = [['name', 'Name', '', 'text', 'text'], ['what', 'What they supply', '', 'text', 'text'], ['cycle', 'Order cycle (months; 0 = as needed)', '2', 'text', 'numeric'], ['next', 'Next cycle date', '2026-11-16', 'date', 'text'], ['lead', 'Lead time (days)', '21', 'text', 'numeric'], ['budget', 'Budget (UGX)', '48000000', 'text', 'numeric'], ['used', 'Used so far (UGX)', '0', 'text', 'numeric'], ['period', 'Budget period', 'this cycle', 'text', 'text'], ['contact', 'Contact', 'e.g. Account manager', 'text', 'text'], ['phone', 'Phone', '+256 …', 'tel', 'tel']];
+    var addVals = s.add || {};
+    return {
+      sections: ['Today', 'Dispense', 'Patients', 'Stock', 'Controls', 'Records', 'Set-up'].map(function (l) { return { label: l, style: base + (l === 'Set-up' ? 'background:#1b2540;color:#ffffff;font-weight:600' : 'color:#5f6987') }; }),
+      tabs: [['Going live', 'GoingLive.dc.html'], ['Places', 'Places.dc.html'], ['Medicines', 'Main.dc.html'], ['Rules', 'Rules.dc.html'], ['People and roster', 'People.dc.html'], ['Messages', 'Messages.dc.html']].map(function (t) {
+        var on = t[0] === 'Places'; return { label: t[0], href: t[1], current: on ? 'page' : 'false', style: pill + (on ? 'background:#2dd4bf;color:#1b2540' : 'color:#4a5574') };
+      }),
+      placeCount: String(openPlaces.length) + (closedN ? ' open · ' + closedN + ' closed' : ''),
+      ruleGroups: ruleGroups,
+      ruleDlgOpen: !!s.ruleDlg, ruleDlgList: ruleGroups.filter(function (g) { return g.id === s.ruleDlg; }),
+      ruleDlgTitle: s.ruleDlg ? (ruleGroups.filter(function (g) { return g.id === s.ruleDlg; })[0] || {}).scope + ' rules' : '',
+      closeRuleDlg: function () { set({ ruleDlg: '', ruleEdit: null }); },
+      kpis: [
+        tile('', 'Places', String(openPlaces.length), openPlaces.filter(function (p) { return p.kind === 'Ward'; }).length + ' wards · ' + openPlaces.filter(function (p) { return p.kind !== 'Ward'; }).length + ' other', ''),
+        tile('fridge', 'Fridges in range', fridgesOk + ' of ' + s.fridges.length, noFridge.length ? noFridge.length + ' place' + (noFridge.length === 1 ? '' : 's') + ' need a fridge' : 'all cold-chain stock covered', fridgesOk === s.fridges.length ? '#16a34a' : '#d97706'),
+        tile('missed', 'Handovers missed today', String(missedPlaces.length), missedPlaces.length ? missedPlaces.map(function (p) { return p.name; }).join(', ') : 'none', missedPlaces.length ? '#dc2626' : '#16a34a'),
+        tile('out', 'Places with medicines out', String(placesOut.length), placesOut.reduce(function (a, p) { return a + p.stock.out; }, 0) + ' lines out in all', placesOut.length ? '#dc2626' : '#16a34a')
+      ],
+      flow: flow,
+      kindChips: kinds.concat(closedN ? ['Closed'] : []).map(function (k) {
+        var on = s.kindF === k, n = k === 'All' ? openPlaces.length : k === 'Closed' ? closedN : openPlaces.filter(function (p) { return p.kind === k; }).length;
+        return { label: k + ' · ' + n, on: on ? 'true' : 'false', pick: function () { set({ kindF: k, open: '' }); }, style: 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (on ? onS : offS) };
+      }),
+      q: s.q, setQ: function (ev) { set({ q: ev.target.value }); },
+      cols: ['Place', 'Supplied from', 'Stock', 'Fridge', 'Handover today', 'On duty now'],
+      noRows: shown.length === 0, clearFilters: function () { set({ kindF: 'All', tile: '', q: '' }); },
+      rows: shown.map(function (p) {
+        var isOpen = s.open === p.id, ed = s.edit[p.id] || p, ho = hoToday(p), duty = s.duty[p.id] || [];
+        var nowDuty = duty.filter(function (d) { return nowMin >= 480 && nowMin < 1020 ? d[1] === 'Day' : d[1] !== 'Day'; });
+        var fl = p.fridges.map(function (fid) { var f = fridgeById[fid]; if (!f) return null; var st = fState(f.temp); return { id: fid, temp: f.temp.toFixed(1) + ' °C', style: chip(FST[st][1][0], FST[st][1][1]) }; }).filter(Boolean);
+        var dev = p.seen < 15 ? ['Online · seen ' + (p.seen <= 1 ? 'just now' : p.seen + ' min ago'), C.ok] : p.seen < 600 ? ['Offline · last seen ' + (p.seen >= 60 ? Math.floor(p.seen / 60) + ' h ' + (p.seen % 60) + ' min' : p.seen + ' min') + ' ago · entries will sync when back', C.low] : ['Not in use', C.grey];
+        var hist = (s.handovers[p.id] || []).slice(0, 3);
+        var fromChoices = p.kind === 'Store' ? fromOpts.filter(function (o) { return o.v !== 'store'; }) : fromOpts;
+        return { name: p.name, kindLine: p.kind + (p.kind === 'Dispensing point' ? ' · ' + (p.free ? 'free' : 'charged') + (p.pay ? ', pay first' : '') : '') + ' · ' + p.hours.replace(', 08:00–17:00', ''),
+          closed: !!p.closed, from: p.closed ? (p.closedNote || 'Closed') : fromLabel(p.from),
+          lines: p.stock.lines + ' lines',
+          stockChips: [p.stock.out ? { label: p.stock.out + ' out', style: chip(C.out[0], C.out[1]) } : null, p.stock.low ? { label: p.stock.low + ' low', style: chip(C.low[0], C.low[1]) } : null].filter(Boolean).concat(!p.stock.out && !p.stock.low && p.stock.lines ? [{ label: 'All OK', style: chip(C.ok[0], C.ok[1]) }] : []),
+          fridgeLines: fl, noFridge: !fl.length, noFridgeText: p.cold.length ? 'No fridge · cold stock here' : 'None', noFridgeStyle: p.cold.length ? chip(C.low[0], C.low[1]) : 'font-size:13px;color:#5f6987',
+          hoChips: p.closed ? [] : ho, noHo: !p.slots.length || p.closed,
+          faces: p.closed ? [] : nowDuty.slice(0, 4).map(function (d, i) { var av = self.avatar(d[0], 28); return { name: d[0] + ' · ' + d[1], initials: av.initials, style: av.style + (i ? ';margin-left:-6px' : '') }; }), noFaces: p.closed || !nowDuty.length,
+          isOpen: isOpen, openAttr: isOpen ? 'true' : 'false', openAria: (isOpen ? 'Close ' : 'Open ') + p.name, chevStyle: 'flex:0 0 14px;transition:transform .15s;' + (isOpen ? 'transform:rotate(90deg)' : ''),
+          toggle: function () { if (isOpen) { set({ open: '' }); return; } var e = Object.assign({}, self.state.edit); e[p.id] = Object.assign({}, p, { slots: p.slots.slice(), error: '' }); set({ open: p.id, edit: e }); },
+          ed: { name: ed.name, kind: ed.kind, hours: ed.hours, from: ed.from, device: ed.device, free: !!ed.free, pay: !!ed.pay },
+          fromOpts: fromChoices,
+          setName: function (ev) { upEd(p.id, { name: ev.target.value }); }, setKind: function (ev) { upEd(p.id, { kind: ev.target.value }); }, setHours: function (ev) { upEd(p.id, { hours: ev.target.value }); },
+          setFrom: function (ev) { upEd(p.id, { from: ev.target.value }); }, setDevice: function (ev) { upEd(p.id, { device: ev.target.value }); },
+          toggleFree: function () { upEd(p.id, { free: !(self.state.edit[p.id] || {}).free }); }, togglePay: function () { upEd(p.id, { pay: !(self.state.edit[p.id] || {}).pay }); },
+          isDisp: ed.kind === 'Dispensing point', devLine: dev[0], devStyle: chip(dev[1][0], dev[1][1]) + ';align-self:flex-start;height:24px',
+          stockLine: p.stock.lines + ' lines · ' + p.stock.low + ' low · ' + p.stock.out + ' out' + (p.stock.value ? ' · ' + ugx(p.stock.value) + ' on hand' : p.kind === 'Clinic' ? ' · vaccines, counted in doses' : ''),
+          hasShort: p.short.length > 0, short: p.short.map(function (x) { var c = x[1] === 'Out' ? C.out : C.low; return { name: x[0], label: x[1], style: chip(c[0], c[1]) }; }),
+          slotChips: ['08:00', '17:00', '20:00'].map(function (t) {
+            var on = (ed.slots || []).indexOf(t) >= 0;
+            return { label: t, on: on ? 'true' : 'false', style: 'height:32px;padding:0 12px;border-radius:999px;font:600 13px Figtree,sans-serif;' + (on ? onS : offS),
+              toggle: function () { var sl = ((self.state.edit[p.id] || p).slots || []).slice(), i = sl.indexOf(t); if (i >= 0) sl.splice(i, 1); else sl.push(t); sl.sort(); upEd(p.id, { slots: sl }); } };
+          }),
+          hoHist: hist.length ? hist.map(function (h) { var c = h[3] === 'missed' ? C.out : h[5] ? C.low : C.ok; return { when: h[0] + ', ' + h[1], who: h[2], result: h[3] === 'missed' ? 'Missed' : (h[4] + ' · ' + (h[5] ? h[5] + (h[5] === 1 ? ' difference' : ' differences') : 'no differences')), style: chip(c[0], c[1]) }; }) : [{ when: 'No handovers yet', who: '', result: '', style: 'display:none' }],
+          fridgeCards: p.fridges.map(function (fid) {
+            var f = fridgeById[fid]; if (!f) return null; var st = fState(f.temp);
+            return { name: f.id + ' · ' + f.name, temp: f.temp.toFixed(1) + ' °C', style: chip(FST[st][1][0], FST[st][1][1]), sub: (f.sensor ? 'Sensor ' + f.sensor + ' · live' + (f.at ? ' ' + f.at : '') : 'No sensor · typed at ' + Object.keys(f.typed).join(', ')) + ' · today ' + f.min.toFixed(1) + '–' + f.max.toFixed(1) + ' °C', canRecord: !f.sensor, record: function () { readingDlg(f); } };
+          }).filter(Boolean),
+          coldWarn: !!p.cold.length && !p.fridges.length, coldWarnText: 'No fridge here, but ' + p.cold.join(', ') + (p.cold.length === 1 ? ' is' : ' are') + ' kept here. Add a fridge below and keep it at this place, or move the stock.',
+          noColdNeed: !p.cold.length && !p.fridges.length,
+          people: duty.map(function (d) { var av = self.avatar(d[0], 24); return { name: d[0], shift: d[1], initials: av.initials, style: av.style }; }),
+          closeLabel: p.closed ? 'Reopen this place' : 'Close this place',
+          toggleClose: function () {
+            if (p.closed) { set({ places: self.state.places.map(function (x) { return x.id === p.id ? Object.assign({}, x, { closed: false, closedNote: '' }) : x; }), kindF: 'All', open: '' }); self.flash(p.name + ' reopened'); return; }
+            if (p.stock.lines > 0) { upEd(p.id, {}); var e = Object.assign({}, self.state.edit); e[p.id] = Object.assign({}, e[p.id] || p, { error: 'Move or issue out its stock first: ' + p.stock.lines + ' lines are still here.' }); set({ edit: e }); return; }
+            if (ho.some(function (h) { return h.st === 'now'; })) { var e2 = Object.assign({}, self.state.edit); e2[p.id] = Object.assign({}, e2[p.id] || p, { error: 'A handover is open. Finish it first.' }); set({ edit: e2 }); return; }
+            set({ places: self.state.places.map(function (x) { return x.id === p.id ? Object.assign({}, x, { closed: true, closedNote: 'Closed 3 Nov 2026 by Grace Namutebi' }) : x; }), open: '' }); self.flash(p.name + ' closed. Its history is kept.');
+          },
+          hasError: !!(s.edit[p.id] && s.edit[p.id].error), error: s.edit[p.id] ? s.edit[p.id].error : '',
+          cancel: function () { set({ open: '' }); },
+          save: function () {
+            var x = self.state.edit[p.id] || p, n = (x.name || '').trim(), err = function (m) { var e = Object.assign({}, self.state.edit); e[p.id] = Object.assign({}, x, { error: m }); set({ edit: e }); };
+            if (!n) return err('Give the place a name.');
+            if (self.state.places.some(function (q) { return q.id !== p.id && q.name.toLowerCase() === n.toLowerCase(); })) return err('A place with this name already exists.');
+            if (x.kind === 'Store' && x.from === 'store') return err('A store cannot be supplied from itself. Pick its supplier.');
+            var disp = x.kind === 'Dispensing point';
+            set({ places: self.state.places.map(function (q) { return q.id !== p.id ? q : Object.assign({}, q, { name: n, kind: x.kind, hours: x.hours, from: x.from, device: x.device, slots: x.slots, free: disp && !!x.free, pay: disp && !!x.pay }); }), open: '' });
+            self.flash('Saved ' + n + (disp && (x.free !== p.free || x.pay !== p.pay) ? '. Billing changes apply from today.' : ''));
+          } };
+      }),
+      // cold chain
+      placeOpts: openPlaces.map(function (p) { return { v: p.id, label: p.name }; }),
+      fridges: s.fridges.map(function (f, i) {
+        var st = fState(f.temp), pl = placeOfFridge(f.id), linked = !!f.sensor, pct = Math.max(1, Math.min(99, f.temp / 10 * 100));
+        var dueList = linked ? [] : ['08:00', '17:00'].map(function (t) {
+          var r = f.typed[t], late = nowMin >= toMin(t) + 30;
+          return { label: r ? t + ' · ' + r[0].toFixed(1) + ' °C' : t + (late ? ' · not typed' : ' · due'), style: r ? chip(C.ok[0], C.ok[1]) : late ? chip(C.out[0], C.out[1]) : chip(C.grey[0], C.grey[1]) };
+        });
+        return { name: f.id + ' · ' + f.name, where: (pl ? pl.name : 'Not placed yet') + (linked ? ' · sensor ' + f.sensor + (f.at ? ' · live ' + f.at : '') : ' · no sensor, typed readings'),
+          temp: f.temp.toFixed(1) + ' °C', st: FST[st][0], stStyle: chip(FST[st][1][0], FST[st][1][1]) + ';height:24px;font-size:12px',
+          markStyle: 'position:absolute;top:-4px;left:calc(' + pct + '% - 2px);width:4px;height:16px;border-radius:2px;background:#1b2540',
+          stats: 'Today ' + f.min.toFixed(1) + '–' + f.max.toFixed(1) + ' °C · ' + (f.exc.length ? f.exc.length + ' excursion' + (f.exc.length === 1 ? '' : 's') + ' in 7 days' : 'no excursions in 7 days'),
+          due: dueList, canRecord: !linked, record: function () { readingDlg(f); },
+          actLabel: linked ? 'Unlink sensor' : 'Link a sensor', actAria: (linked ? 'Unlink the sensor from ' : 'Link a sensor to ') + f.id,
+          actStyle: 'height:30px;padding:0 12px;border-radius:999px;font:600 12px Figtree,sans-serif;' + (linked ? 'border:0;background:transparent;color:#0f766e;text-decoration:underline' : 'border:1px solid #c5cbd8;background:#ffffff;color:#1b2540'),
+          act: function () {
+            if (linked) { set({ fridges: self.state.fridges.map(function (x, j) { return j === i ? Object.assign({}, x, { sensor: '', typed: {} }) : x; }) }); self.flash('Sensor unlinked from ' + f.id + '. Readings will be typed at 08:00 and 17:00.'); return; }
+            set({ sd: { kind: 'sensor', idx: i, title: 'Link a sensor to ' + f.id, lead: 'Type the ID printed on the sensor. Readings then arrive every 15 minutes.', save: 'Link sensor', fields: [['sensor', 'Sensor ID', 'e.g. SN-44C2']], values: {}, error: '' } });
+          },
+          placeId: pl ? pl.id : '', moveAria: 'Where ' + f.id + ' is kept',
+          move: function (ev) {
+            var to = ev.target.value;
+            set({ places: self.state.places.map(function (p) { var fr = p.fridges.filter(function (x) { return x !== f.id; }); if (p.id === to) fr = fr.concat([f.id]); return Object.assign({}, p, { fridges: fr }); }) });
+            self.flash(to ? f.id + ' is now kept at ' + placeById[to].name : f.id + ' is not placed anywhere');
+          },
+          hasExc: f.exc.length > 0, exc: f.exc.join(' · ') };
+      }),
+      addFridge: function () { set({ sd: { kind: 'fridge', title: 'Add a fridge', lead: 'Give it a short ID people will see on the fridge label, then choose where it is kept.', save: 'Add fridge', fields: [['id', 'Fridge ID', 'RF-04'], ['name', 'Kind of fridge', 'e.g. Ice-lined fridge']], values: {}, error: '' } }); },
+      // suppliers
+      suppliers: s.suppliers.map(function (x, i) {
+        var dd = x.next ? daysTo(x.next) - 7 : null, pct = x.budget ? Math.min(100, Math.round(x.used / x.budget * 100)) : 0, digits = (x.phone || '').replace(/[^\d+]/g, '');
+        return { name: x.name, what: x.what,
+          terms: (x.cycle ? 'Every ' + x.cycle + (x.cycle === 1 ? ' month' : ' months') : 'As needed') + (x.next ? ' · next cycle ' + fmtD(x.next) : '') + ' · lead time ' + x.lead + ' days',
+          hasDue: dd !== null && dd <= 14, due: dd !== null ? (dd <= 0 ? 'Order now' : 'Order due in ' + dd + ' days') : '', dueStyle: dd !== null && dd <= 3 ? chip(C.out[0], C.out[1]) : chip(C.low[0], C.low[1]),
+          hasBudget: x.budget > 0, budget: ugx(x.used) + ' of ' + ugx(x.budget) + ' ' + x.period + ' · ' + pct + '%', barStyle: 'display:block;height:100%;border-radius:999px;width:' + pct + '%;background:' + (pct >= 90 ? '#dc2626' : pct >= 75 ? '#d97706' : '#2dd4bf'),
+          contact: (x.contact || 'No contact') + (x.phone ? ' · ' + x.phone : ' · no phone saved'), hasTel: digits.length >= 9, tel: 'tel:' + digits, editLabel: 'Edit ' + x.name,
+          edit: function () { set({ sd: { kind: 'supplier', idx: i, title: 'Edit ' + x.name, lead: 'What they supply, and the terms the order builder uses.', save: 'Save supplier', fields: supFields, values: { name: x.name, what: x.what, cycle: String(x.cycle), next: x.next, lead: String(x.lead), budget: String(x.budget), used: String(x.used), period: x.period, contact: x.contact, phone: x.phone }, error: '' } }); } };
+      }),
+      addSupplier: function () { set({ sd: { kind: 'supplier', idx: -1, title: 'Add a supplier', lead: 'What they supply, and the terms the order builder uses.', save: 'Add supplier', fields: supFields, values: { cycle: '0', lead: '7', budget: '0', used: '0' }, error: '' } }); },
+      // add place
+      addOpen: !!s.add,
+      addPlace: function () { set({ add: { name: '', kind: 'Ward', hours: '24 hours', from: 'store', device: 'Ward tablet', error: '' } }); },
+      ad: { name: addVals.name || '', kind: addVals.kind || 'Ward', hours: addVals.hours || '24 hours', from: addVals.from || 'store', device: addVals.device || 'Ward tablet', fromOpts: addVals.kind === 'Store' ? fromOpts.filter(function (o) { return o.v !== 'store'; }) : fromOpts,
+        hint: 'Handover times are set from the opening hours: 24 hours → 08:00 and 17:00; day only → 08:00. Change them after adding. Add a fridge in Cold chain if cold-chain medicines will be kept here.',
+        hasError: !!addVals.error, error: addVals.error || '' },
+      setAdName: function (ev) { set({ add: Object.assign({}, self.state.add, { name: ev.target.value, error: '' }) }); },
+      setAdKind: function (ev) { var k = ev.target.value; set({ add: Object.assign({}, self.state.add, { kind: k, from: k === 'Store' ? 'NMS, JMS' : self.state.add.from === 'NMS, JMS' ? 'store' : self.state.add.from, device: { Store: 'Store desk', 'Dispensing point': 'OPD station', Ward: 'Ward tablet', Clinic: 'EPI tablet', Theatre: 'Shared station' }[k], error: '' }) }); },
+      setAdHours: function (ev) { set({ add: Object.assign({}, self.state.add, { hours: ev.target.value, error: '' }) }); },
+      setAdFrom: function (ev) { set({ add: Object.assign({}, self.state.add, { from: ev.target.value, error: '' }) }); },
+      setAdDevice: function (ev) { set({ add: Object.assign({}, self.state.add, { device: ev.target.value, error: '' }) }); },
+      saveAdd: function () {
+        var a = self.state.add, n = a.name.trim(), err = function (m) { set({ add: Object.assign({}, a, { error: m }) }); };
+        if (!n) return err('Give the place a name.');
+        if (self.state.places.some(function (p) { return p.name.toLowerCase() === n.toLowerCase(); })) return err('A place with this name already exists.');
+        var id = 'p' + Date.now();
+        var rec = { id: id, name: n, kind: a.kind, device: a.device, hours: a.hours, from: a.from, slots: a.hours === '24 hours' ? ['08:00', '17:00'] : ['08:00'], fridges: [], free: false, pay: false, closed: false, stock: { lines: 0, low: 0, out: 0, value: 0 }, short: [], cold: [], seen: 99999 };
+        var h = Object.assign({}, self.state.handovers); h[id] = []; var du = Object.assign({}, self.state.duty); du[id] = [];
+        var e = Object.assign({}, self.state.edit); e[id] = Object.assign({}, rec);
+        set({ places: self.state.places.concat([rec]), handovers: h, duty: du, add: null, open: id, edit: e, kindF: 'All', tile: '', q: '' });
+        self.flash('Added ' + n + '. Set its top-up levels on Medicines.');
+      },
+      simpleDlg: !!s.sd, sd: sd,
+      closeDlg: function () { set({ add: null, sd: null }); },
+      saveSimple: function () {
+        var x = self.state.sd, v = x.values, err = function (m) { set({ sd: Object.assign({}, x, { error: m }) }); };
+        if (x.kind === 'sensor') {
+          if (!(v.sensor || '').trim()) return err('Type the sensor ID.');
+          set({ fridges: self.state.fridges.map(function (f, j) { return j === x.idx ? Object.assign({}, f, { sensor: v.sensor.trim().toUpperCase() }) : f; }), sd: null }); self.flash('Sensor linked. Readings arrive every 15 minutes.');
+        } else if (x.kind === 'fridge') {
+          var id = (v.id || '').trim().toUpperCase(), nm = (v.name || '').trim();
+          if (!id || !nm) return err('Give the fridge an ID and say what kind it is.');
+          if (self.state.fridges.some(function (f) { return f.id === id; })) return err(id + ' is already used.');
+          set({ fridges: self.state.fridges.concat([{ id: id, name: nm, sensor: '', temp: 5.0, min: 5.0, max: 5.0, at: '', typed: {}, exc: [] }]), sd: null }); self.flash('Added ' + id + '. Choose where it is kept.');
+        } else if (x.kind === 'reading') {
+          var t = (v.time || '').trim(), tv = parseFloat((v.temp || '').replace(',', '.'));
+          if (!/^\d{2}:\d{2}$/.test(t)) return err('Type the time as HH:MM.');
+          if (isNaN(tv) || tv < -30 || tv > 40) return err('Type the temperature in °C, e.g. 5.2.');
+          var outR = tv < 2 || tv > 8;
+          if (outR && !(v.note || '').trim()) return err('Outside 2–8 °C: say what you did.');
+          set({ fridges: self.state.fridges.map(function (f) {
+            if (f.id !== x.fid) return f;
+            var ty = Object.assign({}, f.typed); ty[snapSlot(t)] = [tv, 'Grace Namutebi'];
+            return Object.assign({}, f, { temp: tv, min: Math.min(f.min, tv), max: Math.max(f.max, tv), at: t, typed: ty, exc: outR ? [tv.toFixed(1) + ' °C at ' + t + ' on 3 Nov · ' + v.note.trim()].concat(f.exc) : f.exc });
+          }), sd: null });
+          self.flash(outR ? 'Saved. Excursion opened for ' + x.fid + '; the in-charge is told.' : 'Reading saved: ' + tv.toFixed(1) + ' °C at ' + t);
+        } else {
+          var n = (v.name || '').trim(); if (!n) return err('Give the supplier a name.');
+          var num = function (k) { var q = parseInt(String(v[k] || '0').replace(/[^\d]/g, ''), 10); return isNaN(q) ? 0 : q; };
+          if (v.next && !/^\d{4}-\d{2}-\d{2}$/.test(v.next)) return err('Pick the next cycle date.');
+          var rec = { name: n, what: (v.what || '').trim() || 'Not described yet', cycle: num('cycle'), next: v.next || '', lead: num('lead'), budget: num('budget'), used: num('used'), period: (v.period || '').trim(), contact: (v.contact || '').trim(), phone: (v.phone || '').trim() };
+          if (rec.budget && rec.used > rec.budget) return err('Used so far is more than the budget.');
+          var list = x.idx >= 0 ? self.state.suppliers.map(function (y, j) { return j === x.idx ? rec : y; }) : self.state.suppliers.concat([rec]);
+          set({ suppliers: list, sd: null }); self.flash((x.idx >= 0 ? 'Saved ' : 'Added ') + n);
+        }
+      },
+      hasToast: !!s.toast, toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

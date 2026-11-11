@@ -32,13 +32,26 @@ export async function startDemo(
   const h = admin.hospitalId;
   demoFrozenInProduction();
   if (!(await isDemoHospital(db, h)))
-    throw new EmrWriteError("forbidden", "This hospital is not a demo hospital. Demo data goes only into a demo hospital.");
+    throw new EmrWriteError(
+      "forbidden",
+      "This hospital is not a demo hospital. Demo data goes only into a demo hospital.",
+    );
   // One load per hospital: a second one meets the first one's stock and registers. A load that stopped at setup wrote
   // nothing past its departments and people, and a removed one left nothing (0260), so neither counts. `to_jsonb`
   // reads removed_at without failing before 0260 is applied.
-  if ((await q({ db }, sql`SELECT 1 FROM pharmacy_demo_loads l WHERE hospital_id = ${h} AND finished_at IS NOT NULL
-      AND NOT (notes ? 'setup') AND to_jsonb(l) ->> 'removed_at' IS NULL LIMIT 1`)).length)
-    throw new EmrWriteError("conflict", "The pharmacy demo is already loaded in this hospital. It loads once.");
+  if (
+    (
+      await q(
+        { db },
+        sql`SELECT 1 FROM pharmacy_demo_loads l WHERE hospital_id = ${h} AND finished_at IS NOT NULL
+      AND NOT (notes ? 'setup') AND to_jsonb(l) ->> 'removed_at' IS NULL LIMIT 1`,
+      )
+    ).length
+  )
+    throw new EmrWriteError(
+      "conflict",
+      "The pharmacy demo is already loaded in this hospital. It loads once.",
+    );
   const [district] = await q<{ id: string }>({ db }, sql`SELECT id FROM districts LIMIT 1`);
   const load = await one<{ id: string }>(
     { db },
@@ -52,7 +65,17 @@ export async function startDemo(
     loadId: load.id,
     deps,
     district: district?.id ?? null,
-    people: { admin: admin.userId, chief: "", cso: "", author: "", pharmacists: [], techs: [], doctors: [], nurses: [], storekeeper: "" },
+    people: {
+      admin: admin.userId,
+      chief: "",
+      cso: "",
+      author: "",
+      pharmacists: [],
+      techs: [],
+      doctors: [],
+      nurses: [],
+      storekeeper: "",
+    },
     pharmacyDept: "",
     points: {} as DemoState["points"],
     clinics: {} as DemoState["clinics"],
@@ -98,6 +121,21 @@ export async function loadPharmacyDemo(
   return { loadId: s.loadId, counts: s.counts, notes: s.notes };
 }
 
+/** The "demo hospital" band: a demo hospital with a lab or pharmacy demo still loaded (not removed). */
+export async function demoDataLoaded(db: EmrDb, hospitalId: string) {
+  try {
+    const rows = await q<{ ok: number }>(
+      { db },
+      sql`SELECT 1 AS ok FROM lab_demo_hospitals h WHERE h.hospital_id = ${hospitalId}
+        AND (EXISTS (SELECT 1 FROM pharmacy_demo_loads l WHERE l.hospital_id = h.hospital_id AND l.removed_at IS NULL)
+          OR EXISTS (SELECT 1 FROM lab_demo_loads l WHERE l.hospital_id = h.hospital_id AND l.removed_at IS NULL))`,
+    );
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** The loads at this hospital, newest first, for the demo page. */
 export async function pharmacyDemoLoads(db: EmrDb, hospitalId: string) {
   return q<{
@@ -137,13 +175,21 @@ export async function removePharmacyDemo(db: EmrDb, hospitalId: string, actorId:
 /** Rework S14 (C3): the demo code is frozen; demos run in a separate project, never in the production database. */
 function demoFrozenInProduction(env = process.env.VERCEL_ENV) {
   if (env === "production")
-    throw new EmrWriteError("forbidden", "Demos run in the separate demo project, not in the live database.");
+    throw new EmrWriteError(
+      "forbidden",
+      "Demos run in the separate demo project, not in the live database.",
+    );
 }
 
 /** The app's 30s statement cap (db/index.ts) is too short for the whole demo; this transaction gets five minutes. */
 function runRemove(db: EmrDb, hospitalId: string, actorId: string, dryRun: boolean) {
   return db.transaction(async (tx) => {
     await tx.execute(sql`SET LOCAL statement_timeout = '290s'`);
-    return (await one<{ r: Record<string, number> }>({ db: tx as unknown as EmrDb }, sql`SELECT public.pharmacy_demo_remove(${hospitalId}, ${actorId}, ${dryRun}) AS r`)).r;
+    return (
+      await one<{ r: Record<string, number> }>(
+        { db: tx as unknown as EmrDb },
+        sql`SELECT public.pharmacy_demo_remove(${hospitalId}, ${actorId}, ${dryRun}) AS r`,
+      )
+    ).r;
   });
 }

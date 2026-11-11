@@ -117,6 +117,7 @@ export const LC3: Readonly<Record<Place, readonly MovementKind[]>> = {
 
 /** LC-3: the column a location falls in; a ward with no supply model set has none. */
 export function placeOf(kind: LocationKind, model: WardModel | null): Place | null {
+  if (kind === "transit") return null;
   if (kind !== "ward") return kind;
   if (model === "stocked") return "ward_stocked";
   if (model === "issue_only") return "ward_issue_only";

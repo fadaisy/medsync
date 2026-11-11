@@ -4,9 +4,20 @@
 1. Copy this folder into the MedSync repo as `docs/pharmacy/rework/`.
 2. Open Claude Code at the repo root.
 3. Paste everything below the line in `PROMPT.md`.
+4. Then run, in order: `PROMPT-MEDICINES.md`, `PROMPT-ROSTER.md`, `PROMPT-SETUP.md`, `PROMPT-STORE.md`, `PROMPT-RECEIVE.md` (each on its own branch).
 
 | File | What it is |
 |---|---|
+| `PROMPT-MEDICINES.md` | The prompt that replaces the Medicines tab with the 3 Nov 2026 design. Run it on its own or inside P5 |
+| `PROMPT-ROSTER.md` | The prompt that replaces Set-up › People and roster with the 3 Nov 2026 design (pharmacy roster, view-only ward rosters, swaps, leave, licences, attendance). Run after PROMPT-MEDICINES |
+| `PEOPLE-ROSTER.md` | Full spec of People and roster: on duty now, week/month/day views, delegation, swaps with states, leave, best-fit fill, load, licences, attendance, reminders, holidays, print, rules. **Overrides PRD "People" and the roster table in TECH-SPEC** |
+| `PROMPT-SETUP.md` | The prompt that replaces Set-up › Going live, Places, Rules and Messages with the 3 Nov 2026 designs. Run after PROMPT-MEDICINES and PROMPT-ROSTER |
+| `SETUP-TABS.md` | Full spec of Going live (readiness, phases, auto-checked items, two-signature go-live), Places (grid, open row, cold chain, suppliers), Rules (one registry with parameters, signatures, history) and Messages (provider, templates with SMS-part counting, outbox, consent) |
+| `PROMPT-STORE.md` | The prompt that replaces Stock › Main store with the 3 Nov 2026 design (requisitions, every place, runs, dispatches, balances, orders, expiry, counts, figures and charts in every section). Run after PROMPT-SETUP |
+| `STORE.md` | Full spec of the Main store: section bar with group menus, figure tiles and the chart grid, requisitions with fair sharing, top-up runs, dispatches confirmed on arrival, stock at every place and transfers, place balances, orders with budget trim, put away, expiry, stock cards, blind counts and stock-take, quarantine and losses, store conditions. **Overrides PRD §6.4 and the TECH-SPEC store rows** |
+| `PROMPT-RECEIVE.md` | The prompt that replaces Stock › Receive a delivery with the 4 Nov 2026 design. Run after PROMPT-STORE |
+| `RECEIVE.md` | Full spec of Receive: stage board, four-step start dialog (supplier, donation, facility, ward), order detail/edit and chasing, counting with GS1 scanning, blind count, recall and serial checks, price and invoice check, vaccine VVM and freeze, cold-chain timer, short-dated approval, photos, witness and second check, supplier claims, put away with EAN-13 shelf labels, receiving figures, offline queue. **Overrides PRD §6.4 (Receive) and STORE.md §E2** |
+| `MEDICINES-TAB.md` | Full spec of the new Medicines tab: data grid, open-row panel, rules mapped to medicines, quality checks, the master catalogue (all medicines, ATC-classified), local items, live stock and cold chain. **Overrides PRD §6.4 / §6.7 for medicines** |
 | `PROMPT.md` | The execution prompt: sources, token discipline, hard rules, phases P0–P6 with exit checks, definition of done |
 | `PRD.md` | What to build: roles and stations, the 6-section information architecture, glossary, safety invariants S1–S14, every feature with acceptance criteria, non-functionals, open decisions with defaults, 14 end-to-end acceptance scenarios |
 | `TECH-SPEC.md` | How to build it in the repo: known paths (to verify), routes, ledger changes and guard trigger, new tables, derivations to port, server actions, permission matrix, UI notes, safety tests, demo isolation, deletions |
@@ -25,8 +36,13 @@
 | `outpatients.js` | Refills, pill count, MPR, antibiotic courses | `/patients/outpatients` |
 | `epi.js` | Vaccine stock, open vials, clinic dashboard, register, vaccinate, indicators | `/patients/immunisation` |
 | `productivity.js` | Reminders (SMS), Reports (HMIS 105, controlled-drugs return, losses), Team | `/patients/reminders`, `/records?tab=reports`, `/records/team` |
-| `medicines.js` | Medicine list and page, recall | `/stock/medicines` |
-| `store.js` | Receive, Issue, Count, Order builder (VEN, budget), tabs | `/stock/store` |
+| `medicines.js` | Medicine page and recall. **The list itself is superseded by `medicines-tab.dc.html`** | `/stock/medicines` |
+| `medicines-tab.dc.html` | The new Medicines tab (Design-canvas component: markup with `{{holes}}`, behaviour in `renderVals()`). The reference for MEDICINES-TAB.md | `/setup?tab=medicines`, `/stock/medicines` |
+| `people-roster.dc.html` | The new People and roster tab (Design-canvas component). The reference for PEOPLE-ROSTER.md | `/setup?tab=people` |
+| `going-live.dc.html`, `places.dc.html`, `rules.dc.html`, `messages.dc.html` | The new Going live, Places, Rules and Messages tabs (Design-canvas components). The reference for SETUP-TABS.md | `/setup?tab=going-live|places|rules|messages` |
+| `store.dc.html` | The new Main store tab (Design-canvas component). The reference for STORE.md | `/pharmacy/stock?tab=store` |
+| `receive.dc.html` | The new Receive tab (Design-canvas component). The reference for RECEIVE.md | `/pharmacy/stock?tab=receive` |
+| `store.js` | Old store screens. **Superseded by `store.dc.html` and `receive.dc.html`** | delete |
 | `cold.js` | Fridges, sensor trend, WHO monthly chart, readings, excursions, add to and take out of a fridge | `/stock/store?tab=cold` |
 | `cd.js` | Controlled-drug registers, dose with residue, prescriber drop-down, balance checks, to-fix flags, resolutions | `/controls/cd` |
 | `handover.js` | Station handover, roster, blind count, keys and seal, open items, missed and difference flags, in-charge oversight | `/controls/handover` |

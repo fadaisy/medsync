@@ -13,14 +13,21 @@ import postgres from "postgres";
 
 import { seedControls } from "./seed-pharmacy-dev/controls";
 import { seedPatients } from "./seed-pharmacy-dev/patients";
+import { seedReceive } from "./seed-pharmacy-dev/receive";
 import { seedRecords } from "./seed-pharmacy-dev/records";
+import { seedRoster } from "./seed-pharmacy-dev/roster";
+import { seedSetup } from "./seed-pharmacy-dev/setup";
+import { seedStore } from "./seed-pharmacy-dev/store";
+import { seedSupplies } from "./seed-pharmacy-dev/supplies";
 
 for (const f of [".env", ".env.local"]) if (existsSync(f)) process.loadEnvFile(f);
 
 const url = process.env.DATABASE_URL;
 const hospitalId = process.argv[2];
 if (!url || !hospitalId || process.env.PHARMACY_SEED_OK !== "1") {
-  console.error("Usage: PHARMACY_SEED_OK=1 DATABASE_URL=… npx tsx scripts/seed-pharmacy-dev.ts <hospital-id>");
+  console.error(
+    "Usage: PHARMACY_SEED_OK=1 DATABASE_URL=… npx tsx scripts/seed-pharmacy-dev.ts <hospital-id>",
+  );
   process.exit(1);
 }
 
@@ -31,6 +38,11 @@ try {
     ["controls", seedControls],
     ["patients", seedPatients],
     ["records", seedRecords],
+    ["roster", seedRoster],
+    ["setup", seedSetup],
+    ["store", seedStore],
+    ["supplies", seedSupplies],
+    ["receive", seedReceive],
   ] as const) {
     await seed(db, hospitalId);
     console.log(`seeded ${name}`);

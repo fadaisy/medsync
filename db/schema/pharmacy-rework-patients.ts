@@ -1,4 +1,15 @@
-import { boolean, date, integer, numeric, pgTable, primaryKey, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  date,
+  integer,
+  numeric,
+  pgTable,
+  primaryKey,
+  smallint,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 /**
  * Pharmacy rework P4 (migration 0268 — GATED, owner-applied): cold chain, ward picks, outpatient pill counts and
@@ -198,7 +209,23 @@ export const pharmacyEpiDoses = pgTable("pharmacy_epi_doses", {
 
 /* ─── Reminders ──────────────────────────────────────────────────── */
 export type SmsRule = "refill_due" | "refill_missed" | "course" | "epi_tomorrow" | "epi_defaulter";
-export type SmsStatus = "scheduled" | "sent" | "failed" | "skipped" | "called";
+/** 0274: queued (held by quiet hours) and delivered (the provider's callback). */
+export type SmsStatus =
+  | "scheduled"
+  | "queued"
+  | "sent"
+  | "delivered"
+  | "failed"
+  | "skipped"
+  | "called";
+/** The outbox also carries staff reminders (0273) and test messages (0274). */
+export type SmsMessageRule =
+  | SmsRule
+  | "staff_eve"
+  | "staff_change"
+  | "staff_unpub"
+  | "staff_licence"
+  | "test";
 
 export const pharmacySmsRules = pgTable("pharmacy_sms_rules", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -208,6 +235,9 @@ export const pharmacySmsRules = pgTable("pharmacy_sms_rules", {
   templateEn: text("template_en"),
   templateLg: text("template_lg"),
   status: text("status").$type<"draft" | "signed">().notNull().default("draft"),
+  timing: text("timing"),
+  lgCheckedBy: uuid("lg_checked_by"),
+  lgCheckedAt: timestamp("lg_checked_at", tz),
   setBy: uuid("set_by").notNull(),
   setAt: timestamp("set_at", tz).notNull().defaultNow(),
 });
@@ -216,7 +246,7 @@ export const pharmacySmsMessages = pgTable("pharmacy_sms_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   hospitalId: uuid("hospital_id").notNull(),
   day: date("day").notNull(),
-  rule: text("rule").$type<SmsRule>().notNull(),
+  rule: text("rule").$type<SmsMessageRule>().notNull(),
   refKey: text("ref_key").notNull(),
   recipient: text("recipient").notNull(),
   phoneEncrypted: text("phone_encrypted").notNull(),
@@ -227,6 +257,10 @@ export const pharmacySmsMessages = pgTable("pharmacy_sms_messages", {
   providerId: text("provider_id"),
   cost: text("cost"),
   failure: text("failure"),
+  parts: integer("parts").notNull().default(1),
+  costUgx: integer("cost_ugx").notNull().default(0),
+  note: text("note"),
+  deliveredAt: timestamp("delivered_at", tz),
   sentAt: timestamp("sent_at", tz),
   statusBy: uuid("status_by"),
   statusAt: timestamp("status_at", tz).notNull().defaultNow(),
@@ -239,6 +273,8 @@ export const pharmacySmsOptouts = pgTable(
     hospitalId: uuid("hospital_id").notNull(),
     phoneHmac: text("phone_hmac").notNull(),
     source: text("source").$type<"reply_stop" | "staff">().notNull(),
+    reason: text("reason"),
+    phoneEncrypted: text("phone_encrypted"),
     recordedBy: uuid("recorded_by"),
     recordedAt: timestamp("recorded_at", tz).notNull().defaultNow(),
   },

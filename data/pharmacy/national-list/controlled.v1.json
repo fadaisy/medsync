@@ -1,0 +1,11 @@
+{
+  "note": "The national controlled list (MEDICINES-TAB.md §10): a line matching one of these is always Controlled, and the flag is locked on. Matched on the lower-case generic and, where given, a form containing the word. To confirm against the NDA list before go-live.",
+  "status": "unconfirmed",
+  "items": [
+    { "generic": "morphine", "form": "injection" },
+    { "generic": "morphine", "form": "oral solution" },
+    { "generic": "pethidine" },
+    { "generic": "diazepam", "form": "injection" },
+    { "generic": "phenobarbital" }
+  ]
+}

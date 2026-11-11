@@ -173,7 +173,7 @@ export function buildNeedsYou(s: NeedsYouSources): NeedsYouItem[] {
         n: 1,
         since: iso(d.arrivedAt),
         attention: false,
-        href: `/pharmacy/store/deliveries/${d.id}`,
+        href: `/pharmacy/stock/store?tab=receive&delivery=${d.id}`,
         detail: fill(d.noteNumber ? T.delivery : T.deliveryNoNote, {
           note: d.noteNumber ?? "",
           supplier: d.supplier,

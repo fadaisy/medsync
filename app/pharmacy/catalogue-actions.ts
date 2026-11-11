@@ -213,7 +213,7 @@ export async function scanProductAction(
   return { ok: true, productId };
 }
 
-/* ─── Set-up › Prices (catalogue slice Step 8; ADR 0460): each a new row from a date, `pharmacy.manage` ─── */
+/* ─── Set-up › Places › dispensing points (catalogue slice Step 8; ADR 0460): each a new row from a date ─── */
 
 async function priceWrite<I>(
   schema: z.ZodType<I>,
@@ -227,20 +227,11 @@ async function priceWrite<I>(
   return r;
 }
 
-export async function setPriceRuleAction(raw: unknown) {
-  return priceWrite(prices.RuleInput, raw, prices.setPriceRule);
-}
-export async function addPayerAction(raw: unknown) {
-  return priceWrite(prices.PayerInput, raw, prices.addPayer);
-}
 export async function setChargeModeAction(raw: unknown) {
   return priceWrite(prices.ChargeModeInput, raw, prices.setChargeMode);
 }
 export async function setPayFirstAction(raw: unknown) {
   return priceWrite(prices.PayFirstInput, raw, prices.setPayFirst);
-}
-export async function setPriceAction(raw: unknown) {
-  return priceWrite(prices.SetPriceInput, raw, prices.setPrice);
 }
 
 /* ─── Set-up › Import (catalogue slice Step 9; ADR 0462): drafts, one decision per row, commit ─── */

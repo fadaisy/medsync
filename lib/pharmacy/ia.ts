@@ -68,7 +68,7 @@ export const PAGES: readonly PharmacyPage[] = [
     section: "stock",
     href: "/pharmacy/stock/store",
     tier: "core",
-    tabs: ["receive", "issue", "count", "order", "cold"],
+    tabs: ["main", "receive"],
   },
   {
     key: "cd",
@@ -91,7 +91,14 @@ export const PAGES: readonly PharmacyPage[] = [
 
 /** Reached from the account menu only (PRD §3). */
 export const SETUP_HREF = "/pharmacy/setup";
-export const SETUP_TABS = ["live", "places", "medicines", "rules", "people", "sms"] as const;
+export const SETUP_TABS = [
+  "going-live",
+  "places",
+  "medicines",
+  "rules",
+  "people",
+  "messages",
+] as const;
 
 export const pageByKey = (key: string) => PAGES.find((p) => p.key === key);
 export const pagesIn = (section: SectionId, tiers: Record<Tier, boolean>) =>
@@ -145,15 +152,15 @@ export const REDIRECTS: readonly { source: string; destination: string }[] = [
     source: "/pharmacy/store/deliveries/:id",
     destination: "/pharmacy/stock/store?tab=receive&delivery=:id",
   },
-  { source: "/pharmacy/store/issues", destination: "/pharmacy/stock/store?tab=issue" },
+  { source: "/pharmacy/store/issues", destination: "/pharmacy/stock/store?tab=main&section=req" },
   {
     source: "/pharmacy/store/issues/:id",
-    destination: "/pharmacy/stock/store?tab=issue&issue=:id",
+    destination: "/pharmacy/stock/store?tab=main&section=req",
   },
-  { source: "/pharmacy/store/wards", destination: "/pharmacy/stock/store?tab=issue" },
+  { source: "/pharmacy/store/wards", destination: "/pharmacy/stock/store?tab=main&section=all" },
   {
     source: "/pharmacy/store/wards/:locationId",
-    destination: "/pharmacy/stock/store?tab=issue&ward=:locationId",
+    destination: "/pharmacy/stock/store?tab=main&ward=:locationId",
   },
   { source: "/pharmacy/store/carts", destination: "/pharmacy/stock/medicines" },
   { source: "/pharmacy/store/carts/:locationId", destination: "/pharmacy/stock/medicines" },
@@ -163,8 +170,11 @@ export const REDIRECTS: readonly { source: string; destination: string }[] = [
     destination: "/pharmacy/stock/medicines?filter=recalled",
   },
   { source: "/pharmacy/store/expiry/recalls/:id", destination: "/pharmacy/stock/recall/:id" },
-  { source: "/pharmacy/store/month-end", destination: "/pharmacy/stock/store?tab=count" },
-  { source: "/pharmacy/store/orders", destination: "/pharmacy/stock/store?tab=order" },
+  {
+    source: "/pharmacy/store/month-end",
+    destination: "/pharmacy/stock/store?tab=main&section=count",
+  },
+  { source: "/pharmacy/store/orders", destination: "/pharmacy/stock/store?tab=main&section=order" },
   { source: "/pharmacy/store/packs", destination: "/pharmacy/setup?tab=rules" },
   { source: "/pharmacy/store/places", destination: "/pharmacy/setup?tab=places" },
   { source: "/pharmacy/clinical", destination: "/pharmacy/dispense" },

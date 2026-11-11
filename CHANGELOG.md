@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — One medicine master in Set-up › Medicines — 3 Nov 2026
+
+- Set-up › Medicines is now the grid from the Medicines kit: filters and saved views, per-place top-up levels and
+  stock, prices per payer, brands, rules changed with two signatures, quality checks, bulk edits and history. Stock ›
+  Medicines shows the same grid to operate ([ADR 0471](docs/adr/0471-medicines-master-in-set-up.md)).
+- Dispensing-point billing moved to Set-up › Places. The old Prices page and Medicines list are removed.
+- GATED migration 0270 (identity index, two-signature rules, history, order asks, live broadcast). Copy is draft.
+
 ### Changed — Local medicines from the catalogue, controlled by a signed substance list — 29 Oct 2026
 
 - A catalogue medicine that is not on the prescribing list can be received as a local medicine. Its controlled
