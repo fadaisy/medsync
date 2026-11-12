@@ -1028,34 +1028,36 @@ export function PlanPrescribeDialog({
                       Dose by age
                     </Toggle>
                     {byAge ? (
-                      <table className="text-body-s w-full">
-                        <caption className="sr-only">
-                          Dose by age, from the signed reference
-                        </caption>
-                        <tbody>
-                          {DOSE_BANDS.map((b) => (
-                            <tr
-                              key={b}
-                              className={cn(
-                                "border-border border-t align-top",
-                                b === band && "bg-teal-50",
-                              )}
-                            >
-                              <th scope="row" className="text-label py-1.5 pr-3 text-left">
-                                {BAND_WORD[b]}
-                                {b === band ? (
-                                  <span className="text-caption text-muted-foreground block">
-                                    This patient
-                                  </span>
-                                ) : null}
-                              </th>
-                              <td className="py-1.5">
-                                {drug.dose.bands[b] ?? "No verified regimen"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <div className="overflow-x-auto">
+                        <table className="text-body-s w-full">
+                          <caption className="sr-only">
+                            Dose by age, from the signed reference
+                          </caption>
+                          <tbody>
+                            {DOSE_BANDS.map((b) => (
+                              <tr
+                                key={b}
+                                className={cn(
+                                  "border-border border-t align-top",
+                                  b === band && "bg-teal-50",
+                                )}
+                              >
+                                <th scope="row" className="text-label py-1.5 pr-3 text-left">
+                                  {BAND_WORD[b]}
+                                  {b === band ? (
+                                    <span className="text-caption text-muted-foreground block">
+                                      This patient
+                                    </span>
+                                  ) : null}
+                                </th>
+                                <td className="py-1.5">
+                                  {drug.dose.bands[b] ?? "No verified regimen"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     ) : null}
                     {byAge ? (
                       <p className="text-caption text-muted-foreground font-mono">

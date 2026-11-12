@@ -15,7 +15,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/lib/emr/actions/protocol-charts", () => ({}));
 
-const { ChartScreen } = await import("@/components/protocols/chart-screen");
+const { ChartScreen, queuesOffline } = await import("@/components/protocols/chart-screen");
 const { deriveChart } = await import("@/lib/protocols/engine/derive");
 
 const mig = (f: string) => readFileSync(resolve(__dirname, "../../supabase/migrations", f), "utf8");
@@ -136,5 +136,55 @@ describe("protocol chart screens", () => {
       expect(src, f).not.toMatch(/<h[1-6][^>]*font-(?:bold|medium)/);
       expect(src, f).not.toMatch(/Sheet|Drawer/);
     }
+  });
+
+  it("P11 offline: the nurse's slot, vitals and chart acts queue; everything else needs a connection", () => {
+    for (const w of ["slot", "vitals", "act"] as const)
+      expect(queuesOffline("rn", w), w).toBe(true);
+    expect(queuesOffline("rn", "other")).toBe(false); // notes, end, undo
+    for (const w of ["slot", "vitals", "act", "other"] as const) {
+      expect(queuesOffline("dr", w), w).toBe(false); // rates, doses, orders, sign and send
+      expect(queuesOffline("ph", w), w).toBe(false);
+    }
+    // Online with nothing waiting: no outbox strip.
+    expect(render("rn")).not.toContain("waiting to save");
+  });
+
+  // Playwright is not set up in this repo, so the 1440 and 390 px smoke is the classes each width
+  // relies on: the screens' own layout at 1440, and nothing wider than a phone at 390.
+  it("1440 px: the doctor's work screen is two columns from lg; 390 px: one column", () => {
+    const html = render("dr");
+    expect(html).toContain('class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]"');
+    expect(html).toContain("grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5");
+  });
+
+  it("390 px: no fixed width wider than a phone, tables scroll in their own box, grid inputs shrink", () => {
+    const root = resolve(__dirname, "../..");
+    const files = [
+      ...readdirSync(resolve(root, "components/protocols")).map((f) => `components/protocols/${f}`),
+      "components/clerking/plan/protocols-mode.tsx",
+      "components/clerking/plan/prescribe-dialog.tsx",
+      "components/clerking/plan/prescribe-session.tsx",
+      "app/nurse/tasks/_components/task-list.tsx",
+      "app/nurse/mar/_components/chart-doses.tsx",
+      "app/pharmacy/prescriptions/[key]/handover/_components/handover-screen.tsx",
+    ];
+    for (const f of files) {
+      const src = readFileSync(resolve(root, f), "utf8");
+      // An unprefixed fixed width applies at 390 px: none over the phone's 358 px of content.
+      for (const m of src.matchAll(/(?<![\w:-])(?:min-)?w-\[(\d+)px\]/g))
+        expect(Number(m[1]), `${f}: ${m[0]}`).toBeLessThanOrEqual(358);
+      // Every table sits in an overflow-x-auto box (a few lines up).
+      const lines = src.split("\n");
+      lines.forEach((l, i) => {
+        if (l.includes("<table"))
+          expect(lines.slice(Math.max(0, i - 4), i).join("\n"), `${f}:${i + 1}`).toContain(
+            "overflow-x-auto",
+          );
+      });
+    }
+    // The record form and the vitals card: two and three columns at 390 px, so each input shrinks.
+    const chart = readFileSync(resolve(root, "components/protocols/chart-screen.tsx"), "utf8");
+    expect(chart.match(/h-8 w-full min-w-0 rounded-md border px-2 font-mono/g)).toHaveLength(2);
   });
 });

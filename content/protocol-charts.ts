@@ -213,6 +213,16 @@ export const CHART_COPY = {
   done2: "Done",
   failed: "That did not save. Try again.",
   checksFirst: "Tick every check before the dose.",
+  // Offline (P11)
+  needsConnection: "You are offline. This needs a connection: try again when you are back online.",
+  offlineWaiting: "{n} waiting to save. They save when the connection is back.",
+  waiting: "Waiting",
+  notSaved: "Not saved",
+  retry: "Retry",
+  discard: "Discard",
+  qSlot: "Observations",
+  qVitals: "Vital signs",
+  qAct: "Chart entry",
 } as const satisfies SignedCopy & Record<string, unknown>;
 
 export { fill } from "@/content/pharmacy-rework-patients";

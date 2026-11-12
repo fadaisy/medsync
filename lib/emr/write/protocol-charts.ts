@@ -269,6 +269,21 @@ async function addEvent(
   return had!.id;
 }
 
+/**
+ * P11: a nurse's entry queued offline is resent until a reply arrives, so a resend may find it
+ * already saved (the reply was lost). It returns that event, not a refusal from the chart as it is
+ * now (the dose is no longer due, the slot has moved on).
+ */
+async function savedBefore(ctx: WriteCtx, chartId: string, clientKey: string) {
+  const [had] = await ctx.tx
+    .select({ id: protocolChartEvents.id })
+    .from(protocolChartEvents)
+    .where(
+      and(eq(protocolChartEvents.chartId, chartId), eq(protocolChartEvents.clientKey, clientKey)),
+    );
+  return had ? { id: had.id } : null;
+}
+
 /** The chart's nurse tasks follow the chart: raise what is due, close what the chart no longer asks. */
 async function syncTasks(ctx: WriteCtx, chartId: string) {
   const { chart, view } = await loadChart(ctx, { chartId });
@@ -369,6 +384,8 @@ export async function chartAct(
   input: { patientUserId: string; chartId: string; act: Act; value?: string; clientKey: string },
 ): Promise<WriteResult> {
   const role = roleFor(ctx);
+  const again = await savedBefore(ctx, input.chartId, input.clientKey);
+  if (again) return again;
   const { chart, view, events } = await loadChart(ctx, input);
   const act = input.act;
   if (["end", "send", "rx", "screen", "proto"].includes(act.t))
@@ -475,6 +492,8 @@ export async function recordSlot(
   },
 ): Promise<WriteResult> {
   roleFor(ctx, "rn");
+  const again = await savedBefore(ctx, input.chartId, input.clientKey);
+  if (again) return again;
   const loaded = await loadChart(ctx, input);
   const { chart, view } = loaded;
   if (view.endedAt) throw conflict("This chart has ended.");
@@ -616,6 +635,8 @@ export async function recordVitals(
   },
 ): Promise<WriteResult> {
   roleFor(ctx, "rn");
+  const again = await savedBefore(ctx, input.chartId, input.clientKey);
+  if (again) return again;
   const { chart, view } = await loadChart(ctx, input);
   if (view.endedAt) throw conflict("This chart has ended.");
   const keys = new Set(view.vitals.inputs.map((i) => i.key));

@@ -13,7 +13,6 @@ import { RULE_MODULES } from "@/lib/protocols/rules";
 
 const mig = (f: string) => readFileSync(resolve(__dirname, "../../supabase/migrations", f), "utf8");
 const m82 = mig("0282_prescribe_protocols.sql");
-const m83 = mig("0283_protocol_charts.sql");
 const names = Object.fromEntries(
   [
     ...m82.matchAll(

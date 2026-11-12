@@ -6,10 +6,11 @@
 import type { ChartEvent, ChartFacts, ChartVersion } from "@/lib/protocols/engine/types";
 import { describe, expect, it } from "vitest";
 
+import { HTN_COPY, HYPERK_COPY, MGSO4_COPY } from "@/content/protocol-charts-rules";
 import { deriveChart, isOffered, offeredActs } from "@/lib/protocols/engine/derive";
-import { HTN_COPY, HtnSeed } from "@/lib/protocols/rules/htn";
-import { HYPERK_COPY } from "@/lib/protocols/rules/hyperk";
-import { MGSO4_COPY } from "@/lib/protocols/rules/mgso4";
+import { fold } from "@/lib/protocols/engine/fold";
+import { makeKit } from "@/lib/protocols/engine/kit";
+import htn, { HtnSeed } from "@/lib/protocols/rules/htn";
 import { ev, facts, lab, MIN, T0, versionOf } from "./_seed-0285";
 
 it("the three P5 copies are draft until the CSO signs", () => {
@@ -26,8 +27,10 @@ const view = (
 ) => deriveChart(ver, { startedAt: T0 }, events, facts(over), T0 + at * MIN);
 const step = (v: ReturnType<typeof view>, title: string) =>
   v.phases.flatMap((p) => p.acts).find((s) => s.title === title)!;
+/** A saved slot, with the MAP the server's save works out (`recordSlot` applies `derive`). */
+const derive = htn.build(makeKit({ version: V, c: fold(T0, []), facts: facts(), now: T0 })).derive!;
 const slot = (h: number, values: Record<string, string>) =>
-  ev("slot", { slot: h, values }, "rn", h * 10 + 1);
+  ev("slot", { slot: h, values: { ...values, ...derive(values) } }, "rn", h * 10 + 1);
 const GIVE = { t: "give", key: "lab" } as const;
 const BASE = { results: lab({ sbp: 214, dbp: 124, pulse: 92 }) };
 /** Emergency with organ damage, labetalol checked safe. */

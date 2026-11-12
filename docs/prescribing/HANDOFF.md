@@ -302,3 +302,100 @@ page has no "Protocols running" section; protocol lines are off the MAR either w
 - `tests/prescribing/protocol-charts-ui.test.ts` (unit, 4): each role's screen renders; design rules on the files.
 - `tests/emr-db/protocol-charts-s7.test.ts` (PGlite, 2): S7 + S8 end to end through the server writes; S9 monitoring
   chart and undo. `tests/emr-db/protocol-charts-db.test.ts` (PGlite, 3): seed numbers, P1 [DB], P3 append-only.
+
+# P5 The 10 protocols (F9)
+
+All ten rule modules are complete: `lib/protocols/rules/{dka,hhs,ssi,hyperk,htn,mgso4,art,se,op,nac}.ts`, each
+the prototype's `PC.<id>.build(K)` on the generic kit, every number read from the version's `seed` (zod-checked;
+a version without its numbers is shown blocked and offers nothing). Seeds: **0284** (HHS, sliding scale),
+**0285** (hyperkalaemia, labetalol, magnesium), **0286** (malaria, seizures, OP, acetylcysteine), all still DRAFT
+and unsigned. Lab values typed on a chart go to results tagged with the chart and close the chart's order.
+
+## Numbers taken from the prototype (FEATURES §2 gives none)
+
+| Protocol        | Seed values from `Main.dc.html` `PC.<id>`, not §2                                                                                                                                                                                                         |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| All             | phase boundaries (slot indices), the reference ranges (`refs`, the prototype's REFS), adult/child cut at 16 y where the module needs one                                                                                                                  |
+| HHS (0284)      | insulin at least 1 unit/h in 50 ml, 2 boluses, 150 ml 10% glucose for a hypo, the 6–10 aim, the 24 h senior review                                                                                                                                        |
+| Sliding scale   | the bands table is §2.10's example (hospital-editable, FEATURES §5): replace with the hospital's own signed scale in a new version                                                                                                                        |
+| Hyperkalaemia   | salbutamol fast-pulse warning over 100, hypo treatment 150 ml 10% or 50 ml 20% with a 15 min recheck, eGFR alert under 15, bicarbonate under 22                                                                                                           |
+| Labetalol       | infusion middle step 1.5 mg/min                                                                                                                                                                                                                           |
+| Magnesium       | 50% at 2 ml per g, dose window 15 min, low urine 25 ml/h, after delivery BP 150/100 every 4 h                                                                                                                                                             |
+| Malaria         | reconstituted vial used within 60 min, IV over 1–2 min, a dose early by up to 30 min, adult hypo alternative 250 ml, recheck 15 min, tablets from 8–12 h, first dose within 60 min, GCS flags 5 (child) / 15 (adult), fever over 37.5                     |
+| Seizures        | thiamine 100 mg, diazepam 5 mg/ml IV over 2 min and offered from 5 min, phenobarbital 200 mg/ml, aims diazepam by 10 min and fitting stopped by 30 min, SpO₂ flags 94/90, RR under 10, stabilise done at 3 chips                                          |
+| Organophosphate | atropine 1 mg/ml, infusion % options 10/15/20 (default 15), signs every 15 min, late weakness days 1–4, aims first dose by 5 min and atropinised by 30 min, pulse over 120 / under 60, pharmacy warning over 30 mg, airway done at 4 chips, SpO₂ under 90 |
+| Acetylcysteine  | "abnormal LFTs" = ALT 50 or more (INR over 1.3), 2,000 mg ampoules, a bag may start 10 min early, end bloods 60 min before bag 3 ends, glucose under 4                                                                                                    |
+| DKA (0283, P4)  | as listed in 0283's header                                                                                                                                                                                                                                |
+
+## Defaults taken
+
+- The prototype's "usual medicines" rows (keep, hold, stop the patient's home medicines) are not ported: the
+  chart's facts have no home-medicines list to read. Add when the record carries one.
+- A nurse's value for a lab test that is not a bedside test (potassium, sodium, gas) stays an observation tagged
+  with the chart; only the results writer's bedside tests are entered on an order by a nurse.
+- Values worked out on save (HHS osmolality, labetalol MAP) are the module's `derive`, applied by the server's
+  `recordSlot` and stored on the slot event; the engine reads the stored value (P8 is unchanged: no status is
+  stored).
+
+# P6 Finish
+
+## Where it landed
+
+| Item              | Where                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Copy in one place | the nine P5 copies (`HHS_COPY`, `SSI_COPY`, `HYPERK_COPY`, `HTN_COPY`, `MGSO4_COPY`, `ART_COPY`, `SE_COPY`, `OP_COPY`, `NAC_COPY`) moved unchanged into `content/protocol-charts-rules.ts` beside `STEPS_COPY` and `DKA_COPY`                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Copy gate         | `protocolsLiveFor` now also needs `CHART_COPY` and every copy in `content/protocol-charts-rules.ts` signed before it turns on in production                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| MAP on save       | `htn.ts` no longer folds the MAP into its slots on each render; it reads the value `recordSlot` stores                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Offline (P11)     | `components/protocols/chart-screen.tsx` uses the EMR outbox (`lib/emr/sync/queue.ts`, as the clerking desk): offline, the nurse's slot, vitals and chart acts (given, hung, started, fitting stopped) wait and are sent in order by their client key when back online (a strip lists them; a refused one shows Retry / Discard). The doctor's acts, notes, parameters, end, undo and sign and send refuse offline in words (`queuesOffline`). Server: `chartAct`, `recordSlot` and `recordVitals` return the saved event for a client key already on the chart (a resend after a lost reply), instead of re-checking a chart that has moved on |
+| 390 px            | record form and vitals card inputs shrink in their grid (`min-w-0`, `w-full`); Prescribe's "Dose by age" table scrolls in its own box                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+
+## Defaults taken
+
+- A queued entry is stamped with the server's time when it arrives (P9); the time it was entered offline is not
+  kept. `ponytail:` add an effective time to `protocol_chart_events` (new migration) if wards stay offline long.
+- The outbox lives in the page (as the clerking desk's): closing the tab with entries waiting asks first; a reload
+  loses them.
+- Playwright is not set up in the repo, so no dependency was added: the 1440/390 px smoke is render and class tests
+  in `tests/prescribing/protocol-charts-ui.test.ts`.
+
+## Tests
+
+- `tests/emr-db/protocol-charts-s11-s12.test.ts` (PGlite, 2): S11 (Protocols running and the record list, opens
+  in its protocol, ended leaves the ward list) and S12 (offline slot and bag through the real outbox, first reply
+  lost, resent: one event each).
+- `tests/prescribing/protocol-charts-ui.test.ts` (+3): `queuesOffline`, the 1440/390 layout classes, and the 390 px
+  rules on every kit screen file (no fixed width over 358 px unprefixed, tables in `overflow-x-auto`).
+- Scenario map: S1–S3 `tests/emr-db/prescribe-scenarios`, S4 `prescribe-handoff`, S5 `nurse-tasks-scenarios`,
+  S6 `protocols-s6`, S7–S9 `protocol-charts-s7` (+ engine and UI unit tests), S10 `tests/protocols/*` (one walk per
+  protocol), S11–S12 `protocol-charts-s11-s12`.
+
+# Owner checklist (whole kit)
+
+1. **Migrations**, in order, all GATED: **0279, 0280, 0281, 0282, 0283, 0284, 0285, 0286**:
+   `cd /Users/airm1/Desktop/medsync-rx && npm run db:migrate`. The Drizzle schema names columns from 0281 and
+   0282, so apply before deploying this branch.
+2. **Flags**: `PRESCRIBE_V2` (`1` or hospital ids; needs `ENCOUNTER_ENGINE_LIVE`, `EMR_V1`, `EMR_PRESCRIBING`).
+   It drives `prescribeV2LiveFor` (Prescribe), `nurseTasksLiveFor` (nurse tasks, Given / Withhold) and
+   `protocolsLiveFor` (Protocols mode and the charts). In production (`VERCEL_ENV=production`) each stays off
+   while any of its copy is draft:
+   - `prescribeV2LiveFor`: `PRESCRIBE_COPY`, `PRESCRIBE_HANDOFF_COPY`
+   - `nurseTasksLiveFor`: `PRESCRIBE_COPY`, `NURSE_TASKS_COPY`
+   - `protocolsLiveFor`: `PRESCRIBE_COPY`, `PROTOCOLS_COPY`, `CHART_COPY`, every copy in `content/protocol-charts-rules.ts`
+3. **Draft copy to sign**: `content/prescribing.ts` (`PRESCRIBE_COPY`); `lib/prescribing/order-sets.ts`
+   (`ORDER_SETS_STATUS`); `content/pharmacy-rework-daily.ts` (`RX_CHECKS.prescriberSaid`); `content/nurse-tasks.ts`
+   (`NURSE_TASKS_COPY`); `content/pharmacy-prescriber.ts` (`PRESCRIBE_HANDOFF_COPY`); `content/protocols.ts`
+   (`PROTOCOLS_COPY`, `PROTOCOL_GROUPS`); `content/protocol-charts.ts` (`CHART_COPY`);
+   `content/protocol-charts-rules.ts` (`STEPS_COPY`, `DKA_COPY`, `HHS_COPY`, `SSI_COPY`, `HYPERK_COPY`, `HTN_COPY`,
+   `MGSO4_COPY`, `ART_COPY`, `SE_COPY`, `OP_COPY`, `NAC_COPY`).
+4. **Ten protocols awaiting two-clinician sign-off** (in the app, two different consultants, P1): DKA, HHS,
+   hyperkalaemia, IV labetalol, magnesium sulphate, IV artesunate, status epilepticus, organophosphate,
+   acetylcysteine, sliding-scale insulin. Check each seed against FEATURES §2 and the prototype-sourced values
+   above first; none can start in production until signed ([DB] P1).
+5. **Defaults taken**: each phase's "Defaults taken" above, plus FEATURES §5 as built (two consultants sign; patient
+   record › Protocols plus the ward's "Protocols running"; urine ketones allowed; vitals stay on the chart's events,
+   only weight to the record; one signed order per chart for the first period; the sliding-scale table per version;
+   slot length per protocol).
+6. **Not browser-checked**: no screen of the kit (Prescribe, pharmacy hand-over, nurse tasks and MAR, Protocols
+   mode, the chart screens) was opened in a browser at 1440 or 390 px: it needs 0279–0286 on a database and doctor,
+   nurse and pharmacy sign-ins. Offline was tested through the outbox and the server, not by pulling a real
+   connection.

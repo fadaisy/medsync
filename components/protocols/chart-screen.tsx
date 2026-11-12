@@ -1,5 +1,7 @@
 "use client";
 
+import type { QueueEntry } from "@/lib/emr/sync/queue";
+import type { ActionResult } from "@/lib/emr/write/context";
 import type {
   Act,
   Btn,
@@ -11,7 +13,7 @@ import type {
 } from "@/lib/protocols/engine/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 
 import { StatusWord } from "@/components/emr/status-word";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
@@ -30,6 +32,7 @@ import {
   undoChartEventAction,
 } from "@/lib/emr/actions/protocol-charts";
 import { formatClock } from "@/lib/emr/charts/scale";
+import { attachToWindow, createWriteQueue } from "@/lib/emr/sync/queue";
 import { cn } from "@/lib/utils";
 import { MiniTrend, TrendPanel } from "./trends";
 
@@ -57,6 +60,21 @@ export interface ChartScreenProps {
 }
 
 type Res = { ok: true } | { ok: false; error: string };
+
+/** What a write is, for the offline rule (P11). */
+export type ChartWrite = "slot" | "vitals" | "act" | "other";
+
+/**
+ * P11: offline, the nurse can still record a slot, record vitals and give a dose or mark a step: those
+ * wait in the EMR outbox and are sent once, by their client key, when the connection is back. Every
+ * doctor act (rates, doses, orders, sign and send), notes, parameters, ending and undo need a
+ * connection; the server re-checks each queued act against the chart as it is when it arrives.
+ */
+export const queuesOffline = (role: Role, w: ChartWrite) =>
+  role === "rn" && (w === "slot" || w === "vitals" || w === "act");
+
+const QUEUE_LABEL = { slot: C.qSlot, vitals: C.qVitals, act: C.qAct, other: C.qAct } as const;
+const NO_ENTRIES: readonly QueueEntry[] = [];
 
 const STEP_WORD = { todo: C.toDo, needs: C.needsYou, done: C.done } as const;
 const LINE_TONE = { alert: "caution", warn: "caution", ok: "neutral", "": "neutral" } as const;
@@ -90,18 +108,33 @@ export function ChartScreen(p: ChartScreenProps) {
   const ended = view.endedAt !== null;
   const ids = { surface: p.surface, patientUserId: p.patientUserId, chartId: p.chartId };
 
+  // The EMR outbox (lib/emr/sync/queue.ts), as the clerking desk uses it: online, a write is sent
+  // at once; offline, a nurse's entry waits here and is sent once, in order, when back online.
+  const [queue] = useState(() => createWriteQueue({ now: () => Date.now() }));
+  const waiting = useSyncExternalStore(queue.subscribe, queue.getSnapshot, () => NO_ENTRIES);
+  useEffect(() => attachToWindow(queue, window), [queue]);
+
   const run = (
     fn: (raw: unknown) => Promise<Res>,
     input: Record<string, unknown>,
     then?: () => void,
-  ) =>
-    start(async () => {
-      const r = await fn({
-        ...ids,
-        clientKey: crypto.randomUUID(),
-        ...(p.devClock ? { devAt: p.devClock } : {}),
-        ...input,
+    kind: ChartWrite = "other",
+  ) => {
+    const send = (clientKey: string) =>
+      fn({ ...ids, clientKey, ...(p.devClock ? { devAt: p.devClock } : {}), ...input });
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      if (!queuesOffline(role, kind)) return setError(C.needsConnection);
+      queue.submit({
+        label: QUEUE_LABEL[kind],
+        run: ({ clientKey }) => send(clientKey) as Promise<ActionResult<unknown>>,
+        onSaved: () => router.refresh(),
       });
+      setError(null);
+      then?.();
+      return;
+    }
+    start(async () => {
+      const r = await send(crypto.randomUUID());
       if (!r.ok) setError(r.error || C.failed);
       else {
         setError(null);
@@ -109,7 +142,8 @@ export function ChartScreen(p: ChartScreenProps) {
         router.refresh();
       }
     });
-  const act = (a: Act, value?: string) => run(chartActAction, { act: a, value });
+  };
+  const act = (a: Act, value?: string) => run(chartActAction, { act: a, value }, undefined, "act");
 
   const steps = [...view.phases.flatMap((ph) => ph.acts), ...view.rn.acts];
   const openStep = steps.find((s) => s.key === open) ?? null;
@@ -233,6 +267,10 @@ export function ChartScreen(p: ChartScreenProps) {
         </p>
       ) : null}
 
+      {waiting.length ? (
+        <Outbox entries={waiting} onRetry={queue.retry} onDiscard={(k) => void queue.discard(k)} />
+      ) : null}
+
       {role === "ph" ? (
         <Pharmacy view={view} names={p.names} stock={p.stock} />
       ) : tab === "work" ? (
@@ -333,8 +371,8 @@ export function ChartScreen(p: ChartScreenProps) {
           role={role}
           busy={pending}
           ended={ended}
-          onRecord={(values, done) => run(recordSlotAction, { values }, done)}
-          onVitals={(values, done) => run(recordVitalsAction, { values }, done)}
+          onRecord={(values, done) => run(recordSlotAction, { values }, done, "slot")}
+          onVitals={(values, done) => run(recordVitalsAction, { values }, done, "vitals")}
           onParam={(input) => run(changeParamAction, input)}
         />
       )}
@@ -1162,7 +1200,7 @@ function RecordForm({
       <p className="text-caption text-muted-foreground">{view.recHint}</p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {view.form.map((f) => (
-          <label key={f.key} className="flex flex-col gap-1">
+          <label key={f.key} className="flex min-w-0 flex-col gap-1">
             <span className="text-caption text-muted-foreground">
               {f.label}
               {f.unit ? `, ${f.unit}` : ""}
@@ -1172,7 +1210,7 @@ function RecordForm({
               inputMode={f.key === "uket" ? "text" : "decimal"}
               value={vals[f.key] ?? ""}
               onChange={(e) => setVals({ ...vals, [f.key]: e.target.value })}
-              className="border-border bg-background text-body-s h-8 rounded-md border px-2 font-mono"
+              className="border-border bg-background text-body-s h-8 w-full min-w-0 rounded-md border px-2 font-mono"
             />
           </label>
         ))}
@@ -1271,7 +1309,7 @@ function VitalsCard({
         <div className="flex flex-col gap-2">
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-8">
             {V.inputs.map((i) => (
-              <label key={i.key} className="flex flex-col gap-1">
+              <label key={i.key} className="flex min-w-0 flex-col gap-1">
                 <span className="text-caption text-muted-foreground">
                   {i.label}
                   {i.unit ? ` (${i.unit})` : ""}
@@ -1280,7 +1318,7 @@ function VitalsCard({
                   inputMode={i.key.startsWith("cx_") ? "text" : "numeric"}
                   value={vals[i.key] ?? ""}
                   onChange={(e) => setVals({ ...vals, [i.key]: e.target.value })}
-                  className="border-border bg-background text-body-s h-8 rounded-md border px-2 font-mono"
+                  className="border-border bg-background text-body-s h-8 w-full min-w-0 rounded-md border px-2 font-mono"
                 />
               </label>
             ))}
@@ -1402,5 +1440,46 @@ function DevClock({ minutes }: { minutes: number }) {
         </Link>
       ))}
     </div>
+  );
+}
+
+/** The nurse's entries waiting in the outbox (P11): a neutral strip, never a clinical colour. */
+function Outbox({
+  entries,
+  onRetry,
+  onDiscard,
+}: {
+  entries: readonly QueueEntry[];
+  onRetry: (clientKey: string) => void;
+  onDiscard: (clientKey: string) => void;
+}) {
+  return (
+    <section
+      role="status"
+      className="border-border bg-muted flex flex-col gap-2 rounded-lg border p-3"
+    >
+      <p className="text-body-s text-foreground">{fill(C.offlineWaiting, { n: entries.length })}</p>
+      <ul className="flex flex-col gap-1">
+        {entries.map((e) => (
+          <li key={e.clientKey} className="flex flex-wrap items-center gap-2">
+            <GreyTag>{e.status === "failed" ? C.notSaved : C.waiting}</GreyTag>
+            <span className="text-caption text-foreground">{e.label}</span>
+            {e.error && e.status === "failed" ? (
+              <span className="text-caption text-muted-foreground">{e.error}</span>
+            ) : null}
+            {e.status === "failed" ? (
+              <>
+                <Button size="sm" variant="secondary" onClick={() => onRetry(e.clientKey)}>
+                  {C.retry}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => onDiscard(e.clientKey)}>
+                  {C.discard}
+                </Button>
+              </>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
