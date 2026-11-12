@@ -2,7 +2,9 @@ import type { LineRow, SessionRow } from "./_components/line-tables";
 import type { Ratio } from "@/lib/hospital-admin/reports";
 import type { Metadata } from "next";
 
+import { PilotWeeksNote, PilotWeeksTable } from "@/components/scheduling/pilot-weeks";
 import { fetchPendingRequests } from "@/lib/hospital-admin/pending";
+import { fetchPilotWeeks, PILOT_WEEKS } from "@/lib/hospital-admin/pilot";
 import {
   fetchHospitalReport,
   HELD_PAST_STATUSES,
@@ -67,11 +69,13 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   const days = parseReportDays(params.days);
   const window = reportWindow(days);
   // Pending moved here from the old Scheduling page at the Clinics & schedule cut-over.
-  const [report, pending, stats] = await Promise.all([
+  const [report, pending, stats, pilot] = await Promise.all([
     fetchHospitalReport(scope.hospitalId, window),
     fetchPendingRequests(scope.hospitalId),
     fetchStats(scope.hospitalId),
+    fetchPilotWeeks(scope.hospitalId),
   ]);
+  const pilotData = pilot.hospitals.get(scope.hospitalId);
 
   const since = `00:00 on ${DAY_FMT.format(window.from)}`;
   const range = `the last ${days} days`;
@@ -201,6 +205,34 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           basis={`${report.sms.messages} SMS sent`}
           note="Cost as the provider reported it per message — a message it did not price counts as 0. Push is free."
         />
+      </section>
+
+      <section
+        aria-labelledby="pilot-heading"
+        className="border-border bg-card flex flex-col rounded-lg border"
+      >
+        <div className="flex flex-col gap-1 px-6 py-5">
+          <h2 id="pilot-heading" className="text-foreground text-heading-s">
+            Week by week
+          </h2>
+          <p className="text-muted-foreground text-body-s max-w-xl leading-relaxed">
+            The last {PILOT_WEEKS} weeks whatever the window above: bookings made and where they
+            came in, no-shows, and how long booked patients waited — for the hospital, then each
+            clinic line.
+          </p>
+        </div>
+        <div className="border-border border-t">
+          {pilotData ? (
+            <PilotWeeksTable data={pilotData} />
+          ) : (
+            <p className="text-muted-foreground text-body-s p-8 text-center">
+              No bookings or visits in the last {PILOT_WEEKS} weeks.
+            </p>
+          )}
+        </div>
+        <div className="border-border border-t px-6 py-3">
+          <PilotWeeksNote />
+        </div>
       </section>
 
       <section
