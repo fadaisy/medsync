@@ -23,15 +23,26 @@ import { ivLinesFor } from "@/lib/emr/read/nursing";
 import { loadFactSnapshot } from "@/lib/facts/loader";
 import { egfrOf } from "@/lib/prescribing/plan-checks";
 import { deriveChart, isOffered } from "@/lib/protocols/engine/derive";
+import { fold } from "@/lib/protocols/engine/fold";
 import { GCS_PARTS, groupOf, KEY_CONCEPTS, KEY_OF_CONCEPT } from "@/lib/protocols/engine/keys";
+import { makeKit } from "@/lib/protocols/engine/kit";
 import { canStart } from "@/lib/protocols/quick";
+import { moduleFor } from "@/lib/protocols/rules";
 import { EmrWriteError } from "./context";
 import { recordObservations } from "./facts";
 import { raiseNurseTask } from "./nursing";
-import { NURSE_CADRES, openEncounter, ORDERING_CADRES, placeOrders, requireCadre } from "./orders";
+import {
+  loadOrder,
+  NURSE_CADRES,
+  openEncounter,
+  ORDERING_CADRES,
+  placeOrders,
+  requireCadre,
+} from "./orders";
 import { loadPlanFacts } from "./plan";
 import { PRESCRIBING_CADRES } from "./prescriptions";
 import { startProtocol, versionFor } from "./protocols";
+import { enterResults } from "./results";
 
 /**
  * Protocol charts (prescribing kit P4, F7–F8). The chart is its events: every write re-derives the
@@ -178,6 +189,7 @@ export interface LoadedChart {
   chart: ChartRow;
   version: ChartVersion;
   events: ChartEvent[];
+  facts: ChartFacts;
   view: ChartView;
   role: Role;
 }
@@ -192,7 +204,7 @@ export async function loadChart(
   const events = await chartEvents(ctx, chart.id);
   const facts = await chartFacts(ctx, chart.patientUserId, events);
   const view = deriveChart(version, { startedAt: chart.startedAt }, events, facts, ctx.now);
-  return { chart, version, events, view, role: roleOf(ctx.actor.cadreCode) };
+  return { chart, version, events, facts, view, role: roleOf(ctx.actor.cadreCode) };
 }
 
 /** The patient's charts, running first. */
@@ -357,7 +369,7 @@ export async function chartAct(
   input: { patientUserId: string; chartId: string; act: Act; value?: string; clientKey: string },
 ): Promise<WriteResult> {
   const role = roleFor(ctx);
-  const { chart, view } = await loadChart(ctx, input);
+  const { chart, view, events } = await loadChart(ctx, input);
   const act = input.act;
   if (["end", "send", "rx", "screen", "proto"].includes(act.t))
     throw invalid("That is done from its own button.");
@@ -373,6 +385,15 @@ export async function chartAct(
       const x = input.value?.trim() ?? "";
       if (x !== "" && !NUM.test(x)) throw invalid("Enter a number.");
       payload = { key: act.key, value: x };
+      if (x !== "")
+        await chartValuesToRecord(
+          ctx,
+          chart,
+          events,
+          view.short,
+          { [act.key]: x },
+          input.clientKey,
+        );
       break;
     }
     case "weight": {
@@ -414,7 +435,7 @@ export async function chartAct(
       ];
       const ids = tests.flatMap((t) => (TEST_UUIDS[t] ? [TEST_UUIDS[t]] : []));
       if (!ids.length) throw invalid("Nothing here is ordered from the lab.");
-      await placeOrders(ctx, {
+      const placed = await placeOrders(ctx, {
         patientUserId: chart.patientUserId,
         encounterId: chart.encounterId,
         orders: ids.map((testId, i) => ({
@@ -425,7 +446,8 @@ export async function chartAct(
           reasonText: `For the ${view.short} chart`,
         })),
       });
-      payload = { keys: act.keys };
+      // The order ids: a value typed on the chart later answers them (chartValuesToRecord).
+      payload = { keys: act.keys, orderIds: placed.orderIds };
       break;
     }
     default: {
@@ -453,7 +475,8 @@ export async function recordSlot(
   },
 ): Promise<WriteResult> {
   roleFor(ctx, "rn");
-  const { chart, view } = await loadChart(ctx, input);
+  const loaded = await loadChart(ctx, input);
+  const { chart, view } = loaded;
   if (view.endedAt) throw conflict("This chart has ended.");
   if (view.blocked) throw conflict(view.blocked);
   if (view.full) throw conflict("Every slot is charted.");
@@ -469,13 +492,117 @@ export async function recordSlot(
     values[k] = x;
   }
   for (const k of view.formReq) if (!values[k]) throw invalid("Fill in the values that are due.");
+  // The module's values worked out on save (HHS osmolality) and its keys that go to results.
+  const B = moduleFor(loaded.version).build(
+    makeKit({
+      version: loaded.version,
+      c: fold(chart.startedAt.getTime(), loaded.events),
+      facts: loaded.facts,
+      now: ctx.now.getTime(),
+    }),
+  );
+  Object.assign(values, B.derive?.(values) ?? {});
   const id = await addEvent(ctx, chart, "rn", {
     type: "slot",
     payload: { slot: view.nextSlot, values },
     clientKey: input.clientKey,
   });
+  const lab = Object.fromEntries(Object.entries(values).filter(([k]) => B.labKeys.includes(k)));
+  await chartValuesToRecord(ctx, chart, loaded.events, view.short, lab, input.clientKey);
   await syncTasks(ctx, chart.id);
   return { id };
+}
+
+const TEST_OF: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(TEST_UUIDS).map(([code, id]) => [id, code]),
+);
+
+/**
+ * P5: lab values typed on a chart go to the record, tagged with the chart ("entered on the <short>
+ * chart"). A value that answers an order this chart placed is entered on that order through the
+ * results writer, which closes it; the writer keeps its own gates (a nurse enters bedside tests
+ * only; a released result is amended, not re-entered), and a value it refuses, or one with no chart
+ * order, is recorded as an observation instead. Vitals stay on the chart's events.
+ */
+async function chartValuesToRecord(
+  ctx: WriteCtx,
+  chart: ChartRow,
+  events: readonly ChartEvent[],
+  short: string,
+  values: Record<string, string>,
+  clientKey: string,
+): Promise<void> {
+  const left = new Set(
+    Object.keys(values).filter((k) => values[k] && KEY_CONCEPTS[k] && groupOf(k)),
+  );
+  if (!left.size) return;
+  const tag = { protocolChartId: chart.id, source: `entered on the ${short} chart` };
+  const reversed = new Set(events.flatMap((e) => (e.reversesId ? [e.reversesId] : [])));
+  const orderIds = new Set(
+    events.flatMap((e) =>
+      e.type === "order" && !reversed.has(e.id)
+        ? ((e.payload.orderIds as string[] | undefined) ?? [])
+        : [],
+    ),
+  );
+  for (const orderId of orderIds) {
+    const order = await loadOrder(ctx, chart.patientUserId, orderId);
+    const test = TEST_OF[order.testId ?? ""];
+    const keys = [...left].filter((k) => test && groupOf(k)?.test === test);
+    if (!keys.length) continue;
+    try {
+      // A savepoint: a refusal leaves nothing half-written, and the value goes to observations.
+      await ctx.tx.transaction((sp) =>
+        enterResults(
+          { ...ctx, tx: sp },
+          {
+            patientUserId: chart.patientUserId,
+            orderId,
+            status: "final",
+            values: keys.map((k) => ({
+              conceptId: KEY_CONCEPTS[k]!.concept,
+              value: values[k]!,
+              unit: KEY_CONCEPTS[k]!.unit,
+              extraContext: tag,
+            })),
+            clientKey: `${clientKey}:result:${orderId}`,
+          },
+        ),
+      );
+      for (const k of keys) left.delete(k);
+    } catch (e) {
+      if (!(e instanceof EmrWriteError)) throw e;
+    }
+  }
+  // One savepoint a value: the record refusing one (an unusual value it wants confirmed) never
+  // loses the charting itself, which stays on the chart's events.
+  for (const k of left) {
+    const c = KEY_CONCEPTS[k]!;
+    try {
+      await ctx.tx.transaction((sp) =>
+        recordObservations(
+          { ...ctx, tx: sp },
+          {
+            patientUserId: chart.patientUserId,
+            encounterId: chart.encounterId,
+            clientKey: `${clientKey}:obs:${k}`,
+            observations: [
+              {
+                conceptId: c.concept,
+                value: { type: "quantity", value: Number(values[k]), unit: c.unit },
+                ...(c.specimen ? { specimen: c.specimen } : {}),
+                ...(c.fastingState ? { fastingState: c.fastingState } : {}),
+                context: tag,
+              },
+            ],
+          },
+        ),
+      );
+    } catch (e) {
+      if (!(e instanceof EmrWriteError)) throw e;
+      console.warn("protocol_chart.value_not_recorded", k, e.code);
+    }
+  }
 }
 
 /** "Save vitals": BP, pulse, RR, GCS as E/V/M (the total worked out here) and the added parameters. */

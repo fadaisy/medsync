@@ -21,10 +21,20 @@ const names = Object.fromEntries(
     ),
   ].map((m) => [m[1]!, m[2]!]),
 );
-const dkaSeed = JSON.parse(m83.match(/SET seed = \$json\$([\s\S]+?)\$json\$/)![1]!) as Record<
-  string,
-  unknown
->;
+// Each seed as 0283–0286 fill it; HHS and SSI take the DKA seed's reference ranges (0284).
+const SEEDS: Record<string, Record<string, unknown>> = {};
+for (const f of [
+  "0283_protocol_charts.sql",
+  "0284_protocol_seeds_hhs_ssi.sql",
+  "0285_protocol_seeds_hyperk_htn_mgso4.sql",
+  "0286_protocol_seeds_art_se_op_nac.sql",
+])
+  for (const m of mig(f).matchAll(
+    /SET seed = \$json\$([\s\S]+?)\$json\$::jsonb([\s\S]*?)\nWHERE protocol_id = '([a-z0-9_]+)'/g,
+  ))
+    SEEDS[m[3]!] = JSON.parse(m[1]!) as Record<string, unknown>;
+for (const [id, seed] of Object.entries(SEEDS))
+  if (id !== "dka" && !seed.refs) seed.refs = SEEDS.dka!.refs;
 const VERSIONS: Record<string, ChartVersion> = Object.fromEntries(
   [
     ...m82.matchAll(
@@ -40,7 +50,7 @@ const VERSIONS: Record<string, ChartVersion> = Object.fromEntries(
       slotMinutes: Number(m[3]),
       slotCount: Number(m[4]),
       rules: JSON.parse(m[2]!),
-      seed: m[1] === "dka" ? dkaSeed : {},
+      seed: SEEDS[m[1]!] ?? {},
     } satisfies ChartVersion,
   ]),
 );
@@ -106,7 +116,7 @@ describe("protocol chart engine", () => {
     }
   });
 
-  it("stub modules: a give step offers the nurse 'Given' with every check, not the doctor (P2, P6)", () => {
+  it("every module: a give step offers the nurse 'Given' with every check, not the doctor (P2, P6)", () => {
     for (const id of ["hhs", "hyperk", "htn", "mgso4", "art", "se", "op", "nac", "ssi"]) {
       const view = deriveChart(
         VERSIONS[id]!,
