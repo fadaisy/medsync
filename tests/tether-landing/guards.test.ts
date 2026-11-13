@@ -11,7 +11,12 @@ import { landingTetherOn } from "@/lib/landing/feature";
  * run in scripts/landing/scenarios.mjs. The gallery is a harness, so its labels are not visitor copy.
  */
 const ROOT = process.cwd();
-const DIRS = ["components/landing/tether", "app/tether", "content/tether-landing"];
+const DIRS = [
+  "components/landing/tether",
+  "app/tether",
+  "apps/tether-site/app",
+  "content/tether-landing",
+];
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((n) => {
@@ -19,9 +24,10 @@ function walk(dir: string): string[] {
     return statSync(p).isDirectory() ? walk(p) : /\.(tsx?|css)$/.test(n) ? [relative(ROOT, p)] : [];
   });
 }
-const FILES = DIRS.flatMap((d) => walk(join(ROOT, d)));
-/** The page's UI; the server action (app/tether/actions.ts) writes the store and is checked in clinic-leads.test.ts. */
-const UI = FILES.filter((f) => !f.startsWith("content/") && !f.endsWith("/actions.ts"));
+/** The site's pw-tokens.css is generated from the phone's tokens, the same block as app/globals.css (site.test.ts). */
+const FILES = DIRS.flatMap((d) => walk(join(ROOT, d))).filter((f) => !f.endsWith("/pw-tokens.css"));
+/** The page's UI. The server action (lib/landing/actions.ts) is checked in clinic-leads.test.ts. */
+const UI = FILES.filter((f) => !f.startsWith("content/"));
 const COPY = FILES.filter((f) => f.startsWith("content/"));
 const read = (f: string) => readFileSync(join(ROOT, f), "utf8");
 /** Code without comments, so a rule's own explanation never trips it. */

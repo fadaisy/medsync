@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { ChevronRightIcon, CircleHelpIcon, MailIcon, MapPinIcon } from "lucide-react";
 
-import { registerClinic } from "@/app/tether/actions";
 import { ICON } from "@/components/tide/kit";
 import { FOOTER, QUESTIONS_SECTION } from "@/content/tether-landing/copy";
 import { LINKS } from "@/content/tether-landing/links";
+import { registerClinic } from "@/lib/landing/actions";
 import { cn } from "@/lib/utils";
 
 /**
