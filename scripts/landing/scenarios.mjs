@@ -263,10 +263,14 @@ async function axe() {
       });
       await p.goto(BASE + "/");
       await sleep(800);
+      // A fade caught halfway blends its colours; read the page once finite animations are done.
+      await p.js(
+        `Promise.all(document.getAnimations().filter((a) => a.effect.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {})))`,
+      );
       await p.js(src + ";1");
       const v = JSON.parse(
         await p.js(
-          `axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}}).then(r=>JSON.stringify(r.violations.map(v=>({id:v.id,impact:v.impact,n:v.nodes.length}))))`,
+          `axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}}).then(r=>JSON.stringify(r.violations.map(v=>({id:v.id,impact:v.impact,n:v.nodes.length,at:v.nodes.slice(0,3).map(x=>x.target.join(' ')+' '+(x.any[0]?.message??'').slice(0,120))}))))`,
         ),
       );
       const n = (i) => v.filter((x) => x.impact === i).reduce((a, x) => a + x.n, 0);
@@ -275,6 +279,7 @@ async function axe() {
         critical: n("critical"),
         serious: n("serious"),
         other: v.filter((x) => !["critical", "serious"].includes(x.impact)).map((x) => x.id),
+        found: v.filter((x) => ["critical", "serious"].includes(x.impact)),
       });
       await p.close();
     }
