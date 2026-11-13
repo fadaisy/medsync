@@ -31,6 +31,8 @@ export const EXAMPLE = {
    *  Canvas: Dr. Nayiga Joselyn Mirembe (NM), Dr. Nelson Nuwagira (NN), Dr. Caroline Murizihiwe (CM).
    *  The invented names are for Fadhul to pick; until then the build shows initials only. */
   doctors: [] as readonly { initials: string; name: string }[],
+  /** D-LP-04 signed: initials only on the doctor line (canvas avatars). */
+  doctorInitials: ["NM", "NN", "CM"],
 } as const;
 
 export const NAV = {
@@ -154,6 +156,8 @@ export const TICKET = {
   actions: {
     coming: "I'm coming",
     comingDone: "The clinic expects you",
+    /** Phone: canvas Mobile board. */
+    comingDoneShort: "Expected",
     cancel: "Cancel",
     again: "Book it again",
     /** Phone: one row of three. */
@@ -323,16 +327,39 @@ export const FOOTER = {
     done: "Thank you. We will email you about setting up your clinic.",
     /** PROPOSED D-LP-09: the purpose notice (DPPA 2019). Not on the canvas. */
     notice: "We use this email only to contact you about Tether.",
+    /** PROPOSED (Step 6): when the store fails. Not on the canvas. */
+    failed: "We could not send that. Please try again, or write to us.",
+    /** The honeypot field's label; hidden from people (D-LP-09). */
+    honeypot: "Company",
   },
   contact: "Contact",
   place: "Kampala, Uganda",
+  /** `href: null` is hidden (D-LP-10: the future link). "In an emergency" goes to Help (STOP 0 ruling 2). */
   columns: [
     {
       title: "Tether",
-      links: ["How it works", "Ways to book", "Patients and clinics", "The future of Tether"],
+      links: [
+        { label: "How it works", href: "#how" },
+        { label: "Ways to book", href: "#modes" },
+        { label: "Patients and clinics", href: "#who" },
+        { label: "The future of Tether", href: null },
+      ],
     },
-    { title: "Help", links: ["Questions", "In an emergency"] },
-    { title: "Get started", links: ["Book a visit", "Register your clinic", "Sign in"] },
+    {
+      title: "Help",
+      links: [
+        { label: "Questions", href: "#questions" },
+        { label: "In an emergency", href: "/emergency" },
+      ],
+    },
+    {
+      title: "Get started",
+      links: [
+        { label: "Book a visit", href: "#modes" },
+        { label: "Register your clinic", href: "#join" },
+        { label: "Sign in", href: "/sign-in" },
+      ],
+    },
   ],
   /** Open under D-LP-10 (the registered company name). Canvas text, unchanged. */
   copyright: "© 2026 MedSync · Kampala, Uganda",

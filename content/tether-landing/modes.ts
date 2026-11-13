@@ -11,8 +11,9 @@ export interface LandingMode {
   head: string;
   intro: string;
   facts: readonly (readonly [string, string])[];
-  /** The ticket. */
+  /** The ticket. `waiting`: the pill waits on someone, so it is grey (D-LP-03), not lagoon. */
   status: string;
+  waiting?: boolean;
   /** "rolling" = the example visit day; otherwise the literal. */
   date: "rolling" | "Today";
   time: string;
@@ -53,6 +54,7 @@ export const MODES: readonly LandingMode[] = [
       ["Good for", "Seeing the same doctor each visit"],
     ],
     status: "Waiting for the doctor",
+    waiting: true,
     date: "rolling",
     time: "10:40",
     note: "Arrive a little early.",

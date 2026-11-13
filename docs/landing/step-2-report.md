@@ -49,3 +49,9 @@ Screenshots: `docs/landing/step-2/` (top, scrolled, menu, Help dialog; S3 first 
 1. **JS budget:** load Sentry on the client lazily, site-wide, or accept about 250 KB for `/`.
 2. **Fonts:** set `preload: false` on Bricolage and Geist in the root layout (−104 KB here; other pages load them when used), or leave it.
 3. **CSS:** accept +1.7 KB until Step 7 removes the old landing CSS.
+
+## STOP 2 rulings (Fadhul, 13 Nov 2026, "Yes, go on")
+
+1. **JS:** only this page's own code counts against the 120 KB. The shared React and Sentry bundle is reported, not counted. Sentry is not changed site-wide.
+2. **Fonts:** the root layout's preloads stay. Revisit only if LCP misses at Step 7.
+3. **CSS:** the 1.7 KB over is accepted for now; re-checked at Step 7 after the old landing styles are deleted.

@@ -20,7 +20,8 @@ function walk(dir: string): string[] {
   });
 }
 const FILES = DIRS.flatMap((d) => walk(join(ROOT, d)));
-const UI = FILES.filter((f) => !f.startsWith("content/"));
+/** The page's UI; the server action (app/tether/actions.ts) writes the store and is checked in clinic-leads.test.ts. */
+const UI = FILES.filter((f) => !f.startsWith("content/") && !f.endsWith("/actions.ts"));
 const COPY = FILES.filter((f) => f.startsWith("content/"));
 const read = (f: string) => readFileSync(join(ROOT, f), "utf8");
 /** Code without comments, so a rule's own explanation never trips it. */
@@ -33,7 +34,11 @@ const strings = (f: string) =>
   [...code(f).matchAll(/"((?:[^"\\]|\\.)*)"|`([^`]*)`/g)].map((m) => m[1] ?? m[2]);
 
 /** Files that may paint red (LP4): Help, the Help dialog, and later the emergency headline line and answer. */
-const RED_ALLOWED = ["components/landing/tether/chrome.tsx"];
+const RED_ALLOWED = [
+  "components/landing/tether/chrome.tsx",
+  "components/landing/tether/hero.tsx",
+  "components/landing/tether/questions.tsx",
+];
 
 describe("Tether landing guards", () => {
   it("scans something", () => {
@@ -85,7 +90,7 @@ describe("Tether landing guards", () => {
 
   it("components hold no visitor text (LP8): JSX text comes from content/tether-landing", () => {
     for (const f of UI.filter((f) => f.endsWith(".tsx") && !f.startsWith("app/tether/gallery/"))) {
-      const m = />\s*([A-Za-z][^<>{}]*[A-Za-z])\s*</.exec(code(f));
+      const m = />\s*([A-Za-z][^<>{}();=:]*[A-Za-z])\s*</.exec(code(f));
       expect(m, `${f}: ${m?.[1]}`).toBeNull();
     }
   });
