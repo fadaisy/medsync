@@ -18,7 +18,7 @@
     .say {
       animation: progress linear both;
       animation-timeline: view();
-      animation-range: entry 10% cover 55%;
+      animation-range: entry 10% cover 45%;
     }
     .wave {
       animation: progress linear both;

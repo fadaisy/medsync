@@ -7,7 +7,7 @@
  *     --user-data-dir=<tmp> about:blank &
  *   node scripts/landing/scenarios.mjs <base> <outDir> <step...>
  *
- * Steps: s1 … s8 shots axe bytes. `base` serves the page at `/` (LANDING_TETHER=1). JSON lines to stdout.
+ * Steps: s1 … s16 shots axe bytes perf sections. `base` serves the page at `/` (LANDING_TETHER=1). JSON lines to stdout.
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
@@ -250,10 +250,17 @@ async function shots() {
 
 async function axe() {
   const src = readFileSync("node_modules/axe-core/axe.min.js", "utf8");
-  for (const width of [1440, 834, 390])
+  for (const width of [1440, 1024, 834, 390])
     for (const theme of ["light", "dark"]) {
       const p = await open();
       await p.view(width, theme);
+      // Scroll-led text is dim until it scrolls in (S9 checks it reaches full); axe reads the finished state.
+      await p.send("Emulation.setEmulatedMedia", {
+        features: [
+          { name: "prefers-color-scheme", value: theme },
+          { name: "prefers-reduced-motion", value: "reduce" },
+        ],
+      });
       await p.goto(BASE + "/");
       await sleep(800);
       await p.js(src + ";1");
@@ -308,12 +315,13 @@ const fakeClock = (p) =>
   });
 const TICKET_STATE = `(() => {
   const w = document.querySelector("[data-ticket]");
-  const front = w.querySelector('button[aria-label^="Example visit ticket"]');
+  const btn = w.querySelector('button[aria-label^="Example visit ticket"]');
+  const front = btn.parentElement;
   const timer = front.querySelector('[role="timer"]');
   const sms = [...document.querySelectorAll('[aria-live="polite"]')].find((e) => e.checkVisibility() && e.querySelector("p"));
   const stamp = front.querySelector("span.absolute");
   return {
-    name: front.getAttribute("aria-label"),
+    name: btn.getAttribute("aria-label"),
     date: [...front.querySelectorAll("span")].find((s) => s.className.includes("text-[32px]"))?.textContent,
     timer: timer.textContent,
     stamp: stamp?.textContent ?? null,
@@ -642,7 +650,8 @@ const DUO_STATE = `(() => { const s = document.querySelector("#who");
     toast: document.querySelector('[role="status"]')?.innerText ?? null }; })()`;
 const clickIn = (p, root, text) =>
   p.js(
-    `[...document.querySelectorAll("${root} button")].find((b) => b.checkVisibility() && b.innerText.trim() === ${JSON.stringify(text)}).click()`,
+    // A tab's name can carry its "1" badge on a second line; match the first line.
+    `[...document.querySelectorAll("${root} button")].find((b) => b.checkVisibility() && b.innerText.trim().split("\\n")[0] === ${JSON.stringify(text)}).click()`,
   );
 async function s12() {
   const p = await open();
@@ -804,8 +813,107 @@ async function s16() {
   await p.close();
 }
 
+/** Every section, finished (reduced motion), at 1440 and 390 in both themes: `sections/<width>-<theme>-<n>.jpg`. */
+async function sections() {
+  mkdirSync(`${OUT}/sections`, { recursive: true });
+  for (const width of [1440, 390])
+    for (const theme of ["light", "dark"]) {
+      const p = await open();
+      await p.view(width, theme);
+      await p.send("Emulation.setEmulatedMedia", {
+        features: [
+          { name: "prefers-color-scheme", value: theme },
+          { name: "prefers-reduced-motion", value: "reduce" },
+        ],
+      });
+      await p.goto(BASE + "/");
+      await sleep(800);
+      const n = await p.js(`document.querySelectorAll("main > section, footer").length`);
+      for (let i = 0; i < n; i++) {
+        await p.js(
+          `document.querySelectorAll("main > section, footer")[${i}].scrollIntoView({ block: "start" })`,
+        );
+        await sleep(500);
+        const { data } = await p.send("Page.captureScreenshot", { format: "jpeg", quality: 60 });
+        writeFileSync(
+          `${OUT}/sections/${width}-${theme}-${i + 1}.jpg`,
+          Buffer.from(data, "base64"),
+        );
+      }
+      await p.close();
+    }
+  report({ sections: `${OUT}/sections` });
+}
+
+/** Step 0's throttled run: 412 x 823 at DPR 1.75, CPU x4, Slow 4G, cold cache; INP is a tap on Menu. */
+async function perf() {
+  const runs = [];
+  for (let i = 0; i < 5; i++) {
+    const p = await open();
+    await p.send("Network.enable");
+    await p.send("Network.setCacheDisabled", { cacheDisabled: true });
+    await p.send("Network.emulateNetworkConditions", {
+      offline: false,
+      latency: 562.5,
+      downloadThroughput: 183750,
+      uploadThroughput: 84375,
+    });
+    await p.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+    await p.send("Emulation.setDeviceMetricsOverride", {
+      width: 412,
+      height: 823,
+      deviceScaleFactor: 1.75,
+      mobile: true,
+    });
+    await p.send("Page.addScriptToEvaluateOnNewDocument", {
+      source: `window.__m = { lcp: 0, el: "", cls: 0, inp: 0 };
+        new PerformanceObserver((l) => { for (const e of l.getEntries()) { __m.lcp = e.startTime; __m.el = (e.element?.tagName ?? "") + " " + (e.element?.textContent ?? "").slice(0, 40); } }).observe({ type: "largest-contentful-paint", buffered: true });
+        new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) __m.cls += e.value; }).observe({ type: "layout-shift", buffered: true });
+        new PerformanceObserver((l) => { for (const e of l.getEntries()) if (e.interactionId && e.duration > __m.inp) { __m.inp = e.duration; __m.inpParts = [e.name, Math.round(e.processingStart - e.startTime), Math.round(e.processingEnd - e.processingStart), Math.round(e.startTime + e.duration - e.processingEnd)]; } }).observe({ type: "event", buffered: true, durationThreshold: 16 });`,
+    });
+    await p.goto(BASE + "/");
+    await sleep(6000);
+    const box = await p.js(
+      `(() => { const r = ${MENU}.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`,
+    );
+    await p.click(box.x, box.y);
+    await sleep(1500);
+    runs.push(await p.js("window.__m"));
+    await p.close();
+  }
+  const med = (k) => runs.map((r) => r[k]).sort((a, b) => a - b)[2];
+  report({
+    perf: {
+      lcp: Math.round(med("lcp")),
+      cls: +med("cls").toFixed(3),
+      inp: Math.round(med("inp")),
+      el: runs[2].el,
+      runs,
+    },
+  });
+}
+
 for (const s of STEPS)
-  await { s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s16, shots, axe, bytes }[
-    s
-  ]();
+  await {
+    s1,
+    s2,
+    s3,
+    s4,
+    s5,
+    s6,
+    s7,
+    s8,
+    s9,
+    s10,
+    s11,
+    s12,
+    s13,
+    s14,
+    s16,
+    shots,
+    axe,
+    bytes,
+    perf,
+    sections,
+  }[s]();
 process.exit(0);

@@ -8,9 +8,13 @@
   margin-bottom: 40px;
 }
 .tilt {
-  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   transition: transform 400ms var(--ease-expo-out);
   transform-style: preserve-3d;
+}
+/* No 3D transform until the pointer tilts it: a resting 3D transform makes Chrome measure every text in
+   the ticket as the whole ticket, and the ticket then outranks the headline as the largest paint (LCP). */
+.tilt[data-tilt] {
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
 }
 .turn {
   display: grid;
@@ -24,8 +28,12 @@
   grid-area: 1 / 1;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  filter: drop-shadow(0 28px 34px color-mix(in srgb, var(--pw-band) 28%, transparent))
-    drop-shadow(0 2px 4px color-mix(in srgb, var(--pw-band) 12%, transparent));
+  /* A box shadow, not a drop-shadow filter: under a filter Chrome measures every text in the face as
+     the whole face, and the ticket would outrank the headline as the largest paint (LCP). */
+  border-radius: 26px;
+  box-shadow:
+    0 28px 34px -6px color-mix(in srgb, var(--pw-band) 28%, transparent),
+    0 2px 4px color-mix(in srgb, var(--pw-band) 12%, transparent);
 }
 .back {
   transform: rotateY(180deg);
@@ -81,10 +89,10 @@
   --dr: 3.5deg;
 }
 /* A cancelled ticket fades everything but its stamp. */
-.shape[data-x] .main > :not(.stamp) {
+.shape[data-x] .main > div > :not(.stamp) {
   opacity: 0.4;
 }
-.main > * {
+.main > div > * {
   transition: opacity 250ms ease-out;
 }
 .stamp {

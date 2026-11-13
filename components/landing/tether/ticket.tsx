@@ -129,122 +129,129 @@ export function ExampleTicket({
         <div className={styles.turn} data-flipped={flipped || undefined}>
           <div className={cn(styles.face, styles.front)} inert={flipped}>
             <div className={styles.shape} data-x={status === "cancelled" || undefined}>
-              <button
-                ref={front}
-                type="button"
-                onClick={() => turn("back")}
-                aria-label={name}
+              {/* The visible face is not inside the button, so its text is measured block by block for
+                  LCP and the headline stays the largest paint; the button over it carries the name. */}
+              <div
                 className={cn(
                   styles.main,
-                  "bg-pw-band text-pw-on-band focus-visible:ring-pw-focus relative flex w-full flex-1 cursor-pointer flex-col items-start gap-1.5 px-6 py-5 text-left text-[16px] leading-[23px] focus-visible:ring-[3px] focus-visible:outline-none focus-visible:ring-inset",
+                  "bg-pw-band text-pw-on-band relative flex w-full flex-1 flex-col items-start gap-1.5 px-6 py-5 text-left text-[16px] leading-[23px]",
                 )}
               >
-                <Row className="items-center">
-                  <b className="text-[20px] font-bold tracking-[-0.03em]">
-                    {TICKET.brand}
-                    <span className="text-pw-on-band-2 ml-2 text-[12px] font-semibold tracking-[0.06em] uppercase">
-                      {TICKET.example}
+                <button
+                  ref={front}
+                  type="button"
+                  onClick={() => turn("back")}
+                  aria-label={name}
+                  className="focus-visible:ring-pw-focus absolute inset-0 z-[2] cursor-pointer rounded-[inherit] focus-visible:ring-[3px] focus-visible:outline-none focus-visible:ring-inset"
+                />
+                <div aria-hidden="true" className="contents">
+                  <Row className="items-center">
+                    <b className="text-[20px] font-bold tracking-[-0.03em]">
+                      {TICKET.brand}
+                      <span className="text-pw-on-band-2 ml-2 text-[12px] font-semibold tracking-[0.06em] uppercase">
+                        {TICKET.example}
+                      </span>
+                    </b>
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full px-3 py-[3px] text-[13px] leading-5 font-semibold transition-colors duration-250 before:mr-[7px] before:size-[7px] before:rounded-full before:bg-current",
+                        PILL[waiting ? "cancelled" : status],
+                      )}
+                    >
+                      {statusWord ?? TICKET.status[status]}
                     </span>
-                  </b>
-                  <span
-                    className={cn(
-                      "inline-flex items-center rounded-full px-3 py-[3px] text-[13px] leading-5 font-semibold transition-colors duration-250 before:mr-[7px] before:size-[7px] before:rounded-full before:bg-current",
-                      PILL[waiting ? "cancelled" : status],
-                    )}
-                  >
-                    {statusWord ?? TICKET.status[status]}
-                  </span>
-                </Row>
-                <span className="mt-2.5 flex items-center gap-3">
-                  <Avatar>{EXAMPLE.initials}</Avatar>
-                  <span>
-                    <span className="block text-[18px] leading-6 font-semibold">
-                      {EXAMPLE.patient}
-                    </span>
-                    <span className="text-pw-on-band-2 block text-[14px] leading-5">
-                      {EXAMPLE.sexAge}
+                  </Row>
+                  <span className="mt-2.5 flex items-center gap-3">
+                    <Avatar>{EXAMPLE.initials}</Avatar>
+                    <span>
+                      <span className="block text-[18px] leading-6 font-semibold">
+                        {EXAMPLE.patient}
+                      </span>
+                      <span className="text-pw-on-band-2 block text-[14px] leading-5">
+                        {EXAMPLE.sexAge}
+                      </span>
                     </span>
                   </span>
-                </span>
-                <span className="bg-pw-band-glass mt-2.5 mb-1.5 block h-px w-full" />
-                <Row className="items-end">
-                  <span>
-                    <span className={cn(CAP, "text-pw-on-band-2")}>{TICKET.date}</span>
-                    <span className={BIG}>{date}</span>
-                  </span>
-                  <span className="text-right">
-                    <span className={cn(CAP, "text-pw-on-band-2")}>{TICKET.time}</span>
-                    <span className={BIG}>{time}</span>
-                  </span>
-                </Row>
-                {note ? (
-                  <span className="bg-pw-band-glass text-pw-on-band-2 mt-2 block w-full rounded-xl px-3.5 py-[7px] text-[14px] leading-[22px] font-medium">
-                    {note}
-                  </span>
-                ) : (
-                  <span
-                    role="timer"
-                    aria-label={TICKET.countdown.label}
-                    className="bg-pw-band-glass mt-2 flex w-full items-center justify-between gap-3 rounded-xl px-3.5 py-[7px]"
-                  >
-                    <span className={cn(CAP, "text-pw-on-band-2")}>
-                      {done ? TICKET.countdown.now : TICKET.countdown.startsIn}
+                  <span className="bg-pw-band-glass mt-2.5 mb-1.5 block h-px w-full" />
+                  <Row className="items-end">
+                    <span>
+                      <span className={cn(CAP, "text-pw-on-band-2")}>{TICKET.date}</span>
+                      <span className={BIG}>{date}</span>
                     </span>
-                    <span className="flex gap-2.5 tabular-nums">
-                      {left.map((n, i) => (
-                        <span key={i}>
-                          <b className="text-[18px] leading-6 font-semibold">{n}</b>
-                          <small className="text-pw-on-band-2 ml-0.5 text-[12px] font-semibold">
-                            {TICKET.countdown.units[i]}
-                          </small>
+                    <span className="text-right">
+                      <span className={cn(CAP, "text-pw-on-band-2")}>{TICKET.time}</span>
+                      <span className={BIG}>{time}</span>
+                    </span>
+                  </Row>
+                  {note ? (
+                    <span className="bg-pw-band-glass text-pw-on-band-2 mt-2 block w-full rounded-xl px-3.5 py-[7px] text-[14px] leading-[22px] font-medium">
+                      {note}
+                    </span>
+                  ) : (
+                    <span
+                      role="timer"
+                      aria-label={TICKET.countdown.label}
+                      className="bg-pw-band-glass mt-2 flex w-full items-center justify-between gap-3 rounded-xl px-3.5 py-[7px]"
+                    >
+                      <span className={cn(CAP, "text-pw-on-band-2")}>
+                        {done ? TICKET.countdown.now : TICKET.countdown.startsIn}
+                      </span>
+                      <span className="flex gap-2.5 tabular-nums">
+                        {left.map((n, i) => (
+                          <span key={i}>
+                            <b className="text-[18px] leading-6 font-semibold">{n}</b>
+                            <small className="text-pw-on-band-2 ml-0.5 text-[12px] font-semibold">
+                              {TICKET.countdown.units[i]}
+                            </small>
+                          </span>
+                        ))}
+                      </span>
+                    </span>
+                  )}
+                  <span className="mt-2.5 flex flex-wrap gap-x-[26px] gap-y-3.5">
+                    {fields.map((f) => (
+                      <span key={f.label}>
+                        <span className={cn(CAP, "text-pw-on-band-2")}>{f.label}</span>
+                        <span className={VAL}>{f.value}</span>
+                      </span>
+                    ))}
+                  </span>
+                  <span className="mt-2.5 flex items-center gap-3">
+                    {doctor.value === "rolling" || doctor.value === "first" ? (
+                      <span className="flex flex-none" aria-hidden="true">
+                        {(doctor.value === "first"
+                          ? EXAMPLE.doctorInitials.slice(0, 1)
+                          : EXAMPLE.doctorInitials
+                        ).map((d) => (
+                          <Avatar key={d} small>
+                            {d}
+                          </Avatar>
+                        ))}
+                      </span>
+                    ) : null}
+                    <span>
+                      <span className={cn(CAP, "text-pw-on-band-2")}>{doctor.label}</span>
+                      {doctor.value === "rolling" || doctor.value === "first" ? null : (
+                        <span className="mt-0.5 block text-[16px] leading-[22px] font-semibold">
+                          {doctor.value}
                         </span>
-                      ))}
+                      )}
                     </span>
                   </span>
-                )}
-                <span className="mt-2.5 flex flex-wrap gap-x-[26px] gap-y-3.5">
-                  {fields.map((f) => (
-                    <span key={f.label}>
-                      <span className={cn(CAP, "text-pw-on-band-2")}>{f.label}</span>
-                      <span className={VAL}>{f.value}</span>
-                    </span>
-                  ))}
-                </span>
-                <span className="mt-2.5 flex items-center gap-3">
-                  {doctor.value === "rolling" || doctor.value === "first" ? (
-                    <span className="flex flex-none" aria-hidden="true">
-                      {(doctor.value === "first"
-                        ? EXAMPLE.doctorInitials.slice(0, 1)
-                        : EXAMPLE.doctorInitials
-                      ).map((d) => (
-                        <Avatar key={d} small>
-                          {d}
-                        </Avatar>
-                      ))}
+                  {status !== "ok" ? (
+                    <span
+                      key={status}
+                      className={cn(
+                        styles.stamp,
+                        "absolute top-[62px] right-5 rounded-lg border-2 border-current px-2.5 py-[3px] text-[13px] font-bold tracking-[0.14em] uppercase",
+                        STAMP[status],
+                      )}
+                    >
+                      {TICKET.status[status]}
                     </span>
                   ) : null}
-                  <span>
-                    <span className={cn(CAP, "text-pw-on-band-2")}>{doctor.label}</span>
-                    {doctor.value === "rolling" || doctor.value === "first" ? null : (
-                      <span className="mt-0.5 block text-[16px] leading-[22px] font-semibold">
-                        {doctor.value}
-                      </span>
-                    )}
-                  </span>
-                </span>
-                {status !== "ok" ? (
-                  <span
-                    key={status}
-                    className={cn(
-                      styles.stamp,
-                      "absolute top-[62px] right-5 rounded-lg border-2 border-current px-2.5 py-[3px] text-[13px] font-bold tracking-[0.14em] uppercase",
-                      STAMP[status],
-                    )}
-                  >
-                    {TICKET.status[status]}
-                  </span>
-                ) : null}
-              </button>
+                </div>
+              </div>
               <div
                 className={cn(
                   styles.stub,
@@ -292,48 +299,55 @@ export function ExampleTicket({
           </div>
           <div className={cn(styles.face, styles.back)} inert={!flipped}>
             <div className={styles.shape}>
-              <button
-                ref={back}
-                type="button"
-                onClick={() => turn("front")}
-                aria-label={TICKET.backName}
+              {/* The visible face is not inside the button, so its text is measured block by block for
+                  LCP and the headline stays the largest paint; the button over it carries the name. */}
+              <div
                 className={cn(
                   styles.main,
-                  "bg-pw-surface text-pw-ink focus-visible:ring-pw-focus flex w-full flex-1 cursor-pointer flex-col items-start gap-3.5 px-6 py-5 text-left text-[16px] leading-[23px] focus-visible:ring-[3px] focus-visible:outline-none focus-visible:ring-inset",
+                  "bg-pw-surface text-pw-ink relative flex w-full flex-1 flex-col items-start gap-3.5 px-6 py-5 text-left text-[16px] leading-[23px]",
                 )}
               >
-                <Back label={TICKET.back.deskTitle}>{TICKET.back.desk}</Back>
-                <span className="grid w-full grid-cols-2 gap-4">
-                  <span>
-                    <span className={cn(CAP, "text-pw-ink-3")}>{TICKET.back.where}</span>
-                    <span className={VAL}>{EXAMPLE.clinic}</span>
-                    <span className="text-pw-ink-2 block text-[14px] leading-5">
-                      {TICKET.back.whereValue}
-                    </span>
-                  </span>
-                  <span>
-                    <span className={cn(CAP, "text-pw-ink-3")}>{TICKET.back.fee}</span>
-                    <span className={VAL}>{EXAMPLE.fee}</span>
-                    <span className="text-pw-ink-2 block text-[14px] leading-5">
-                      {TICKET.back.feeNote}
-                    </span>
-                  </span>
-                </span>
-                <span className="block w-full">
-                  <span className={cn(CAP, "text-pw-ink-3")}>{TICKET.back.bring}</span>
-                  <span className="mt-1.5 flex flex-wrap gap-1.5">
-                    {TICKET.back.bringItems.map((b) => (
-                      <span
-                        key={b}
-                        className="bg-pw-surface-2 rounded-full px-3 py-[5px] text-[14px] leading-5 font-medium"
-                      >
-                        {b}
+                <button
+                  ref={back}
+                  type="button"
+                  onClick={() => turn("front")}
+                  aria-label={TICKET.backName}
+                  className="focus-visible:ring-pw-focus absolute inset-0 z-[2] cursor-pointer rounded-[inherit] focus-visible:ring-[3px] focus-visible:outline-none focus-visible:ring-inset"
+                />
+                <div aria-hidden="true" className="contents">
+                  <Back label={TICKET.back.deskTitle}>{TICKET.back.desk}</Back>
+                  <span className="grid w-full grid-cols-2 gap-4">
+                    <span>
+                      <span className={cn(CAP, "text-pw-ink-3")}>{TICKET.back.where}</span>
+                      <span className={VAL}>{EXAMPLE.clinic}</span>
+                      <span className="text-pw-ink-2 block text-[14px] leading-5">
+                        {TICKET.back.whereValue}
                       </span>
-                    ))}
+                    </span>
+                    <span>
+                      <span className={cn(CAP, "text-pw-ink-3")}>{TICKET.back.fee}</span>
+                      <span className={VAL}>{EXAMPLE.fee}</span>
+                      <span className="text-pw-ink-2 block text-[14px] leading-5">
+                        {TICKET.back.feeNote}
+                      </span>
+                    </span>
                   </span>
-                </span>
-                <Back label={TICKET.back.cantCome}>{TICKET.back.cancel}</Back>
-              </button>
+                  <span className="block w-full">
+                    <span className={cn(CAP, "text-pw-ink-3")}>{TICKET.back.bring}</span>
+                    <span className="mt-1.5 flex flex-wrap gap-1.5">
+                      {TICKET.back.bringItems.map((b) => (
+                        <span
+                          key={b}
+                          className="bg-pw-surface-2 rounded-full px-3 py-[5px] text-[14px] leading-5 font-medium"
+                        >
+                          {b}
+                        </span>
+                      ))}
+                    </span>
+                  </span>
+                  <Back label={TICKET.back.cantCome}>{TICKET.back.cancel}</Back>
+                </div>
+              </div>
               <div
                 className={cn(
                   styles.stub,

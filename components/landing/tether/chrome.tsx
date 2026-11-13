@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowRightIcon,
   ChevronRightIcon,
@@ -184,12 +184,20 @@ function DesktopNav({ scrolled }: { scrolled: boolean }) {
   );
 }
 
+const noop = () => () => {};
+
 function AppBar({ scrolled }: { scrolled: boolean }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDialogElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { resolvedTheme, setTheme } = useTheme();
-  const dark = resolvedTheme === "dark";
+  // The server cannot know the theme; the switch reads it only after hydration, so the first render matches.
+  const hydrated = useSyncExternalStore(
+    noop,
+    () => true,
+    () => false,
+  );
+  const dark = hydrated && resolvedTheme === "dark";
 
   const show = () => {
     menuRef.current?.showModal();

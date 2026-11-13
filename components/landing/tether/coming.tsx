@@ -24,7 +24,10 @@ export function Coming() {
           </p>
         </div>
         <ul
+          tabIndex={0}
+          aria-label={COMING.kicker}
           className={cn(
+            "focus-visible:outline-pw-focus focus-visible:outline-2",
             styles.snap,
             "grid max-[760px]:mt-5 max-[760px]:flex max-[760px]:scroll-px-[22px] max-[760px]:gap-3 max-[760px]:overflow-x-auto max-[760px]:px-[22px]",
           )}

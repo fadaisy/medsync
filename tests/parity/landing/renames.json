@@ -1,0 +1,50 @@
+{
+  "about": "Destinations the old landing page linked to that the Tether page does not. Each needs Fadhul's signature (Section 6). Reasons are proposals.",
+  "signedBy": null,
+  "signedOn": null,
+  "renamed": [
+    {
+      "from": "/#faq",
+      "to": "/#questions",
+      "reason": "The questions section keeps the job under the canvas's name."
+    },
+    {
+      "from": "/signup/hospital",
+      "to": "/#join and the phone menu's Register your clinic",
+      "reason": "Desktop sends clinics to the clinic form (D-LP-09); the phone menu still links the hospital sign-up."
+    }
+  ],
+  "dropped": [
+    {
+      "to": "/#patients",
+      "reason": "Old section removed; the Tether page is booking-first (ADR 0477)."
+    },
+    { "to": "/#hospitals", "reason": "Old whole-hospital pitch removed on purpose (ADR 0477)." },
+    {
+      "to": "/#trust",
+      "reason": "Old trust section removed; its claims are not on the Tether page."
+    },
+    { "to": "/#about", "reason": "Old section removed." },
+    {
+      "to": "/about",
+      "reason": "The founders' stories page still exists but is not linked. OPEN: link it from the footer, or drop it."
+    },
+    { "to": "/about#usama-fadhul", "reason": "As /about." },
+    {
+      "to": "/signup/clinical",
+      "reason": "Clinician sign-up is not a Tether visitor's job. OPEN: keep a footer link?"
+    },
+    {
+      "to": "/signup/patient",
+      "reason": "OPEN: Book a visit goes to #modes (canvas). Patients have no link to sign up or book from this page."
+    },
+    {
+      "to": "/get-started",
+      "reason": "OPEN: as /signup/patient; the funnel is the natural target for Book a visit once booking is live."
+    },
+    {
+      "to": "/signup/hospital?topic=security",
+      "reason": "The engineering walkthrough was part of the hospital pitch, removed on purpose."
+    }
+  ]
+}

@@ -59,6 +59,7 @@ export function Hero({ preAlert, now: serverNow }: { preAlert: boolean; now: num
     const r = t.getBoundingClientRect();
     const x = (e.clientX - (r.left + r.width / 2)) / r.width;
     const y = (e.clientY - (r.top + r.height / 2)) / r.height;
+    t.dataset.tilt = "";
     t.style.setProperty("--ry", `${Math.max(-12, Math.min(12, x * 14))}deg`);
     t.style.setProperty("--rx", `${Math.max(-10, Math.min(10, -y * 10))}deg`);
   };
@@ -83,7 +84,7 @@ export function Hero({ preAlert, now: serverNow }: { preAlert: boolean; now: num
           {HERO.lines.map((l, k) => (
             <Line key={k} line={l} hidden />
           ))}
-          <Line line={HERO.lines[line]!} />
+          <Line line={HERO.lines[line]!} animate={step > 0} />
         </h1>
         <Stack
           active={line === 2 ? 1 : 0}
@@ -191,42 +192,34 @@ export function Hero({ preAlert, now: serverNow }: { preAlert: boolean; now: num
 type HeroLine = (typeof HERO.lines)[number];
 
 /** One headline variant. `hidden` ones only reserve the tallest variant's height, so nothing shifts (CLS). */
-function Line({ line, hidden }: { line: HeroLine; hidden?: boolean }) {
+function Line({ line, hidden, animate }: { line: HeroLine; hidden?: boolean; animate?: boolean }) {
   const cell = cn("col-start-1 row-start-1 self-end", hidden && "invisible");
+  // The first paint is plain text in one block, so the headline is the page's largest paint (LCP);
+  // only a later swap wraps the changed words to rise in.
+  const swap = (key: string, text: string) =>
+    animate ? (
+      <span key={key} className={cn("inline-block", styles.swap)}>
+        {text}
+      </span>
+    ) : (
+      text
+    );
   if ("whole" in line)
     return (
       <span aria-hidden="true" className={cn(cell, "text-pw-emergency text-balance")}>
-        <span key={line.whole} className={cn("block", !hidden && styles.swap)}>
-          {line.whole}
-        </span>
+        {swap(line.whole, line.whole)}
       </span>
     );
   return (
     <span aria-hidden="true" className={cn(cell, "whitespace-nowrap")}>
-      <span className="block">{HERO.lead}</span>
-      <span className="block">
-        <span key={line.noun} className={cn("inline-block", !hidden && styles.swap)}>
-          {line.noun}
-        </span>
-      </span>
-      <span className="relative isolate inline-block">
-        <span key={line.place} className={cn("inline-block", !hidden && styles.swap)}>
-          {line.place}
-        </span>
-        <svg
-          viewBox="0 0 200 14"
-          preserveAspectRatio="none"
-          fill="none"
-          aria-hidden="true"
-          className="text-pw-accent absolute -bottom-[0.1em] left-0 -z-10 h-[0.3em] w-full overflow-visible"
-        >
-          <path
-            d="M3 9 C 40 2, 80 12, 120 6 S 180 4, 197 8"
-            stroke="currentColor"
-            strokeWidth="5"
-            strokeLinecap="round"
-          />
-        </svg>
+      {HERO.lead}
+      <br />
+      {swap(line.noun, line.noun)}
+      <br />
+      {/* A plain underline, not a positioned drawing: a positioned span would split the headline's text
+          into two paint records, and the shorter sub-line would then be the largest paint (LCP). */}
+      <span className="decoration-pw-accent underline decoration-[0.09em] underline-offset-[0.14em] [text-decoration-skip-ink:none]">
+        {swap(line.place, line.place)}
       </span>
     </span>
   );
