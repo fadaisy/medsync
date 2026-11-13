@@ -11,12 +11,13 @@
 }
 
 /* Frosted glass: the nav once scrolled, the app bar once scrolled, the menu and the bottom bar. */
+/* Unprefixed only: the build adds -webkit- for Safari. Written as a pair, the minifier kept only the -webkit-
+   one, which Chrome ignores, and the nav lost its blur. */
 .glass {
   background: color-mix(in srgb, var(--pw-surface) 52%, transparent);
   backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
 }
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+@supports not (backdrop-filter: blur(1px)) {
   .glass {
     background: color-mix(in srgb, var(--pw-surface) 90%, transparent);
   }
