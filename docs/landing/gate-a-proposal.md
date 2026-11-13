@@ -75,7 +75,7 @@ The recommendation is what the draft copy already does. Where the canvas differs
 
 I propose no change to any other canvas sentence. Two small ones I did not change but flag: the canvas has an older six-question list next to the ten-question one; I used the ten. The footer's legal line "Privacy and terms: in legal review" stays as drawn.
 
-**Signature:** **\*\*\*\***\_\_\_\_**\*\*\*\*** (Fadhul, CSO) · Date: **\_\_\_\_**
+**Signed:** Fadhul (CSO), 13 Nov 2026, in chat: "Yes, sign it". All 17 decisions stand as proposed: no doctor names (initials only); the copyright stays "© 2026 MedSync". GATE A signs the decisions, not the copy: both copy statuses stay `draft`.
 
 ## 4. Copy
 
