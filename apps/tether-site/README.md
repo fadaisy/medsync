@@ -30,12 +30,12 @@ takes about 13 minutes.
    - `vercel.json` already sets the framework and installs from the repo root (`cd ../.. && npm ci`).
 2. **Environment variables:**
 
-   | Variable                    | Value                                        | Needed for                                                    |
-   | --------------------------- | -------------------------------------------- | ------------------------------------------------------------- |
-   | `TETHER_SITE_URL`           | the site's address, e.g. `https://tether.ug` | canonical links, sitemap, sharing                             |
-   | `NEXT_PUBLIC_SUPABASE_URL`  | as in the hospital project                   | the clinic form                                               |
-   | `SUPABASE_SERVICE_ROLE_KEY` | as in the hospital project                   | the clinic form                                               |
-   | `FEATURE_PRE_ALERT`         | leave unset                                  | keeps the emergency answer's pre-alert sentence off (D-LP-06) |
+   | Variable                    | Value                                                                                      | Needed for                                                    |
+   | --------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+   | `TETHER_SITE_URL`           | the site's domain, e.g. `tether.ug` (https:// optional); unset, Vercel's production domain | canonical links, sitemap, sharing                             |
+   | `NEXT_PUBLIC_SUPABASE_URL`  | as in the hospital project                                                                 | the clinic form                                               |
+   | `SUPABASE_SERVICE_ROLE_KEY` | as in the hospital project                                                                 | the clinic form                                               |
+   | `FEATURE_PRE_ALERT`         | leave unset                                                                                | keeps the emergency answer's pre-alert sentence off (D-LP-06) |
 
    Without the two Supabase variables the page still works; only the form answers "We could not send that".
 

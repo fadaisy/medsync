@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { SITE_URL } from "./site-url";
+
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.TETHER_SITE_URL ?? "http://localhost:3010";
-  return { rules: [{ userAgent: "*", allow: "/" }], sitemap: `${base}/sitemap.xml` };
+  return { rules: [{ userAgent: "*", allow: "/" }], sitemap: `${SITE_URL}/sitemap.xml` };
 }

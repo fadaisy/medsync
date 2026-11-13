@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { SITE_URL } from "./site-url";
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    { url: process.env.TETHER_SITE_URL ?? "http://localhost:3010", changeFrequency: "weekly" },
-  ];
+  return [{ url: SITE_URL, changeFrequency: "weekly" }];
 }
