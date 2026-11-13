@@ -1,0 +1,10 @@
+{
+  "name": "tether-site",
+  "private": true,
+  "description": "The Tether landing page as its own deploy. It uses the repo's root node_modules and shared code; see README.md.",
+  "scripts": {
+    "dev": "next dev -p 3010",
+    "build": "next build",
+    "start": "next start -p 3010"
+  }
+}

@@ -1,0 +1,34 @@
+/* The Tether site's whole stylesheet: Tailwind, the Tide tokens, and the two hospital-theme values the shared
+   landing code uses. The tokens are generated, the same block as app/globals.css (a test keeps them equal):
+   node scripts/patient-web/gen-tokens.mjs mobile/src/theme/tide.ts > apps/tether-site/app/pw-tokens.css */
+@import "tailwindcss";
+@import "./pw-tokens.css";
+
+@source "../../../components/landing/tether";
+@source "../../../components/tide";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --font-mono: var(--font-medsync-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  :where(a, button, summary, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--pw-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
