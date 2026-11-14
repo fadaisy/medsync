@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Sign-in in the Tether look (off) — 14 Nov 2026
+
+- With `LANDING_TETHER` on, `/sign-in` and the authenticator-code page are drawn in the Tether look, in two
+  columns: sign-in, and the four ways to join linking to today's sign-up forms. Same actions and role landing
+  ([ADR 0498](docs/adr/0498-tether-sign-in.md)). New copy is draft.
+
 ### Added — Tether landing page, foundation and shell (off) — 13 Nov 2026
 
 - A booking-first landing page for Tether is being built at `/tether` and served at `/` only while
