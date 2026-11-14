@@ -70,7 +70,7 @@ export function Chrome({ preAlert }: { preAlert: boolean }) {
 }
 
 /** Help on the desktop: a red pill to the emergency pathway, with "Only for emergencies" on hover and focus. */
-function HelpLink({ tipUp }: { tipUp?: boolean }) {
+export function HelpLink({ tipUp }: { tipUp?: boolean }) {
   const tip = useId();
   return (
     <Link

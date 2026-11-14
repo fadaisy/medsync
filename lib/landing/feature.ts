@@ -13,3 +13,15 @@ export function landingTetherOn(
   if (vercelEnv !== "production") return true;
   return [TETHER_LANDING_COPY_STATUS, TETHER_FAQ_COPY_STATUS].every((c) => c.status === "signed");
 }
+
+/** Paths the Tether build serves in place of the hospital app's page while the landing is on (ADR 0498). */
+const TETHER_PAGES: Record<string, string> = {
+  "/": "/tether",
+  "/sign-in": "/tether/sign-in",
+  "/sign-in/mfa": "/tether/sign-in/mfa",
+};
+
+/** Where proxy.ts rewrites `pathname` to, or null. The visible address never changes. */
+export function tetherRewrite(pathname: string, on: boolean = landingTetherOn()): string | null {
+  return on ? (TETHER_PAGES[pathname] ?? null) : null;
+}
