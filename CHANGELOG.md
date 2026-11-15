@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Hospital admins on Tether land on Clinics & schedule — 15 Nov 2026
+
+- On the Tether domain `/hospital-admin` goes to `/hospital-admin/clinics`
+  ([ADR 0512](docs/adr/0512-tether-admins-land-on-clinics.md)). Signing in as an admin no longer opens the old
+  MedSync dashboard; the other admin pages still open there.
+
 ### Changed — Sign-up headings say Tether on Tether — 15 Nov 2026
 
 - On the Tether domain the patient, clinical and hospital sign-up headings name Tether
