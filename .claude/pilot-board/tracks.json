@@ -184,9 +184,9 @@
     "area": "Claude",
     "task": "Clinic floor follow-up: pregnancy and SpO2 scale 2 as engine inputs, then wiring",
     "status": "Running",
-    "progress": 0,
-    "branch": "",
-    "note": "Relaunched as cloud session session_01AyHv1Boe5cQsa3jrparsCw. Gated: reports before each change.",
+    "progress": 15,
+    "branch": "feat/clinic-floor-engine-inputs",
+    "note": "Gate 1 signed 15 Nov: pregnancy choice (defaults to Not known for F/unknown) and SpO2 scale 2 switch as engine inputs. Building change 1; changes 2–5 one gate each. Session session_01AyHv1Boe5cQsa3jrparsCw.",
     "updated": "2026-11-15"
   },
   {
@@ -203,10 +203,10 @@
     "id": "cloud-pilot-branches",
     "area": "Claude",
     "task": "Bring pilot numbers and the clinic set-up guide onto main; check GO-LIVE.md",
-    "status": "Running",
-    "progress": 0,
-    "branch": "",
-    "note": "Relaunched as cloud session session_01AyHv1D2ewdBPDWcVvucFxZ. The 15-minute reminders stay apart until Vercel Pro.",
+    "status": "Done",
+    "progress": 100,
+    "branch": "claude/booking-pilot-onto-main",
+    "note": "Pushed (54ba48d) on main, ready for you to merge: pilot numbers + clinic set-up guide, guide rewritten for Clinics & schedule. Go-live (cron + GO-LIVE.md) on claude/booking-pilot-go-live (43038d9): do not merge before Vercel Pro. Found: no \"Late by\" control since the old Scheduling page went; reminder toggle says 18:00 but the daily cron runs at 08:00 EAT.",
     "updated": "2026-11-15"
   },
   {
@@ -446,7 +446,7 @@
     "status": "Needs you",
     "progress": null,
     "branch": "",
-    "note": "Most are on main (15 Nov). Still to merge: feat/pilot-numbers, docs/booking-pilot-clinic-setup, feat/inline-mfa-setup, docs/tether-sessions-handout. feat/booking-pilot-go-live only after Vercel Pro.",
+    "note": "Ready to merge: claude/funny-shannon-i7xgwp (inline MFA setup, ADR 0513, handout, board) and claude/booking-pilot-onto-main (pilot numbers, clinic guide). claude/booking-pilot-go-live only after Vercel Pro.",
     "updated": "2026-11-15"
   },
   {
