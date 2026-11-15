@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ShieldAlertIcon, ShieldCheckIcon } from "lucide-react";
 
 import { Avatar } from "@/components/medsync/avatar";
+import { ShellFrame } from "@/components/medsync/shell-frame";
 import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
 import { SidebarSearch, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
 import { FEATURE_AREAS, featurePath } from "../_lib/features";
@@ -41,6 +42,9 @@ interface HospitalShellProps {
   servicesProblemCount?: number;
   children: ReactNode;
 }
+
+/** Pages that draw their own full-screen desk shell, so this frame steps aside (ADR 0514). */
+const BARE = ["/hospital-admin/clinics"] as const;
 
 /** Friendly display string for hospitals.level. */
 function formatLevel(level: string): string {
@@ -90,59 +94,58 @@ export function HospitalShell({
 
   return (
     <HospitalScopeProvider scope={scope}>
-      <div className="bg-background text-foreground flex min-h-svh w-full">
-        {/* ── Sidebar ──────────────────────────────────────────────── */}
-        <aside aria-label="Workspace navigation" className={SIDEBAR_CLASS}>
-          <div className="flex flex-col gap-1.5 p-2">
-            <SidebarWorkspace
-              name={scope.hospitalName}
-              sub={formatLevel(scope.level)}
-              href="/hospital-admin"
-            />
-            <SidebarSearch />
-          </div>
+      <ShellFrame
+        bareOn={BARE}
+        sidebar={
+          <aside aria-label="Workspace navigation" className={SIDEBAR_CLASS}>
+            <div className="flex flex-col gap-1.5 p-2">
+              <SidebarWorkspace
+                name={scope.hospitalName}
+                sub={formatLevel(scope.level)}
+                href="/hospital-admin"
+              />
+              <SidebarSearch />
+            </div>
 
-          <nav className="flex-1 overflow-y-auto px-2 pb-2">
-            <ul className="flex flex-col gap-0.5">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <HospitalSidebarItem
-                    href={item.href}
-                    label={item.label}
-                    iconKey={item.iconKey}
-                    badgeCount={item.badgeCount}
-                    badgeTone={item.badgeTone}
-                    badgeLabel={item.badgeLabel}
-                  />
-                </li>
-              ))}
-            </ul>
-          </nav>
+            <nav className="flex-1 overflow-y-auto px-2 pb-2">
+              <ul className="flex flex-col gap-0.5">
+                {navItems.map((item) => (
+                  <li key={item.href}>
+                    <HospitalSidebarItem
+                      href={item.href}
+                      label={item.label}
+                      iconKey={item.iconKey}
+                      badgeCount={item.badgeCount}
+                      badgeTone={item.badgeTone}
+                      badgeLabel={item.badgeLabel}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-          <div className="border-sidebar-border border-t p-2">
-            <div className="flex items-center gap-2 px-1.5 py-1.5">
-              <Avatar name={adminEmail} hue="slate" size="md" />
-              <div className="min-w-0 flex-1">
-                <p className="text-foreground text-label truncate">{adminEmail}</p>
-                <p className="text-muted-foreground inline-flex items-center gap-1 text-[11px]">
-                  {mfaActive ? (
-                    <ShieldCheckIcon className="size-3" aria-hidden />
-                  ) : (
-                    <ShieldAlertIcon className="size-3" aria-hidden />
-                  )}
-                  <span className={mfaActive ? undefined : "text-foreground font-medium"}>
-                    {mfaActive ? "MFA · AAL2" : "MFA inactive"}
-                  </span>
-                  {scope.designation ? <span>· {scope.designation}</span> : null}
-                </p>
+            <div className="border-sidebar-border border-t p-2">
+              <div className="flex items-center gap-2 px-1.5 py-1.5">
+                <Avatar name={adminEmail} hue="slate" size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-foreground text-label truncate">{adminEmail}</p>
+                  <p className="text-muted-foreground inline-flex items-center gap-1 text-[11px]">
+                    {mfaActive ? (
+                      <ShieldCheckIcon className="size-3" aria-hidden />
+                    ) : (
+                      <ShieldAlertIcon className="size-3" aria-hidden />
+                    )}
+                    <span className={mfaActive ? undefined : "text-foreground font-medium"}>
+                      {mfaActive ? "MFA · AAL2" : "MFA inactive"}
+                    </span>
+                    {scope.designation ? <span>· {scope.designation}</span> : null}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        </aside>
-
-        {/* ── Main column ──────────────────────────────────────────── */}
-        <div className="flex min-w-0 flex-1 flex-col">
-          {/* Top bar */}
+          </aside>
+        }
+        header={
           <header className="border-border glass sticky top-0 z-30 flex h-12 items-center justify-between gap-3 border-b px-4 sm:px-6">
             {/* Mobile: hamburger → sidebar sheet + brand */}
             <div className="flex items-center gap-2.5 lg:hidden">
@@ -200,11 +203,10 @@ export function HospitalShell({
               </Link>
             </div>
           </header>
-
-          {/* Main region */}
-          <main className="min-w-0 flex-1">{children}</main>
-        </div>
-      </div>
+        }
+      >
+        {children}
+      </ShellFrame>
     </HospitalScopeProvider>
   );
 }

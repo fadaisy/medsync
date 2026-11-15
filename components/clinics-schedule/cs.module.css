@@ -3906,3 +3906,8 @@ button.su-hi:hover {
     white-space: normal;
   }
 }
+
+/* ADR 0514: the "More" group at the foot of the rail links out to the other admin pages. */
+.more .nv {
+  text-decoration: none;
+}

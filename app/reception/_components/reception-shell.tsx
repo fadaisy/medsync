@@ -4,12 +4,16 @@ import Link from "next/link";
 import { ShieldCheckIcon } from "lucide-react";
 
 import { Avatar } from "@/components/medsync/avatar";
+import { ShellFrame } from "@/components/medsync/shell-frame";
 import { SIDEBAR_CLASS } from "@/components/medsync/sidebar-class";
 import { SidebarSearch, SidebarWorkspace } from "@/components/medsync/sidebar-nav";
 import { Tag } from "@/components/medsync/tag";
 import { labPaymentLiveFor } from "@/lib/lab/feature";
 import { RECEPTION_FEATURE_AREAS, receptionFeaturePath } from "../_lib/features";
 import { ReceptionCommandBar, ReceptionSidebarItem } from "./reception-sidebar-item";
+
+/** Where the desk draws itself (ADR 0514). */
+const DESK_PATHS = ["/reception"] as const;
 
 const LEVEL_LABEL: Record<string, string> = {
   national_referral: "National referral",
@@ -28,54 +32,59 @@ const LEVEL_LABEL: Record<string, string> = {
  */
 export function ReceptionShell({
   scope,
+  deskLive = false,
   children,
 }: {
   scope: ReceptionScope;
+  /** The desk replaces `/reception` (ADR 0485, 0500): it draws its own shell, so this frame steps aside there. */
+  deskLive?: boolean;
   children: ReactNode;
 }) {
   const lab = labPaymentLiveFor(scope.hospitalId);
   const navItems = RECEPTION_FEATURE_AREAS.filter((a) => a.slug !== "lab-payments" || lab);
 
   return (
-    <div className="bg-background text-foreground flex min-h-svh w-full">
-      <aside aria-label="Reception workspace navigation" className={SIDEBAR_CLASS}>
-        <div className="flex flex-col gap-1.5 p-2">
-          <SidebarWorkspace name={scope.hospitalName} sub="Front desk" href="/reception" />
-          <SidebarSearch />
-        </div>
+    <ShellFrame
+      bareOn={deskLive ? DESK_PATHS : []}
+      sidebar={
+        <aside aria-label="Reception workspace navigation" className={SIDEBAR_CLASS}>
+          <div className="flex flex-col gap-1.5 p-2">
+            <SidebarWorkspace name={scope.hospitalName} sub="Front desk" href="/reception" />
+            <SidebarSearch />
+          </div>
 
-        <nav className="flex-1 overflow-y-auto px-2 pb-2">
-          <ul className="flex flex-col gap-0.5">
-            {navItems.map((item) => (
-              <li key={item.slug}>
-                <ReceptionSidebarItem
-                  href={receptionFeaturePath(item.slug)}
-                  label={item.label}
-                  iconKey={item.iconKey}
-                  exact={item.slug === ""}
-                />
-              </li>
-            ))}
-          </ul>
-        </nav>
+          <nav className="flex-1 overflow-y-auto px-2 pb-2">
+            <ul className="flex flex-col gap-0.5">
+              {navItems.map((item) => (
+                <li key={item.slug}>
+                  <ReceptionSidebarItem
+                    href={receptionFeaturePath(item.slug)}
+                    label={item.label}
+                    iconKey={item.iconKey}
+                    exact={item.slug === ""}
+                  />
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-        <div className="border-sidebar-border border-t p-2">
-          <div className="flex items-center gap-2 px-1.5 py-1.5">
-            <Avatar name={scope.fullName ?? scope.userEmail} hue="plum" size="md" />
-            <div className="min-w-0 flex-1">
-              <p className="text-foreground text-label truncate">
-                {scope.fullName ?? scope.userEmail}
-              </p>
-              <p className="text-muted-foreground inline-flex items-center gap-1 text-[11px]">
-                <ShieldCheckIcon className="size-3" aria-hidden />
-                MFA · AAL2
-              </p>
+          <div className="border-sidebar-border border-t p-2">
+            <div className="flex items-center gap-2 px-1.5 py-1.5">
+              <Avatar name={scope.fullName ?? scope.userEmail} hue="plum" size="md" />
+              <div className="min-w-0 flex-1">
+                <p className="text-foreground text-label truncate">
+                  {scope.fullName ?? scope.userEmail}
+                </p>
+                <p className="text-muted-foreground inline-flex items-center gap-1 text-[11px]">
+                  <ShieldCheckIcon className="size-3" aria-hidden />
+                  MFA · AAL2
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
+        </aside>
+      }
+      header={
         <header className="border-border glass sticky top-0 z-30 flex h-12 items-center justify-between gap-3 border-b px-4 sm:px-6">
           <div className="flex items-center gap-2.5 lg:hidden">
             <Link
@@ -134,9 +143,9 @@ export function ReceptionShell({
             </Link>
           </div>
         </header>
-
-        <main className="min-w-0 flex-1">{children}</main>
-      </div>
-    </div>
+      }
+    >
+      {children}
+    </ShellFrame>
   );
 }

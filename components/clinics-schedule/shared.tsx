@@ -30,6 +30,13 @@ export const k = (...n: (string | false | null | undefined)[]) =>
     .map((x) => [cs[x as string], desk[x as string]].filter(Boolean).join(" "))
     .join(" ");
 
+/** A link to another hospital-admin page in the rail's "More" group (ADR 0514). */
+export interface MoreLink {
+  href: string;
+  label: string;
+  icon: string;
+}
+
 export type View = "ready" | "clinics" | "week" | "closures" | "people" | "devices" | "history";
 export const VIEWS: readonly View[] = [
   "ready",

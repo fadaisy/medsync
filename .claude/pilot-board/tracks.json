@@ -210,6 +210,16 @@
     "updated": "2026-11-15"
   },
   {
+    "id": "full-screen",
+    "area": "Claude",
+    "task": "Clinics & schedule and the reception desk open full screen (no doubled menus)",
+    "status": "Done",
+    "progress": 100,
+    "branch": "claude/funny-shannon-i7xgwp",
+    "note": "ADR 0514. Old admin/reception frames step aside on these pages; the Clinics & schedule rail gains a More group (Staff, Departments, Intake, Reports, Admins, Audit, Hospital profile). Checked on the fixture at 1440, 1280 and 834; not on production.",
+    "updated": "2026-11-15"
+  },
+  {
     "id": "rule-urgent",
     "area": "You",
     "task": "Ruling: hide \"Something is wrong\" for the pilot, or sign the symptom catalogue",
@@ -308,6 +318,16 @@
     "task": "Sign the new wording: cancel SMS, desk consent and sign-up code",
     "status": "Needs you",
     "note": "All drafts until you approve them. Desk and claim wording is in content/desk-register.ts."
+  },
+  {
+    "id": "sign-more",
+    "area": "You",
+    "task": "Sign the two new words in the Clinics & schedule rail: \"More\" and \"Other admin pages\"",
+    "status": "Needs you",
+    "progress": null,
+    "branch": "",
+    "note": "Drafts in content/clinics-schedule/more.ts.",
+    "updated": "2026-11-15"
   },
   {
     "id": "desk-signoffs",

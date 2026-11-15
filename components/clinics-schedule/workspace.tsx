@@ -6,13 +6,15 @@
  * the shared Tether shell; pop-ups are centred dialogs (ADR 0161). Keys never fire while typing.
  */
 import type { CsPort, When } from "./port";
-import type { Ctx, Modal, View } from "./shared";
+import type { Ctx, Modal, MoreLink, View } from "./shared";
 import type { CsData, CsUser, Job, Version } from "@/lib/clinics-schedule/fixture";
 import type { Change, Edit } from "@/lib/clinics-schedule/model";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { DeskShell } from "@/components/reception/shell";
 import { CS, CS_ERRORS } from "@/content/clinics-schedule/copy";
+import { CS_MORE } from "@/content/clinics-schedule/more";
 import { fill } from "@/content/lab-workspace-v2";
 import {
   applyChanges,
@@ -72,11 +74,14 @@ export function ClinicsWorkspace({
   port,
   forceOffline = false,
   initialView = "ready",
+  more = [],
 }: {
   data: CsData;
   port: CsPort;
   forceOffline?: boolean;
   initialView?: View;
+  /** The other hospital-admin pages (ADR 0514); the fixture has none. */
+  more?: readonly MoreLink[];
 }) {
   const [published, setPublished] = useState(data.published);
   const [drafts, setDrafts] = useState<Change[]>(data.drafts);
@@ -448,6 +453,21 @@ export function ClinicsWorkspace({
             ))}
           </nav>
           <div className={k("grow")} />
+          {more.length ? (
+            <>
+              <div className={k("secH", "full")} aria-hidden="true">
+                {CS_MORE.title}
+              </div>
+              <nav className={k("nav", "more")} aria-label={CS_MORE.aria}>
+                {more.map((m) => (
+                  <Link key={m.href} href={m.href} className={k("nv")} title={m.label}>
+                    <Icon n={m.icon} size={19} />
+                    <span className={k("lbl")}>{m.label}</span>
+                  </Link>
+                ))}
+              </nav>
+            </>
+          ) : null}
         </div>
       }
       top={

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { MORE } from "@/app/hospital-admin/clinics/_lib/more";
 import { FixtureClinics } from "@/components/clinics-schedule/entry";
 
 /**
@@ -18,5 +19,5 @@ export default async function Page({
   if (process.env.MEDSYNC_FIXTURES !== "1") notFound();
   const sp = await searchParams;
   const scenario = sp.scenario === "first" || sp.scenario === "offline" ? sp.scenario : "ready";
-  return <FixtureClinics scenario={scenario} view={sp.view} />;
+  return <FixtureClinics scenario={scenario} view={sp.view} more={MORE} />;
 }

@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Fixed — Clinics & schedule and the reception desk open full screen — 15 Nov 2026
+
+- The old admin and reception frames no longer wrap the new workspaces, which drew a second sidebar and top bar and
+  hid the workspace's own top bar ([ADR 0514](docs/adr/0514-desk-workspaces-open-full-screen.md)). The Clinics &
+  schedule rail ends with a "More" group linking to the other admin pages (wording draft).
+
 ### Changed — Authenticator setup opens on the sign-in page — 15 Nov 2026
 
 - A clinical or admin account with no authenticator sets one up under the password, in the page's look, then goes

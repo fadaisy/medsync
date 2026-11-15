@@ -2,7 +2,7 @@
 
 /** The two ways in: the live page (server actions) and the styleguide fixture (memory only). */
 import type { CsPort } from "./port";
-import type { View } from "./shared";
+import type { MoreLink, View } from "./shared";
 import type { CsData } from "@/lib/clinics-schedule/fixture";
 
 import {
@@ -34,16 +34,26 @@ const livePort: CsPort = {
 const asView = (v?: string): View =>
   (VIEWS as readonly string[]).includes(v ?? "") ? (v as View) : "ready";
 
-export function LiveClinics({ data, view }: { data: CsData; view?: string }) {
-  return <ClinicsWorkspace data={data} port={livePort} initialView={asView(view)} />;
+export function LiveClinics({
+  data,
+  view,
+  more,
+}: {
+  data: CsData;
+  view?: string;
+  more?: readonly MoreLink[];
+}) {
+  return <ClinicsWorkspace data={data} port={livePort} initialView={asView(view)} more={more} />;
 }
 
 export function FixtureClinics({
   scenario,
   view,
+  more,
 }: {
   scenario: "ready" | "first" | "offline";
   view?: string;
+  more?: readonly MoreLink[];
 }) {
   return (
     <ClinicsWorkspace
@@ -51,6 +61,7 @@ export function FixtureClinics({
       port={fixturePort}
       forceOffline={scenario === "offline"}
       initialView={asView(view)}
+      more={more}
     />
   );
 }
