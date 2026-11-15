@@ -26,6 +26,7 @@ import {
 } from "../_components/auth-notice";
 import { AuthCardSkeleton } from "../_components/auth-skeleton";
 import { signInAction } from "./actions";
+import { MfaChallengeForm } from "./mfa/form";
 
 const initial: SignInState = {};
 
@@ -159,6 +160,7 @@ export function SignInForm({ look = "medsync" }: { look?: AuthLook }) {
           required
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "email-error" : undefined}
+          readOnly={!!state.mfa}
           className={input}
         />
         <FieldNote id="email-error" message={errors.email} />
@@ -184,6 +186,7 @@ export function SignInForm({ look = "medsync" }: { look?: AuthLook }) {
             required
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? "password-error" : undefined}
+            readOnly={!!state.mfa}
             className={cn(input, tether ? "pr-14" : "pr-12")}
           />
           <button
@@ -209,7 +212,8 @@ export function SignInForm({ look = "medsync" }: { look?: AuthLook }) {
         <FieldNote id="password-error" message={errors.password} />
       </div>
 
-      {tether ? (
+      {/* Once the password is accepted the code step below takes over (it has its own button). */}
+      {state.mfa ? null : tether ? (
         <button
           type="submit"
           disabled={pending}
@@ -231,17 +235,20 @@ export function SignInForm({ look = "medsync" }: { look?: AuthLook }) {
         </Button>
       )}
 
-      <Helper look={look} />
+      {state.mfa ? null : <Helper look={look} />}
     </form>
   );
+  const codeStep = state.mfa ? <MfaChallengeForm look={look} inline={state.mfa} /> : null;
 
   return tether ? (
     <AuthHead title={AUTH.title} lead={notice ?? AUTH.lead}>
       {body}
+      {codeStep}
     </AuthHead>
   ) : (
     <AuthCard title={SIGN_IN.title} subtitle={notice} footer={<Footer />}>
       {body}
+      {codeStep}
     </AuthCard>
   );
 }

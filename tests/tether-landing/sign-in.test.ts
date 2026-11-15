@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isTetherHost, tetherClosed, tetherRewrite } from "@/lib/landing/feature";
+import { isTetherHost, tetherClosed, tetherHome, tetherRewrite } from "@/lib/landing/feature";
 
 /** ADR 0498: the Tether sign-in pages take over `/sign-in` and its code step only while the landing is on. */
 describe("tetherRewrite", () => {
@@ -63,5 +63,26 @@ describe("the Tether domain", () => {
       "/patients",
     ])
       expect(tetherClosed(p), p).toBe(true);
+  });
+});
+
+/** ADR 0509: a nurse's or doctor's MedSync home is the clinic floor on Tether. */
+describe("tetherHome", () => {
+  it("sends the nurse and doctor homes to the floor", () => {
+    expect(tetherHome("/nurse")).toBe("/clinic");
+    expect(tetherHome("/nurse/")).toBe("/clinic");
+    expect(tetherHome("/nurse/triage")).toBe("/clinic?view=triage");
+    expect(tetherHome("/doctor")).toBe("/clinic?view=line");
+  });
+  it("leaves every other page alone", () => {
+    for (const p of [
+      "/",
+      "/nurse/mar",
+      "/nurse/incoming",
+      "/doctor/schedule",
+      "/clinic",
+      "/reception",
+    ])
+      expect(tetherHome(p), p).toBeNull();
   });
 });
