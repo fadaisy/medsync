@@ -32,12 +32,22 @@ export function MfaSkeleton() {
   return <AuthCardSkeleton title={MFA.title} subtitle={MFA.helper} fields={1} />;
 }
 
-export function MfaChallengeForm({ look = "medsync" }: { look?: AuthLook }) {
+/**
+ * The code step. `inline` is the sign-in page's own: the field and button under the password, with the redirect the
+ * password step was given. Without it, the `/sign-in/mfa` page (reached when a half-signed-in session opens a page).
+ */
+export function MfaChallengeForm({
+  look = "medsync",
+  inline,
+}: {
+  look?: AuthLook;
+  inline?: { redirect: string };
+}) {
   const tether = look === "tether";
   const Input = tether ? PlainInput : ChromaInput;
   const [state, formAction, pending] = useActionState(challengeMfaAction, initial);
   const params = useSearchParams();
-  const redirectTo = params.get("redirect") ?? "";
+  const redirectTo = inline ? inline.redirect : (params.get("redirect") ?? "");
 
   const [offline, setOffline] = useState(false);
   const summary = useRef<HTMLDivElement>(null);
@@ -91,6 +101,11 @@ export function MfaChallengeForm({ look = "medsync" }: { look?: AuthLook }) {
       aria-busy={pending}
       className="flex flex-col gap-4"
     >
+      {inline ? (
+        <p className={cn("text-body-s", tether ? "text-pw-ink-2" : "text-muted-foreground")}>
+          {MFA.helper}
+        </p>
+      ) : null}
       <AuthNotice id="mfa-errors" role="alert" tabIndex={-1} ref={summary} message={message} />
       <input type="hidden" name="redirect" value={redirectTo} />
 
@@ -147,6 +162,7 @@ export function MfaChallengeForm({ look = "medsync" }: { look?: AuthLook }) {
     </form>
   );
 
+  if (inline) return body;
   return tether ? (
     <AuthHead title={MFA.title} lead={MFA.helper}>
       {body}

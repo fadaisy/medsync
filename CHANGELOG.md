@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — The authenticator code is asked on the sign-in page — 15 Nov 2026
+
+- After a right email and password, an account with an authenticator gets the 6-digit code field under the
+  password, on the same page. `/sign-in/mfa` stays for a half-signed-in session that opens a page.
+
 ### Changed — Reception on Tether is the desk — 15 Nov 2026
 
 - On the Tether domain, `/reception` is the booking desk for every hospital

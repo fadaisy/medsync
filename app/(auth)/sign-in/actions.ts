@@ -17,6 +17,8 @@ const SignInSchema = z.object({
 
 export type SignInState = {
   errors?: Partial<Record<"email" | "password" | "_form", string>>;
+  /** The password was right and the account has an authenticator: the code field opens under the password. */
+  mfa?: { redirect: string };
 };
 
 export async function signInAction(_prev: SignInState, formData: FormData): Promise<SignInState> {
@@ -51,6 +53,13 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     return { errors: { _form: signInErrorMessage(error) } };
   }
   await setActiveAccount(slot);
+
+  // An account with an authenticator gives its code on this page, not a second one. Same check the proxy makes.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+    logger.info("sign-in password accepted; code next");
+    return { mfa: { redirect: parsed.data.redirect ?? "" } };
+  }
 
   // The landing decides whether ?redirect= may be honoured (a path the user may open, LD-4).
   const landing = signInData.user
