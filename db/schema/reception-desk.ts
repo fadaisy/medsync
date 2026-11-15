@@ -71,6 +71,14 @@ export const deskDevices = pgTable(
     createdBy: uuid("created_by")
       .notNull()
       .references(() => authUsers.id),
+    /** 0296 (clinics and schedule, ADR 0501). */
+    kind: text("kind").notNull().default("desk"),
+    place: text("place"),
+    mineServiceLineIds: uuid("mine_service_line_ids").array().notNull().default([]),
+    lockMinutes: smallint("lock_minutes"),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+    pairCodeExpiresAt: timestamp("pair_code_expires_at", { withTimezone: true }),
+    pairCodeUsedAt: timestamp("pair_code_used_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [unique().on(t.hospitalId, t.label)],

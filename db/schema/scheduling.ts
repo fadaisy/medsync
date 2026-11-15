@@ -73,6 +73,11 @@ export const availabilityBlocks = pgTable(
     createdByUserId: uuid("created_by_user_id").references(() => authUsers.id, {
       onDelete: "set null",
     }),
+    /** 0296 (clinics and schedule, ADR 0501). */
+    coverUserId: uuid("cover_user_id"),
+    bookingPolicy: text("booking_policy"),
+    decidedBy: uuid("decided_by"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

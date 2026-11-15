@@ -1,0 +1,45 @@
+{
+  "status": "unsigned — Fadhul signs (prompt Step 8); from the Step 0 crawl (docs/clinics-schedule/parity-crawl.md); old pages stay until signed and cut over",
+  "routes": {
+    "/hospital-admin/scheduling": {
+      "workspace": "/hospital-admin/clinics?view=week",
+      "controls": {
+        "Service lines: name, department, confidential (read), fee, active": "Clinics › editor › Basics / Fee; live via Get ready",
+        "Fees by cadre (service_line_fees)": "Fee bands (hospital_fee_bands, four-eyes) + 'Set for this clinic' overrides per band",
+        "Weekly rule: day, start, length, valid from/until, patients per session, booked allocation, clinician": "Session dialog: times, places, walk-in hold %, repeats, rooms, people",
+        "Interleave, overbooking factor, runs on holidays": "kept untouched by every edit (X4); still edited on the old page until cut-over",
+        "Late by N min (session delay)": "stays on the reception desk (X6, ADR 0485)",
+        "Cancel one session (dry run, reason, patients told)": "Closures › Close clinics for one day (impact shown first) (X6)",
+        "Department booking policy": "link out (X5): department-scoped, stays on the policy page",
+        "Unstaffed T-12h banner": "Get ready check 'Someone on every session' + People › Needs attention",
+        "Pending stat card, sent today": "not moved: reception and reports own these"
+      },
+      "lost": [
+        "capacity mode, time to care, continuity default, reason codes, hospital default line, deposit (not in the canvas; kept untouched in service_lines, still edited on the old page)"
+      ]
+    },
+    "/hospital-admin/departments/clinics": {
+      "workspace": "/hospital-admin/clinics?view=clinics",
+      "controls": {
+        "Add clinics (catalogue + Other)": "Get ready › Start from a template / Clinics › + Add a clinic",
+        "Set live for booking / Back to planned": "Get ready › Open for booking / Pause (P7)",
+        "Who can book, place, department, confidential": "Clinics › editor › Basics / Booking (confidential is read from the signed list, CS7)",
+        "Add days / one-off session / Stop this day": "Session dialog / Closures › Add extra session / Remove session",
+        "Close for dates": "Closures › Close clinics",
+        "Archive clinic": "Clinics › editor › Archive (X3)",
+        "Print timetable": "Week plan › Print"
+      },
+      "lost": ["Unit (optional) picker: stays in the Hub (X5)"]
+    },
+    "/hospital-admin/departments/hours": {
+      "workspace": "/hospital-admin/clinics?view=closures (holidays, closures)",
+      "controls": {
+        "OPD hours": "read by the workspace (X2); still edited in the Hub",
+        "Public holidays": "Closures › Holidays, with a closed/open decision per hospital",
+        "Add a closure / Lift": "Closures › Close clinics / Remove",
+        "Places (building, floor, directions)": "Hub (X5); the workspace adds blocks and rooms"
+      },
+      "lost": ["ward and department scope closures stay in the Hub"]
+    }
+  }
+}

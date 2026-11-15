@@ -167,3 +167,6 @@ export * from "./pharmacy-distribution";
 
 // ─── Clinic leads (Tether landing "Register your clinic", migration 0293) ───
 export * from "./clinic-leads";
+
+// ─── Clinics and schedule (migration 0296, GATED) ───
+export * from "./clinics-schedule";

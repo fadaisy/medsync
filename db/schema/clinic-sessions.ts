@@ -74,6 +74,16 @@ export const sessionTemplates = pgTable(
     /** 0080 (CLN-4): skip public holidays unless true. Closures always win. */
     runsOnHolidays: boolean("runs_on_holidays").notNull().default(false),
     placeId: uuid("place_id"),
+    /** 0296 (clinics and schedule, ADR 0501). */
+    kind: text("kind").notNull().default("day"),
+    slotMinutes: smallint("slot_minutes"),
+    visitMinutes: smallint("visit_minutes"),
+    walkInHoldPct: smallint("walk_in_hold_pct").notNull().default(0),
+    breakStartMinutes: smallint("break_start_minutes"),
+    breakEndMinutes: smallint("break_end_minutes"),
+    placeIds: uuid("place_ids").array().notNull().default([]),
+    clinicianUserIds: uuid("clinician_user_ids").array().notNull().default([]),
+    placesSet: boolean("places_set").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

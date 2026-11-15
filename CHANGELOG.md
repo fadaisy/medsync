@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clinics & schedule (behind `CLINICS_SCHEDULE`) — 15 Nov 2026
+
+- One hospital-admin workspace for clinics, the week plan, closures and holidays, people, desks and screens, and
+  history, as an editor over the engine's own records ([ADR 0501](docs/adr/0501-clinics-schedule-editor-over-engine.md)).
+  Every change is a draft until published; publish is one transaction, can be scheduled, undone or restored
+  ([ADR 0502](docs/adr/0502-clinics-schedule-drafts-publish.md)). Fee bands with a second admin to publish
+  ([ADR 0503](docs/adr/0503-clinics-schedule-fee-bands.md)); clashes block publish
+  ([ADR 0504](docs/adr/0504-clinics-schedule-clashes.md)); names and photos only with written consent
+  ([ADR 0505](docs/adr/0505-clinics-schedule-consent.md)); leave requests
+  ([ADR 0506](docs/adr/0506-clinics-schedule-leave.md)); device pairing and coverage
+  ([ADR 0507](docs/adr/0507-clinics-schedule-devices.md)). Migration 0296 (GATED). Route `/hospital-admin/clinics`,
+  fixture `/styleguide/clinics-schedule`. Copy, fee bands and templates are draft. Flag off: today's pages.
+
 ### Added — Clinic floor (behind `CLINIC_FLOOR`) — 13 Nov 2026
 
 - Triage station, clinic line, floor board and waiting-room screen after the reception desk hands off
