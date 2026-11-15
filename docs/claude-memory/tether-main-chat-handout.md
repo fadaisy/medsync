@@ -11,6 +11,13 @@ On the Mac, one "main chat" ran the Tether (booking) pilot program and started 1
 
 Before you start, read `AGENTS.md`, `docs/CLAUDE-HANDOFF.md` and the notes these link to: [[booking-pilot-board]], [[clinic-floor-build-state]], [[clinics-schedule-build]], [[landing-tether-build]] and [[medsync-owner-rules]].
 
+## Cloud relaunch (15 Nov, evening)
+
+- The main chat is cloud session `session_01AyHv1BQVYvi9chtZG8652e` (branch `claude/funny-shannon-i7xgwp`). Nested sessions report to it with send_message.
+- Owner answers: 0297 applied; `DEV_SKIP_MFA` and `PHARMACY_DEV_HOSPITALS` removed from production and redeployed. The production check is blocked: the cloud network does not reach the production hosts.
+- `feat/inline-mfa-setup` is rebased onto main on `claude/funny-shannon-i7xgwp` with its ADR renumbered **0513**, because main already holds 0512 (admins land on Clinics). Typecheck, lint and tests pass, except patient-web help/care, which need `mobile/` installed.
+- Relaunched: clinic floor follow-up `session_01AyHv1Boe5cQsa3jrparsCw`, reception desk JS `session_01AyHv1CrXFaFGG8p5RNhHjU`, pilot branches and go-live `session_01AyHv1D2ewdBPDWcVvucFxZ`. The other 11 threads had nothing open.
+
 ## The program
 
 - **Goal:** the Tether booking pilot for about 5 private clinics in Uganda, running 30 days, web first.
@@ -21,24 +28,24 @@ Before you start, read `AGENTS.md`, `docs/CLAUDE-HANDOFF.md` and the notes these
 
 ## Nested sessions on 15 Nov
 
-| Session | Branch @ commit | Merged to main? | Open |
-|---|---|---|---|
-| Tether landing page (gated build) | `feat/inline-mfa-setup` @ 21551699 | **No** (1 ahead) | Owner to merge. Prod check after the dev switches came off (below) |
-| Tether clinics and schedule | `feat/clinics-schedule` 564b0784, `fix/clinics-cutover-tests` 7b586675 | Yes (cut over, ADR 0508; PR #305) | Deploy is the owner's |
-| Tether clinic floor | `feat/clinic-floor` @ 85d3dc42 | Yes | Engine gaps, wiring, sign-offs, `CLINIC_FLOOR` pilot (below) |
-| Tether reception desk (all gates) | `feat/reception-desk` 4b44c851, then `feat/tether-reception-desk` 21c0f9fa | Yes | Sign-offs, desk flag for one clinic, first-load JS 345 KB vs 160 budget |
-| Tether wordmark as logo and favicon | `feat/tether-logo` @ cdb9ef31 | Yes (PR #303) | None |
-| Pilot numbers per clinic | `feat/pilot-numbers` @ 16c76564 | **No** | Owner to merge |
-| Pilot clinic set-up guide and training sheet | `docs/booking-pilot-clinic-setup` @ 9806d385 | **No** | Owner to merge |
-| Pilot: 15-minute reminders and go-live list | `feat/booking-pilot-go-live` @ a8fe8824 | **No** (2 ahead) | Waits for Vercel Pro (cron) |
-| Tether booking workspaces brief | none; artifact https://claude.ai/artifact/Gwa1uV4tyZGzdMbGV1hhKx | n/a | None |
-| Doctor booking requests never sit unseen | `fix/doctor-booking-confirm` | Yes | Redeploy booking functions from `main` at the final deploy |
-| Walk-in takes over desk record | `feat/desk-record-takeover` | Yes | None |
-| Register a walk-in at the desk | `feat/reception-walk-in-register` | Yes | None |
-| Forgot-password reset keeping MFA | `feat/password-reset` | Yes | Supabase reset-email template (owner) |
-| Reception cancel and move | `feat/reception-cancel-move` | Yes | None |
-| Dry run: book, check in, see doctor | `fix/booking-dry-run` | Yes | None |
-| Close the security holes | `fix/review-perimeter` | Yes | None |
+| Session                                      | Branch @ commit                                                            | Merged to main?                   | Open                                                                    |
+| -------------------------------------------- | -------------------------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------- |
+| Tether landing page (gated build)            | `feat/inline-mfa-setup` @ 21551699                                         | **No** (1 ahead)                  | Owner to merge. Prod check after the dev switches came off (below)      |
+| Tether clinics and schedule                  | `feat/clinics-schedule` 564b0784, `fix/clinics-cutover-tests` 7b586675     | Yes (cut over, ADR 0508; PR #305) | Deploy is the owner's                                                   |
+| Tether clinic floor                          | `feat/clinic-floor` @ 85d3dc42                                             | Yes                               | Engine gaps, wiring, sign-offs, `CLINIC_FLOOR` pilot (below)            |
+| Tether reception desk (all gates)            | `feat/reception-desk` 4b44c851, then `feat/tether-reception-desk` 21c0f9fa | Yes                               | Sign-offs, desk flag for one clinic, first-load JS 345 KB vs 160 budget |
+| Tether wordmark as logo and favicon          | `feat/tether-logo` @ cdb9ef31                                              | Yes (PR #303)                     | None                                                                    |
+| Pilot numbers per clinic                     | `feat/pilot-numbers` @ 16c76564                                            | **No**                            | Owner to merge                                                          |
+| Pilot clinic set-up guide and training sheet | `docs/booking-pilot-clinic-setup` @ 9806d385                               | **No**                            | Owner to merge                                                          |
+| Pilot: 15-minute reminders and go-live list  | `feat/booking-pilot-go-live` @ a8fe8824                                    | **No** (2 ahead)                  | Waits for Vercel Pro (cron)                                             |
+| Tether booking workspaces brief              | none; artifact https://claude.ai/artifact/Gwa1uV4tyZGzdMbGV1hhKx           | n/a                               | None                                                                    |
+| Doctor booking requests never sit unseen     | `fix/doctor-booking-confirm`                                               | Yes                               | Redeploy booking functions from `main` at the final deploy              |
+| Walk-in takes over desk record               | `feat/desk-record-takeover`                                                | Yes                               | None                                                                    |
+| Register a walk-in at the desk               | `feat/reception-walk-in-register`                                          | Yes                               | None                                                                    |
+| Forgot-password reset keeping MFA            | `feat/password-reset`                                                      | Yes                               | Supabase reset-email template (owner)                                   |
+| Reception cancel and move                    | `feat/reception-cancel-move`                                               | Yes                               | None                                                                    |
+| Dry run: book, check in, see doctor          | `fix/booking-dry-run`                                                      | Yes                               | None                                                                    |
+| Close the security holes                     | `fix/review-perimeter`                                                     | Yes                               | None                                                                    |
 
 ## Migrations
 
@@ -50,6 +57,7 @@ Before you start, read `AGENTS.md`, `docs/CLAUDE-HANDOFF.md` and the notes these
 ## Production state on 15 Nov
 
 Prod returned 500 on every page. The cause was the start-up guard refusing to run with `DEV_SKIP_MFA` or `PHARMACY_DEV_HOSPITALS` set in Vercel Production. The owner agreed to remove both and redeploy. **Not confirmed done.** Once it is, check:
+
 - the landing page on both addresses;
 - `/sign-in` on Tether shows the Tether sign-in;
 - `/reception` on Tether asks for sign-in and then shows the new desk.
@@ -73,18 +81,23 @@ Staff now need MFA. [[dev-skip-mfa]] and [[pharmacy-dev-hospitals]] are out of d
 ## Relaunch briefs (paste one into a new cloud session from `main`)
 
 **Main chat.**
+
 > You are the main chat for the Tether booking pilot. Read `docs/claude-memory/tether-main-chat-handout.md` and `booking-pilot-board.md`. Update `.claude/pilot-board/tracks.json` and the board to match the handout's session table (clinics & schedule, logo and inline MFA done; merges as listed), then commit the JSON on a branch. Run new work as separate sessions, relay their reports, and keep the board current. Ask the owner whether 0297 was applied and whether the prod dev switches were removed.
 
 **Clinic floor follow-up.**
+
 > Read `docs/clinic-floor/REPORT.md` and `docs/claude-memory/clinic-floor-build-state.md`. The triage panel lacks pregnancy and SpO₂ scale 2, and sends them as unknown/off; both change the engine's result. Add them as engine inputs only, with no new rules (PROMPT T1–T10 in `docs/clinic-floor/PROMPT.md`). Then wire the follow-up booking from Finish visit, lab "results back", trend history, and age/sex into the engine input. Keep `/nurse/triage` live. Gated: report before each change, and draft strings only. Branch off `main`; push the branch, never merge or deploy.
 
 **Landing and Tether sign-in.**
+
 > Read `docs/claude-memory/landing-tether-build.md` and `docs/landing/REPORT.md`. `feat/inline-mfa-setup` (21551699) is pushed and unmerged: it puts authenticator setup under the password on sign-in, with Tether-styled setup. Rebase it on `main`, re-run typecheck, lint and the landing tests, and tell the owner it is ready to merge. Once the owner says prod is redeployed, check `/`, `/sign-in` and `/reception` on the Tether host.
 
 **Reception desk follow-up.**
+
 > Read `docs/reception/REPORT.md`. Bring the desk route's first-load JS from 345 KB toward the 160 KB budget (the shared root is about 229 KB). Measure INP, axe and CLS in a browser and report. No behaviour change. Branch off `main`.
 
 **Pilot go-live.**
+
 > Read `docs/booking-pilot/GO-LIVE.md` on `feat/booking-pilot-go-live`. Rebase it on `main`. It holds the 15-minute reminder cron and needs Vercel Pro. Ask the owner whether Pro is on, and if so prepare it to merge.
 
 ## Owner rules that apply to every relaunch

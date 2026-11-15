@@ -146,7 +146,7 @@
     "status": "Done",
     "progress": 100,
     "branch": "feat/inline-mfa",
-    "note": "On main 15 Nov (PRs #292–294, #298, #301, #302). Not merged: feat/inline-mfa-setup (21551699), authenticator setup under the password on sign-in.",
+    "note": "On main 15 Nov (PRs #292–294, #298, #301, #302). Authenticator setup under the password: rebased on main as ADR 0513 (main already used 0512) on claude/funny-shannon-i7xgwp, checks run, ready for you to merge.",
     "updated": "2026-11-15"
   },
   {
@@ -163,10 +163,10 @@
     "id": "prod-check",
     "area": "Claude",
     "task": "Check production after the redeploy: landing, Tether sign-in, Tether reception",
-    "status": "Queued",
+    "status": "Blocked",
     "progress": 0,
     "branch": "",
-    "note": "Waits for you to remove the two test switches and redeploy. Then: / on both addresses, /sign-in on Tether shows the Tether sign-in, /reception on Tether asks for sign-in then shows the desk.",
+    "note": "Your redeploy is done, but this cloud session cannot reach production (the network blocks the production hosts). Either allow the Tether and MedSync hosts for cloud sessions, or check / on both addresses, /sign-in and /reception on Tether yourself.",
     "updated": "2026-11-15"
   },
   {
@@ -177,6 +177,36 @@
     "progress": 100,
     "branch": "fix/doctor-booking-confirm",
     "note": "On main 15 Nov (fd03d95c), ADR 0476, no migration. Auto-confirm follows what the page shows; queue refreshes every 15 s. Failing tests were all failing before this change too (missing env and phone-app packages in the worktree). Not run in a browser.",
+    "updated": "2026-11-15"
+  },
+  {
+    "id": "cloud-floor",
+    "area": "Claude",
+    "task": "Clinic floor follow-up: pregnancy and SpO2 scale 2 as engine inputs, then wiring",
+    "status": "Running",
+    "progress": 0,
+    "branch": "",
+    "note": "Relaunched as cloud session session_01AyHv1Boe5cQsa3jrparsCw. Gated: reports before each change.",
+    "updated": "2026-11-15"
+  },
+  {
+    "id": "cloud-desk-js",
+    "area": "Claude",
+    "task": "Reception desk: first-load JS from 345 KB toward 160 KB; measure INP, axe, CLS",
+    "status": "Running",
+    "progress": 0,
+    "branch": "",
+    "note": "Relaunched as cloud session session_01AyHv1CrXFaFGG8p5RNhHjU. No behaviour change.",
+    "updated": "2026-11-15"
+  },
+  {
+    "id": "cloud-pilot-branches",
+    "area": "Claude",
+    "task": "Bring pilot numbers and the clinic set-up guide onto main; check GO-LIVE.md",
+    "status": "Running",
+    "progress": 0,
+    "branch": "",
+    "note": "Relaunched as cloud session session_01AyHv1D2ewdBPDWcVvucFxZ. The 15-minute reminders stay apart until Vercel Pro.",
     "updated": "2026-11-15"
   },
   {
@@ -253,10 +283,10 @@
     "id": "migrations-0296",
     "area": "You",
     "task": "Apply 0296–0298 (clinics & schedule, clinic leads MFA gate)",
-    "status": "Needs you",
+    "status": "Done",
     "progress": null,
     "branch": "",
-    "note": "0296 and 0298 applied. 0297 clinic_leads_mfa_gate: not confirmed. Was it applied?",
+    "note": "All applied: you confirmed 0297 (clinic_leads_mfa_gate); 0296 and 0298 earlier on 15 Nov.",
     "updated": "2026-11-15"
   },
   {
@@ -393,10 +423,10 @@
     "id": "staff-mfa",
     "area": "You",
     "task": "Fix production: remove DEV_SKIP_MFA and PHARMACY_DEV_HOSPITALS, redeploy",
-    "status": "Needs you",
+    "status": "Done",
     "progress": null,
     "branch": "",
-    "note": "15 Nov: every production page returned 500, because the start-up guard refuses to run with either switch set in Vercel Production. You agreed to remove both and redeploy; not confirmed yet. Staff then sign in with MFA (set up at /onboarding/mfa-setup).",
+    "note": "You removed DEV_SKIP_MFA and PHARMACY_DEV_HOSPITALS and redeployed. Staff now need an authenticator to sign in.",
     "updated": "2026-11-15"
   },
   {
