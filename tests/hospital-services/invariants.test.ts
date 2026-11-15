@@ -86,10 +86,12 @@ describe("one store per fact (Law 2)", () => {
     expect(ops).not.toMatch(/from\("session_templates"\)/);
     expect(ops).not.toMatch(/from\("clinic_sessions"\)\.(insert|update|upsert|delete)/);
   });
-  it("clinic days are saved through ha-upsert-session-template; closures cancel through ha-cancel-session", () => {
+  // ADR 0508: the Clinics & schedule workspace owns clinic days; its publish is the one writer.
+  it("clinic days are saved only through cs_publish; closures cancel through ha-cancel-session", () => {
     const actions = strip(read("app/hospital-admin/departments/actions.ts"));
-    expect(actions).toMatch(/"ha-upsert-session-template"/);
+    expect(actions).not.toMatch(/"ha-upsert-session-template"/);
     expect(actions).toMatch(/"ha-cancel-session"/);
+    expect(strip(read("lib/clinics-schedule/publish.ts"))).toMatch(/public\.cs_publish\(/);
   });
   it("both expansion paths use the one skip rule (CLN-4)", () => {
     expect(read("supabase/functions/ha-upsert-session-template/index.ts")).toMatch(/skipDayFor\(/);

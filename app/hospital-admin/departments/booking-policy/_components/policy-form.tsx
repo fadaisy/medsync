@@ -517,7 +517,7 @@ export function PolicyForm({
         </div>
 
         {errors.length > 0 ? (
-          <ul className="border-alert-border bg-alert-bg text-alert-fg text-body-s flex flex-col gap-1 rounded-md border p-3 lg:col-span-2">
+          <ul className="border-border bg-muted text-foreground text-body-s flex flex-col gap-1 rounded-md border p-3 lg:col-span-2">
             {errors.map((e) => (
               <li key={e}>{e}</li>
             ))}
@@ -527,7 +527,7 @@ export function PolicyForm({
         {state.error ? (
           <p
             role="alert"
-            className="border-alert-border bg-alert-bg text-alert-fg text-body-s rounded-md border p-3 lg:col-span-2"
+            className="border-border bg-muted text-foreground text-body-s rounded-md border p-3 lg:col-span-2"
           >
             {state.error}
           </p>
