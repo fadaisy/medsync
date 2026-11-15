@@ -16,6 +16,17 @@ describe("apps/tether-site", () => {
       .trim();
     expect(site).toBe(hospital);
   });
+  it.each(["icon.svg", "icon.png", "apple-icon.png", "opengraph-image.png"])(
+    "serves the same %s as the hospital app's /tether (scripts/landing/tether-logo.mjs)",
+    (name) => {
+      expect(readFileSync(`apps/tether-site/app/${name}`)).toEqual(
+        readFileSync(`app/tether/${name}`),
+      );
+    },
+  );
+  it("keeps MedSync's favicon off the Tether site", () => {
+    expect(() => readFileSync("apps/tether-site/app/favicon.ico")).toThrow();
+  });
   it("renders the shared page, not a copy", () => {
     expect(readFileSync("apps/tether-site/app/page.tsx", "utf8")).toMatch(
       /from "@\/components\/landing\/tether\/landing"/,

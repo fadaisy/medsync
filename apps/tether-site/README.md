@@ -76,6 +76,11 @@ Same throttle as Step 0 (412 px phone, CPU ×4, Slow 4G, cold cache, 5 runs). Th
   ```bash
   node scripts/patient-web/gen-tokens.mjs mobile/src/theme/tide.ts > apps/tether-site/app/pw-tokens.css
   ```
+- **Logo:** the nav's wordmark is the logo. The tab icons (its "T") and the sharing card (the whole word) are
+  generated into both `app/tether` and this folder's `app/`; the same test fails if they differ.
+  ```bash
+  node scripts/landing/tether-logo.mjs
+  ```
 - **Page code:** lives in `components/landing/tether`, `content/tether-landing` and `lib/landing`, shared with
   the hospital app. The form's action is `lib/landing/actions.ts`.
 - **At the cutover:** the hospital app's `/` can send visitors to the site, and `/tether` with its flag can be

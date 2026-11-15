@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { ComponentProps, CSSProperties } from "react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import {
@@ -69,6 +69,30 @@ export function Chrome({ preAlert }: { preAlert: boolean }) {
   );
 }
 
+/**
+ * The Tether wordmark: the logo. The tab icon (its "T") and the sharing card are drawn from it by
+ * scripts/landing/tether-logo.mjs; change its face or weight and rerun that.
+ */
+export function Wordmark({
+  small,
+  className,
+  ...rest
+}: ComponentProps<typeof Link> & { small?: boolean }) {
+  return (
+    <Link
+      {...rest}
+      className={cn(
+        "text-pw-ink font-bold tracking-[-0.03em]",
+        small ? "text-[21px] leading-7" : "inline-flex min-h-11 items-center text-[22px]",
+        FOCUS,
+        className,
+      )}
+    >
+      {NAV.brand}
+    </Link>
+  );
+}
+
 /** Help on the desktop: a red pill to the emergency pathway, with "Only for emergencies" on hover and focus. */
 export function HelpLink({ tipUp }: { tipUp?: boolean }) {
   const tip = useId();
@@ -132,15 +156,7 @@ function DesktopNav({ scrolled }: { scrolled: boolean }) {
               : "bg-pw-surface/90 border-pw-line",
           )}
         >
-          <a
-            href="#top"
-            className={cn(
-              "text-pw-ink inline-flex min-h-11 items-center text-[22px] font-bold tracking-[-0.03em]",
-              FOCUS,
-            )}
-          >
-            {NAV.brand}
-          </a>
+          <Wordmark href="#top" />
           <nav
             aria-label={NAV.sectionsLabel}
             className="flex justify-self-center max-[900px]:hidden"
@@ -212,12 +228,7 @@ function AppBar({ scrolled }: { scrolled: boolean }) {
         scrolled ? cn(styles.glass, "shadow-[0_1px_0_var(--pw-line)]") : "bg-transparent",
       )}
     >
-      <a
-        href="#top"
-        className={cn("text-pw-ink text-[21px] leading-7 font-bold tracking-[-0.03em]", FOCUS)}
-      >
-        {NAV.brand}
-      </a>
+      <Wordmark href="#top" small />
       <button
         ref={buttonRef}
         type="button"
@@ -252,16 +263,7 @@ function AppBar({ scrolled }: { scrolled: boolean }) {
           )}
         >
           <div className="flex h-[60px] items-center justify-between">
-            <a
-              href="#top"
-              onClick={close}
-              className={cn(
-                "text-pw-ink text-[21px] leading-7 font-bold tracking-[-0.03em]",
-                FOCUS,
-              )}
-            >
-              {NAV.brand}
-            </a>
+            <Wordmark href="#top" onClick={close} small />
             <button
               type="button"
               onClick={close}
