@@ -184,19 +184,19 @@
     "area": "Claude",
     "task": "Clinic floor follow-up: pregnancy and SpO2 scale 2 as engine inputs, then wiring",
     "status": "Running",
-    "progress": 30,
+    "progress": 45,
     "branch": "feat/clinic-floor-engine-inputs",
-    "note": "Change 1 pushed (41c1efd): pregnancy choice (defaults to Not known) and SpO2 scale 2 reach the engine; 21/21 tests. Change 2 (age and sex from the record) approved and in progress. Not stored on re-check (no migration, your call). Strings draft. Session session_01AyHv1Boe5cQsa3jrparsCw.",
+    "note": "Changes 1–2 pushed (ad7b0bb): pregnancy and SpO2 scale 2 reach the engine; age and sex now come from the patient record. 23/23 tests. Change 3 (past readings for Trends) waits for your go. Session session_01AyHv1Boe5cQsa3jrparsCw.",
     "updated": "2026-11-15"
   },
   {
     "id": "cloud-desk-js",
     "area": "Claude",
     "task": "Reception desk: first-load JS from 345 KB toward 160 KB; measure INP, axe, CLS",
-    "status": "Running",
-    "progress": 0,
-    "branch": "",
-    "note": "Relaunched as cloud session session_01AyHv1CrXFaFGG8p5RNhHjU. No behaviour change.",
+    "status": "Done",
+    "progress": 100,
+    "branch": "perf/reception-desk-first-load",
+    "note": "Pushed (81f54c8), not merged, no behaviour change. /reception first load 342 → 263 KB (shared root 230); /doctor, /nurse, /hospital-admin, /admin each about 30–55 KB lighter. 160 KB needs cutting the shared root (Sentry is the one choice). Open: 3 axe issues and slow typing in the Code check-in dialog (both already on main). Not measured signed in.",
     "updated": "2026-11-15"
   },
   {
@@ -466,7 +466,7 @@
     "status": "Needs you",
     "progress": null,
     "branch": "",
-    "note": "Ready to merge: claude/funny-shannon-i7xgwp (inline MFA setup, ADR 0513, handout, board) and claude/booking-pilot-onto-main (pilot numbers, clinic guide). claude/booking-pilot-go-live only after Vercel Pro.",
+    "note": "Ready to merge: claude/funny-shannon-i7xgwp (inline MFA ADR 0513, full-screen fix ADR 0514, handout, board), claude/booking-pilot-onto-main (pilot numbers, clinic guide), perf/reception-desk-first-load (lighter pages). Later: feat/clinic-floor-engine-inputs when its changes are done; claude/booking-pilot-go-live only after Vercel Pro.",
     "updated": "2026-11-15"
   },
   {
