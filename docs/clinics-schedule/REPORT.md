@@ -91,7 +91,7 @@ worktree).
 
 ## Owner steps (not done by Claude)
 
-1. Apply 0298: `cd /Users/airm1/Desktop/medsync/.claude/worktrees/clinics-schedule-940aa4 && npm run db:migrate`
+1. ~~Apply 0298~~ — applied by the owner 15 Nov. Was: `cd /Users/airm1/Desktop/medsync/.claude/worktrees/clinics-schedule-940aa4 && npm run db:migrate`
    (0296 applied 15 Nov). Until 0298 is applied, a publish that touches a clinic or session fails.
 2. ~~Sign~~ — done in chat, 15 Nov 2026. The cut-over adds labels reused word for word from the old pages
    (`CS.ed.more`, `CS.ses.interleave…holidays`).
