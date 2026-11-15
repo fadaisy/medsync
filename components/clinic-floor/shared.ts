@@ -16,7 +16,7 @@ import type {
 
 import { FLOOR } from "@/content/clinic-floor/floor";
 import { fill } from "@/content/lab-workspace-v2";
-import { inPregnancyAgeRange } from "@/lib/emr/reference/pregnancy";
+import { engineContext } from "@/lib/clinic-floor/model";
 import { LIFE_THREAT_DISCRIMINATORS } from "@/lib/triage/discriminators";
 import { runTriage } from "@/lib/triage/engine";
 import { interpretVitals } from "@/lib/triage/interpret";
@@ -205,12 +205,7 @@ export function draftInput(p: FloorPerson, d: Draft): TriageInput {
     consciousness: d.avpu,
   };
   return {
-    context: {
-      ageYears: p.age,
-      pregnancy: p.sex === "M" ? "not_pregnant" : d.preg,
-      reproductiveAgeFemale: p.sex === "F" && inPregnancyAgeRange(p.age) === true,
-      spo2Scale2Enabled: d.scale2,
-    },
+    context: engineContext(p, d.preg, d.scale2),
     vitals,
     lifeThreatFlags: Object.fromEntries(d.threats.map((k) => [k, true])),
   };

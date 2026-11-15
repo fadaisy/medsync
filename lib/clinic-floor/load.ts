@@ -10,9 +10,11 @@ import { db } from "@/db";
 import { clinicFloorEvents } from "@/db/schema/clinic-floor";
 import { clinicSessions } from "@/db/schema/clinic-sessions";
 import { patientIntakes } from "@/db/schema/patient-intakes";
+import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointments } from "@/db/schema/scheduling";
 import { triageRecords } from "@/db/schema/triage";
 import { users } from "@/db/schema/users";
+import { computeAgeYears } from "@/lib/age";
 import { fetchIncomingPreArrivals } from "@/lib/emergency/queries";
 import { listHospitalDepartments } from "@/lib/intake/queries";
 import { clinicOf, preAlertOf } from "@/lib/reception/desk/map";
@@ -20,6 +22,7 @@ import { kampala } from "@/lib/reception/desk/model";
 import { runTriage } from "@/lib/triage/engine";
 import { recommend } from "@/lib/triage/recommend";
 import { ETA_BAND_LABEL } from "@/supabase/functions/_shared/pre-arrival";
+import { engineContext, floorSex } from "./model";
 
 const DAY = 86_400_000;
 const hhmm = (d: Date) =>
@@ -55,9 +58,12 @@ export async function loadFloorData(scope: TriageScope): Promise<FloorData> {
         checkedInAt: patientIntakes.checkedInAt,
         routedTo: patientIntakes.routedTo,
         code: appointments.bookingCode,
+        dob: patientProfiles.dateOfBirth,
+        sex: patientProfiles.sex,
       })
       .from(patientIntakes)
       .leftJoin(users, eq(users.id, patientIntakes.patientUserId))
+      .leftJoin(patientProfiles, eq(patientProfiles.id, patientIntakes.patientUserId))
       .leftJoin(appointments, eq(appointments.id, patientIntakes.appointmentId))
       .where(
         and(
@@ -144,25 +150,22 @@ export async function loadFloorData(scope: TriageScope): Promise<FloorData> {
 
   const people: FloorPerson[] = intakes.map((r) => {
     const t = latest.get(r.id);
+    const who = {
+      sex: floorSex(r.sex),
+      age: r.dob ? computeAgeYears(r.dob.toString(), now) : null,
+    };
     const vitals = t && isVitals(t.vitals) ? t.vitals : null;
+    // Pregnancy and scale 2 are not stored on triage_records: rebuilt as not known / off (owner ruling 15 Nov).
     const input: TriageInput | null = vitals
-      ? {
-          context: {
-            ageYears: null,
-            pregnancy: "unknown",
-            reproductiveAgeFemale: false,
-            spo2Scale2Enabled: false,
-          },
-          vitals,
-        }
+      ? { context: engineContext(who, "unknown", false), vitals }
       : null;
     const level = (t?.level ?? null) as AcuityLevel | null;
     return {
       id: r.id,
       patientUserId: r.patientUserId,
       name: r.name ?? r.unknown ?? "Unknown patient",
-      sex: null,
-      age: null,
+      sex: who.sex,
+      age: who.age,
       clinic: r.dept ?? depts[0]?.id ?? "",
       doctorId: null,
       reason: r.complaint ?? "",
