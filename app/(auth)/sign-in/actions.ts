@@ -54,8 +54,12 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
   }
   await setActiveAccount(slot);
 
-  // An account with an authenticator gives its code on this page, not a second one. Same check the proxy makes.
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  // An account with an authenticator gives its code on this page, not a second one. The level is asked for with
+  // the new session's token: that session is not in this request's cookies yet, and without the token the answer
+  // was "no code needed", so the page redirected and the separate code page caught it.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel(
+    signInData.session?.access_token,
+  );
   if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
     logger.info("sign-in password accepted; code next");
     return { mfa: { redirect: parsed.data.redirect ?? "" } };
