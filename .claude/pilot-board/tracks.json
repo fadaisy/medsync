@@ -184,9 +184,9 @@
     "area": "Claude",
     "task": "Clinic floor follow-up: pregnancy and SpO2 scale 2 as engine inputs, then wiring",
     "status": "Running",
-    "progress": 15,
+    "progress": 30,
     "branch": "feat/clinic-floor-engine-inputs",
-    "note": "Gate 1 signed 15 Nov: pregnancy choice (defaults to Not known for F/unknown) and SpO2 scale 2 switch as engine inputs. Building change 1; changes 2–5 one gate each. Session session_01AyHv1Boe5cQsa3jrparsCw.",
+    "note": "Change 1 pushed (41c1efd): pregnancy choice (defaults to Not known) and SpO2 scale 2 reach the engine; 21/21 tests. Change 2 (age and sex from the record) approved and in progress. Not stored on re-check (no migration, your call). Strings draft. Session session_01AyHv1Boe5cQsa3jrparsCw.",
     "updated": "2026-11-15"
   },
   {
@@ -346,7 +346,7 @@
     "status": "Needs you",
     "progress": null,
     "branch": "",
-    "note": "All drafts (docs/clinic-floor/REPORT.md). Then turn CLINIC_FLOOR on at one clinic for 2 days, and delete the old pages and flag.",
+    "note": "All drafts (docs/clinic-floor/REPORT.md). Then turn CLINIC_FLOOR on at one clinic for 2 days, and delete the old pages and flag. Also: the new pregnancy and SpO2 scale 2 strings (content/clinic-floor/floor.ts on feat/clinic-floor-engine-inputs).",
     "updated": "2026-11-15"
   },
   {
