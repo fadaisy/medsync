@@ -16,6 +16,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
   goes to the Tether sign-in page with its four ways to join, the awaiting-approval pages say Tether, and tab
   titles end in "· Tether" ([ADR 0510](docs/adr/0510-tether-sign-up-stays-on-tether.md)). MedSync's domain is unchanged.
 
+### Fixed — The code step opens under the password — 15 Nov 2026
+
+- The sign-in asked for the account's assurance level before the new session reached the request's cookies, so it
+  read "no code needed" and sent people to the separate code page. It now asks with the new session's token.
+
 ### Changed — Nurses and doctors on Tether land on the clinic floor — 15 Nov 2026
 
 - On the Tether domain `/nurse` and `/doctor` go to `/clinic`, which is on there for every hospital
