@@ -62,6 +62,7 @@ const TETHER_OPEN = [
   "/patient",
   "/pw",
   "/reception",
+  "/clinic", // the Tether clinic floor and its waiting-room screen (ADR 0491)
   "/clinician",
   "/doctor/schedule",
   "/nurse/incoming",

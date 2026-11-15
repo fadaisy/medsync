@@ -158,7 +158,7 @@ export function SetupWizard(props: WizardProps) {
           action={hub.clinics ? A.change : A.start}
         >
           <HubLink
-            href="/hospital-admin/departments/clinics"
+            href="/hospital-admin/clinics"
             label="Open Clinics"
             lead="Add your clinics from the catalogue and set their days, hours and places — the timetable patients book from."
           />

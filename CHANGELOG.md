@@ -10,6 +10,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - After a right email and password, an account with an authenticator gets the 6-digit code field under the
   password, on the same page. `/sign-in/mfa` stays for a half-signed-in session that opens a page.
 
+### Changed — Clinics & schedule cut-over — 15 Nov 2026
+
+- `/hospital-admin/clinics` replaces Scheduling and Departments › Clinics for every hospital
+  ([ADR 0508](docs/adr/0508-clinics-schedule-cutover.md)): the old pages answer 308, their last settings are edited in
+  the workspace, booking policy moved to Departments › Booking policy and Pending to Reports. Migration 0298 (GATED).
+  The `CLINICS_SCHEDULE` flag is gone.
+
+### Added — Clinics & schedule — 15 Nov 2026
+
+- One hospital-admin workspace for clinics, the week plan, closures and holidays, people, desks and screens, and
+  history, as an editor over the engine's own records ([ADR 0501](docs/adr/0501-clinics-schedule-editor-over-engine.md)).
+  Every change is a draft until published; publish is one transaction, can be scheduled, undone or restored
+  ([ADR 0502](docs/adr/0502-clinics-schedule-drafts-publish.md)). Fee bands with a second admin to publish
+  ([ADR 0503](docs/adr/0503-clinics-schedule-fee-bands.md)); clashes block publish
+  ([ADR 0504](docs/adr/0504-clinics-schedule-clashes.md)); names and photos only with written consent
+  ([ADR 0505](docs/adr/0505-clinics-schedule-consent.md)); leave requests
+  ([ADR 0506](docs/adr/0506-clinics-schedule-leave.md)); device pairing and coverage
+  ([ADR 0507](docs/adr/0507-clinics-schedule-devices.md)). Migration 0296 (GATED). Route `/hospital-admin/clinics`,
+  fixture `/styleguide/clinics-schedule`. Copy, fee bands, templates and ADRs signed by the CSO 15 Nov 2026.
+
 ### Changed — Reception on Tether is the desk — 15 Nov 2026
 
 - On the Tether domain, `/reception` is the booking desk for every hospital
@@ -27,6 +47,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - With `LANDING_TETHER` on, `/sign-in` and the authenticator-code page are drawn in the Tether look, in two
   columns: sign-in, and the four ways to join linking to today's sign-up forms. Same actions and role landing
   ([ADR 0498](docs/adr/0498-tether-sign-in.md)). New copy is draft.
+
+### Added — Clinic floor (behind `CLINIC_FLOOR`) — 13 Nov 2026
+
+- Triage station, clinic line, floor board and waiting-room screen after the reception desk hands off
+  ([ADR 0491](docs/adr/0491-clinic-floor-views.md)); the triage UI only calls the engine
+  ([ADR 0492](docs/adr/0492-triage-ui-pure-engine-consumer.md)); line order
+  ([ADR 0493](docs/adr/0493-line-order-rule.md)); screen feed under ADR 0084
+  ([ADR 0494](docs/adr/0494-waiting-room-screen-feed.md)); doctor status
+  ([ADR 0495](docs/adr/0495-doctor-session-status.md)). Migration 0295 (GATED). Flag off: today's pages.
+- Trends across visits with draft bands ([ADR 0496](docs/adr/0496-clinic-floor-trends.md)); offline triage queue
+  ([ADR 0497](docs/adr/0497-clinic-floor-offline-triage.md)). Routes `/clinic`, `/clinic/screen` (open on the Tether domain), fixture `/styleguide/clinic-floor`.
 
 ### Added — Reception desk (behind `RECEPTION_DESK`) — 13 Nov 2026
 

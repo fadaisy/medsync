@@ -42,6 +42,17 @@ const nextConfig: NextConfig = {
         permanent: true,
       })),
       ...LAB_REDIRECTS,
+      // Clinics & schedule cut-over (ADR 0501): the two old pages answer 308 to the workspace.
+      {
+        source: "/hospital-admin/scheduling",
+        destination: "/hospital-admin/clinics?view=week",
+        permanent: true,
+      },
+      {
+        source: "/hospital-admin/departments/clinics",
+        destination: "/hospital-admin/clinics?view=clinics",
+        permanent: true,
+      },
       // Pharmacy rework (PRD §3): every old pharmacy route answers 307 to its new home while the pilot settles.
       ...PHARMACY_REDIRECTS.map((r) => ({ ...r, permanent: false })),
     ];

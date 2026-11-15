@@ -68,6 +68,7 @@ export * from "./nurse-workspace";
 // ─── Patient entry points (migration 0032) ─────────────────────────────
 export * from "./patient-intakes";
 export * from "./reception-desk";
+export * from "./clinic-floor";
 
 // ─── Non-clinical staff identity (migration 0034) ──────────────────────
 export * from "./staff-identity-profiles";
@@ -166,3 +167,6 @@ export * from "./pharmacy-distribution";
 
 // ─── Clinic leads (Tether landing "Register your clinic", migration 0293) ───
 export * from "./clinic-leads";
+
+// ─── Clinics and schedule (migration 0296, GATED) ───
+export * from "./clinics-schedule";

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   index,
@@ -95,6 +96,13 @@ export const staffAffiliations = pgTable(
       onDelete: "set null",
     }),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
+    /** 0296 (clinics and schedule, ADR 0501). */
+    feeBand: text("fee_band"),
+    officePlaceId: uuid("office_place_id"),
+    cardName: boolean("card_name").notNull().default(false),
+    cardPhoto: boolean("card_photo").notNull().default(false),
+    cardConsentOn: date("card_consent_on"),
+    cardConsentBy: uuid("card_consent_by"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
