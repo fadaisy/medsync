@@ -9,10 +9,7 @@ Anything in `[brackets]` is for you to fill in before the session. Nothing here 
 ## Before the session
 
 - The clinic is set up and live ([CLINIC-SETUP.md](CLINIC-SETUP.md), steps 1 to 10).
-- **Branch `fix/booking-dry-run` is merged and deployed.** Without it, three things in this script break:
-  **Book for this patient →** gives a 500 error (Block 6), the clinic admin cannot send **Cancel the
-  day** because the **Why** box empties (Block 7), and a cancelled clinic day leaves the patient no way to
-  choose a new day (Block 7).
+- **Production runs current `main`** (the dry-run fixes and the Clinics & schedule cut-over are merged).
 - Every trainee has **their own approved reception account** and has already done MFA setup once. If not,
   do it in the first ten minutes and cut Block 2 short.
 - Each pair has one computer, plus each trainee has their phone with the authenticator app.
@@ -249,8 +246,9 @@ empty, ask the admin to name a clinician.
 
 ## Block 7: Cancel or move a visit, cancel a clinic day (0:47 to 0:53, 6 min)
 
-**Say first, plainly:** "**Reception cannot cancel or move a booking.** The screen has no button for it.
-Here is who can."
+**Say first, plainly:** "**On the old desk, reception cannot cancel or move a booking.** The screen has no button
+for it. Here is who can." (On the new Tether desk, if it is on for this clinic, the visit has **Move** and
+**Cancel visit**.)
 
 | Job                                           | Who can do it             | How                                                                                            |
 | --------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------- |
@@ -264,31 +262,30 @@ Here is who can."
 
 **If the patient is at the desk with a phone:** help them cancel or move it on their phone. Sit beside them.
 
-**If the patient has no phone or no app:** `[owner decision: today the desk cannot do this]`. The workable
+**If the patient has no phone or no app:** on the **new Tether desk** (`RECEPTION_DESK` on for this clinic,
+ADR 0473) the visit has **Move** and **Cancel visit**. On the old desk `[owner decision: the old desk cannot do this]`. The workable
 way: **book the new visit** for them (Block 6), then ask the **clinician** to cancel the old one in their
 schedule. Tell the patient their old code is cancelled and the new code is the one to use.
 
 **Cancel a clinic day: the admin's job.** Reception does not do this. You call the clinic admin. They do:
 
-1. `/hospital-admin/scheduling` → **Next 14 days** → tap the day.
-2. **Cancel this clinic day**. Type **Why** (at least 10 characters).
-3. Tap **See who this affects**. It says how many patients hold a place.
-4. Tick "I have read the number above and want to cancel this day."
-5. Tap **Cancel the day (N affected)**.
+1. `/hospital-admin/clinics` → **Closures** → **Add a closure or change** → **Close clinics**.
+2. Pick the day, **Whole day** or **Part of the day**, the clinics, and a **Reason**.
+3. The dialog shows the sessions affected, the people booked, and how many need a new day.
+4. Add it, then **Review and publish**. Patients are told when it is published.
 
 What happens next: patients get a notice "Clinic day cancelled · Choose a day". In the app they get one tap
-to **Book** the next day, or **Choose another day**. (Both need branch `fix/booking-dry-run` live.)
+to **Book** the next day, or **Choose another day**. Patients without the app are told "The desk will call
+you to choose a new day."
 
 **Your job when a day is cancelled:**
 
 - Tell the admin right away, before patients arrive.
 - Patients with the app see the notice. **Patients without the app: call them** `[owner decision: who calls
 and from which list]`.
-- If the screen shows a long error or "520" when the admin cancels, the day is **still open**. Wait a few
-  seconds. Try once more.
 
-**Running late.** The admin can instead tap the day → **Late by (minutes)** → **Set**. Windows move. A
-message goes to patients only when the move is 30 minutes or more.
+**Running late.** `[check before training: the **Late by (minutes)** control was on the old Scheduling
+page, removed at the Clinics & schedule cut-over (ADR 0508); it is not in the new workspace]`
 
 ---
 

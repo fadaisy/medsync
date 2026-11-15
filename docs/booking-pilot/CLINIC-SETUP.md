@@ -11,33 +11,32 @@ app is confusing or has a gap, a **Heads-up** box says so.
 - **Clinic** = the clinic's own person, on their own device. You sit beside them.
 - Anything in `[brackets]` is for you to fill in on site. Nothing here is invented.
 
-| #   | Step                               | Who            | Screen                                                                           |
-| --- | ---------------------------------- | -------------- | -------------------------------------------------------------------------------- |
-| 0   | Before you go                      | Owner          | `GO-LIVE.md`                                                                     |
-| 1   | Clinic applies                     | Clinic         | `/signup/hospital`                                                               |
-| 2   | You verify, they sign, you approve | Owner + Clinic | `/admin` (Approvals), `/onboarding/hospital-pending`                             |
-| 3   | First admin sets up MFA            | Clinic         | `/onboarding/mfa-setup`                                                          |
-| 4   | Set up the hospital                | Clinic admin   | `/admin/setup`                                                                   |
-| 5   | Clinics (service lines)            | Clinic admin   | `/hospital-admin/scheduling` → Service lines                                     |
-| 6   | Fees                               | Clinic admin   | Same screen: Payment posture, Fee, Fees by cadre                                 |
-| 7   | Hours and clinic days              | Clinic admin   | `/hospital-admin/scheduling` → Weekly rules; `/hospital-admin/departments/hours` |
-| 8   | Staff accounts: sign up, approve   | Clinic         | `/signup/non-clinical`, `/signup/clinical`, `/hospital-admin/staff`              |
-| 9   | Each person sets up MFA            | Each person    | `/onboarding/mfa-setup`, then `/sign-in/mfa`                                     |
-| 10  | Name clinicians on clinic days     | Clinic admin   | `/hospital-admin/scheduling` → Next 14 days                                      |
-| 11  | Emergency number                   | Owner          | `/admin/tenants`, `/admin/emergency`                                             |
-| 12  | Last check: one test visit         | Both           | `/patient/book`, `/reception/expected`                                           |
+| #   | Step                                | Who            | Screen                                                                   |
+| --- | ----------------------------------- | -------------- | ------------------------------------------------------------------------ |
+| 0   | Before you go                       | Owner          | `GO-LIVE.md`                                                             |
+| 1   | Clinic applies                      | Clinic         | `/signup/hospital`                                                       |
+| 2   | You verify, they sign, you approve  | Owner + Clinic | `/admin` (Approvals), `/onboarding/hospital-pending`                     |
+| 3   | First admin sets up MFA             | Clinic         | `/onboarding/mfa-setup`                                                  |
+| 4   | Set up the hospital                 | Clinic admin   | `/admin/setup`                                                           |
+| 5   | Clinics                             | Clinic admin   | `/hospital-admin/clinics` → **Clinics** → **+ Add a clinic**             |
+| 6   | Fees                                | Clinic admin   | Same clinic → **Fee** tab                                                |
+| 7   | Sessions, hours, closures, publish  | Clinic admin   | Clinic → **Sessions**; **Closures**; `/hospital-admin/departments/hours` |
+| 8   | Staff accounts: sign up, approve    | Clinic         | `/signup/non-clinical`, `/signup/clinical`, `/hospital-admin/staff`      |
+| 9   | Each person sets up MFA             | Each person    | `/onboarding/mfa-setup`, then `/sign-in/mfa`                             |
+| 10  | Someone on every session, then open | Clinic admin   | Clinic → **Sessions** → **Who runs it**; **Get ready** → **Open**        |
+| 11  | Emergency number                    | Owner          | `/admin/tenants`, `/admin/emergency`                                     |
+| 12  | Last check: one test visit          | Both           | `/patient/book`, `/reception/expected`                                   |
 
 ---
 
 ## 0. Before you go (Owner)
 
-- [ ] The switches in [GO-LIVE.md](GO-LIVE.md) are set. (That file is on branch `feat/booking-pilot-go-live`
+- [ ] The switches in [GO-LIVE.md](GO-LIVE.md) are set. (That file is on branch `claude/booking-pilot-go-live` (waits for Vercel Pro)
       until it is merged.) The ones that matter on site:
   - `DEV_SKIP_MFA` is **unset** in Production. Staff must really use an authenticator app.
   - `MEDSYNC_ENV=production` is set as a Supabase Functions secret.
-- [ ] **Branch `fix/booking-dry-run` is merged and deployed.** Without it: reception's **Book for this
-      patient →** gives a 500 error, **Cancel the day** cannot be sent (the **Why** box empties), and
-      the patient's visit ticket shows the clinic's name where the fee should be.
+- [ ] **Production runs current `main`.** The dry-run fixes (`fix/booking-dry-run`) and the Clinics &
+      schedule cut-over (ADR 0508) are merged; they only reach the clinic once `main` is deployed.
 - [ ] You can sign in to the live app as superadmin, with your authenticator.
 - [ ] Print the cheat sheet from [RECEPTION-TRAINING.md](RECEPTION-TRAINING.md).
 
@@ -151,102 +150,100 @@ When "Everything needed is done" shows, tap **Take the hospital live**.
 
 ## 5. Clinics (Clinic admin)
 
-**Screen:** `/hospital-admin/scheduling` → panel **Service lines**. Tap **New service line**.
+**Screen:** `/hospital-admin/clinics` (**Clinics & schedule**) → **Clinics** → **+ Add a clinic**.
+The old **Scheduling** and **Departments › Clinics** pages were removed at the cut-over (ADR 0508);
+their addresses now open this workspace.
 
-A service line is one bookable clinic in one department.
+A new clinic is a **draft**: "New clinic added · not on the booking page until you open it". Tap it to
+open its editor. Tabs: **Basics**, **Sessions**, **Booking**, **Fee**, **Desks**.
 
-| Field                    | Notes                                                                                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Name**                 | What patients see, for example `[clinic name]`.                                                                                                  |
-| **Department**           | Pick from the clinic's departments. If the list is empty, finish step 4 first.                                                                   |
-| **Capacity mode**        | **Session** = a numbered position in a clinic day. **Slot** = one patient per timed slot. **Open queue** = a same-day ticket (the walk-in door). |
-| **Time to care (days)**  | The window patients are offered open days in. Default 7. If no open day falls inside it, the waiting list shows.                                 |
-| **Confidential service** | Tick for sensitive clinics. The desk shows a **Confidential** tag.                                                                               |
-| **Status**               | **Active** to let patients book. Leave **Inactive** until steps 6 and 7 are done.                                                                |
-| **Audit note**           | At least 8 characters. Goes to the audit log.                                                                                                    |
+| Where                           | What to set                                                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Basics**                      | **Name** (what patients see, `[clinic name]`), **Short name** (desk and screen), **Colour** (never red), **Department**. |
+| **Booking**                     | **Booking opens** (1 week to 2 months ahead), **Booking closes**, walk-ins when full, reminder text, referral letter.    |
+| **Booking** → **More settings** | **Capacity mode** (Session, Slot or Open queue), **Time to care (days)**, continuity, reasons a patient can book.        |
+| **Desks**                       | At least one desk. "A clinic needs at least one desk before it can open."                                                |
 
-Tap **Create service line**.
+Which capacity mode: decide with the clinic. `[owner decision per clinic]`. The dry run used one of each.
 
-Which mode: decide with the clinic. `[owner decision per clinic]`. The dry run used one of each.
-
-> **Heads-up. The same clinics appear in a second place.** **Departments & services → Clinics**
-> (`/hospital-admin/departments/clinics`) shows the same rows as a weekly timetable. Use it to **look**.
-> Do the fee and capacity mode in Scheduling, because only Scheduling has those fields.
+Shortcut: **Get ready** → **Start from a template** fills several clinics at once. The templates are
+marked "Draft template — not yet signed", so check each clinic after.
 
 ---
 
 ## 6. Fees (Clinic admin)
 
-**Screen:** the same **Service lines** form.
+**Screen:** the clinic's editor → **Fee** tab.
 
-| Field             | Notes                                                         |
-| ----------------- | ------------------------------------------------------------- |
-| **Posture**       | **No payment**, **Deposit to book**, or **Full fee to book**. |
-| **Fee (UGX)**     | Whole shillings. The box steps in hundreds. `[fee]`           |
-| **Deposit (UGX)** | Only with Deposit to book.                                    |
+| Choice              | Meaning                                                               |
+| ------------------- | --------------------------------------------------------------------- |
+| **Free clinic**     | Patients are not asked to pay.                                        |
+| **By who sees you** | Medical officer, specialist or consultant rates (the hospital bands). |
+| **One fee**         | Same price whoever the patient sees. `[fee]`                          |
 
-Different fee by cadre: open a saved line → **Fees by cadre** → **Choose a cadre** → **Fee (UGX)** →
-Why (8 characters or more) → **Set fee for this cadre**. It shows on the patient's doctor choice.
-The panel is absent on a **No payment** line.
+The hospital-wide bands are on **Get ready** → **Consultation fees by grade**. A change to a fee band
+must be published by a **second admin** ("A fee band change must be published by a different admin").
+Fee changes apply to new bookings only.
 
-> **Heads-up. The app does not take money in the pilot.** The fee is shown to the patient. Nothing is
-> charged. The patient screen says "Demo payment: no money moves." So **the clinic collects the fee at the
-> desk**. Tell them. "Full fee to book" sounds like the app collects it. It does not. (Payments are deferred
-> by ADR 0092.)
+> **Heads-up. The app does not take money in the pilot.** "The desk never takes money. Paid or not paid
+> comes from the cash office and Mobile Money", and Mobile Money shows "not linked yet". So **the clinic
+> collects the fee at the cash office**. Tell them. (Payments are deferred by ADR 0092.)
 
 ---
 
-## 7. Hours and clinic days (Clinic admin)
+## 7. Sessions, hours, closures, then publish (Clinic admin)
 
-### Weekly rules (the session templates)
+### Sessions
 
-**Screen:** `/hospital-admin/scheduling` → **Weekly rules** → **New weekly rule**.
-(The line must be in Session mode: "Set a service line to session mode first.")
+**Screen:** the clinic's editor → **Sessions** → **+ Add a session**.
 
-| Field                                           | Notes                                                                                                            |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Service line**                                | The clinic.                                                                                                      |
-| **Clinician**                                   | Leave blank for now. Step 10 names them. A day with none reads **Not yet assigned** and patients cannot book it. |
-| **Venue (optional)**                            | Room or building.                                                                                                |
-| **Day**, **Starts (EAT)**, **Length (minutes)** | The weekly slot, for example `[day] [time] [minutes]`.                                                           |
-| **Valid from**, **Valid until (optional)**      | When the rule runs.                                                                                              |
-| **Patients per session**                        | Total places.                                                                                                    |
-| **Booked allocation**                           | How many of them can be booked ahead. Between 1 and the total.                                                   |
-| **Booked seen per…**, **…walk-ins seen**        | The mix at the desk (for example 2 booked, then 1 walk-in).                                                      |
-| **Overbooking factor**                          | 1.00 means none.                                                                                                 |
-| **Audit note**                                  | 8 characters or more.                                                                                            |
+| Field                                         | Notes                                                                                          |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **When**                                      | Morning, Afternoon, Full day, Evening, or set times. Optional **Break in the middle**.         |
+| **Repeats**                                   | Every week, every other week, or first week of the month; **Same session on** other days.      |
+| **How patients come**                         | **Clinic day** (arrive in a window, seen in turn) or **Doctor's times** (a set time each).     |
+| **Places**                                    | Total, **bookable ahead**, and **Keep for walk-ins and today**. **Use what fits** fills it in. |
+| **Booked seen per walk-ins seen**             | The mix at the desk, for example 2 : 1.                                                        |
+| **Overbooking factor**                        | 1.00 means none.                                                                               |
+| **Runs on public holidays**                   | On or off.                                                                                     |
+| **Where and who** → **Room**, **Who runs it** | Step 10. A session with no one shows "No one runs it" and the clinic cannot open.              |
 
-Tap **Save rule**. It publishes the clinic days for the next 14 days **straight away**.
+**Checks** on the right show clashes, "No room" and "Outside outpatient hours". **Week plan** shows the
+whole week and blocks publishing while any clash is left.
 
-Check: the **Next 14 days** panel lists the days as **Published**.
+Doctor's times on a **Slot** clinic: the clinician can also add their own times in `/doctor/schedule` →
+**Availability**, after step 9.
 
-Editing a rule later: days that already hold a booking keep their old capacity. Empty future days
-follow the change.
-
-### Slot lines (timed visits)
-
-A **Slot** line has no weekly rule. The **clinician** adds their own times: `/doctor/schedule` →
-**Availability** → add a block, Type **Bookable**. Do this after step 9.
-
-### Opening hours, closures, holidays
+### Opening hours and places
 
 **Screen:** `/hospital-admin/departments/hours` (**Hours & places** tab).
 
-- **Opening hours** → **Save hours**.
+- **Opening hours** → **Save hours**. Sessions outside them are flagged.
 - **Places** → **Add a place** (building, floor, room, directions for patients).
-- **Closures**: closures always win. No clinic day is published inside one. Days already published are
-  cancelled and patients are told.
-- **Public holidays** are listed there too.
+
+### Closures and public holidays
+
+**Screen:** `/hospital-admin/clinics` → **Closures** → **Add a closure or change**: **Close clinics**,
+**Someone away**, or **Add an extra session**. Closures always win. The dialog shows how many sessions
+and booked people are affected; it is added as a draft and patients are told when you publish.
+**Public holidays · next 12 months** are listed there too ("Eid dates for this year are not on the
+verified list yet": add them as a closure).
 
 ### Auto-confirm
 
 Does a booking confirm at once, or wait for the clinician? Two places:
 
-- Department: `/hospital-admin/scheduling` → **Booking policy**.
+- Department: `/hospital-admin/departments/booking-policy` (**Booking policy** tab; moved here at the cut-over).
 - Clinician: `/doctor/schedule` → settings → "Auto-confirm — patient requests confirm immediately".
 
 If it is off, the booking shows on the desk as **Not confirmed yet** until the clinician confirms.
 Decide per clinic. `[owner decision]`
+
+### Publish
+
+Nothing reaches patients until it is published. The top bar shows "N changes not published" →
+**Review and publish**. Pick **Now**, **Tonight 22:00**, **Tomorrow 06:00** or a set time, then
+**Publish N now**. Anything listed under "Before you can publish" must be fixed first.
 
 ---
 
@@ -319,14 +316,17 @@ cheat sheet as well.
 
 ---
 
-## 10. Name clinicians on clinic days (Clinic admin)
+## 10. Someone on every session, then open (Clinic admin)
 
-**Screen:** `/hospital-admin/scheduling` → **Next 14 days** → tap a day.
+After step 9 the clinicians are on the hospital's list.
 
-Set the clinician for any day that reads **Not yet assigned**. Or edit the weekly rule and set
-**Clinician**, which fixes the empty future days.
+1. The clinic's editor → **Sessions** → each session → **Who runs it**. Or add them to the clinic first
+   under **Who works in this clinic** → **+ Add a doctor**.
+2. **Get ready** lists what still stops each clinic ("No one on {days}", "Fee not set", "Not on any desk").
+   Fix each one.
+3. When a clinic shows **Ready to open**, tap **Open** ("Open for booking"), then **Review and publish**.
 
-Check: the amber banner "N clinic days start within 12 hours with no clinician named" is gone.
+Check: the clinic shows **Taking bookings**, and **Preview as a patient** shows its booking card.
 
 ---
 
