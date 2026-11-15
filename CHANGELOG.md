@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 - On the Tether domain, `/reception` is the booking desk for every hospital
   ([ADR 0500](docs/adr/0500-tether-reception-is-the-desk.md)). Needs migration 0294 and the desk's functions first.
+- GATED migration 0297 puts the MFA gate on `clinic_leads`, which 0293 left without it (Review C-2).
 
 ### Added — Tether on its own domain — 14 Nov 2026
 

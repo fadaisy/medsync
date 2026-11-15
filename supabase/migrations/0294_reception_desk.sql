@@ -187,10 +187,3 @@ ALTER TABLE public.sa_audit_log ADD CONSTRAINT sa_audit_log_action_check CHECK (
     'desk_identity_check', 'close_day', 'undo_close_day', 'desk_switch_user', 'desk_set_pin', 'desk_pin_locked'
   )
 );
-
--- ─── 8. The MFA gate 0293 left out (Review C-2) ──────────────────────────
--- 0293 turned RLS on for clinic_leads without the RESTRICTIVE mfa_gate every table since 0288 carries. It is set
--- here, not in 0293, because 0293 may already be applied.
-DROP POLICY IF EXISTS mfa_gate ON public.clinic_leads;
-CREATE POLICY mfa_gate ON public.clinic_leads AS RESTRICTIVE FOR ALL TO authenticated
-  USING ((SELECT public.caller_mfa_ok())) WITH CHECK ((SELECT public.caller_mfa_ok()));

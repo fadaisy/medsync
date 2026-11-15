@@ -12,7 +12,7 @@ describe("every table that gets RLS after 0288 gets the MFA gate", () => {
     (f) => /^\d{4}_.*\.sql$/.test(f) && Number(f.slice(0, 4)) > 288,
   );
   const all = later.map(read).join("\n");
-  // The gate may come in a later migration when the first is already applied (0293 → 0294).
+  // The gate may come in a later migration when the first is already applied (0293 → 0297).
   const tables = later.flatMap((f) =>
     [...read(f).matchAll(/((?:public|pharmacy_practice)\.\w+)\s+ENABLE ROW LEVEL SECURITY/gi)].map(
       (m) => `${f} ${m[1]}`,
