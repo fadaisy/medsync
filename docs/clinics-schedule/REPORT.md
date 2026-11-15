@@ -11,7 +11,7 @@ in chat on 15 Nov 2026.
   ids) and, in production, the copy is signed. Off: 404; the old pages are unchanged.
 - Drafts → publish (now, 22:00, 06:00), undo with later changes, restore a version (ADR 0502). Publish re-validates on
   the server and writes through `cs_publish` in one transaction. Scheduled publishes run from
-  `/api/cron/clinics-schedule-publish` (not in `vercel.json`).
+  `/api/cron/clinics-schedule-publish` (in `vercel.json`, 22:00 and 06:00 Kampala).
 - Fee bands with four-eyes (ADR 0503), clashes block publish with nearest free time (0504), names and photos only with
   written consent (0505), leave requests → availability (0506), device pairing, coverage and lock (0507).
 - Fixture: `/styleguide/clinics-schedule?scenario=ready|first|offline&view=…` (`MEDSYNC_FIXTURES=1`), invented names,
@@ -81,6 +81,6 @@ worktree).
    (0296, GATED).
 2. ~~Sign~~ — done in chat, 15 Nov 2026.
 3. Pilot: `CLINICS_SCHEDULE=<hospital id>` for 3 days; optionally `CLINICS_SMS_UNIT_UGX`.
-4. Cron: add `/api/cron/clinics-schedule-publish` (every 5 min) to `vercel.json`.
+4. ~~Cron~~ — in `vercel.json`: 19:00 and 03:00 UTC (22:00 and 06:00 Kampala). Needs `CRON_SECRET` (already set for the other crons) and a deploy.
 5. Cut-over: 308s (`/hospital-admin/scheduling` → `?view=week`, `/hospital-admin/departments/clinics` →
    `?view=clinics`), nav item, delete the old pages and the flag.
