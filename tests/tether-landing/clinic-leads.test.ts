@@ -36,7 +36,7 @@ describe("migration 0293 (S17, static until the owner applies it)", () => {
     expect(cols).toEqual(["id", "email", "source", "user_agent_hash", "created_at"]);
   });
   it("the action never logs the email", () => {
-    const src = readFileSync("app/tether/actions.ts", "utf8");
+    const src = readFileSync("lib/landing/actions.ts", "utf8");
     expect(src).not.toMatch(/logger\.\w+\([^)]*email/);
   });
 });

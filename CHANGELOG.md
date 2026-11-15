@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Reception on Tether is the desk — 15 Nov 2026
+
+- On the Tether domain, `/reception` is the booking desk for every hospital
+  ([ADR 0500](docs/adr/0500-tether-reception-is-the-desk.md)). Needs migration 0294 and the desk's functions first.
+- GATED migration 0297 puts the MFA gate on `clinic_leads`, which 0293 left without it (Review C-2).
+
+### Added — Tether on its own domain — 14 Nov 2026
+
+- The hospital app serves Tether on the domains in `TETHER_HOSTS`: the Tether landing and sign-in, and only
+  booking. Clinical workspaces there go to `MEDSYNC_URL`
+  ([ADR 0499](docs/adr/0499-tether-is-this-app-on-its-own-domain.md)).
+
+### Added — Sign-in in the Tether look (off) — 14 Nov 2026
+
+- With `LANDING_TETHER` on, `/sign-in` and the authenticator-code page are drawn in the Tether look, in two
+  columns: sign-in, and the four ways to join linking to today's sign-up forms. Same actions and role landing
+  ([ADR 0498](docs/adr/0498-tether-sign-in.md)). New copy is draft.
+
 ### Added — Clinic floor (behind `CLINIC_FLOOR`) — 13 Nov 2026
 
 - Triage station, clinic line, floor board and waiting-room screen after the reception desk hands off
@@ -14,7 +32,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
   ([ADR 0494](docs/adr/0494-waiting-room-screen-feed.md)); doctor status
   ([ADR 0495](docs/adr/0495-doctor-session-status.md)). Migration 0295 (GATED). Flag off: today's pages.
 - Trends across visits with draft bands ([ADR 0496](docs/adr/0496-clinic-floor-trends.md)); offline triage queue
-  ([ADR 0497](docs/adr/0497-clinic-floor-offline-triage.md)). Routes `/clinic`, `/clinic/screen`, fixture `/styleguide/clinic-floor`.
+  ([ADR 0497](docs/adr/0497-clinic-floor-offline-triage.md)). Routes `/clinic`, `/clinic/screen` (open on the Tether domain), fixture `/styleguide/clinic-floor`.
 
 ### Added — Reception desk (behind `RECEPTION_DESK`) — 13 Nov 2026
 
