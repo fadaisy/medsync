@@ -62,6 +62,15 @@ export interface Clinic {
   paused: boolean;
   /** The Hub catalogue code, when the clinic came from a level preset. */
   code: string | null;
+  /** Engine settings moved from the old clinic pages at cut-over; undefined = leave the column as it is. */
+  mode?: "slot" | "session" | "open_queue";
+  timeToCareDays?: number;
+  continuity?: boolean;
+  reasons?: string[];
+  isDefault?: boolean;
+  /** Stated to patients, nothing charged; needs a flat fee (service_lines_fee_required). */
+  posture?: "none" | "deposit" | "full";
+  depositUgx?: number | null;
 }
 
 export interface Session {
@@ -84,6 +93,11 @@ export interface Session {
   nth: 1 | null;
   roomIds: string[];
   personIds: string[];
+  /** Moved from the old scheduling page at cut-over; undefined = leave the column as it is. */
+  interleave?: { booked: number; walkIn: number };
+  /** 1.00–2.00 (session_templates_overbooking_range). */
+  overbook?: number;
+  holidays?: boolean;
 }
 
 export interface Person {

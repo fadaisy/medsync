@@ -216,6 +216,13 @@ export async function loadClinicsSchedule(scope: {
       live: c.active,
       paused: !!c.pausedAt,
       code: c.catalogueCode,
+      mode: c.capacityMode as Clinic["mode"],
+      timeToCareDays: c.timeToCareDays,
+      continuity: c.continuityDefault,
+      reasons: c.reasonCodes,
+      isDefault: c.isDefault,
+      posture: c.paymentPosture as Clinic["posture"],
+      depositUgx: c.depositUgx,
     };
   }
 
@@ -275,6 +282,9 @@ export async function loadClinicsSchedule(scope: {
       nth: t.nthWeekday === 1 ? 1 : null,
       roomIds: rooms,
       personIds: ids,
+      interleave: { booked: t.interleaveBooked, walkIn: t.interleaveWalkIn },
+      overbook: Number(t.overbookingFactor),
+      holidays: t.runsOnHolidays,
     };
   }
 

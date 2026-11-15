@@ -71,6 +71,24 @@ function clinicCols(c: Clinic) {
     booking_rules: c.rules,
     pay_options: { ...c.pay, when: c.payWhen },
     paused_at: c.paused ? undefined : null,
+    capacity_mode: c.mode,
+    time_to_care_days: c.timeToCareDays,
+    continuity_default: c.continuity,
+    reason_codes: c.reasons ? [...new Set(c.reasons)].sort() : undefined,
+    is_default: c.isDefault,
+    // A posture other than none needs a fee (service_lines_fee_required): without a flat fee it falls to none.
+    payment_posture:
+      c.posture === undefined
+        ? undefined
+        : c.feeMode === "flat" && c.feeUgx != null
+          ? c.posture
+          : "none",
+    deposit_ugx:
+      c.posture === undefined
+        ? undefined
+        : c.posture === "deposit" && c.feeMode === "flat"
+          ? (c.depositUgx ?? null)
+          : null,
   };
 }
 
@@ -100,6 +118,10 @@ function sessionCols(ctx: OpCtx, x: Session) {
     nth_weekday: x.nth,
     places_set: x.places != null,
     active: true,
+    interleave_booked: x.interleave?.booked,
+    interleave_walk_in: x.interleave?.walkIn,
+    overbooking_factor: x.overbook,
+    runs_on_holidays: x.holidays,
   };
 }
 
@@ -145,7 +167,7 @@ export function opsFor(e: Edit, ctx: OpCtx): Op[] {
             v: { active: false, valid_until: ctx.today },
           },
         ];
-      const v = sessionCols(ctx, x);
+      const v = drop(sessionCols(ctx, x));
       return [
         isNew
           ? { t: "session_templates", op: "insert", id: e.key, v: { ...v, valid_from: ctx.today } }
@@ -354,5 +376,8 @@ function exceptionOps(e: Edit, ctx: OpCtx): Op[] {
 }
 
 export function opsForChanges(edits: readonly Edit[], ctx: OpCtx): Op[] {
-  return edits.flatMap((e) => opsFor(e, ctx));
+  const ops = edits.flatMap((e) => opsFor(e, ctx));
+  // One default line per hospital (unique index, not deferrable): set the new default after the old one is cleared.
+  const sets = (o: Op) => o.t === "service_lines" && o.v?.is_default === true;
+  return [...ops.filter((o) => !sets(o)), ...ops.filter(sets)];
 }

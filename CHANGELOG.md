@@ -5,7 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
-### Added — Clinics & schedule (behind `CLINICS_SCHEDULE`) — 15 Nov 2026
+### Changed — Clinics & schedule cut-over — 15 Nov 2026
+
+- `/hospital-admin/clinics` replaces Scheduling and Departments › Clinics for every hospital
+  ([ADR 0508](docs/adr/0508-clinics-schedule-cutover.md)): the old pages answer 308, their last settings are edited in
+  the workspace, booking policy moved to Departments › Booking policy and Pending to Reports. Migration 0298 (GATED).
+  The `CLINICS_SCHEDULE` flag is gone.
+
+### Added — Clinics & schedule — 15 Nov 2026
 
 - One hospital-admin workspace for clinics, the week plan, closures and holidays, people, desks and screens, and
   history, as an editor over the engine's own records ([ADR 0501](docs/adr/0501-clinics-schedule-editor-over-engine.md)).
@@ -16,7 +23,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
   ([ADR 0505](docs/adr/0505-clinics-schedule-consent.md)); leave requests
   ([ADR 0506](docs/adr/0506-clinics-schedule-leave.md)); device pairing and coverage
   ([ADR 0507](docs/adr/0507-clinics-schedule-devices.md)). Migration 0296 (GATED). Route `/hospital-admin/clinics`,
-  fixture `/styleguide/clinics-schedule`. Copy, fee bands, templates and ADRs signed by the CSO 15 Nov 2026. Flag off: today's pages.
+  fixture `/styleguide/clinics-schedule`. Copy, fee bands, templates and ADRs signed by the CSO 15 Nov 2026.
 
 ### Added — Clinic floor (behind `CLINIC_FLOOR`) — 13 Nov 2026
 

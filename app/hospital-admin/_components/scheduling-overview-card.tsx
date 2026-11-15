@@ -127,7 +127,7 @@ export async function SchedulingOverviewCard({
         </h2>
         {isPanel ? null : (
           <Link
-            href="/hospital-admin/scheduling"
+            href="/hospital-admin/clinics?view=week"
             className="text-muted-foreground hover:text-foreground text-caption focus-visible:ring-ring group inline-flex min-h-11 items-center gap-1 rounded transition-colors outline-none focus-visible:ring-2"
           >
             View

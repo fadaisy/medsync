@@ -7,8 +7,7 @@ in chat on 15 Nov 2026.
 ## What was built
 
 - `/hospital-admin/clinics` (`?view=ready|clinics|week|closures|people|devices|history`): one workspace on the desk
-  shell, an editor over the engine's own records (ADR 0501). Off unless `CLINICS_SCHEDULE` is set (`1` or hospital
-  ids) and, in production, the copy is signed. Off: 404; the old pages are unchanged.
+  shell, an editor over the engine's own records (ADR 0501). On for every hospital since the cut-over (ADR 0508).
 - Drafts → publish (now, 22:00, 06:00), undo with later changes, restore a version (ADR 0502). Publish re-validates on
   the server and writes through `cs_publish` in one transaction. Scheduled publishes run from
   `/api/cron/clinics-schedule-publish` (in `vercel.json`, 22:00 and 06:00 Kampala).
@@ -71,16 +70,32 @@ worktree).
   faked.
 - The patient preview's ticket uses the workspace's own layout, not `Ticket` (its props need a live booking).
 - `unitCost` reads `CLINICS_SMS_UNIT_UGX`; unset, the publish dialog says "SMS rate not set" (D-CS-18).
-- No nav item yet: adding it would show for every hospital while the flag is off. Add at cut-over.
 - Repo harness `scripts/patient-web/harness.mjs` has a race (subscribes to `load` after navigating) that hangs on a
   reload; screenshots were taken with a patched copy outside the repo. Not fixed here.
 
+## Cut-over (15 Nov 2026, on the owner's word, before the pilot)
+
+- The old pages' last settings moved into the workspace as drafts: Clinics › Booking › More settings (capacity mode,
+  time to care, continuity, reasons, hospital default, payment posture and deposit) and the session dialog
+  (interleave, overbooking, runs on public holidays). `cs_publish` may write them after migration 0298 (GATED).
+  A posture other than "No payment" needs a flat fee; the old default line is cleared in the same publish.
+- Two things only the old Scheduling page had moved instead of going: the department booking policy →
+  Departments & services › Booking policy; the Pending list → Reports.
+- Publishing now makes the days bookable at once (`materialiseClinicSessions`, as the old "set live" did).
+- 308s: `/hospital-admin/scheduling` → `?view=week`, `/hospital-admin/departments/clinics` → `?view=clinics`.
+  Nav item "Clinics & schedule" (sidebar and ⌘K) replaces "Scheduling"; the hub's Clinics tab became Booking policy.
+- Deleted: the old Scheduling page and its actions, `departments/clinics`, `clinics-view`, the `setClinicLive` and
+  `saveClinicDay` actions, and the `CLINICS_SCHEDULE` flag. The workspace is on for every hospital.
+- Not moved (as the signed parity map says): fees by cadre (replaced by fee bands), the next-14-days list with
+  per-day clinician assignment and cancel (Closures › one day; late-by stays on the desk).
+
 ## Owner steps (not done by Claude)
 
-1. Apply the migration: `cd /Users/airm1/Desktop/medsync/.claude/worktrees/clinics-schedule-940aa4 && npm run db:migrate`
-   (0296, GATED).
-2. ~~Sign~~ — done in chat, 15 Nov 2026.
-3. Pilot: `CLINICS_SCHEDULE=<hospital id>` for 3 days; optionally `CLINICS_SMS_UNIT_UGX`.
-4. ~~Cron~~ — in `vercel.json`: 19:00 and 03:00 UTC (22:00 and 06:00 Kampala). Needs `CRON_SECRET` (already set for the other crons) and a deploy.
-5. Cut-over: 308s (`/hospital-admin/scheduling` → `?view=week`, `/hospital-admin/departments/clinics` →
-   `?view=clinics`), nav item, delete the old pages and the flag.
+1. Apply 0298: `cd /Users/airm1/Desktop/medsync/.claude/worktrees/clinics-schedule-940aa4 && npm run db:migrate`
+   (0296 applied 15 Nov). Until 0298 is applied, a publish that touches a clinic or session fails.
+2. ~~Sign~~ — done in chat, 15 Nov 2026. The cut-over adds labels reused word for word from the old pages
+   (`CS.ed.more`, `CS.ses.interleave…holidays`).
+3. Optionally set `CLINICS_SMS_UNIT_UGX`.
+4. ~~Cron~~ — in `vercel.json`: 19:00 and 03:00 UTC (22:00 and 06:00 Kampala). Needs `CRON_SECRET` (already set) and a
+   deploy.
+5. Deploy.

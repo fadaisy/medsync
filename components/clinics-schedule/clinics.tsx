@@ -19,6 +19,7 @@ import {
   sessionsOf,
   WEEK,
 } from "@/lib/clinics-schedule/model";
+import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
 import {
   Chip,
   ChipRow,
@@ -431,7 +432,7 @@ function Editor({ ctx, c, tab0 }: { ctx: Ctx; c: Clinic; tab0?: Tab }) {
       </div>
       {tab === "basics" ? <Basics ctx={ctx} c={c} set={set} /> : null}
       {tab === "sessions" ? <Sessions ctx={ctx} c={c} /> : null}
-      {tab === "booking" ? <Booking c={c} set={set} /> : null}
+      {tab === "booking" ? <Booking ctx={ctx} c={c} set={set} /> : null}
       {tab === "fee" ? <Fee ctx={ctx} c={c} set={set} /> : null}
       {tab === "desks" ? <Desks ctx={ctx} c={c} /> : null}
       <div className={k("su-dfoot")}>
@@ -817,7 +818,7 @@ function Sessions({ ctx, c }: { ctx: Ctx; c: Clinic }) {
   );
 }
 
-function Booking({ c, set }: { c: Clinic; set: Set }) {
+function Booking({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
   const rule = (what: string, p: Partial<Clinic["rules"]>) =>
     set(what, { rules: { ...c.rules, ...p } });
   return (
@@ -875,7 +876,95 @@ function Booking({ c, set }: { c: Clinic; set: Set }) {
           </div>
         ))}
       </div>
+      <More ctx={ctx} c={c} set={set} />
     </div>
+  );
+}
+
+const REASONS = [...PATIENT_REASON_CODES, "other"] as const;
+
+/** Cut-over: the engine settings the old clinic page edited, as drafts like everything else. */
+function More({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
+  const M = CS.ed.more;
+  const { view } = ctx;
+  const flat = c.feeMode === "flat" && c.feeUgx != null;
+  const reasons = c.reasons ?? [];
+  // One default per hospital: clear the old one in the same change.
+  const makeDefault = () =>
+    ctx.commit(fill(CS.ed.changed, { name: c.name, what: M.isDefault[0] }), [
+      ...Object.values(view.clinics)
+        .filter((o) => o.isDefault && o.id !== c.id)
+        .map((o) => edit(view, "clinics", o.id, { ...o, isDefault: false })),
+      edit(view, "clinics", c.id, { ...c, isDefault: true }),
+    ]);
+  const ttc = c.timeToCareDays ?? 7;
+  return (
+    <section className={k("su-blk2")}>
+      <h3>{M.title}</h3>
+      <Field label={M.mode} hint={c.mode ? M.modeH[c.mode] : undefined}>
+        <Seg
+          opts={M.modes}
+          value={c.mode ?? null}
+          onPick={(v) => set(M.mode, { mode: v })}
+          label={M.mode}
+        />
+      </Field>
+      <Field as="label" label={M.ttc} hint={M.ttcH}>
+        <Txt
+          numeric
+          value={String(ttc)}
+          onCommit={(v) =>
+            set(M.ttc, { timeToCareDays: Math.min(365, Math.max(1, Number(v) || ttc)) })
+          }
+        />
+      </Field>
+      <Toggle
+        on={!!c.continuity}
+        flip={() => set(M.continuity[0], { continuity: !c.continuity })}
+        t={M.continuity}
+      />
+      <Toggle
+        on={!!c.isDefault}
+        flip={c.isDefault ? () => set(M.isDefault[0], { isDefault: false }) : makeDefault}
+        t={M.isDefault}
+      />
+      <Field label={M.reasons}>
+        <ChipRow label={M.reasons}>
+          {REASONS.map((r) => (
+            <Chip
+              key={r}
+              on={reasons.includes(r)}
+              onClick={() =>
+                set(M.reasons, {
+                  reasons: reasons.includes(r) ? reasons.filter((x) => x !== r) : [...reasons, r],
+                })
+              }
+            >
+              {M.reasonLabel[r] ?? r}
+            </Chip>
+          ))}
+        </ChipRow>
+      </Field>
+      <Field label={M.posture} hint={flat ? M.postureH : M.postureFlat}>
+        {flat ? (
+          <Seg
+            opts={M.postures}
+            value={c.posture ?? "none"}
+            onPick={(v) => set(M.posture, { posture: v })}
+            label={M.posture}
+          />
+        ) : null}
+      </Field>
+      {flat && c.posture === "deposit" ? (
+        <Field as="label" label={M.deposit}>
+          <Txt
+            numeric
+            value={c.depositUgx == null ? "" : String(c.depositUgx)}
+            onCommit={(v) => set(M.deposit, { depositUgx: v === "" ? null : Number(v) })}
+          />
+        </Field>
+      ) : null}
+    </section>
   );
 }
 

@@ -5,7 +5,6 @@ import { db } from "@/db";
 import { schedulePublishJobs } from "@/db/schema/clinics-schedule";
 import { hospitals } from "@/db/schema/hospitals";
 import { secretMatches } from "@/lib/channels/webhook-auth";
-import { clinicsScheduleLiveFor } from "@/lib/clinics-schedule/feature";
 import { runPublish } from "@/lib/clinics-schedule/publish";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
@@ -43,7 +42,6 @@ export async function GET(request: Request) {
   let done = 0;
   let failed = 0;
   for (const { job, name, level } of due) {
-    if (!clinicsScheduleLiveFor(job.hospitalId)) continue;
     try {
       const r = await runPublish(
         {

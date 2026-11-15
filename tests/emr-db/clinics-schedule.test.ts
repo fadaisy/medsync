@@ -161,7 +161,7 @@ describe.skipIf(!laneOn)("0296: clinics and schedule", () => {
         ).rows[0]!.n,
       );
     const v0 = await versions();
-    const bad = { t: "session_templates", op: "update", id: sid, v: { interleave_walk_in: 3 } };
+    const bad = { t: "session_templates", op: "update", id: sid, v: { hospital_id: H2 } };
     const r = await publish([cid], [...good, bad]);
     expect(r.ok).toBe(false);
     expect(
@@ -173,6 +173,66 @@ describe.skipIf(!laneOn)("0296: clinics and schedule", () => {
       [cid],
     );
     expect(st.rows[0]!.status).toBe("draft");
+  });
+
+  it("0298: the cut-over settings publish through cs_publish", async () => {
+    const sid = randomUUID();
+    const cid = randomUUID();
+    await draft(cid);
+    const x = {
+      ...ses(sid, 840),
+      interleave: { booked: 3, walkIn: 1 },
+      overbook: 1.2,
+      holidays: true,
+    };
+    const c = {
+      ...view.clinics[line]!,
+      timeToCareDays: 21,
+      continuity: true,
+      reasons: ["refill", "follow_up"],
+      isDefault: true,
+    };
+    const r = await publish(
+      [cid],
+      [
+        ...opsFor({ entity: "sessions", key: sid, before: null, after: x }, ctx()),
+        {
+          t: "service_lines",
+          op: "update",
+          id: line,
+          v: {
+            time_to_care_days: c.timeToCareDays,
+            continuity_default: true,
+            reason_codes: ["follow_up", "refill"],
+            is_default: true,
+          },
+        },
+      ],
+    );
+    expect(r.ok).toBe(true);
+    const t = (
+      await pg.query<{
+        interleave_booked: number;
+        overbooking_factor: string;
+        runs_on_holidays: boolean;
+      }>(
+        `SELECT interleave_booked, overbooking_factor, runs_on_holidays FROM public.session_templates WHERE id = $1`,
+        [sid],
+      )
+    ).rows[0]!;
+    expect(t).toMatchObject({ interleave_booked: 3, runs_on_holidays: true });
+    expect(Number(t.overbooking_factor)).toBe(1.2);
+    const l = (
+      await pg.query<{ time_to_care_days: number; reason_codes: string[]; is_default: boolean }>(
+        `SELECT time_to_care_days, reason_codes, is_default FROM public.service_lines WHERE id = $1`,
+        [line],
+      )
+    ).rows[0]!;
+    expect(l).toMatchObject({
+      time_to_care_days: 21,
+      reason_codes: ["follow_up", "refill"],
+      is_default: true,
+    });
   });
 
   it("cross-tenant: an op cannot update another hospital's row", async () => {

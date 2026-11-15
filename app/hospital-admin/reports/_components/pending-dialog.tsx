@@ -16,8 +16,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { CS } from "@/content/clinics-schedule/copy";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
-import { REASON_LABEL } from "./service-lines-section";
 
 /** The hospital's clock, as the page prints it. */
 const DAY_FMT = new Intl.DateTimeFormat("en-GB", {
@@ -96,7 +96,7 @@ export function PendingDialog({
     {
       id: "reason",
       header: "Reason",
-      cell: (r) => REASON_LABEL[r.reason] ?? r.reason,
+      cell: (r) => CS.ed.more.reasonLabel[r.reason] ?? r.reason,
     },
     {
       id: "waiting",

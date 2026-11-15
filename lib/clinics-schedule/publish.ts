@@ -10,6 +10,8 @@ import { sql } from "drizzle-orm";
 import { CS_ERRORS } from "@/content/clinics-schedule/copy";
 import { db } from "@/db";
 import { saAuditLog } from "@/db/schema/sa-audit-log";
+import { logger } from "@/lib/logger";
+import { materialiseClinicSessions } from "@/lib/scheduling/materialise-sessions";
 import { loadClinicsSchedule } from "./load";
 import { applyChanges, impactOf, publishBlockers } from "./model";
 import { opsForChanges } from "./ops";
@@ -51,6 +53,12 @@ export async function runPublish(
     sql`select public.cs_publish(${s.hospitalId}::uuid, ${s.userId}::uuid, ${ids}::uuid[], ${JSON.stringify(ops)}::jsonb, ${r.texts}::int) as n`,
   );
   const version = Number((rows as unknown as { n: number }[])[0]?.n ?? 0);
+  // Published days are bookable now (the nightly job's code, idempotent), not at 02:00.
+  try {
+    await materialiseClinicSessions();
+  } catch (e) {
+    logger.warn("clinics-schedule.materialise.failed", { reason: String(e) });
+  }
   await db.insert(saAuditLog).values({
     actorId: s.userId,
     action: "cs_publish",

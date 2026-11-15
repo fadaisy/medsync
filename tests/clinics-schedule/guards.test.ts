@@ -2,9 +2,6 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { CLINICS_SCHEDULE_COPY_STATUS } from "@/content/clinics-schedule/copy";
-import { clinicsScheduleLiveFor } from "@/lib/clinics-schedule/feature";
-
 const UI = "components/clinics-schedule";
 const files = (dir: string) => readdirSync(dir).map((f) => join(dir, f));
 const ui = files(UI).filter((f) => f.endsWith(".tsx"));
@@ -41,28 +38,10 @@ describe("guards (Appendix C)", () => {
       ).toEqual([]);
   });
 
-  it("migration 0296 is GATED", () => {
+  it("migrations 0296 and 0298 are GATED", () => {
     expect(read("supabase/migrations/0296_clinics_schedule.sql").startsWith("-- GATED")).toBe(true);
-  });
-});
-
-describe("flag", () => {
-  it("off unless set; a list names hospitals", () => {
-    expect(clinicsScheduleLiveFor("h1", {} as NodeJS.ProcessEnv)).toBe(false);
     expect(
-      clinicsScheduleLiveFor("h1", { CLINICS_SCHEDULE: "h2,h1" } as unknown as NodeJS.ProcessEnv),
+      read("supabase/migrations/0298_clinics_schedule_cutover.sql").startsWith("-- GATED"),
     ).toBe(true);
-    expect(
-      clinicsScheduleLiveFor("h3", { CLINICS_SCHEDULE: "h2,h1" } as unknown as NodeJS.ProcessEnv),
-    ).toBe(false);
-  });
-  it("stays off in production while the copy is unsigned", () => {
-    const prod = {
-      CLINICS_SCHEDULE: "1",
-      VERCEL_ENV: "production",
-    } as unknown as NodeJS.ProcessEnv;
-    expect(clinicsScheduleLiveFor("h1", prod)).toBe(
-      CLINICS_SCHEDULE_COPY_STATUS.status === "signed",
-    );
   });
 });

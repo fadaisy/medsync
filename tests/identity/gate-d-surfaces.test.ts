@@ -82,7 +82,6 @@ describe("no clinical question, red only for emergencies", () => {
     "app/patient/household/_components/add-member-form.tsx",
     "app/patient/household/page.tsx",
     "app/patient/appointments/_components/arrived-button.tsx",
-    "app/hospital-admin/scheduling/page.tsx",
   ];
   // ADR 0095: the desk mounts the descriptive picker, so the word "symptom"
   // is now allowed on the two booking files — as a module name, never as a

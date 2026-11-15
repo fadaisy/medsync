@@ -107,6 +107,9 @@ export function SessionDialog({
   );
   const outside = x.start < hours.open || x.end > hours.close;
   const total = placesOf(x);
+  // Engine defaults (session_templates) until set here.
+  const il = x.interleave ?? { booked: 2, walkIn: 1 };
+  const ob = x.overbook ?? 1;
   const ahead = bookableOf(x);
   const block = c.blockId ? view.places[c.blockId] : null;
   const rooms = Object.values(view.places).filter(
@@ -356,6 +359,39 @@ export function SessionDialog({
                 </Field>
               </>
             )}
+            <Field label={CS.ses.interleave} hint={CS.ses.interleaveH}>
+              <span className={k("su-step")}>
+                <Step
+                  value={il.booked}
+                  dn={() => put({ interleave: { ...il, booked: Math.max(1, il.booked - 1) } })}
+                  up={() => put({ interleave: { ...il, booked: Math.min(20, il.booked + 1) } })}
+                  dnLabel={`${CS.ses.ib} −`}
+                  upLabel={`${CS.ses.ib} +`}
+                />
+                <b aria-hidden="true">:</b>
+                <Step
+                  value={il.walkIn}
+                  dn={() => put({ interleave: { ...il, walkIn: Math.max(1, il.walkIn - 1) } })}
+                  up={() => put({ interleave: { ...il, walkIn: Math.min(20, il.walkIn + 1) } })}
+                  dnLabel={`${CS.ses.iw} −`}
+                  upLabel={`${CS.ses.iw} +`}
+                />
+              </span>
+            </Field>
+            <Field label={CS.ses.overbook} hint={CS.ses.overbookH}>
+              <Step
+                value={ob.toFixed(2)}
+                dn={() => put({ overbook: Math.max(100, Math.round(ob * 100) - 5) / 100 })}
+                up={() => put({ overbook: Math.min(200, Math.round(ob * 100) + 5) / 100 })}
+                dnLabel={`${CS.ses.overbook} −`}
+                upLabel={`${CS.ses.overbook} +`}
+              />
+            </Field>
+            <Toggle
+              on={!!x.holidays}
+              flip={() => put({ holidays: !x.holidays })}
+              t={CS.ses.holidays}
+            />
           </section>
 
           <section className={k("su-blk2")}>

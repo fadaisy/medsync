@@ -7,16 +7,15 @@
         "Service lines: name, department, confidential (read), fee, active": "Clinics › editor › Basics / Fee; live via Get ready",
         "Fees by cadre (service_line_fees)": "Fee bands (hospital_fee_bands, four-eyes) + 'Set for this clinic' overrides per band",
         "Weekly rule: day, start, length, valid from/until, patients per session, booked allocation, clinician": "Session dialog: times, places, walk-in hold %, repeats, rooms, people",
-        "Interleave, overbooking factor, runs on holidays": "kept untouched by every edit (X4); still edited on the old page until cut-over",
+        "Interleave, overbooking factor, runs on holidays": "Session dialog (cut-over, 0298)",
         "Late by N min (session delay)": "stays on the reception desk (X6, ADR 0485)",
         "Cancel one session (dry run, reason, patients told)": "Closures › Close clinics for one day (impact shown first) (X6)",
-        "Department booking policy": "link out (X5): department-scoped, stays on the policy page",
+        "Department booking policy": "Departments & services › Booking policy (moved at cut-over)",
         "Unstaffed T-12h banner": "Get ready check 'Someone on every session' + People › Needs attention",
-        "Pending stat card, sent today": "not moved: reception and reports own these"
+        "Pending stat card, sent today": "Reports (Pending moved there at cut-over; Sent today was already there)",
+        "Capacity mode, time to care, continuity default, reason codes, hospital default line, deposit": "Clinics › Booking › More settings (cut-over, 0298)"
       },
-      "lost": [
-        "capacity mode, time to care, continuity default, reason codes, hospital default line, deposit (not in the canvas; kept untouched in service_lines, still edited on the old page)"
-      ]
+      "lost": []
     },
     "/hospital-admin/departments/clinics": {
       "workspace": "/hospital-admin/clinics?view=clinics",

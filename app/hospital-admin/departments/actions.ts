@@ -5,8 +5,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
-import { logger } from "@/lib/logger";
-import { materialiseClinicSessions } from "@/lib/scheduling/materialise-sessions";
 import { closureImpact, loadItemHistory } from "@/lib/services/data";
 import { callEdge } from "@/lib/supabase/edge";
 
@@ -14,7 +12,7 @@ import { callEdge } from "@/lib/supabase/edge";
  * Departments & services hub — server actions (contract §7: scope here, everything else in the
  * Edge Function). The scope ALWAYS comes from requireHospitalAdminScope(); a hospital_id sent by the
  * page is overwritten, never trusted. ha-services-hub owns Zod, the role check, the audit row and
- * the write. Clinic days go through the booking engine's own ha-upsert-session-template; closures
+ * the write. Closures
  * run the booking engine's ha-cancel-session per affected session (CLN-6).
  */
 
@@ -37,64 +35,6 @@ export async function runHubOp(
   );
   if (!r.ok) return { ok: false, error: r.error };
   revalidatePath(HUB_PATH, "layout");
-  return { ok: true, data: unwrap(r.data) };
-}
-
-/** A clinic going live publishes its days now (the nightly job's code, idempotent), not at 02:00. */
-export async function setClinicLive(serviceLineId: string, live: boolean): Promise<HubResult> {
-  const r = await runHubOp({ op: "update_clinic", service_line_id: serviceLineId, live });
-  if (!r.ok || !live) return r;
-  try {
-    await materialiseClinicSessions();
-  } catch (e) {
-    logger.warn("hub.materialise_on_live.failed", { reason: String(e) });
-  }
-  return r;
-}
-
-const ClinicDay = z.object({
-  id: z.string().uuid().optional(),
-  service_line_id: z.string().uuid(),
-  weekday: z.number().int().min(1).max(7),
-  start_minutes_local: z.number().int().min(0).max(1440),
-  duration_minutes: z.number().int().min(15).max(720),
-  capacity_total: z.number().int().min(1).max(32767),
-  capacity_booked: z.number().int().min(1).max(32767).optional(),
-  valid_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  valid_until: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .nullable()
-    .optional(),
-  repeat_every_weeks: z.number().int().min(1).max(8).optional(),
-  nth_weekday: z.number().int().min(-1).max(5).nullable().optional(),
-  runs_on_holidays: z.boolean().optional(),
-  place_id: z.string().uuid().nullable().optional(),
-  clinician_user_id: z.string().uuid().nullable().optional(),
-  active: z.boolean(),
-});
-
-/** Clinic days = the booking engine's session templates (CLN-2). One writer: ha-upsert-session-template. */
-export async function saveClinicDay(input: z.input<typeof ClinicDay>): Promise<HubResult> {
-  const parsed = ClinicDay.safeParse(input);
-  if (!parsed.success)
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Check the clinic day." };
-  const scope = await requireHospitalAdminScope();
-  const day = parsed.data;
-  const r = await callEdge(
-    "ha-upsert-session-template",
-    {
-      ...day,
-      hospital_id: scope.hospitalId,
-      reason: day.id
-        ? "Clinic day changed in Departments & services"
-        : "Clinic day added in Departments & services",
-    },
-    "hospital-admin.hub",
-  );
-  if (!r.ok) return { ok: false, error: r.error };
-  revalidatePath(HUB_PATH, "layout");
-  revalidatePath("/hospital-admin/scheduling");
   return { ok: true, data: unwrap(r.data) };
 }
 
@@ -166,7 +106,7 @@ export async function addClosure(input: z.input<typeof Closure>): Promise<HubRes
     if (r.ok) cancelled++;
     else failed.push(r.error);
   }
-  revalidatePath("/hospital-admin/scheduling");
+  revalidatePath("/hospital-admin/clinics");
   if (failed.length) {
     return {
       ok: false,

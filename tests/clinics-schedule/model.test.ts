@@ -192,6 +192,30 @@ describe("ops (P4)", () => {
       },
     ]);
   });
+  it("cut-over settings: a posture needs a flat fee, and a new default is set after the old one is cleared", () => {
+    const [a, b] = Object.values(S.clinics);
+    const ops = opsForChanges(
+      [
+        edit(S, "clinics", b!.id, { ...b!, isDefault: true, posture: "deposit", feeMode: "band" }),
+        edit(S, "clinics", a!.id, { ...a!, isDefault: false, timeToCareDays: 14 }),
+      ],
+      ctx,
+    );
+    expect(ops.map((o) => o.id)).toEqual([a!.id, b!.id]);
+    expect(ops[0]!.v).toMatchObject({ is_default: false, time_to_care_days: 14 });
+    expect(ops[1]!.v).toMatchObject({
+      is_default: true,
+      payment_posture: "none",
+      deposit_ugx: null,
+    });
+  });
+  it("unset cut-over settings leave the engine columns as they are", () => {
+    const x = Object.values(S.sessions)[0]!;
+    const [o] = opsForChanges([edit(S, "sessions", x.id, { ...x, overbook: undefined })], ctx);
+    expect(o!.v).not.toHaveProperty("overbooking_factor");
+    const [o2] = opsForChanges([edit(S, "sessions", x.id, { ...x, overbook: 1.25 })], ctx);
+    expect(o2!.v).toMatchObject({ overbooking_factor: 1.25 });
+  });
   it("people are never created here (D-CS-09)", () => {
     const p = Object.values(S.people)[0]!;
     expect(

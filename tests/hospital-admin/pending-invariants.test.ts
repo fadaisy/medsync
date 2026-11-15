@@ -13,8 +13,8 @@ const stripComments = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 const LIB = "lib/hospital-admin/pending.ts";
-const DIALOG = "app/hospital-admin/scheduling/_components/pending-dialog.tsx";
-const PAGE = "app/hospital-admin/scheduling/page.tsx";
+const DIALOG = "app/hospital-admin/reports/_components/pending-dialog.tsx";
+const PAGE = "app/hospital-admin/reports/page.tsx";
 
 describe("the pending lib selects a patient's code and nothing else about them", () => {
   const src = stripComments(read(LIB));
@@ -85,7 +85,7 @@ describe("the dialog shows rows as they came, and colours only the clinic's dela
   });
 });
 
-describe("the scheduling page opens the Pending stat", () => {
+describe("the reports page opens the Pending stat", () => {
   const page = stripComments(read(PAGE));
 
   it("fetches the rows inside the scope and renders PendingDialog in the strip", () => {

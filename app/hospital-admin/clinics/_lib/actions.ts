@@ -18,7 +18,6 @@ import { scheduleChanges, schedulePublishJobs } from "@/db/schema/clinics-schedu
 import { deskDevices } from "@/db/schema/reception-desk";
 import { saAuditLog } from "@/db/schema/sa-audit-log";
 import { serviceLines } from "@/db/schema/service-lines";
-import { clinicsScheduleLiveFor } from "@/lib/clinics-schedule/feature";
 import { BANDS, ENTITIES, pairCode } from "@/lib/clinics-schedule/model";
 import { checkPublish, runPublish } from "@/lib/clinics-schedule/publish";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
@@ -27,11 +26,7 @@ import { callEdge } from "@/lib/supabase/edge";
 
 const PATH = "/hospital-admin/clinics";
 
-async function scope() {
-  const s = await requireHospitalAdminScope();
-  if (!clinicsScheduleLiveFor(s.hospitalId)) throw new Error("clinics_schedule_off");
-  return s;
-}
+const scope = requireHospitalAdminScope;
 
 const audit = (
   actor: string,
