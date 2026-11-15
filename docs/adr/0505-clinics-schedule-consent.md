@@ -1,6 +1,6 @@
 # ADR 0505 — Clinician identity on patient surfaces needs consent
 
-**Status:** Proposed — 15 Nov 2026. GATE A (docs/clinics-schedule/gate-a-proposal.md) provisional, **not signed**. Built on `feat/clinics-schedule`.
+**Status:** Accepted — signed by Fadhul (CSO) in chat, 15 Nov 2026, with GATE A (docs/clinics-schedule/gate-a-proposal.md). Built on `feat/clinics-schedule`.
 
 ## Context
 

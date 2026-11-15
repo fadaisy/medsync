@@ -1,5 +1,5 @@
 {
-  "status": "unsigned — Fadhul signs (prompt Step 8); from the Step 0 crawl (docs/clinics-schedule/parity-crawl.md); old pages stay until signed and cut over",
+  "status": "signed — Fadhul (CSO), in chat, 15 Nov 2026; from the Step 0 crawl (docs/clinics-schedule/parity-crawl.md); old pages stay until cut-over",
   "routes": {
     "/hospital-admin/scheduling": {
       "workspace": "/hospital-admin/clinics?view=week",

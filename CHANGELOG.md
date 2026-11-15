@@ -16,7 +16,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
   ([ADR 0505](docs/adr/0505-clinics-schedule-consent.md)); leave requests
   ([ADR 0506](docs/adr/0506-clinics-schedule-leave.md)); device pairing and coverage
   ([ADR 0507](docs/adr/0507-clinics-schedule-devices.md)). Migration 0296 (GATED). Route `/hospital-admin/clinics`,
-  fixture `/styleguide/clinics-schedule`. Copy, fee bands and templates are draft. Flag off: today's pages.
+  fixture `/styleguide/clinics-schedule`. Copy, fee bands, templates and ADRs signed by the CSO 15 Nov 2026. Flag off: today's pages.
 
 ### Added — Clinic floor (behind `CLINIC_FLOOR`) — 13 Nov 2026
 

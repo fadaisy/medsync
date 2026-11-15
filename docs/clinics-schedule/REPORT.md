@@ -1,7 +1,8 @@
 # Clinics & schedule — report (STOP 8)
 
 Branch `feat/clinics-schedule` (from `feat/clinic-floor` 1e8fdb8d). Committed, **not pushed, not deployed**. Every
-GATE A answer is provisional (Section 11 recommendations); nothing is signed.
+GATE A answer, the copy, fee bands, templates, D-CS-21, ADRs 0501–0507 and the parity map were signed by Fadhul (CSO)
+in chat on 15 Nov 2026.
 
 ## What was built
 
@@ -78,8 +79,7 @@ worktree).
 
 1. Apply the migration: `cd /Users/airm1/Desktop/medsync/.claude/worktrees/clinics-schedule-940aa4 && npm run db:migrate`
    (0296, GATED).
-2. Sign: GATE A (§G), copy (`CLINICS_SCHEDULE_COPY_STATUS`), fee bands (D-CS-05), templates, workload threshold
-   (D-CS-21), ADRs 0501–0507, parity (`tests/parity/clinics-schedule/renames.json`).
+2. ~~Sign~~ — done in chat, 15 Nov 2026.
 3. Pilot: `CLINICS_SCHEDULE=<hospital id>` for 3 days; optionally `CLINICS_SMS_UNIT_UGX`.
 4. Cron: add `/api/cron/clinics-schedule-publish` (every 5 min) to `vercel.json`.
 5. Cut-over: 308s (`/hospital-admin/scheduling` → `?view=week`, `/hospital-admin/departments/clinics` →

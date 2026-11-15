@@ -1,8 +1,7 @@
 # Clinics and schedule — GATE A proposal (STOP 1)
 
-**Status: PROVISIONAL. Nothing here is signed.** The owner asked for all gates in one run; Section 11's recommendations are used
-as working answers until Fadhul signs below. Fee bands (D-CS-05), the workload threshold (D-CS-21) and level templates stay
-draft content.
+**Status: SIGNED by Fadhul (CSO) in chat, 15 Nov 2026 ("Sign all now").** Signed together: these answers, the copy, fee
+bands (D-CS-05), the workload threshold (D-CS-21), level templates, ADRs 0501–0507 and the parity map.
 
 ## A. Route map
 
@@ -96,9 +95,9 @@ None of the new tables holds a clinic, session, place, holiday, closure or perso
 | D-CS-18 | count × configured rate (`CLINICS_SMS_UNIT_UGX`)                                  | no rate set → cost shows "rate not set"                                                                   |
 | D-CS-19 | off by default, per clinic                                                        | —                                                                                                         |
 | D-CS-20 | office: amber warning                                                             | —                                                                                                         |
-| D-CS-21 | threshold **draft** (30 h placeholder in content)                                 | —                                                                                                         |
+| D-CS-21 | threshold 30 h a week (signed 15 Nov 2026)                                        | —                                                                                                         |
 
-Signature: **********\_\_********** (Fadhul, CSO) Date: ****\_\_****
+Signature: Fadhul (CSO), in chat — Date: 15 Nov 2026
 
 ## H. Test plan
 
@@ -107,7 +106,7 @@ S14 clash pairs, S15 bulk, S20 people, S24 impact, S25 restore, CS3 draft view v
 clinics-schedule.test.ts`): S1 RLS (cross-tenant, non-admin), S4 atomic publish, S5 invalid scheduled job, S23 pairing
 code. Guards: raw colour, fee literals, strings outside content, one record per fact.
 
-## I. ADRs (drafted, unsigned)
+## I. ADRs (signed 15 Nov 2026)
 
 0501 workspace as an editor over the engine · 0502 draft, publish, schedule, restore · 0503 fee bands · 0504 clashes block
 publish · 0505 clinician identity needs consent · 0506 leave requests → availability · 0507 device pairing, coverage, lock.

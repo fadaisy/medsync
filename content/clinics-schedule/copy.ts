@@ -6,10 +6,11 @@
  */
 import type { SignedCopy } from "@/content/signed-copy";
 
+// Signed by Fadhul (CSO) in chat, 15 Nov 2026 ("Sign all now").
 export const CLINICS_SCHEDULE_COPY_STATUS: SignedCopy = {
-  status: "draft",
-  signedBy: null,
-  signedOn: null,
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-11-15",
 };
 
 export const CS_ERRORS = {

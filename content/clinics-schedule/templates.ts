@@ -1,13 +1,18 @@
 /**
  * D-CS-11: a usual week per facility level, keyed by the Services Hub's clinic catalogue codes and its level
- * presets (supabase/functions/_shared/services-hub.ts, the one source of which clinics a level runs). DRAFT —
- * the days and hours are a starting pattern for Fadhul to sign, not MoH rules. Applying fills only clinics with
+ * presets (supabase/functions/_shared/services-hub.ts, the one source of which clinics a level runs). Signed 15 Nov
+ * 2026 — the days and hours are a starting pattern, not MoH rules. Applying fills only clinics with
  * no sessions, as drafts.
  */
 import type { SignedCopy } from "@/content/signed-copy";
 import type { TemplateRow } from "@/lib/clinics-schedule/model";
 
-export const TEMPLATES_STATUS: SignedCopy = { status: "draft", signedBy: null, signedOn: null };
+// Signed by Fadhul (CSO) in chat, 15 Nov 2026.
+export const TEMPLATES_STATUS: SignedCopy = {
+  status: "signed",
+  signedBy: "Fadhul (CSO)",
+  signedOn: "2026-11-15",
+};
 
 const h = (n: number) => n * 60;
 const WEEKDAYS = [1, 2, 3, 4, 5] as const;
