@@ -75,3 +75,17 @@ export function tetherClosed(pathname: string): boolean {
   if (pathname === "/" || /\.[a-z0-9]+$/i.test(pathname)) return false;
   return !TETHER_OPEN.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
+
+/**
+ * ADR 0509: on the Tether domain a nurse's or doctor's MedSync home is the clinic floor, so signing in (or the old
+ * triage link) lands there, not on a closed workspace.
+ */
+const TETHER_HOMES: Record<string, string> = {
+  "/nurse": "/clinic",
+  "/nurse/triage": "/clinic?view=triage",
+  "/doctor": "/clinic?view=line",
+};
+
+export function tetherHome(pathname: string): string | null {
+  return TETHER_HOMES[pathname.replace(/\/+$/, "") || "/"] ?? null;
+}

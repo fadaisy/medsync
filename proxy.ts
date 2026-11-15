@@ -2,7 +2,13 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getAuthState } from "@/lib/auth";
-import { isTetherHost, landingTetherOn, tetherClosed, tetherRewrite } from "@/lib/landing/feature";
+import {
+  isTetherHost,
+  landingTetherOn,
+  tetherClosed,
+  tetherHome,
+  tetherRewrite,
+} from "@/lib/landing/feature";
 import { pwRedirect, pwRewrite } from "@/lib/patient-web/routes";
 import { updateSession } from "@/lib/supabase/proxy";
 
@@ -109,6 +115,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (built) return NextResponse.redirect(new URL(built[1] ?? "/", request.url), 308);
   // ADR 0499: on the Tether domain only booking opens; the rest is MedSync's (MEDSYNC_URL), else not found.
   const tether = isTetherHost(request.headers.get("host"));
+  const home = tether ? tetherHome(request.nextUrl.pathname) : null;
+  if (home) return NextResponse.redirect(new URL(home, request.url));
   if (tether && tetherClosed(request.nextUrl.pathname)) return closedOnTether(request);
   const response = await gate(request);
   // D-PW-10: the new patient pages serve at the old URLs while PATIENT_WEB_TIDE is on. Gating above ran on

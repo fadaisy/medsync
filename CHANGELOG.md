@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Nurses and doctors on Tether land on the clinic floor — 15 Nov 2026
+
+- On the Tether domain `/nurse` and `/doctor` go to `/clinic`, which is on there for every hospital
+  ([ADR 0509](docs/adr/0509-tether-clinicians-land-on-the-floor.md)). Signing in as a nurse no longer ends on
+  MedSync's sign-in page.
+
 ### Changed — The authenticator code is asked on the sign-in page — 15 Nov 2026
 
 - After a right email and password, an account with an authenticator gets the 6-digit code field under the
