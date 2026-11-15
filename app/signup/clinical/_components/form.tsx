@@ -18,7 +18,7 @@ import {
 import { LeadDialog } from "@/components/onboarding/lead-dialog";
 import { ProfessionField } from "@/components/onboarding/profession-field";
 import { FormHeader, Section, SectionedForm } from "@/components/onboarding/sectioned-form";
-import { CLINICAL, STAFF_COMMON } from "@/content/onboarding";
+import { CLINICAL, STAFF_COMMON, TETHER_SIGNUP } from "@/content/onboarding";
 import { STAFF } from "@/content/onboarding-staff";
 import { professionById, registrationLabel } from "@/lib/onboarding/profession";
 import { clinicalSchema } from "@/lib/onboarding/schemas";
@@ -46,10 +46,13 @@ export function ClinicalSignupForm({
   notice,
   hospitals,
   specialties,
+  tether,
 }: {
   notice: { version: string; sha: string; body: string; effective: string };
   hospitals: readonly HospitalOption[];
   specialties: readonly Choice[];
+  /** On the Tether domain the heading names Tether (ADR 0511). */
+  tether?: boolean;
 }) {
   return (
     <SectionedForm<ClinicalInput>
@@ -65,7 +68,13 @@ export function ClinicalSignupForm({
       submit={submitClinicalSignup}
       submitLabel={CLINICAL.submit}
       pendingLabel={CLINICAL.pending}
-      header={<FormHeader kicker={CLINICAL.kicker} title={CLINICAL.title} lead={CLINICAL.lead} />}
+      header={
+        <FormHeader
+          kicker={CLINICAL.kicker}
+          title={tether ? TETHER_SIGNUP.clinicalTitle : CLINICAL.title}
+          lead={CLINICAL.lead}
+        />
+      }
       consent={
         <ConsentBlock version={notice.version} effective={notice.effective} body={notice.body} />
       }
@@ -90,21 +99,32 @@ export function ClinicalSignupForm({
         <PracticeFields specialties={specialties} />
       </Section>
       <Section id="work">
-        <ClinicalWorkFields hospitals={hospitals} />
+        <ClinicalWorkFields hospitals={hospitals} tether={tether} />
       </Section>
     </SectionedForm>
   );
 }
 
 /** A profession tied to one department (laboratory, imaging, pharmacy) has it chosen for them. */
-function ClinicalWorkFields({ hospitals }: { hospitals: readonly HospitalOption[] }) {
+function ClinicalWorkFields({
+  hospitals,
+  tether,
+}: {
+  hospitals: readonly HospitalOption[];
+  tether?: boolean;
+}) {
   const profession = professionById(useFieldValue("profession") ?? "");
   return (
     <WorkFields
       hospitals={hospitals}
       departmentLabel={STAFF_COMMON.department}
       fixedDepartment={profession?.department}
-      afterHospital={<LeadDialog source="clinical_signup" trigger={CLINICAL.notOnMedSync} />}
+      afterHospital={
+        <LeadDialog
+          source="clinical_signup"
+          trigger={tether ? TETHER_SIGNUP.notOnTether : CLINICAL.notOnMedSync}
+        />
+      }
     />
   );
 }

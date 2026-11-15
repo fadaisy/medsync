@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { SignupUnavailable } from "@/app/signup/_components/unavailable";
 import { STAFF } from "@/content/onboarding-staff";
+import { onTetherHost } from "@/lib/landing/tether-host";
 import { liveNotice } from "@/lib/onboarding/notice";
 import { listHospitals, listSpecialties } from "@/lib/reference-data";
 import { ClinicalSignupForm } from "./_components/form";
@@ -27,6 +28,7 @@ export default async function ClinicalSignupPage() {
     );
   return (
     <ClinicalSignupForm
+      tether={await onTetherHost()}
       notice={notice}
       hospitals={hospitals.map((h) => ({ id: h.id, name: h.name }))}
       specialties={specialties.map((s) => ({ value: s.id, label: s.name }))}

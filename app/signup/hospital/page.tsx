@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { SignupUnavailable } from "@/app/signup/_components/unavailable";
 import { HOSPITAL_FORM } from "@/content/onboarding-hospital";
+import { onTetherHost } from "@/lib/landing/tether-host";
 import { liveNotice } from "@/lib/onboarding/notice";
 import { PNFP_BUREAUS } from "@/lib/registry";
 import { HospitalApplicationForm } from "./_components/form";
@@ -23,5 +24,7 @@ export default async function HospitalSignupPage() {
         {HOSPITAL_FORM.unavailableBody}
       </SignupUnavailable>
     );
-  return <HospitalApplicationForm notice={notice} bureaus={PNFP_BUREAUS} />;
+  return (
+    <HospitalApplicationForm notice={notice} bureaus={PNFP_BUREAUS} tether={await onTetherHost()} />
+  );
 }
