@@ -80,3 +80,17 @@ Owner said "go through all gates" (13 Nov 2026): steps run back to back; each ST
 | Screens  | `docs/clinic-floor/screens/`                                             |
 | Not done | pilot, cut-over, delete old pages (owner); axe / budgets (signed-in run) |
 | Report   | `docs/clinic-floor/REPORT.md`                                            |
+
+## Follow-up 1: pregnancy and SpO₂ scale 2 as engine inputs (15 Nov 2026)
+
+Branch `feat/clinic-floor-engine-inputs`, cut from `main`. Engine inputs only. No rule, threshold or score was added.
+
+| Item   | Result                                                                                                                                                                                                                                                     |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ruling | Owner (CSO) ruled in the main chat on 15 Nov: go on change 1. For sex F or unknown the pregnancy answer starts at "Not known", so the engine raises confirm-pregnancy. For a male patient the question is hidden and the answer is pinned to not pregnant. |
+| Input  | `draftInput` sends `pregnancy` and `spo2Scale2Enabled` from the panel. Reproductive age now comes from the signed REF-PREG-AGE (`inPregnancyAgeRange`), replacing the inline 12/50.                                                                        |
+| UI     | Step 2 has a Pregnancy chip row (not shown for men) and an "SpO₂ scale 2" toggle, off by default. A re-check carries the last answer forward.                                                                                                              |
+| Copy   | `FLOOR.panel.pregnancy`, `pregnancyOpts`, `scale2`, `scale2Title`. All are **draft**; the status is unchanged.                                                                                                                                             |
+| T10    | 200 seeded sets now also randomise pregnancy and scale 2. Level, reasoning and NEWS2 all match a direct engine call. Added tests: men are pinned; both inputs reach the engine.                                                                            |
+| Gap    | `triage_records` has no column for pregnancy or scale 2, so the live loader rebuilds past inputs as unknown/off. A live re-check therefore starts at "Not known".                                                                                          |
+| Next   | Change 2: age and sex on the live loader. Held for a go.                                                                                                                                                                                                   |

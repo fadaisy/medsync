@@ -10,7 +10,7 @@ import type { FloorCtx } from "./floor";
 import type { Draft, Field } from "./shared";
 import type { FloorPerson } from "@/lib/clinic-floor/fixture";
 import type { FloorRow } from "@/lib/clinic-floor/model";
-import type { AcuityLevel, Acvpu } from "@/lib/triage/types";
+import type { AcuityLevel, Acvpu, PregnancyStatus } from "@/lib/triage/types";
 import { useMemo, useState } from "react";
 
 import { c } from "@/components/reception/ui";
@@ -47,6 +47,10 @@ function freshDraft(p: FloorPerson, re: boolean): Draft {
     v: {},
     avpu: "A",
     o2: false,
+    // Owner ruling 15 Nov 2026: F or unknown sex starts at "unknown" so the engine raises confirm-pregnancy;
+    // a re-check carries the last answer forward.
+    preg: (re && p.triage?.input.context.pregnancy) || "unknown",
+    scale2: re && p.triage?.input.context.spo2Scale2Enabled === true,
     sugar: re && p.triage?.input.vitals.bloodGlucose != null,
     pick: null,
     why: "",
@@ -463,7 +467,7 @@ function Panel({
       age_years: p.age,
       pregnancy: input.context.pregnancy,
       reproductive_age_female: input.context.reproductiveAgeFemale,
-      spo2_scale2_enabled: false,
+      spo2_scale2_enabled: input.context.spo2Scale2Enabled,
       vitals: input.vitals,
       life_threat_flags: input.lifeThreatFlags,
       prior_level: p.triage?.level ?? null,
@@ -657,7 +661,26 @@ function Panel({
             chip(d.avpu === k, P.acvpu[k], () => set({ avpu: k }), "sm2"),
           )}
           {chip(d.o2, P.oxygen, () => set({ o2: !d.o2 }), "sm2")}
+          <button
+            type="button"
+            className={c("chip", "sm2", d.scale2 && "on")}
+            aria-pressed={d.scale2}
+            title={P.scale2Title}
+            onClick={() => set({ scale2: !d.scale2 })}
+          >
+            {P.scale2}
+          </button>
         </div>
+        {p.sex !== "M" ? (
+          <>
+            <p className={c("sublbl")}>{P.pregnancy}</p>
+            <div className={c("chips")} role="group" aria-label={P.pregnancy}>
+              {(Object.keys(P.pregnancyOpts) as PregnancyStatus[]).map((k) =>
+                chip(d.preg === k, P.pregnancyOpts[k], () => set({ preg: k }), "sm2"),
+              )}
+            </div>
+          </>
+        ) : null}
         {!d.sugar ? (
           <button
             type="button"

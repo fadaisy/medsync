@@ -11,6 +11,8 @@ metadata:
 Clinic floor built through STOP 8 on 13 Nov 2026 in worktree `.claude/worktrees/clinic-floor-4f4be4`, branch `feat/clinic-floor` (cut from feat/reception-desk). Commits f869690a (STOP 2), de1258dc, 273f7907, 1e8fdb8d. Not pushed, not deployed. Flag `CLINIC_FLOOR`.
 15 Nov: main merged in, `/clinic` opened on the Tether domain (TETHER_OPEN), branch pushed at 85d3dc42 for a PR to main; owner merges, applies 0295, deploys, sets CLINIC_FLOOR.
 
+15 Nov (cloud): follow-up branch `feat/clinic-floor-engine-inputs` off main. Change 1 is done: pregnancy (default "Not known", owner ruling) and SpO₂ scale 2 are now engine inputs on the floor panel, and T10 is extended (STOP-REPORTS "Follow-up 1"). Changes 2–5 are gated, one go each: age/sex live, past readings, lab results back, follow-up booking.
+
 - Migration 0295 GATED, unapplied. ADRs 0491–0497. Copy + trend bands draft.
 - Read `docs/clinic-floor/REPORT.md` first (open items: SpO₂ scale 2 + pregnancy not asked on the floor → keep /nurse/triage until added; follow-up booking, lab release, past readings, age/sex not linked live; parity map unsigned; pilot/cut-over is the owner's).
 - Browser checks: dev server on `floor.localhost:<port>` (localhost gives 431, 127.0.0.1 blocks hydration).
