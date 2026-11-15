@@ -7,13 +7,16 @@ import { tideOn } from "@/lib/design/tide";
 export function TideScope({
   group,
   light,
+  force,
   children,
 }: {
   group: TideGroup;
   light?: boolean;
+  /** Tide whatever TIDE_SURFACES says (the Tether domain, ADR 0510). */
+  force?: boolean;
   children: ReactNode;
 }) {
-  if (!tideOn(group)) return <>{children}</>;
+  if (!force && !tideOn(group)) return <>{children}</>;
   return (
     <div data-ds="tide" data-ds-light={light ? "" : undefined} className="contents">
       {children}

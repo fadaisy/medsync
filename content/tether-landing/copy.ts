@@ -89,6 +89,8 @@ export const AUTH = {
     label: "Ways to join",
   },
   home: "Tether home",
+  /** Above the sign-up forms: back to the four ways to join, beside the sign-in form. */
+  otherDoors: "Choose a different door",
 } as const;
 
 export const HERO = {

@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Sign-up headings say Tether on Tether — 15 Nov 2026
+
+- On the Tether domain the patient, clinical and hospital sign-up headings name Tether
+  ([ADR 0511](docs/adr/0511-tether-sign-up-headings-say-tether.md)). The consent still names MedSync.
+
+### Changed — Sign-up on Tether looks like Tether — 15 Nov 2026
+
+- On the Tether domain the staff and hospital sign-up forms sit in Tether's bar and Tide colours, `/get-started`
+  goes to the Tether sign-in page with its four ways to join, the awaiting-approval pages say Tether, and tab
+  titles end in "· Tether" ([ADR 0510](docs/adr/0510-tether-sign-up-stays-on-tether.md)). MedSync's domain is unchanged.
+
 ### Fixed — The code step opens under the password — 15 Nov 2026
 
 - The sign-in asked for the account's assurance level before the new session reached the request's cookies, so it

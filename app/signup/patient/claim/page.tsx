@@ -5,7 +5,7 @@ import { liveNotice } from "@/lib/onboarding/notice";
 import { DeskClaimForm } from "./form";
 
 export const metadata: Metadata = {
-  title: "Take over your clinic record · MedSync",
+  title: "Take over your clinic record",
   robots: { index: false, follow: false },
 };
 

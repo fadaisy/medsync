@@ -309,6 +309,14 @@ export const SETUP = {
   startDepartmentHint: "Only the departments you ticked.",
 } as const;
 
+/** ADR 0511: the same headings on the Tether domain (Fadhul, 15 Nov 2026: "say Tether"). */
+export const TETHER_SIGNUP = {
+  patientTitle: "Create your Tether account",
+  clinicalTitle: "Join your hospital on Tether",
+  notOnTether: "My hospital isn't on Tether",
+  hospitalTitle: "Apply to bring your hospital onto Tether",
+} as const;
+
 /** /patient/profile after signup — the deferred fields land here (Appendix A). Reading grade ≤ 8. */
 export const PROFILE = {
   welcomeTitle: "Welcome to MedSync",

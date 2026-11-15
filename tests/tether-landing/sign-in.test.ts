@@ -74,6 +74,9 @@ describe("tetherHome", () => {
     expect(tetherHome("/nurse/triage")).toBe("/clinic?view=triage");
     expect(tetherHome("/doctor")).toBe("/clinic?view=line");
   });
+  it("sends the door page to the Tether sign-in, where the doors are (ADR 0510)", () => {
+    expect(tetherHome("/get-started")).toBe("/sign-in");
+  });
   it("leaves every other page alone", () => {
     for (const p of [
       "/",

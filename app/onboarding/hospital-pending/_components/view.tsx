@@ -5,8 +5,10 @@ import { desc } from "drizzle-orm";
 import { EmergencyButton } from "@/components/landing/emergency-button";
 import { PENDING } from "@/content/onboarding";
 import { FACILITY_LEVEL_LABELS, HOSPITAL_PENDING } from "@/content/onboarding-hospital";
+import { NAV } from "@/content/tether-landing/copy";
 import { db } from "@/db";
 import { hospitalDpaVersions } from "@/db/schema/hospital-dpa-versions";
+import { onTetherHost } from "@/lib/landing/tether-host";
 import { describeState } from "@/lib/lifecycle";
 import { hospitalDocumentsOutstanding } from "@/lib/onboarding/documents";
 import { formatDate } from "@/lib/onboarding/notice";
@@ -20,6 +22,7 @@ const card = "border-border bg-card shadow-card flex flex-col gap-3 rounded-lg b
  * verified — the agreement gate. No promise of an email or SMS (Q11): "Check back here".
  */
 export async function HospitalPendingView({ app }: { app: HospitalApplication }) {
+  const tether = await onTetherHost();
   const rejected = app.state === "rejected";
   const gate = app.state === "verified" && !app.agreementAcceptedVersion;
   const signed = app.state === "verified" && !!app.agreementAcceptedVersion;
@@ -48,7 +51,7 @@ export async function HospitalPendingView({ app }: { app: HospitalApplication })
       >
         <div className="mx-auto flex h-14 w-full max-w-300 items-center justify-between gap-3 px-4 sm:px-8">
           <Link href="/" className="text-foreground text-heading-s tracking-tight">
-            {HOSPITAL_PENDING.brand}
+            {tether ? NAV.brand : HOSPITAL_PENDING.brand}
           </Link>
           <div className="flex items-center gap-3 whitespace-nowrap sm:gap-4">
             <form action="/sign-out" method="POST">
