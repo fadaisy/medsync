@@ -47,6 +47,7 @@ const TETHER_OPEN = [
   "/sign-in",
   "/sign-up",
   "/sign-out",
+  "/forgot-password",
   "/signup",
   "/onboarding",
   "/get-started",

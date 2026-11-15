@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import {
   CalendarPlusIcon,
@@ -10,9 +11,13 @@ import {
 } from "lucide-react";
 
 import { IncomingIntakesPanel } from "@/components/intake/incoming-panel";
+import { DeskLive } from "@/components/reception/desk-live";
 import { ComingDays } from "@/components/scheduling/coming-days";
 import { fetchIncomingPreArrivals } from "@/lib/emergency/queries";
 import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
+import { isTetherHost } from "@/lib/landing/feature";
+import { loadDeskData } from "@/lib/reception/desk/load";
+import { receptionDeskLiveFor } from "@/lib/reception/feature";
 import { fetchReceptionComingDays, fetchReceptionTodayCounts } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
 import { ETA_BAND_LABEL } from "@/supabase/functions/_shared/pre-arrival";
@@ -22,6 +27,11 @@ export const dynamic = "force-dynamic";
 
 export default async function ReceptionTodayPage() {
   const scope = await requireReceptionScope();
+  // ADR 0485: behind RECEPTION_DESK the desk replaces this page; off, the page below is unchanged.
+  // ADR 0500: on the Tether domain the desk is always the reception.
+  const tether = isTetherHost((await headers()).get("host"));
+  if (tether || receptionDeskLiveFor(scope.hospitalId))
+    return <DeskLive data={await loadDeskData(scope)} />;
   const firstName = scope.fullName?.split(" ")[0];
 
   const [counts, coming, preArrivals, incoming] = await Promise.all([

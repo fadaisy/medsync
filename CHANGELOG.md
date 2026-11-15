@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Reception on Tether is the desk — 15 Nov 2026
+
+- On the Tether domain, `/reception` is the booking desk for every hospital
+  ([ADR 0500](docs/adr/0500-tether-reception-is-the-desk.md)). Needs migration 0294 and the desk's functions first.
+- GATED migration 0297 puts the MFA gate on `clinic_leads`, which 0293 left without it (Review C-2).
+
 ### Added — Tether on its own domain — 14 Nov 2026
 
 - The hospital app serves Tether on the domains in `TETHER_HOSTS`: the Tether landing and sign-in, and only
@@ -16,6 +22,80 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - With `LANDING_TETHER` on, `/sign-in` and the authenticator-code page are drawn in the Tether look, in two
   columns: sign-in, and the four ways to join linking to today's sign-up forms. Same actions and role landing
   ([ADR 0498](docs/adr/0498-tether-sign-in.md)). New copy is draft.
+
+### Added — Reception desk (behind `RECEPTION_DESK`) — 13 Nov 2026
+
+- One desk for reception: Arrivals, Calendar (day, week, month), walk-in, book, move or cancel, close the day,
+  running late, emergencies first, shortcuts, shared-desk PIN switch
+  ([ADR 0485](docs/adr/0485-reception-desk-replaces-the-workspace.md)). Flag off: today's pages, unchanged.
+- A desk check-in needs the patient's identity checked first: year of birth, then the last 3 phone digits, then stop
+  ([ADR 0486](docs/adr/0486-identity-before-check-in.md)). Waits are staff-only ([ADR 0487](docs/adr/0487-staff-only-waits.md)).
+- GATED migration 0294 and the new Edge Function `ha-reception-desk`; redeploy `ha-check-in-patient`,
+  `ha-set-session-delay`, `ha-pre-arrival-arrived` and `ha-register-patient` after it. Wording is draft.
+- One `Ticket` (`mode` example or real) for the landing and the desk's booked ticket
+  ([ADR 0490](docs/adr/0490-one-ticket-component.md)).
+- The live desk: `/reception` reads the hospital's own day and writes through the existing server actions,
+  only behind `RECEPTION_DESK`.
+- Offline, check-ins wait encrypted on the computer and send when back online; the identity answer is checked
+  by the server then ([ADR 0488](docs/adr/0488-offline-check-in-queue.md)).
+
+### Added — Reception cancels and moves bookings — 12 Nov 2026
+
+- Reception › Bookings finds a booking by booking code or patient code and cancels it with a reason, or moves it to
+  another day or time of the same clinic, numbered clinic days included. Same Edge Functions as the patient and the
+  clinician, now allowing reception at the booking's own hospital; a move books through the booking core, so
+  capacity, hours and the clinic-day number hold ([ADR 0473](docs/adr/0473-reception-cancels-and-moves-bookings.md)).
+- A cancel by the clinic now texts the patient (`visit_cancelled`, GATED migration 0290). The "clinic day cancelled"
+  and "place released" messages were being dropped by the dispatcher because their visit was cancelled; they now go.
+
+### Added — A desk-registered patient takes their record over at sign-up — 13 Nov 2026
+
+- **Give a sign-up code** on the front door: for a patient this desk registered, after checking it is them. The code
+  (`ABCD-EFGH`) works once, for 30 days; five wrong tries spend it; only its blind index is stored
+  ([ADR 0475](docs/adr/0475-walk-in-patients-registered-at-the-desk.md)).
+- `/signup/patient/claim` (linked from sign-up): the mobile number the desk took, the code, then an email and
+  password. The desk's record gets the sign-in: same id, so bookings, visits and notes stay in one record. Nothing
+  is deleted; the code, the claim and the person's own consent are audited.
+- A wrong, expired, spent or used code changes nothing and says how to finish later. Ordinary sign-up still works.
+- A desk record can never get a password any other way: a guard on `auth.users` refuses it without an open claim,
+  and password reset refuses a desk record before asking Supabase.
+- GATED migration 0292 (after 0291); redeploy `ha-register-patient` after it. Wording is draft.
+
+### Added — Reception registers a walk-in who has no MedSync account — 12 Nov 2026
+
+- **Register new patient** (a centred dialog) on the front door, on Confirm identity and on Book: sign-up's
+  questions and rules, no email or password. The record gets a patient code and is booked and checked in like any
+  patient; nobody can sign in with it ([ADR 0475](docs/adr/0475-walk-in-patients-registered-at-the-desk.md)).
+- Before creating anything, this hospital's patients with the same phone, or the same name and year of birth, are
+  shown instead; the desk uses one or says it is someone else (audited).
+- The patient's agreement to the data-processing notice is recorded with the receptionist's name. Wording is draft.
+- GATED migration 0291; deploy the new Edge Function `ha-register-patient` after it. Taking the record over at a
+  later sign-up is designed in the ADR, not built.
+
+### Added — Reset your own password — 12 Nov 2026
+
+- Sign-in's "Forgot password?" now leads to `/forgot-password`: an emailed link, a page to choose a new password,
+  then sign in again ([ADR 0474](docs/adr/0474-password-reset.md)). The page answers the same whether or not the
+  email has an account. Staff with an authenticator enter their code before choosing the password.
+- No migration. Go-live needs custom SMTP, the confirm URL in Supabase's redirect list, and the recovery email
+  template pointed at `/forgot-password/confirm`.
+
+### Fixed — The doctor's auto-confirm is the one bookings follow, and the doctor's queue updates itself — 13 Nov 2026
+
+- A booking's first status follows the doctor's own auto-confirm, else the department's default, else manual: the
+  chain the doctor's page already showed. Before, a doctor with no setting of their own saw "Auto-confirm on" while
+  their requests sat unconfirmed and unshown ([ADR 0476](docs/adr/0476-doctor-auto-confirm-and-live-queue.md)). The
+  patient's booking screens promise the same. Needs the booking Edge Functions redeployed.
+- `/doctor/schedule` re-reads itself every 15 s while visible, so check-ins and calls show without a reload.
+
+### Changed — Four signed-in accounts per browser, and no "Something is wrong" door while it leads nowhere — 12 Nov 2026
+
+- One browser holds four signed-in accounts, not five: five sessions of cookies passed Node's 16 KB header limit and
+  every page answered HTTP 431 ([ADR 0472](docs/adr/0472-four-accounts-per-browser.md), superseding the limit in
+  ADR 0280).
+- Book a visit and Ask for a day show only Planned care while the symptom catalogue is off (Gate CS unsigned): the
+  "Something is wrong" door led to a page saying it was not available. It comes back by itself once the catalogue is
+  signed and `FEATURE_SYMPTOM_CATALOG=1`.
 
 ### Added — Tether landing page, foundation and shell (off) — 13 Nov 2026
 

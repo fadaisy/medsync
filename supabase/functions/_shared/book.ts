@@ -27,6 +27,11 @@
  *
  * A confidential line (PRD §2.9) is refused when a patient books for
  * someone else; the desk may book it.
+ *
+ * A MOVE (`reschedule-appointment`'s `to`, ADR 0473) books here like any
+ * other booking — capacity, opening hours, the clinic-day number — and only
+ * `movedFrom` differs: the new row links back to the one it replaces and
+ * carries that row's quote (ADR 0092: a held price is never re-quoted).
  */
 import type { CadreFee } from "./fees.ts";
 import type { BookingSymptom } from "./symptoms.ts";
@@ -112,6 +117,13 @@ export interface BookInput {
   /** The advisory tier from a signed catalog (ruling 3) — on the row, never on an element. */
   symptomTier?: "E" | "U" | "R" | null;
   symptomSubmissionId?: string | null;
+  /** A move: the booking this one replaces, and the quote it carries over verbatim. */
+  movedFrom?: {
+    appointmentId: string;
+    quotedFeeUgx: number | null;
+    quotedFeeLabel: string | null;
+    quotedFeeAt: string | null;
+  };
   idempotencyKey: string;
   slot?: SlotInput;
   session?: { sessionId: string };
@@ -518,17 +530,17 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
     });
     if (notOfferable) return fail(badRequest(notOfferable, init));
 
-    // Virtual is refused unless something GRANTS it — ADR 0029 §2's chain.
-    if (
-      slot.type === "virtual" &&
-      !resolveSchedulingSettings(clinicianSettings, departmentPolicy).allowVirtual
-    ) {
+    // ADR 0029 §2's chain: the clinician's row, else the department's policy,
+    // else the safe default. Virtual is refused unless something GRANTS it.
+    const effective = resolveSchedulingSettings(clinicianSettings, departmentPolicy);
+    if (slot.type === "virtual" && !effective.allowVirtual) {
       return fail(badRequest("This clinician doesn't accept virtual appointments.", init));
     }
 
-    // The clinician's own row alone, NOT the resolved chain — reading the
-    // department's default here would start auto-confirming at clinicians
-    // who never configured it, a product decision ADR 0084 does not make.
+    // Auto-confirm follows the same chain the doctor's page shows (ADR 0476).
+    // Reading the clinician's row alone left a doctor with no row of their
+    // own looking at "Auto-confirm on" (the department's default) with the
+    // Pending rail hidden while their requests sat in pending_approval.
     startsAtIso = slot.starts_at;
     row = {
       hospital_id: input.hospitalId,
@@ -543,7 +555,7 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       symptom_tier: input.symptomTier ?? null,
       symptom_submission_id: input.symptomSubmissionId ?? null,
       origin: input.origin,
-      status: settings?.auto_confirm ? "confirmed" : "pending_approval",
+      status: effective.autoConfirm ? "confirmed" : "pending_approval",
       priority: input.priority ?? "routine",
       type: slot.type,
       created_by_user_id: input.actorId,
@@ -553,6 +565,13 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       quoted_fee_label: slotQuote.label,
       quoted_fee_at: slotQuote.feeUgx === null ? null : new Date().toISOString(),
     };
+  }
+
+  if (input.movedFrom) {
+    row.rescheduled_from_appointment_id = input.movedFrom.appointmentId;
+    row.quoted_fee_ugx = input.movedFrom.quotedFeeUgx;
+    row.quoted_fee_label = input.movedFrom.quotedFeeLabel;
+    row.quoted_fee_at = input.movedFrom.quotedFeeAt;
   }
 
   // 4. INSERT, with a fresh booking code per attempt. Uniqueness per

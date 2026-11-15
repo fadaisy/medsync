@@ -25,6 +25,7 @@ import {
 } from "@/db/schema/scheduling";
 import { serviceLines } from "@/db/schema/service-lines";
 import { users } from "@/db/schema/users";
+import { ts } from "@/lib/intake/queries";
 import {
   buildSlots,
   DEFAULT_TIME_ZONE,
@@ -289,15 +290,15 @@ async function fetchBookableClinicians(
       });
     }
 
+    // The resolved chain, exactly as the write path picks the initial status
+    // (ADR 0476), so the check step promises only what the booking gets.
+    const effective = resolveSchedulingSettings(clinicianSettings, departmentPolicy);
     const list = out.get(a.departmentId) ?? [];
     list.push({
       userId: a.userId,
       fullName: a.fullName ?? "Your clinician",
-      // The clinician's OWN row, not the resolved chain — the write path
-      // reads `settings?.auto_confirm` alone, and this flag becomes a
-      // promise on the check step. Under-promising is the safe direction.
-      autoConfirm: clinicianSettings?.autoConfirm ?? false,
-      allowVirtual: resolveSchedulingSettings(clinicianSettings, departmentPolicy).allowVirtual,
+      autoConfirm: effective.autoConfirm,
+      allowVirtual: effective.allowVirtual,
       seenBefore: lastSeenByDepartment.get(a.departmentId) === a.userId,
       slotsByDate,
     });
@@ -384,6 +385,7 @@ async function fetchElsewhere(
   if (lines.length === 0) return out;
   const names = Array.from(new Set(lines.map((l) => l.name.toLowerCase())));
 
+  // Dates inside raw `sql` go through ts(): postgres.js refuses a bare Date there (lib/intake/queries.ts).
   const rows = await db
     .select({
       name: sql<string>`lower(${serviceLines.name})`,
@@ -394,19 +396,19 @@ async function fetchElsewhere(
         select min(${clinicSessions.startsAt}) from ${clinicSessions}
         where ${clinicSessions.serviceLineId} = ${serviceLines.id}
           and ${clinicSessions.status} = 'published'
-          and ${clinicSessions.startsAt} > ${now}
-          and ${clinicSessions.startsAt} < ${until}
+          and ${clinicSessions.startsAt} > ${ts(now)}
+          and ${clinicSessions.startsAt} < ${ts(until)}
           and ${clinicSessions.bookedCount} < ceil(${clinicSessions.capacityBooked} * ${clinicSessions.overbookingFactor})
       )`,
       soonestBlock: sql<Date | null>`(
-        select min(greatest(${availabilityBlocks.startsAt}, ${now}::timestamptz)) from ${availabilityBlocks}
+        select min(greatest(${availabilityBlocks.startsAt}, ${ts(now)})) from ${availabilityBlocks}
         where ${availabilityBlocks.hospitalId} = ${hospitals.id}
           and (${availabilityBlocks.departmentId} = ${serviceLines.departmentId} or ${availabilityBlocks.departmentId} is null)
           and ${availabilityBlocks.kind} = 'bookable'
           and ${availabilityBlocks.state} = 'active'
-          and ((${availabilityBlocks.endsAt} >= ${now} and ${availabilityBlocks.startsAt} < ${until})
+          and ((${availabilityBlocks.endsAt} >= ${ts(now)} and ${availabilityBlocks.startsAt} < ${ts(until)})
             or (${availabilityBlocks.recurrence} = 'weekly'
-              and (${availabilityBlocks.recurrenceUntil} is null or ${availabilityBlocks.recurrenceUntil} >= ${now})))
+              and (${availabilityBlocks.recurrenceUntil} is null or ${availabilityBlocks.recurrenceUntil} >= ${ts(now)})))
       )`,
     })
     .from(serviceLines)
