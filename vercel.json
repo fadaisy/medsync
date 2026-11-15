@@ -28,6 +28,14 @@
     {
       "path": "/api/pharmacy/sms/daily",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/clinics-schedule-publish",
+      "schedule": "0 19 * * *"
+    },
+    {
+      "path": "/api/cron/clinics-schedule-publish",
+      "schedule": "0 3 * * *"
     }
   ]
 }

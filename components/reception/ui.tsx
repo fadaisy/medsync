@@ -197,6 +197,8 @@ export function DeskDialog({
   title,
   lead,
   closeLabel = "Close",
+  cls,
+  mark,
   children,
 }: {
   open: boolean;
@@ -208,6 +210,10 @@ export function DeskDialog({
   title: ReactNode;
   lead?: ReactNode;
   closeLabel?: string;
+  /** Extra classes on the card (a caller's own width). */
+  cls?: string;
+  /** Replaces the icon tile (the clinics workspace shows the clinic's colour swatch). */
+  mark?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -217,11 +223,13 @@ export function DeskDialog({
       width="xl"
       className="w-auto max-w-none overflow-visible rounded-none bg-transparent p-0 shadow-none ring-0 sm:max-h-none sm:max-w-none"
     >
-      <div className={`${s.tokens} ${c("modal", size)}`} aria-label={label}>
+      <div className={`${s.tokens} ${c("modal", size)} ${cls ?? ""}`} aria-label={label}>
         <div className={c("mh")}>
-          <span className={c("tile", red && "red")} aria-hidden="true">
-            <Icon n={tile} size={18} />
-          </span>
+          {mark ?? (
+            <span className={c("tile", red && "red")} aria-hidden="true">
+              <Icon n={tile} size={18} />
+            </span>
+          )}
           <div>
             <h2 className={red ? s.redText : undefined}>{title}</h2>
             {lead ? <p>{lead}</p> : null}

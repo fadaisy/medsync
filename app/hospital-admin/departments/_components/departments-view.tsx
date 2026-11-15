@@ -1101,7 +1101,7 @@ function DepartmentPanel({
                           label: c.name,
                           meta: c.status === "live" ? "Live" : "Planned",
                         }))}
-                      href={(id) => `/hospital-admin/departments/clinics?open=${id}`}
+                      href={() => "/hospital-admin/clinics?view=clinics"}
                     />
                   ) : null}
                   {tab === "Staff" ? (

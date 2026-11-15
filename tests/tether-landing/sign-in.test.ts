@@ -39,7 +39,7 @@ describe("the Tether domain", () => {
       "/clinician/availability",
       "/doctor/schedule",
       "/nurse/incoming",
-      "/hospital-admin/scheduling",
+      "/hospital-admin/clinics",
       "/clinic",
       "/clinic/screen",
       "/sw.js",

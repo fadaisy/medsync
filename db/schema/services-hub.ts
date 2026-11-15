@@ -9,6 +9,7 @@ import {
   pgTable,
   primaryKey,
   serial,
+  smallint,
   text,
   timestamp,
   uuid,
@@ -37,6 +38,10 @@ export const hospitalPlaces = pgTable("hospital_places", {
   /** ≤ 140 characters: it goes out by SMS. */
   directions: text("directions"),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
+  /** 0296: blocks and wings, rooms in them. */
+  kind: text("kind").notNull().default("room"),
+  parentId: uuid("parent_id"),
+  tier: text("tier"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -202,6 +207,10 @@ export const serviceClosures = pgTable("service_closures", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   liftedAt: timestamp("lifted_at", { withTimezone: true }),
   liftedBy: uuid("lifted_by"),
+  /** 0296: part of a day, and what happens to people already booked. */
+  partStartMinutes: smallint("part_start_minutes"),
+  partEndMinutes: smallint("part_end_minutes"),
+  bookingPolicy: text("booking_policy").notNull().default("offer"),
 });
 
 /** S2: the one-time legacy import decision. */
