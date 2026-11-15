@@ -17,8 +17,8 @@ Vercel env changes reach only new deployments: set everything first, then deploy
 | ------------------------------------------------------- | ---------------------------------------------------- | --------------- |
 | Vercel plan                                             | **Pro**                                              | Host            |
 | `vercel.json` → `/api/cron/dispatch-reminders` schedule | `*/15 * * * *` (branch `feat/booking-pilot-go-live`) | Code, after Pro |
-| `DEV_SKIP_MFA`                                          | **unset** in Production                              | Host            |
-| `PHARMACY_DEV_HOSPITALS`                                | **unset** in Production                              | Host            |
+| `DEV_SKIP_MFA`                                          | **unset** in Production (removed 15 Nov; keep unset) | Host            |
+| `PHARMACY_DEV_HOSPITALS`                                | **unset** in Production (removed 15 Nov; keep unset) | Host            |
 | `SKIP_ENV_VALIDATION`                                   | **unset** everywhere on Vercel                       | Host            |
 | `MEDSYNC_ENV` (Supabase Functions secret)               | `production`                                         | Owner           |
 
@@ -31,31 +31,35 @@ Vercel env changes reach only new deployments: set everything first, then deploy
   (`lib/boot-guard.ts`, `instrumentation.ts`), so leaving one on shows up as a dead deploy, not a quiet hole.
   Check Preview too if pilot clinics will ever use a preview URL: the guard only runs where
   `VERCEL_ENV=production`.
+- Reminder text on a clinic (Clinics & schedule → Booking) says "Sent at 18:00 the evening before". On the
+  daily cron (`0 5 * * *`, 08:00 EAT) that is not true: until Pro, turn that promise into the copy check.
 - `MEDSYNC_ENV=production` in Supabase Functions stops `pt-emergency-sheet` from serving draft rows when a
   caller asks for them. On Vercel it is optional: the app falls back to `VERCEL_ENV`.
 
 ## 1. Vercel env (the Next app), Production
 
-| Name                                   | Value / rule                                                         | Who  | Needed for                                                               |
-| -------------------------------------- | -------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`             | the project URL                                                      | Host | everything                                                               |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`        | the anon key                                                         | Host | everything                                                               |
-| `SUPABASE_SERVICE_ROLE_KEY`            | the service role key, server only                                    | Host | crons, USSD/SMS routes, privileged reads                                 |
-| `DATABASE_URL`                         | the pooler connection string (port 6543)                             | Host | Drizzle (crons, server pages)                                            |
-| `DATABASE_DIRECT_URL`                  | the direct connection string (port 5432); required by env validation | Host | env validation fails without it                                          |
-| `MEDSYNC_PHI_KEY`                      | **same key** as the Supabase Functions secret                        | Host | phone numbers (encrypt, decrypt, blind index)                            |
-| `CRON_SECRET`                          | random, ≥ 16 chars (`openssl rand -hex 32`)                          | Host | every `/api/cron/*` route; without it each one answers 503               |
-| `AFRICASTALKING_USERNAME`              | the AT app username (not `sandbox` in Production)                    | Host | every SMS; unset, the reminder cron answers 503 and sends nothing        |
-| `AFRICASTALKING_API_KEY`               | the AT API key                                                       | Host | every SMS                                                                |
-| `AFRICASTALKING_SENDER_ID`             | optional; needs UCC/AT approval. Unset = AT's default shortcode      | Host | sender name on SMS                                                       |
-| `SMS_WEBHOOK_SECRET`                   | random, ≥ 16 chars; also typed into the AT dashboard URLs            | Host | delivery reports and inbound SMS (`/api/sms/*/<secret>`)                 |
-| `USSD_WEBHOOK_SECRET`                  | random, ≥ 16 chars; also typed into the AT dashboard URL             | Host | USSD (`/api/ussd/<secret>`)                                              |
-| `AT_CALLBACK_IPS`                      | **unset** unless AT gave a current IP list in writing                | Host | optional second lock on callbacks                                        |
-| `EXPO_PUSH_ACCESS_TOKEN`               | optional (Expo enhanced push security)                               | Host | push; web-first pilot has few or no push tokens, so SMS carries the load |
-| `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | recommended for a pilot                                              | Host | error reports                                                            |
-| `SENTRY_AUTH_TOKEN`                    | optional (source maps)                                               | Host | readable stack traces                                                    |
-| `ONBOARDING_EVENTS_RETENTION_DAYS`     | optional; unset = 180                                                | Host | cleanup cron                                                             |
-| `VERCEL_ENV`                           | set by Vercel; do not set by hand                                    | —    | production checks                                                        |
+| Name                                   | Value / rule                                                          | Who   | Needed for                                                                                                                              |
+| -------------------------------------- | --------------------------------------------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | the project URL                                                       | Host  | everything                                                                                                                              |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`        | the anon key                                                          | Host  | everything                                                                                                                              |
+| `SUPABASE_SERVICE_ROLE_KEY`            | the service role key, server only                                     | Host  | crons, USSD/SMS routes, privileged reads                                                                                                |
+| `DATABASE_URL`                         | the pooler connection string (port 6543)                              | Host  | Drizzle (crons, server pages)                                                                                                           |
+| `DATABASE_DIRECT_URL`                  | the direct connection string (port 5432); required by env validation  | Host  | env validation fails without it                                                                                                         |
+| `MEDSYNC_PHI_KEY`                      | **same key** as the Supabase Functions secret                         | Host  | phone numbers (encrypt, decrypt, blind index)                                                                                           |
+| `CRON_SECRET`                          | random, ≥ 16 chars (`openssl rand -hex 32`)                           | Host  | every `/api/cron/*` route; without it each one answers 503                                                                              |
+| `AFRICASTALKING_USERNAME`              | the AT app username (not `sandbox` in Production)                     | Host  | every SMS; unset, the reminder cron answers 503 and sends nothing                                                                       |
+| `AFRICASTALKING_API_KEY`               | the AT API key                                                        | Host  | every SMS                                                                                                                               |
+| `AFRICASTALKING_SENDER_ID`             | optional; needs UCC/AT approval. Unset = AT's default shortcode       | Host  | sender name on SMS                                                                                                                      |
+| `SMS_WEBHOOK_SECRET`                   | random, ≥ 16 chars; also typed into the AT dashboard URLs             | Host  | delivery reports and inbound SMS (`/api/sms/*/<secret>`)                                                                                |
+| `USSD_WEBHOOK_SECRET`                  | random, ≥ 16 chars; also typed into the AT dashboard URL              | Host  | USSD (`/api/ussd/<secret>`)                                                                                                             |
+| `AT_CALLBACK_IPS`                      | **unset** unless AT gave a current IP list in writing                 | Host  | optional second lock on callbacks                                                                                                       |
+| `EXPO_PUSH_ACCESS_TOKEN`               | optional (Expo enhanced push security)                                | Host  | push; web-first pilot has few or no push tokens, so SMS carries the load                                                                |
+| `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | recommended for a pilot                                               | Host  | error reports                                                                                                                           |
+| `SENTRY_AUTH_TOKEN`                    | optional (source maps)                                                | Host  | readable stack traces                                                                                                                   |
+| `TETHER_HOSTS`                         | the Tether domains, comma-separated (ADR 0499)                        | Owner | Tether landing, sign-in and booking-only workspaces on that domain; setting it is the owner's sign-off for the draft landing copy there |
+| `MEDSYNC_URL`                          | the MedSync address clinical users are sent to from Tether (ADR 0499) | Owner | clinical sign-ins that land on a closed Tether workspace                                                                                |
+| `ONBOARDING_EVENTS_RETENTION_DAYS`     | optional; unset = 180                                                 | Host  | cleanup cron                                                                                                                            |
+| `VERCEL_ENV`                           | set by Vercel; do not set by hand                                     | —     | production checks                                                                                                                       |
 
 The SMS webhook secrets and AT keys must be set before the AT dashboard callback URLs are pointed at the
 host: [ops-channels.md §1 and §3](../ops-channels.md).
@@ -73,16 +77,22 @@ host: [ops-channels.md §1 and §3](../ops-channels.md).
 
 Unset means off for every flag below.
 
-| Name                                        | Pilot value                          | Who   | What it does                                                                                                    |
-| ------------------------------------------- | ------------------------------------ | ----- | --------------------------------------------------------------------------------------------------------------- |
-| `FEATURE_SYMPTOM_CATALOG`                   | **unset**                            | Owner | symptom catalogue before booking (`lib/emergency/feature.ts`); off in production until Gate CS (signed content) |
-| `FEATURE_PRE_ALERT`                         | **unset**                            | Owner | "Tell a hospital I'm coming"; off, the emergency sheet is call-only                                             |
-| `FEATURE_FIRST_AID_CARDS`                   | **unset**                            | Owner | the two draft first-aid cards                                                                                   |
-| `PATIENT_WEB_TIDE`                          | owner decides (`1` or unset)         | Owner | `1` serves the new Tide patient pages; unset keeps the old `/patient` pages                                     |
-| `PATIENT_FLAGS`                             | **unset**                            | Owner | phone-only extras (`mobileChat`, `mobilePayments`, `mobilePhoneOtp`, `sayIt`)                                   |
-| `TIDE_SURFACES`                             | owner decides (`reception` or unset) | Owner | reception in the Tide look; unset changes nothing                                                               |
-| `PHARMACY_PATIENT_LIST`, `PHARMACY_REFILLS` | **unset**                            | Owner | patient medicines list and refills; not part of booking                                                         |
-| `PATIENT_RESULTS`, `PATIENT_RESULTS_SMS`    | **unset**                            | Owner | lab results to patients; not part of booking                                                                    |
+| Name                                        | Pilot value                               | Who   | What it does                                                                                                                          |
+| ------------------------------------------- | ----------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `FEATURE_SYMPTOM_CATALOG`                   | **unset**                                 | Owner | symptom catalogue before booking (`lib/emergency/feature.ts`); off in production until Gate CS (signed content)                       |
+| `FEATURE_PRE_ALERT`                         | **unset**                                 | Owner | "Tell a hospital I'm coming"; off, the emergency sheet is call-only                                                                   |
+| `FEATURE_FIRST_AID_CARDS`                   | **unset**                                 | Owner | the two draft first-aid cards                                                                                                         |
+| `PATIENT_WEB_TIDE`                          | owner decides (`1` or unset)              | Owner | `1` serves the new Tide patient pages; unset keeps the old `/patient` pages                                                           |
+| `PATIENT_FLAGS`                             | **unset**                                 | Owner | phone-only extras (`mobileChat`, `mobilePayments`, `mobilePhoneOtp`, `sayIt`)                                                         |
+| `TIDE_SURFACES`                             | owner decides (`reception` or unset)      | Owner | reception in the Tide look; unset changes nothing                                                                                     |
+| `RECEPTION_DESK`                            | `1` or hospital ids, after migration 0294 | Owner | the Tether reception desk (ADR 0485/0500); in Production also needs `RECEPTION_DESK_COPY_STATUS` signed. Pilot: one clinic for 2 days |
+| `CLINIC_FLOOR`                              | `1` or hospital ids, after migration 0295 | Owner | the clinic floor (ADR 0491); in Production also needs the floor copy signed. Pilot: one clinic for 2 days                             |
+| `LANDING_TETHER`                            | owner decides (`1` or unset)              | Owner | the Tether landing on the MedSync domain; in Production needs the landing and FAQ copy signed. Always on for `TETHER_HOSTS` domains   |
+| `PHARMACY_PATIENT_LIST`, `PHARMACY_REFILLS` | **unset**                                 | Owner | patient medicines list and refills; not part of booking                                                                               |
+| `PATIENT_RESULTS`, `PATIENT_RESULTS_SMS`    | **unset**                                 | Owner | lab results to patients; not part of booking                                                                                          |
+
+`CLINICS_SCHEDULE` no longer exists: Clinics & schedule is always on since the cut-over (ADR 0508), and the old
+Scheduling and Departments › Clinics pages answer 308 to it.
 
 Every clinical flag outside booking (`EMR_*`, `CLERKING_*`, `LAB_*`, `NCD_*`, `PRESCRIBE_V2`, `WARD_BUILDER`, …)
 stays as it is today; the pilot does not need any of them on.
@@ -102,14 +112,15 @@ legal items behind these flags; flipping the flag does not make them true.
 
 ## 5. Crons (`vercel.json`)
 
-| Path                           | Schedule       | Note                                                                                   |
-| ------------------------------ | -------------- | -------------------------------------------------------------------------------------- |
-| `/api/cron/dispatch-reminders` | `*/15 * * * *` | **Pro only.** Reminders, receipts, waitlist offers, push receipts, unconfirmed release |
-| `/api/cron/sweep-pre-arrivals` | `0 4 * * *`    | daily                                                                                  |
-| `/api/cron/cleanup-drafts`     | `0 2 * * *`    | daily                                                                                  |
-| `/api/cron/sweep-break-glass`  | `0 3 * * *`    | daily                                                                                  |
-| `/api/cron/hmis-changes`       | `0 1 * * *`    | daily                                                                                  |
-| `/api/pharmacy/sms/daily`      | `0 5 * * *`    | daily                                                                                  |
+| Path                                 | Schedule                     | Note                                                                                                    |
+| ------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `/api/cron/dispatch-reminders`       | `*/15 * * * *`               | **Pro only.** Reminders, receipts, waitlist offers, push receipts, unconfirmed release                  |
+| `/api/cron/sweep-pre-arrivals`       | `0 4 * * *`                  | daily                                                                                                   |
+| `/api/cron/cleanup-drafts`           | `0 2 * * *`                  | daily                                                                                                   |
+| `/api/cron/sweep-break-glass`        | `0 3 * * *`                  | daily                                                                                                   |
+| `/api/cron/hmis-changes`             | `0 1 * * *`                  | daily                                                                                                   |
+| `/api/pharmacy/sms/daily`            | `0 5 * * *`                  | daily                                                                                                   |
+| `/api/cron/clinics-schedule-publish` | `0 19 * * *` and `0 3 * * *` | daily ×2 (22:00 and 06:00 EAT): publishes changes scheduled for "Tonight" or "Tomorrow" (ADR 0502/0508) |
 
 The dispatcher is safe at 15 minutes: a row is claimed (`state` → `sent` only where it is still `queued` or
 `held`) before anything is sent; quiet hours (default 21:00–07:00 EAT, per hospital) park a row until the
