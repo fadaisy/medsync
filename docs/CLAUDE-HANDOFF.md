@@ -1,6 +1,18 @@
 # Claude Code handoff
 
-For a Claude Code session picking this repo up without the previous session's local memory (a cloud session at claude.ai/code, or a new machine). Read `AGENTS.md` first, then this. Updated 2026-10-03.
+For a Claude Code session picking this repo up without the previous session's local memory (a cloud session at claude.ai/code, or a new machine). Read `AGENTS.md` first, then this. Updated 2026-11-15.
+
+## Start here: the owner works from a tablet (since 2026-11-15)
+
+- **The Mac is switched off.** Every session ran there until 2026-11-15; from now on all work is cloud sessions. Every branch those sessions built was pushed (no local-only commits left). Their 53 conversations stay on the Mac and can't be opened from here.
+- **What they knew is in `docs/claude-memory/`.** Start at `MEMORY.md` (one line per note), then open the notes your task touches. Notes are dated; newer beats older, and check the branch or file before trusting one. Paths such as `~/Desktop/medsync/.claude/worktrees/…`, `~/.claude/…` or `~/Desktop/*-harness` were on the Mac: use the branch the note names (`git fetch origin <branch>`).
+- **Keep the notes alive.** Cloud sessions have no memory of their own. When you finish a piece of work, update its note in `docs/claude-memory/` (same format: one fact per file, one index line in `MEMORY.md`) and commit it with the work, so it reaches `main` when the branch merges.
+- `REVIEW/` is the 11 Nov senior review (`senior-review-2026-11-11.md`; mark fixes DONE in `fix-plan.html`), see `docs/claude-memory/review-fixes-build.md`. `.claude/pilot-board/tracks.json` is the data behind the booking pilot board, see `docs/claude-memory/booking-pilot-board.md`.
+- **The owner has no terminal.** Migrations, Edge Function deploys and Vercel deploys are still the owner's: list them (exact files, order, branch) and ask how they want to apply them. Never apply or deploy them yourself.
+- The Mac's background loop that pushed every worktree is gone: push your own branch once its work is committed (never `main`).
+- **Left on the Mac only:** `.env.local` and the owner's `.env.example` edits, the PGlite harness `.emr-harness/` (`npm run test:emr-db` skips without it, ADR 0133), an old `git stash` (2026-10-17, stale), `.worktree-leftovers/` and `pharmacy-setup.mp4`.
+
+The sections below date from October. Where they disagree with `docs/claude-memory/`, the memory notes are newer.
 
 ## Who decides
 
@@ -18,7 +30,7 @@ For a Claude Code session picking this repo up without the previous session's lo
 - **Keep agent use low.** Build directly; use at most two or three subagents for large, disjoint work, and only when it pays.
 - When a new prompt conflicts with a committed ADR, surface the conflict and ask; record reversals as new ADRs.
 
-## Where things are (branch `feat/clerking-exam-v2`)
+## Where things were on 2026-10-03 (branch `feat/clerking-exam-v2`)
 
 | Work                                                      | State                                                                                                                                                                                         | Record                                                            |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -65,9 +77,3 @@ npx tsx scripts/prescribing/gen-formulary.ts         # regenerates lib/prescribi
 - `.nvmrc` pins Node 24; the cloud image defaults to Node 22. If a check behaves differently, say so rather than working around it.
 - Pushing a branch from the cloud is fine; pushes to `main` and deploys are the owner's.
 
-## Only on the owner's Mac (not on GitHub as of 2026-09-28)
-
-- The main folder (`feat/booking-app`) has uncommitted work: the schedule calendar reskin, the tester feedback form.
-- Several older branches were never pushed (`feat/emr-engine`, `feat/onboarding-v2`, `feat/resus-desk-v2`, `feat/hospital-services-hub`, `release/chroma-reskin`); some may already be in this branch's history.
-
-Ask the owner before assuming any of these exist.

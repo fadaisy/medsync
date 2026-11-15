@@ -1,0 +1,392 @@
+[
+  {
+    "id": "security",
+    "area": "Claude",
+    "task": "Close the security holes that block real patient data",
+    "status": "Done",
+    "progress": 100,
+    "branch": "fix/review-perimeter",
+    "note": "Pushed (4c24af5b); 0279–0289 applied and every Edge Function redeployed. Side effect found: with DEV_SKIP_MFA on, staff without MFA can sign in on production but check-in, cancel and most actions now fail.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "dry-run",
+    "area": "Claude",
+    "task": "Pilot dry run: book, check in, see the doctor; fix what breaks",
+    "status": "Done",
+    "progress": 100,
+    "branch": "fix/booking-dry-run",
+    "note": "Pushed (28e86d1d), checks green, no PR. 6 fixes plus both rulings. Not tested: End visit, waitlist. Seen, not fixed: doctor queue needs a reload; the phone app still shows \"Something is wrong\" (pilot is web first).",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "reminders",
+    "area": "Claude",
+    "task": "Reminders every 15 minutes and the go-live switch list",
+    "status": "Done",
+    "progress": 100,
+    "branch": "feat/booking-pilot-go-live",
+    "note": "Pushed (a8fe8824), checks green, no PR. Reminders every 15 minutes with a no-double-send test; docs/booking-pilot/GO-LIVE.md lists every setting. Do not merge until the host is on Vercel Pro.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "metrics",
+    "area": "Claude",
+    "task": "Pilot numbers per clinic: bookings, no-shows, waiting time",
+    "status": "Done",
+    "progress": 100,
+    "branch": "feat/pilot-numbers",
+    "note": "Pushed (16c76564), no PR, no migration. Weekly counts only, no patients: on /admin/scheduling-rollup and each hospital Reports page. Not seen in a browser yet. Not measured: queueing before check-in, real consultation start, walk-ins.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "clinic-kit",
+    "area": "Claude",
+    "task": "Clinic set-up guide and a one-hour reception training sheet",
+    "status": "Done",
+    "progress": 100,
+    "branch": "docs/booking-pilot-clinic-setup",
+    "note": "Pushed (9806d385), no PR. CLINIC-SETUP.md (12 steps per site) and RECEPTION-TRAINING.md (60-minute script plus cheat sheet). Written from the code; the app was not run.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "reception-cancel",
+    "area": "Claude",
+    "task": "Reception can cancel and move bookings",
+    "status": "Done",
+    "progress": 100,
+    "branch": "feat/reception-cancel-move",
+    "note": "Pushed (6e029117), no PR, ADR 0473. New Bookings page: cancel with a reason, or move (clinic days too). Patient gets a cancel SMS. Also fixed: clinic-day-cancelled texts were never sent. Not run on a real database or in a browser.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "walk-in",
+    "area": "Claude",
+    "task": "Register a walk-in with no account at the desk",
+    "status": "Done",
+    "progress": 100,
+    "branch": "feat/reception-walk-in-register",
+    "note": "Pushed (ca762c61), no PR, ADR 0475. Register new patient at the desk with a duplicate check and consent. Not built: taking over the record if they sign up later (until then, a second record). Not run on real Supabase or in a browser.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "password-reset",
+    "area": "Claude",
+    "task": "Forgot-password reset that keeps MFA",
+    "status": "Done",
+    "progress": 100,
+    "branch": "feat/password-reset",
+    "note": "Pushed (d921813b), no PR, ADR 0474, no migration. Forgot password by email for staff and patients; staff still enter their MFA code. Not run on real Supabase or in a browser.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "takeover",
+    "area": "Claude",
+    "task": "Walk-in takes over their desk record on sign-up",
+    "status": "Done",
+    "progress": 100,
+    "branch": "feat/desk-record-takeover",
+    "note": "Pushed (d0e61754), no PR, ADR 0475. Desk gives a one-time sign-up code; the patient claims the same record at /signup/patient/claim. Desk records can never get a password any other way. Not run on real Supabase or in a browser; phone app has no claim screen.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "tether-brief",
+    "area": "Claude",
+    "task": "Tether: brief of every booking workspace, and a launch landing page",
+    "status": "Done",
+    "progress": 100,
+    "branch": "",
+    "note": "Brief: claude.ai/artifact/Gwa1uV4tyZGzdMbGV1hhKx. Its landing draft is replaced by the gated landing build below.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "tether-landing",
+    "area": "Claude",
+    "task": "Tether landing page at / from the prototype canvas (gated, steps 0–7)",
+    "status": "Done",
+    "progress": 100,
+    "branch": "feat/landing-tether",
+    "note": "Pushed (3a2c5db9), no PR; report docs/landing/REPORT.md. LCP 2.41 s, INP 80 ms, CLS 0.008, axe 0, own JS 26 KB. Steps 3–6 were built without separate stops; their notes are in steps-3-6-report.md for you to sign.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "reception-desk",
+    "area": "Claude",
+    "task": "Tether reception desk from the prototype canvas (steps 0–8, your recommendations pre-signed)",
+    "status": "Done",
+    "progress": 100,
+    "branch": "feat/reception-desk",
+    "note": "Steps 0–8 pushed (4b44c851), no PR; report docs/reception/REPORT.md. Stopped before the pilot-clinic flag, deleting old pages and 308s. First-load JS 345 KB vs 160 budget (shared root alone 229 KB). INP, axe, CLS not measured: need a signed-in browser.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "clinic-floor",
+    "area": "Claude",
+    "task": "Tether clinic floor: triage, clinic line, floor board, waiting-room screen (steps 0–8)",
+    "status": "Done",
+    "progress": 100,
+    "branch": "feat/clinic-floor",
+    "note": "de1258dc, 273f7907, 1e8fdb8d, not pushed; report docs/clinic-floor/REPORT.md. Triage panel matches the engine on 200 sets. Panel lacks pregnancy and SpO2 scale 2: keep /nurse/triage until added. Not wired: follow-up booking, lab results back, trend history, age/sex. axe, budgets, 8 h screen test not measured.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "doctor-confirm",
+    "area": "Claude",
+    "task": "Doctor booking requests never sit unseen; queue updates live",
+    "status": "Done",
+    "progress": 100,
+    "branch": "fix/doctor-booking-confirm",
+    "note": "Pushed (fd03d95c), no PR, ADR 0476, no migration. Auto-confirm follows what the page shows; queue refreshes every 15 s. Failing tests were all failing before this change too (missing env and phone-app packages in the worktree). Not run in a browser.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "rule-urgent",
+    "area": "You",
+    "task": "Ruling: hide \"Something is wrong\" for the pilot, or sign the symptom catalogue",
+    "status": "Done",
+    "progress": null,
+    "branch": "",
+    "note": "Ruled 12 Nov; built in 6176dfe7. Comes back by itself once the symptom catalogue is signed.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "rule-accounts",
+    "area": "You",
+    "task": "Ruling: four signed-in accounts per browser instead of five",
+    "status": "Done",
+    "progress": null,
+    "branch": "",
+    "note": "Ruled 12 Nov; built in 28e86d1d (ADR 0472).",
+    "updated": "2026-11-12"
+  },
+  {
+    "area": "You",
+    "progress": null,
+    "branch": "",
+    "updated": "2026-11-12",
+    "id": "pilot-gaps",
+    "task": "Decide: build the day-one gaps before the pilot?",
+    "status": "Done",
+    "note": "Ruled 12 Nov: build reception cancel/move, walk-in registration and password reset. Still open: going live needs a ward and a second admin; the admins page is a placeholder."
+  },
+  {
+    "id": "test-data",
+    "area": "You",
+    "task": "Close the dry run's open test visit at Test Hospital-1",
+    "status": "Later",
+    "progress": null,
+    "branch": "",
+    "note": "Sarah's Thu 12 visit G3LC3Y; close it with End visit on the deployed app. Mon 16 Nov General Clinic day there is cancelled (cannot be undone).",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "migrations",
+    "area": "You",
+    "task": "Apply the security and prescribing migrations (0279–0289), redeploy every Edge Function",
+    "status": "Done",
+    "progress": null,
+    "branch": "",
+    "note": "Done 12 Nov, from ~/Desktop/medsync-fixes.",
+    "updated": "2026-11-12"
+  },
+  {
+    "area": "You",
+    "progress": null,
+    "branch": "",
+    "updated": "2026-11-13",
+    "id": "gaps-migrations",
+    "task": "Apply 0290 and 0291, then deploy three Edge Functions",
+    "status": "Done",
+    "note": "You said done, 13 Nov: 0290 + cancel-appointment, reschedule-appointment; 0291 + ha-register-patient. Deploy with npx supabase … --use-api --project-ref from the main checkout."
+  },
+  {
+    "area": "You",
+    "progress": null,
+    "branch": "",
+    "updated": "2026-11-13",
+    "id": "takeover-migration",
+    "task": "Apply 0292–0295 and deploy the desk functions",
+    "status": "Done",
+    "note": "Owner applied 0292–0295 (one migrate run in the clinic-floor folder) and deployed the five desk functions, 13 Nov."
+  },
+  {
+    "id": "doctor-functions",
+    "area": "You",
+    "task": "Redeploy the booking Edge Functions from main at the final deploy",
+    "status": "Later",
+    "progress": null,
+    "branch": "",
+    "note": "No rush: no real bookings yet. After the branches merge, redeploy every booking function from main once, so they all share the same code. The doctor fix touches 7 of them.",
+    "updated": "2026-11-13"
+  },
+  {
+    "area": "You",
+    "progress": null,
+    "branch": "",
+    "updated": "2026-11-13",
+    "id": "sign-copy",
+    "task": "Sign the new wording: cancel SMS, desk consent and sign-up code",
+    "status": "Needs you",
+    "note": "All drafts until you approve them. Desk and claim wording is in content/desk-register.ts."
+  },
+  {
+    "id": "desk-signoffs",
+    "area": "You",
+    "task": "Sign the reception desk parity list and its copy",
+    "status": "Needs you",
+    "progress": null,
+    "branch": "",
+    "note": "Parity map and all desk strings are drafts in feat/reception-desk (docs/reception/REPORT.md).",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "floor-signoffs",
+    "area": "You",
+    "task": "Sign the clinic floor: parity (5 missing controls), copy, trend bands, desk keywords, untriaged = L4 in the line",
+    "status": "Needs you",
+    "progress": null,
+    "branch": "",
+    "note": "All drafts in feat/clinic-floor (docs/clinic-floor/REPORT.md). Then pilot one clinic for 2 days and delete the old pages and flag.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "landing-signoffs",
+    "area": "You",
+    "task": "Sign the landing page: Steps 3–6, parity (4 open questions), two colour changes",
+    "status": "Needs you",
+    "progress": null,
+    "branch": "",
+    "note": "Then turn LANDING_TETHER on in production for 2 days, and delete the old landing page and the flag.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "medsync-env",
+    "area": "You",
+    "task": "Set MEDSYNC_ENV=production in Supabase Functions",
+    "status": "Needs you",
+    "progress": null,
+    "branch": "",
+    "note": "New: without it the emergency info sheet can show unsigned draft content when asked.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "golive-list",
+    "area": "You",
+    "task": "Go through docs/booking-pilot/GO-LIVE.md before the pilot deploy",
+    "status": "Later",
+    "progress": null,
+    "branch": "",
+    "note": "SMS keys and secrets, PATIENT_WEB_TIDE and TIDE_SURFACES choice, sign-ups open before the privacy notice.",
+    "updated": "2026-11-12"
+  },
+  {
+    "area": "You",
+    "progress": null,
+    "branch": "",
+    "updated": "2026-11-13",
+    "id": "reset-email",
+    "task": "Supabase email set-up so password reset works in production",
+    "status": "Later",
+    "note": "Custom SMTP; add /forgot-password/confirm to redirect URLs; change the reset email template link; check the emails-per-hour limit. Details in docs from feat/password-reset (ADR 0474)."
+  },
+  {
+    "area": "You",
+    "progress": null,
+    "branch": "",
+    "updated": "2026-11-12",
+    "id": "clinic-blanks",
+    "task": "Fill the [blanks] in the clinic guide and training sheet",
+    "status": "Later",
+    "note": "Support and owner numbers, fees, each clinic emergency number, when to skip triage, test patient names, the paper back-up."
+  },
+  {
+    "id": "legal",
+    "area": "You",
+    "task": "Lawyer review of the privacy notice and terms; PDPO registration",
+    "status": "Not checked",
+    "progress": null,
+    "branch": "",
+    "note": "11 points in docs/legal/REVIEW.md.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "hosting",
+    "area": "You",
+    "task": "Vercel Pro, Supabase Pro and a staging database",
+    "status": "Not checked",
+    "progress": null,
+    "branch": "",
+    "note": "Pro is needed before the 15-minute reminders branch can merge, and for daily backups.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "sms",
+    "area": "You",
+    "task": "Africa's Talking live account and the MedSync sender ID",
+    "status": "Not checked",
+    "progress": null,
+    "branch": "",
+    "note": "Sender ID approval can take 1–3 weeks.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "emergency",
+    "area": "You",
+    "task": "Dial and verify each pilot clinic's emergency number",
+    "status": "Not checked",
+    "progress": null,
+    "branch": "",
+    "note": "docs/runbooks/emergency-contacts-verification.md",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "staff-mfa",
+    "area": "You",
+    "task": "Get staff working again: set up MFA, then remove DEV_SKIP_MFA",
+    "status": "Needs you",
+    "progress": null,
+    "branch": "",
+    "note": "1) Each staff account opens /onboarding/mfa-setup and scans the code with an authenticator app. 2) Delete DEV_SKIP_MFA from Vercel Production and redeploy the current build. 3) Sign in again with the 6-digit code.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "test-switches",
+    "area": "You",
+    "task": "Remove PHARMACY_DEV_HOSPITALS from production",
+    "status": "Later",
+    "progress": null,
+    "branch": "",
+    "note": "At go-live; the go-live list will have it.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "clinics",
+    "area": "You",
+    "task": "Sign up 5 pilot clinics",
+    "status": "Not checked",
+    "progress": null,
+    "branch": "",
+    "note": "Trial agreement, then clinics, hours, fees and staff accounts.",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "merge",
+    "area": "You",
+    "task": "Merge the pilot branches into main",
+    "status": "Later",
+    "progress": null,
+    "branch": "",
+    "note": "Order: fix/review-perimeter, fix/booking-dry-run, then feat/pilot-numbers, docs/booking-pilot-clinic-setup, feat/reception-cancel-move, feat/desk-record-takeover (holds the walk-in work), feat/password-reset, fix/doctor-booking-confirm. feat/booking-pilot-go-live only after Vercel Pro. They merge cleanly apart from CHANGELOG.md.",
+    "updated": "2026-11-13"
+  },
+  {
+    "id": "deploy",
+    "area": "You",
+    "task": "Deploy once everything is in",
+    "status": "Later",
+    "progress": null,
+    "branch": "",
+    "note": "One deploy at the end.",
+    "updated": "2026-11-12"
+  }
+]

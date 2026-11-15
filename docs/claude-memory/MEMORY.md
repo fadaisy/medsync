@@ -1,0 +1,68 @@
+- [Booking app build state](booking-app-build-state.md) — ADR 0098 built 2026-09-22; ADR 0100 home deployed to prod; ADR 0101 arrival routing deployed to prod 2026-09-23 (uncommitted; review findings pending); a plum session shares the tree; read `docs/booking-app-handoff.md` §0 first
+- [Mobile toolchain](medsync-mobile-toolchain.md) — check `mobile/` from inside; regen typed routes; zero-import slot engine
+- [Owner rules](medsync-owner-rules.md) — .env.example untouchable; owner applies migrations/deploys; no fabricated data; ADR 0085/0086 reversals stand
+- [Resus Desk v2 build](resus-desk-v2-build-state.md) — separate worktree `medsync-resus-v2` on `feat/resus-desk-v2`; 0068 unapplied + `RESUS_DESK_V2` flag; harness at ~/Desktop/resus-v2-harness; chunked agent writes
+- [Doctor Workspace build](doctor-workspace-build-state.md) — ADRs 0113–0118 built dark on `feat/doctor-workspace` 2026-09-24, uncommitted; 0069 applied in prod; CSO signature pending; scratch harness method
+- [Onboarding v2 build](onboarding-v2-build-state.md) — LIVE 2026-09-25: v2 replaced the old forms (ADR 0129), 0070 applied, deployed from the main tree (v2 applied there uncommitted); commits on feat/onboarding-v2 in worktree
+- [Progress report doc](progress-report-doc.md) — whole-project built/live grading doc (2026-09-25); update it rather than making a new one
+- [Release state](release-state.md) — 2026-09-25 split/merge history; superseded: owner pushed, origin/main now holds it all
+- [EMR engine build](emr-engine-build-state.md) — 0071–0075 applied in prod 2026-09-27; release/emr (worktree medsync-release) = live code + EMR, green, awaiting owner deploy; dev DB on another account
+- [Services hub build](services-hub-build-state.md) — e81aef1 + fix 816ebb5 (2026-09-26), ADRs 0150–0161; fix deployed by Claude (Vercel medsync-4qr4qqtl1); not pushed to GitHub
+- [Centred pop-ups rule](feedback-centred-popups.md) — owner rule: every pop-up is a centred landscape EditorDialog; no side sheets/drawers (ADR 0161)
+- [Tester feedback form](tester-feedback-form.md) — /feedback + /admin/feedback live 2026-09-26 (medsync-l22ehrpqz, per-section sends), uncommitted
+- [Chroma design system build](chroma-design-system-build.md) — ADR 0162 implemented 2026-09-27 in worktree medsync-chroma (feat/chroma-design-system), uncommitted; mobile migrated; prod deploy blocked for Claude — owner runs it
+- [Schedule reskin build](schedule-reskin-build-state.md) — merged to main (PR #186, Chroma-adapted); main-folder dirty calendar files are a stale draft
+- [Clerking desk v2 build](clerking-v2-build-state.md) — DONE 2026-09-27 on feat/clerking-v2 (medsync-release), all 8 gates; apply 0076 before deploy; CLERKING_V2 flag; not pushed
+- [Clerking exam v2 build](clerking-exam-v2-build-state.md) — DONE 2026-09-28 on feat/clerking-exam-v2 (medsync-release); CFC seed migrations 0082/0083 a50e036 (apply 0076→0082→0083); pushed 2026-09-28 with docs/CLAUDE-HANDOFF.md for cloud sessions
+- [Cloud handoff](cloud-handoff.md) — docs/CLAUDE-HANDOFF.md on origin/main is the live state; read via git show, not the stale checkout
+- [Encounter closure build](encounter-closure-build-state.md) — admission+bed+patient copy built 2026-10-03 in ~/Desktop/medsync-closure (feat/encounter-closure), committed, not pushed; 0091 applied (confirmed 2026-10-08); ADRs 0197–0203
+- [NCD diabetes pack build](ncd-diabetes-pack-build.md) — worktree medsync-ncd, feat/ncd-diabetes-pack; GATE A signed (shadow only); all phases done; pack 0.5.2-draft, 2026 guideline + R11 + all refs CSO-signed; go-live items open; 0092+0086 in prod, MERGED to main as PR #199 2026-10-06; flag off
+- [NCD registry build](ncd-registry-build.md) — NCDSync P0–P11 done 2026-10-05 in medsync-ncdreg (feat/ncd-registry); FINAL-REPORT in docs/ncd; merged to main (PRs #200, #202); 0093+0094; 4 of 27 sign-offs closed; colour/demo-progress merged; perf/ncd-speed (Vercel region dub1) pushed; never .env.local there
+- [NCD diabetes in the desk](ncd-dm-desk-build.md) — 2026-10-08: embed the pack into the ten-step clerking (auto-profile, suggest dx); 4 decisions signed; flag NCD_DM_DESK; ADR 0216
+- [Lab signup department](lab-signup-department.md) — 2026-10-09 lab cadres get LABORATORY dept auto-picked at sign-up; worktree medsync-labsignup, uncommitted; lab roadmap artifact link inside
+- [Dx relations build](dx-relations-build.md) — 2026-10-09 feat/dx-relations DONE, 0095+0096 applied, merged; follow-up feat/desk-instant-actions (instant taps, collapsible cards) pushed; ADR 0220
+- [Lab Phase 0 build](lab-phase-0-build.md) — medsync-lab0, feat/lab-front-door; STOP 0–5 all done (29dc006, 0097, ADRs 0221–0226); local only, not pushed/merged
+- [Pharmacy Phase 0 build](pharmacy-phase-0-build.md) — DONE 2026-10-11, medsync-pharm0 rebased on lab branch eb0aecf, local only; 0098–0100 + 0120–0121, ADRs 0227–0237; later pharmacy phases 0122+ / ADR 0260+
+- [DEV_SKIP_MFA bypass](dev-skip-mfa.md) — skips MFA everywhere incl. Vercel; locally in .env.switches (npm run dev only), never .env.local; unset before go-live
+- [Lab Phase 1 build](lab-phase-1-build.md) — merged (PR #227), trial closed 2026-10-12; Phase 2 continues in lab-phase-2-build
+- [Multi-account build](multi-account-build.md) — ADR 0280 several accounts per browser; cf404abd on origin/main, prod medsync-htzbsl0ss 2026-10-11; sign-out POST fix a527a62 local
+- [Lab Phase 2 build](lab-phase-2-build.md) — merged to main; 0107–0111 applied; copy signed 13 Oct; v1.6 addendum unsigned; ADRs 0251–0259
+- [Lab Phase 3 build](lab-phase-3-build.md) — merged (PRs #236/#237); 0112–0118 applied; copy signed 16 Oct; HMIS rows unverified; live handoff docs/lab/HANDOFF.md
+- [Main folder on main](main-folder-on-main.md) — since 2026-10-17 ~/Desktop/medsync is on main (446a0cc9); old leftovers in a stash; commit with NODE_OPTIONS heap; no `content` commit type
+- [MedSync Claude Code mod](medsync-mod-build.md) — DISABLED by owner (asked twice, 17 Oct); settings false AND dev-mods link moved to ~/.claude/dev-mods-disabled; don't re-enable unasked
+- [Pharmacy Phase 1 build](pharmacy-phase-1-build.md) — MERGED to main (67fec373); 0122–0136 + loader applied in prod; worktree removed; handout docs/pharmacy/HANDOFF.md (uncommitted in main folder); open: national-list links, message name, signed-set/template UIs, hazard log, legal Q1–6
+- [Lab Phase 4 build](lab-phase-4-build.md) — DONE 17 Oct 2026, feat/lab-connect-outward pushed; 0150–0153 applied; copy + ADR 0327 signed (0a872a51, pushed); hazard scores unsigned; read FINAL-REPORT first
+- [Mobile Tide v1 build](mobile-tide-v1-build.md) — 2026-10-17 patient app in Tide on real data, worktree medsync-tide, feat/mobile-tide-v1 pushed (no PR yet); ADRs 0340–0342; 0170 unapplied; Expo Go LAN setup notes
+- [Lab Phase 5 build](lab-phase-5-build.md) — DONE 17 Oct 2026 feat/lab-beyond-lis, pushed (no PR); 0154–0157 unapplied; copy draft; read phase-5 FINAL-REPORT + docs/lab/LAB-DOCUMENTATION.md
+- [Lab Workspace v2 build](lab-workspace-v2-build.md) — 19 Oct: all gates built on feat/lab-workspace-v2 (872630c3), not pushed; CSO sign + pilot before deploying Step 11
+- [Lab demo everywhere](lab-demo-everywhere.md) — 19 Oct: catalogue fill from research (0158 unapplied) + demo on every lab page; feat/lab-demo-everywhere pushed (no PR)
+- [Lab test menu v2 build](lab-test-menu-v2-build.md) — 19 Oct: feat/lab-test-menu-v2 (medsync-tm2); 0171–0173 applied, TM-9 applied, ha-services-hub deployed; app not deployed, branch not pushed; read FINAL-REPORT
+- [Lab loading states](lab-loading-states.md) — 20 Oct: feat/lab-loading-states 02f9f917 (medsync-loading, off test-menu-v2), not pushed
+- [Tide everywhere build](tide-everywhere-build.md) — 21 Oct: GATE A signed; foundation+shells 88a1195d on feat/tide-everywhere (medsync-tideweb), not pushed; TIDE_SURFACES flag
+- [Pharmacy Phase 2 build](pharmacy-phase-2-build.md) — 21 Oct: all steps on feat/pharmacy-stores (medsync-pharmclose), pushed; 0180–0182, 0184 unapplied; no gh CLI
+- [Pharmacy Phase 3 build](pharmacy-phase-3-build.md) — 25 Oct: ALL steps done on feat/pharmacy-clinical (medsync-pharmclose), pushed; 0212 unapplied; reconciliation copy draft; read FINAL-REPORT
+- [Pharmacy dev hospitals](pharmacy-dev-hospitals.md) — PHARMACY_DEV_HOSPITALS gives test hospitals map v2 in prod (ADR 0394); legal answers not faked; unset before go-live
+- [Booking launch tasks](booking-launch-tasks.md) — 26 Oct: legal pages, arrival-routing fixes, phone Tide port on 3 local branches (not pushed); owner rulings built (ADR 0425, migration 0213 unapplied)
+- [Pharmacy Phase 4 build](pharmacy-phase-4-build.md) — 26 Oct: medsync-network, feat/pharmacy-network; Steps 2–5 dark + fixture demo + HOW-TO-USE.md; 0230–0232 unapplied; stop before Step 6
+- [Task-progress mod](task-progress-mod.md) — loads in every session from ~/.claude/mods/task-progress (CLAUDE_CODE_PLUGIN_DIRS); Version A card (ring, agents, Done + copy commands) built 26 Oct; edit that copy only
+- [Pharmacy demo build](pharmacy-demo-build.md) — 26 Oct: one-button national referral pharmacy demo DONE in medsync-pharmdemo (feat/pharmacy-demo); HANDOFF.md; committed 26 Oct (fix 2f6fd58d on fix/pharmacy-interventions-read; demo 4cd1a1da+653696e3 on feat/pharmacy-demo), pushed 27 Oct (no PRs)
+- [Pharmacy Workspace v2 build](pharmacy-workspace-v2-build.md) — 27 Oct: six-place pharmacy UI in medsync-pharmws2, committed 576f6018, pushed 27 Oct (no PR); PHARMACY_WORKSPACE_V2; CSO signs pending; read FINAL-REPORT
+- [Pharmacy catalogue build](pharmacy-catalogue-build.md) — 27 Oct: medsync-catalogue, feat/pharmacy-catalogue; Steps 1–11 ed9c1836 pushed, PR #267 open; 0251–0259 unapplied; Step 12 owner pilot; read STOP-REPORTS.md
+- [Stock-up polish build](stock-up-polish-build.md) — 29 Oct: #1–#13 on feat/pharmacy-stock-up-polish (medsync-stockup); 3 commits local, owner said wait to push; 0264 unapplied; no-typing rule
+- [Pharmacy rework build](pharmacy-rework-build.md) — 31 Oct: MERGED to main (PR #278, bfe2d309); 0264–0269 applied; copy unsigned so prod gate keeps it off; owner items in docs/pharmacy/HANDOFF.md
+- [CSO sign-off in chat](feedback-cso-signoff-in-chat.md) — owner is CSO; chat sign-off is final; in-charge signs packs alone, one tap; short messages (ADHD)
+- [Deploy once](feedback-deploy-once.md) — work locally; vercel git deploys off; background auto-push to GitHub in main tab; deploy ONLY on owner's word
+- [Pharmacy Medicines build](pharmacy-medicines-build.md) — 3 Nov: Set-up › Medicines grid + Stock › Receive a delivery (25ab1330) + store pick list (4a485d5c) + put-away (4f677055) on feat/pharmacy-medicines (main folder), pushed, no PR; 0270 applied, 0271+0272 unapplied; copy draft; NDA loader waits for the file
+- [Pharmacy rework kit build](pharmacy-rework-kit-build.md) — 3 Nov: kit v5; Roster + Set-up tabs done (feat/pharmacy-setup-tabs pushed, 0273+0274 unapplied); Main store next
+- [Receive harmonized prototype](receive-harmonized-prototype.md) — 4 Nov: one Receive flow, working artifact prototype on sample data; verdict pending; no real code changed
+- [Pharmacy supplies prototype](pharmacy-equipment-prototype.md) — 4 Nov: whole pharmacy with medicines and EMHSLU supplies as one set of lines (device tags and loans were rejected); working artifact; verdict pending; no repo code changed
+- [Receive build](receive-build.md) — 4 Nov: Stock › Receive a delivery (kit 6) on feat/pharmacy-receive (medsync-receive), 447e1382, not pushed; 0276 unapplied; copy draft; fixture-tested only
+- [Supplies build](pharmacy-supplies-build.md) — 5 Nov: EMHSLU health and lab supplies on feat/pharmacy-supplies (medsync-supplies), pushed, no PR; 0277+0278 applied by owner 5 Nov (unchecked); copy draft, rules group unsigned
+- [Prescribing tool prototype](prescribing-tool-prototype.md) — 11 Nov: one Prescribe tool → pharmacy queue, Design canvas 7dc6FpZPw2qM58G47uTURs; verdict pending; no repo code
+- [Review fixes build](review-fixes-build.md) — 11 Nov: fixing the senior review on fix/review-perimeter (medsync-fixes); pkgs 1–4 + C-3/H-11/H-7 parts done, main merged in, renumbered, pushed; 0279–0289 applied + functions deployed 12 Nov, web not deployed; update DONE in REVIEW/fix-plan.html + republish after every fix
+- [Prescribing protocols build](prescribing-protocols-build.md) — 12 Nov: kit P0–P6 MERGED (PR #286, ac3a7711); 0279–0286 unapplied; PRESCRIBE_V2; protocols draft; read docs/prescribing/HANDOFF.md
+- [Booking pilot board](booking-pilot-board.md) — 12 Nov: main chat runs nested sessions for booking pilot-readiness; Data board 7wgK9QPzCKvwqi5cNSZydE; how to update rows
+- [Landing Tether build](landing-tether-build.md) — 13 Nov: Tether landing + apps/tether-site MERGED to main (PR #289, 104d5396); flag off; 0293 unapplied; Vercel project + cutover are the owner's
+- [Clinic floor build](clinic-floor-build-state.md) — 13 Nov: STOP 0–8 on feat/clinic-floor (worktree clinic-floor-4f4be4), 85d3dc42 pushed, PR to main pending (no gh); 0295 GATED unapplied; read docs/clinic-floor/REPORT.md
+- [Desktop consolidated](desktop-consolidated.md) — 14 Nov: only ~/Desktop/medsync left; harness now at medsync/.emr-harness; new worktrees go in .claude/worktrees
+- [Clinics & schedule build](clinics-schedule-build.md) — 15 Nov: built+signed+CUT OVER (e4ac2bab, ADR 0508) on feat/clinics-schedule (worktree clinics-schedule-940aa4), local only; 0296+0298 applied by owner; flag gone; pushed 15 Nov (no PR), not deployed
