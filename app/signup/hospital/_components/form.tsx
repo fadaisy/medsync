@@ -16,7 +16,7 @@ import {
 } from "@/components/onboarding/fields";
 import { LeadDialog } from "@/components/onboarding/lead-dialog";
 import { FormHeader, Section, SectionedForm } from "@/components/onboarding/sectioned-form";
-import { HOSPITAL, STAFF_COMMON } from "@/content/onboarding";
+import { HOSPITAL, STAFF_COMMON, TETHER_SIGNUP } from "@/content/onboarding";
 import { LICENSER_LABELS } from "@/content/onboarding-hospital";
 import { hospitalSchema } from "@/lib/onboarding/schemas";
 import { cn } from "@/lib/utils";
@@ -68,9 +68,12 @@ const LICENSERS = Object.entries(LICENSER_LABELS).map(([value, label]) => ({ val
 export function HospitalApplicationForm({
   notice,
   bureaus,
+  tether,
 }: {
   notice: { version: string; sha: string; body: string; effective: string };
   bureaus: readonly string[];
+  /** On the Tether domain the heading names Tether (ADR 0511). */
+  tether?: boolean;
 }) {
   return (
     <SectionedForm<HospitalInput>
@@ -86,7 +89,11 @@ export function HospitalApplicationForm({
       submitLabel={HOSPITAL.submit}
       pendingLabel={HOSPITAL.pending}
       header={
-        <FormHeader kicker={HOSPITAL.kicker} title={HOSPITAL.title} lead={HOSPITAL.lead}>
+        <FormHeader
+          kicker={HOSPITAL.kicker}
+          title={tether ? TETHER_SIGNUP.hospitalTitle : HOSPITAL.title}
+          lead={HOSPITAL.lead}
+        >
           <LeadDialog source="hospital_door" trigger={HOSPITAL.askCall} />
         </FormHeader>
       }

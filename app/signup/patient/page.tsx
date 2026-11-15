@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 
 import { SignupUnavailable } from "@/app/signup/_components/unavailable";
+import { onTetherHost } from "@/lib/landing/tether-host";
 import { fetchSmsConsentVersion } from "@/lib/notifications/consent";
 import { SMS_CONSENT_COPY } from "@/lib/notifications/consent-copy";
 import { liveNotice } from "@/lib/onboarding/notice";
 import { PatientSignupForm } from "./_components/form";
 
 export const metadata: Metadata = {
-  title: "Patient signup · MedSync",
+  title: "Patient signup",
   robots: { index: false, follow: false },
 };
 
@@ -25,6 +26,7 @@ export default async function PatientSignupPage() {
     );
   return (
     <PatientSignupForm
+      tether={await onTetherHost()}
       notice={notice}
       sms={
         sms

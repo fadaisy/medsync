@@ -74,7 +74,10 @@ describe("tetherHome", () => {
     expect(tetherHome("/nurse/triage")).toBe("/clinic?view=triage");
     expect(tetherHome("/doctor")).toBe("/clinic?view=line");
   });
-  it("sends the admin home to Clinics & schedule (ADR 0510)", () => {
+  it("sends the door page to the Tether sign-in, where the doors are (ADR 0510)", () => {
+    expect(tetherHome("/get-started")).toBe("/sign-in");
+  });
+  it("sends the admin home to Clinics & schedule (ADR 0512)", () => {
     expect(tetherHome("/hospital-admin")).toBe("/hospital-admin/clinics");
     expect(tetherHome("/hospital-admin/clinics")).toBeNull();
     expect(tetherHome("/hospital-admin/departments")).toBeNull();

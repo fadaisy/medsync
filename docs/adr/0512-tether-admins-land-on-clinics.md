@@ -1,4 +1,4 @@
-# ADR 0510: On the Tether domain, hospital admins land on Clinics & schedule
+# ADR 0512: On the Tether domain, hospital admins land on Clinics & schedule
 
 **Status:** Accepted, 15 Nov 2026. Fadhul reported in chat that signing in as an admin on Tether opened the old MedSync dashboard, and asked for this.
 

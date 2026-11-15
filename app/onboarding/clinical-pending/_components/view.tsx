@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { SITE } from "@/content/landing";
 import { KIT, PENDING, STAFF_COMMON } from "@/content/onboarding";
 import { STAFF_PENDING } from "@/content/onboarding-staff";
+import { NAV } from "@/content/tether-landing/copy";
 import { db } from "@/db";
 import { clinicianProfiles, staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
@@ -16,6 +17,7 @@ import { hospitals } from "@/db/schema/hospitals";
 import { cadreGrades, cadres, councils, roles } from "@/db/schema/reference-data";
 import { users } from "@/db/schema/users";
 import { signedAvatarUrl } from "@/lib/avatars";
+import { onTetherHost } from "@/lib/landing/tether-host";
 import { describeState } from "@/lib/lifecycle";
 import { formatDate } from "@/lib/onboarding/notice";
 import { COUNCILS, PROFILE_GRADES } from "@/lib/onboarding/profession";
@@ -34,6 +36,7 @@ const councilShort = (code: string | null, fallback: string | null) =>
  * No promise of an email (Q11). A missing licence shows as "Still needed" with the upload box.
  */
 export async function ClinicalPendingView() {
+  const tether = await onTetherHost();
   const supabase = await createClient();
   // getSession (cookie-only), as the v1 page: a slow getUser round-trip used to bounce to sign-in.
   const { data: sessionData } = await supabase.auth.getSession();
@@ -138,7 +141,7 @@ export async function ClinicalPendingView() {
       >
         <div className="mx-auto flex h-14 w-full max-w-300 items-center justify-between gap-3 px-4 sm:px-8">
           <Link href="/" className="font-display text-foreground text-heading-s font-semibold">
-            {SITE.wordmark}
+            {tether ? NAV.brand : SITE.wordmark}
           </Link>
           <div className="flex items-center gap-3 whitespace-nowrap sm:gap-4">
             <form action="/sign-out" method="POST">

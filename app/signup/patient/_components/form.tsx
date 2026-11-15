@@ -16,7 +16,7 @@ import {
 import { LocationField } from "@/components/onboarding/location-field";
 import { FormHeader, Section, SectionedForm } from "@/components/onboarding/sectioned-form";
 import { PATIENT_CLAIM } from "@/content/desk-register";
-import { PATIENT } from "@/content/onboarding";
+import { PATIENT, TETHER_SIGNUP } from "@/content/onboarding";
 import { ADULT_AGE, ageOn, isoFromParts } from "@/lib/onboarding/fields";
 import { patientSchema } from "@/lib/onboarding/schemas";
 import { submitPatientSignup } from "../actions";
@@ -54,9 +54,12 @@ function under18(v: PatientInput) {
 export function PatientSignupForm({
   notice,
   sms,
+  tether,
 }: {
   notice: { version: string; sha: string; body: string; effective: string };
   sms: { version: string; sha: string; body: string; declined: string; receipt: string } | null;
+  /** On the Tether domain the heading names Tether (ADR 0511). */
+  tether?: boolean;
 }) {
   return (
     <SectionedForm<PatientInput>
@@ -74,7 +77,11 @@ export function PatientSignupForm({
       submitLabel={PATIENT.submit}
       pendingLabel={PATIENT.pending}
       header={
-        <FormHeader kicker={PATIENT.kicker} title={PATIENT.title} lead={PATIENT.lead}>
+        <FormHeader
+          kicker={PATIENT.kicker}
+          title={tether ? TETHER_SIGNUP.patientTitle : PATIENT.title}
+          lead={PATIENT.lead}
+        >
           {/* A desk-registered patient takes that record over instead of starting a second one (ADR 0475). */}
           <Link
             href="/signup/patient/claim"

@@ -8,8 +8,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 ### Changed — Hospital admins on Tether land on Clinics & schedule — 15 Nov 2026
 
 - On the Tether domain `/hospital-admin` goes to `/hospital-admin/clinics`
-  ([ADR 0510](docs/adr/0510-tether-admins-land-on-clinics.md)). Signing in as an admin no longer opens the old
+  ([ADR 0512](docs/adr/0512-tether-admins-land-on-clinics.md)). Signing in as an admin no longer opens the old
   MedSync dashboard; the other admin pages still open there.
+
+### Changed — Sign-up headings say Tether on Tether — 15 Nov 2026
+
+- On the Tether domain the patient, clinical and hospital sign-up headings name Tether
+  ([ADR 0511](docs/adr/0511-tether-sign-up-headings-say-tether.md)). The consent still names MedSync.
+
+### Changed — Sign-up on Tether looks like Tether — 15 Nov 2026
+
+- On the Tether domain the staff and hospital sign-up forms sit in Tether's bar and Tide colours, `/get-started`
+  goes to the Tether sign-in page with its four ways to join, the awaiting-approval pages say Tether, and tab
+  titles end in "· Tether" ([ADR 0510](docs/adr/0510-tether-sign-up-stays-on-tether.md)). MedSync's domain is unchanged.
+
+### Fixed — The code step opens under the password — 15 Nov 2026
+
+- The sign-in asked for the account's assurance level before the new session reached the request's cookies, so it
+  read "no code needed" and sent people to the separate code page. It now asks with the new session's token.
 
 ### Changed — Nurses and doctors on Tether land on the clinic floor — 15 Nov 2026
 
