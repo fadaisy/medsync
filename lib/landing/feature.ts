@@ -84,6 +84,7 @@ const TETHER_HOMES: Record<string, string> = {
   "/nurse": "/clinic",
   "/nurse/triage": "/clinic?view=triage",
   "/doctor": "/clinic?view=line",
+  "/hospital-admin": "/hospital-admin/clinics", // ADR 0510
 };
 
 export function tetherHome(pathname: string): string | null {
