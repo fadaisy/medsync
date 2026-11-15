@@ -10,9 +10,9 @@ import {
 
 import { ICON } from "@/components/tide/kit";
 import { GET_STARTED } from "@/content/auth";
-import { AUTH, FOOTER, NAV } from "@/content/tether-landing/copy";
+import { AUTH, FOOTER } from "@/content/tether-landing/copy";
 import { cn } from "@/lib/utils";
-import { HelpLink } from "./chrome";
+import { HelpLink, Wordmark } from "./chrome";
 
 /**
  * The Tether sign-in and authenticator-code pages (ADR 0498): the landing page's pill bar and Help, the page
@@ -39,16 +39,7 @@ export function AuthPage({ children, wide }: { children: ReactNode; wide?: boole
       <header className="px-5 pt-3">
         <div className="mx-auto flex max-w-[1080px] items-center gap-2.5">
           <div className="bg-pw-surface/90 border-pw-line flex min-w-0 flex-1 items-center rounded-full border py-2 pr-2 pl-[22px]">
-            <Link
-              href="/"
-              aria-label={AUTH.home}
-              className={cn(
-                "text-pw-ink inline-flex min-h-11 items-center text-[22px] font-bold tracking-[-0.03em]",
-                FOCUS,
-              )}
-            >
-              {NAV.brand}
-            </Link>
+            <Wordmark href="/" aria-label={AUTH.home} />
           </div>
           <div className="flex-none">
             <HelpLink />
