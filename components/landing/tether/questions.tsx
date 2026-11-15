@@ -113,7 +113,7 @@ export function Questions({ preAlert }: { preAlert: boolean }) {
               className={cn(
                 "group ease-expo-out hover:bg-pw-surface-2 focus-visible:outline-pw-focus flex w-full cursor-pointer items-center justify-between gap-3 rounded-[14px] px-4 py-3.5 text-left text-[18px] leading-6 transition-[background-color,padding] duration-250 hover:pl-[22px] focus-visible:outline-2",
                 f === sel ? "bg-pw-surface-2 font-semibold" : "font-medium",
-                f.emergency && "text-pw-emergency",
+                f.emergency && "text-pw-critical-text",
               )}
             >
               {f.q}
@@ -141,7 +141,7 @@ export function Questions({ preAlert }: { preAlert: boolean }) {
               <h3
                 className={cn(
                   "mt-2 text-[26px] leading-8 font-semibold tracking-[-0.02em]",
-                  sel.emergency && "text-pw-emergency",
+                  sel.emergency && "text-pw-critical-text",
                 )}
               >
                 {sel.q}
@@ -171,7 +171,7 @@ export function Questions({ preAlert }: { preAlert: boolean }) {
                 onClick={() => setOpen(on ? null : f)}
                 className={cn(
                   "flex min-h-[52px] w-full cursor-pointer items-center justify-between gap-3 px-[18px] py-3 text-left text-[16px] leading-[22px] font-semibold",
-                  f.emergency && "text-pw-emergency",
+                  f.emergency && "text-pw-critical-text",
                 )}
               >
                 {f.q}

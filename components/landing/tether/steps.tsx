@@ -25,6 +25,8 @@ const ICONS = [
 ];
 /** The cascade along the five steps (D-LP-14): four tokens, then the lagoon accent. */
 const COL = ["--pw-cascade-1", "--pw-cascade-2", "--pw-cascade-3", "--pw-cascade-4", "--pw-accent"];
+/** White body text on cascade-4 is 3.4:1, under AA; the phone card leans toward cascade-3 to reach 4.7:1. */
+const C4_TEXT_SAFE = "color-mix(in srgb, var(--pw-cascade-4) 40%, var(--pw-cascade-3))";
 const ON = (k: number) => (k === 4 ? "text-pw-on-accent" : "text-pw-on-band");
 /** Arc ends on the canvas's 1000 x 208 board; odd steps sit low, even steps high. */
 const ARC = (k: number) => {
@@ -164,13 +166,13 @@ export function Steps() {
                 "relative flex min-h-[292px] flex-[0_0_84%] flex-col overflow-hidden rounded-[28px] p-[22px]",
                 ON(k),
               )}
-              style={{ background: `var(${COL[k]})` }}
+              style={{ background: k === 3 ? C4_TEXT_SAFE : `var(${COL[k]})` }}
             >
               <span
                 aria-hidden="true"
                 className="border-pw-band-glass pointer-events-none absolute -top-[74px] -right-[74px] size-[220px] rounded-full border-[20px]"
               />
-              <span className="text-[12px] leading-4 font-semibold tracking-[0.06em] uppercase opacity-85">
+              <span className="text-[12px] leading-4 font-semibold tracking-[0.06em] uppercase">
                 {STEPS.counter(k + 1)}
               </span>
               <span
@@ -182,7 +184,7 @@ export function Steps() {
               <h3 className="mt-auto pt-[22px] text-[24px] leading-7 font-semibold tracking-[-0.02em]">
                 {s.title}
               </h3>
-              <p className="mt-2 text-[16px] leading-[23px] opacity-90">{s.body}</p>
+              <p className="mt-2 text-[16px] leading-[23px]">{s.body}</p>
             </li>
           );
         })}
