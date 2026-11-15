@@ -4,14 +4,16 @@ import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 
 import { EmergencyButton } from "@/components/landing/emergency-button";
+import { TetherFlow } from "@/components/landing/tether/flow";
 import { TideScope } from "@/components/medsync/tide-scope";
 import { SIGNUP_HOLD, SITE } from "@/content/landing";
+import { onTetherHost, tetherTitles } from "@/lib/landing/tether-host";
 import { signupsClosedHere } from "@/lib/legal";
 import { SignupUnavailable } from "./_components/unavailable";
 
-export const metadata: Metadata = {
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { robots: { index: false, follow: false }, ...(await tetherTitles()) };
+}
 
 /**
  * Shared signup layout for the four one-page forms at /signup/* (Onboarding v2, ADR 0119).
@@ -23,7 +25,24 @@ export const metadata: Metadata = {
  * and the PDPO registration is done (landing v4 S8, decision D1; lib/legal.ts):
  * every /signup/* route renders the holding page instead of its form.
  */
-export default function SignupLayout({ children }: { children: ReactNode }) {
+export default async function SignupLayout({ children }: { children: ReactNode }) {
+  const body = signupsClosedHere() ? (
+    <SignupUnavailable title={SIGNUP_HOLD.title}>
+      {SIGNUP_HOLD.lead}{" "}
+      <a
+        href={`mailto:${SITE.email}`}
+        className="font-medium text-teal-700 underline decoration-teal-700/40 underline-offset-4"
+      >
+        {SITE.email}
+      </a>
+      .
+    </SignupUnavailable>
+  ) : (
+    children
+  );
+  // On the Tether domain the same forms sit in Tether's bar and Tide colours (ADR 0510).
+  if (await onTetherHost()) return <TetherFlow back>{body}</TetherFlow>;
+
   // Q17, S15: the header carries the Emergency button, as on /get-started, and the floating pill
   // steps aside (data-emergency-inline) so it never covers a field or the submit.
   return (
@@ -69,22 +88,7 @@ export default function SignupLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="flex-1">
-        {signupsClosedHere() ? (
-          <SignupUnavailable title={SIGNUP_HOLD.title}>
-            {SIGNUP_HOLD.lead}{" "}
-            <a
-              href={`mailto:${SITE.email}`}
-              className="font-medium text-teal-700 underline decoration-teal-700/40 underline-offset-4"
-            >
-              {SITE.email}
-            </a>
-            .
-          </SignupUnavailable>
-        ) : (
-          children
-        )}
-      </main>
+      <main className="flex-1">{body}</main>
       <TideScope group="public">{null}</TideScope>
     </div>
   );

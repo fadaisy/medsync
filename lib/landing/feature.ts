@@ -84,6 +84,8 @@ const TETHER_HOMES: Record<string, string> = {
   "/nurse": "/clinic",
   "/nurse/triage": "/clinic?view=triage",
   "/doctor": "/clinic?view=line",
+  // ADR 0510: the four ways to join sit beside the Tether sign-in form; MedSync's door page is not Tether's.
+  "/get-started": "/sign-in",
 };
 
 export function tetherHome(pathname: string): string | null {

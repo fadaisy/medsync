@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Sign-up on Tether looks like Tether — 15 Nov 2026
+
+- On the Tether domain the staff and hospital sign-up forms sit in Tether's bar and Tide colours, `/get-started`
+  goes to the Tether sign-in page with its four ways to join, the awaiting-approval pages say Tether, and tab
+  titles end in "· Tether" ([ADR 0510](docs/adr/0510-tether-sign-up-stays-on-tether.md)). MedSync's domain is unchanged.
+
 ### Changed — Nurses and doctors on Tether land on the clinic floor — 15 Nov 2026
 
 - On the Tether domain `/nurse` and `/doctor` go to `/clinic`, which is on there for every hospital

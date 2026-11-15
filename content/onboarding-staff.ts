@@ -18,7 +18,7 @@ export const STAFF = {
 } as const;
 
 export const STAFF_PENDING = {
-  metaTitle: "Your signup · MedSync",
+  metaTitle: "Your signup",
   signOut: "Sign out",
   thanks: (first: string | null) => (first ? `Thanks, ${first}.` : "Thanks."),
   approvedTitle: "You're approved",

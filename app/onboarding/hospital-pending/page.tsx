@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { HospitalPendingView } from "./_components/view";
 
 export const metadata: Metadata = {
-  title: "Your hospital application · MedSync",
+  title: "Your hospital application",
   robots: { index: false, follow: false },
 };
 

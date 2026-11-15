@@ -7,7 +7,7 @@ import { listHospitals, listSpecialties } from "@/lib/reference-data";
 import { ClinicalSignupForm } from "./_components/form";
 
 export const metadata: Metadata = {
-  title: "Clinical staff signup · MedSync",
+  title: "Clinical staff signup",
   robots: { index: false, follow: false },
 };
 

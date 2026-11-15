@@ -7,7 +7,7 @@ import { liveNotice } from "@/lib/onboarding/notice";
 import { PatientSignupForm } from "./_components/form";
 
 export const metadata: Metadata = {
-  title: "Patient signup · MedSync",
+  title: "Patient signup",
   robots: { index: false, follow: false },
 };
 

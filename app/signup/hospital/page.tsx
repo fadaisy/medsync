@@ -7,7 +7,7 @@ import { PNFP_BUREAUS } from "@/lib/registry";
 import { HospitalApplicationForm } from "./_components/form";
 
 export const metadata: Metadata = {
-  title: "Hospital application · MedSync",
+  title: "Hospital application",
   robots: { index: false, follow: false },
 };
 
