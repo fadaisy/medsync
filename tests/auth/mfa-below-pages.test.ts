@@ -11,14 +11,19 @@ describe("every table that gets RLS after 0288 gets the MFA gate", () => {
   const later = readdirSync(dir).filter(
     (f) => /^\d{4}_.*\.sql$/.test(f) && Number(f.slice(0, 4)) > 288,
   );
-  const enabling = later.filter((f) =>
-    /(public|pharmacy_practice)\.\w+\s+ENABLE ROW LEVEL SECURITY/i.test(read(f)),
+  const all = later.map(read).join("\n");
+  // The gate may come in a later migration when the first is already applied (0293 → 0294).
+  const tables = later.flatMap((f) =>
+    [...read(f).matchAll(/((?:public|pharmacy_practice)\.\w+)\s+ENABLE ROW LEVEL SECURITY/gi)].map(
+      (m) => `${f} ${m[1]}`,
+    ),
   );
 
-  it.each(enabling.length ? enabling : ["(none yet)"])("%s", (f) => {
-    if (f === "(none yet)") return;
-    expect(read(f)).toMatch(
-      /CREATE POLICY mfa_gate[\s\S]*?AS RESTRICTIVE[\s\S]*?caller_mfa_ok\(\)/,
+  it.each(tables.length ? tables : ["(none yet)"])("%s", (row) => {
+    if (row === "(none yet)") return;
+    const table = row.split(" ")[1]!.replace(".", "\\.");
+    expect(all).toMatch(
+      new RegExp(`CREATE POLICY mfa_gate ON ${table} AS RESTRICTIVE[\\s\\S]*?caller_mfa_ok\\(\\)`),
     );
   });
 });

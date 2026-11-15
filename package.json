@@ -6,6 +6,8 @@
     "dev": "node scripts/dev.mjs dev",
     "prebuild": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-founder-portraits.mjs",
     "build": "next build",
+    "tether:dev": "npm run dev --prefix apps/tether-site",
+    "tether:build": "npm run build --prefix apps/tether-site",
     "analyze": "ANALYZE=true next build --webpack",
     "budget": "node scripts/check-budget.mjs",
     "start": "next start",

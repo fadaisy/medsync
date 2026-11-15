@@ -73,6 +73,24 @@ export const HELP = {
   notUrgent: "It's not urgent. Book a visit",
 } as const;
 
+/**
+ * The Tether sign-in and authenticator-code pages (ADR 0498), from the canvas "Sign in · Tether" board. The form
+ * labels, errors and the two-step screen keep the hospital app's words (content/auth.ts SIGN_IN, MFA); the four
+ * ways to join are content/auth.ts GET_STARTED, word for word. These are the only new lines.
+ */
+export const AUTH = {
+  /** Canvas: "Sign in". The hospital app says "Sign in to MedSync". */
+  title: "Sign in",
+  lead: "Welcome back to Tether.",
+  join: {
+    title: "New to Tether?",
+    /** The second sentence is GET_STARTED.sub, word for word. */
+    sub: "Pick how you'll use it. Patients can start right away. Staff and hospitals are verified first, to protect patient data.",
+    label: "Ways to join",
+  },
+  home: "Tether home",
+} as const;
+
 export const HERO = {
   /** The headline reads "Book your {noun} {place}". */
   lead: "Book your",
