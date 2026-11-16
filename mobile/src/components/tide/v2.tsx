@@ -673,6 +673,7 @@ export function TierCard({
   features,
   current,
   onChoose,
+  chooseLabel,
 }: {
   tier: Exclude<Tier, "basic">;
   monthlyUgx: number;
@@ -680,6 +681,8 @@ export function TierCard({
   features: string[];
   current: boolean;
   onChoose: () => void;
+  /** The button's words; the kit's default is the trial offer. */
+  chooseLabel?: string;
 }) {
   const t = useTide();
   const M = MEMBERSHIP_COPY;
@@ -699,7 +702,7 @@ export function TierCard({
         </Text>
       ))}
       <Text style={[tType.caption, { color: t.ink3 }]}>{M.plans.neverAhead}</Text>
-      <Button label={current ? name : M.plans.trial} onPress={onChoose} variant={current ? "soft" : "accent"} disabled={current} size="md" />
+      <Button label={current ? name : (chooseLabel ?? M.plans.trial)} onPress={onChoose} variant={current ? "soft" : "accent"} disabled={current} size="md" />
     </View>
   );
 }

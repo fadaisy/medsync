@@ -8,10 +8,12 @@ import {
   splitHistory,
 } from "@patient-core/me-health";
 import { placesSummary } from "@patient-core/me-places";
+import { memberNumber, plansFrom, tierNow } from "@patient-core/membership";
 
 import { PageHeader } from "@/components/tide/shell";
 import { ME_COPY as C } from "@/content/patient/me";
 import { loadMedicines } from "@/lib/patient-web/day";
+import { patientFlag } from "@/lib/patient-web/flags";
 import {
   loadCardIdentity,
   loadHistory,
@@ -19,10 +21,13 @@ import {
   loadPlaces,
   loadSms,
 } from "@/lib/patient-web/me-data";
+import { loadMembership } from "@/lib/patient-web/membership-v2";
 import { countUnseenNotifications } from "@/lib/patient-web/notifications";
+import { myMobile } from "@/lib/patient-web/visit-v2";
 import { fetchHousehold } from "@/lib/patient/household";
 import { requirePatientScope } from "@/lib/patient/scope";
 import pkg from "@/package.json";
+import { MeMembership } from "./_components/me-membership";
 import { MeView } from "./_components/me-view";
 
 export const metadata: Metadata = { title: "Me" };
@@ -57,9 +62,40 @@ export default async function MePage() {
   const language = onFile?.ok ? onFile.onFile.preferredLanguage?.trim() || null : null;
   const emergencyPhone = id?.emergencyPhone ?? scope.emergencyEntrancePhone;
 
+  // Patient app v2 (Step 10), behind appV2Web: the membership card, plans, trial and Plus payment.
+  const v2 = patientFlag("appV2Web");
+  const [membership, msisdn] = v2
+    ? await Promise.all([loadMembership().catch(() => null), myMobile().catch(() => null)])
+    : [null, null];
+  const held = tierNow(membership?.row ?? null, now);
+  const endsLabel = held.endsIso
+    ? new Date(new Date(held.endsIso).getTime() + 3 * 3600_000).toISOString().slice(0, 10)
+    : null;
+
   return (
     <>
       <PageHeader title={C.title} area="me" unseen={unseen} />
+      {v2 ? (
+        <div className="mb-8">
+          <MeMembership
+            tier={held.tier}
+            trial={held.trial}
+            endsLabel={endsLabel}
+            trialUsed={membership?.row?.trialUsed ?? false}
+            name={name ?? C.holderUnknown}
+            memberNo={memberNumber(id?.code ?? null)}
+            id={{
+              emergencyContact: emergencyPhone ?? "—",
+              bloodGroup: null,
+              allergies: lines.allergies === "None listed" ? [] : [lines.allergies],
+              conditions: lines.conditions === "None listed" ? [] : [lines.conditions],
+              hospitalLine: facility ?? "—",
+            }}
+            plans={plansFrom(membership?.prices ?? [], now.toISOString().slice(0, 10))}
+            msisdn={msisdn}
+          />
+        </div>
+      ) : null}
       <MeView
         card={{
           holder: name ?? C.holderUnknown,

@@ -54,9 +54,15 @@ export function MembershipCard({
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="w-full max-w-[400px] [perspective:1200px]">
-        <div className={cn("pw-card-turn grid", back && "[transform:rotateY(180deg)]")}>
+        <div
+          className={cn(
+            "pw-card-turn grid grid-cols-[minmax(0,1fr)]",
+            back && "[transform:rotateY(180deg)]",
+          )}
+        >
           <section
             aria-hidden={back}
+            inert={back}
             className={cn(
               "pw-card-face rounded-pw-card shadow-pw-float flex aspect-[1.586] flex-col justify-between p-5 [grid-area:1/1]",
               TIER_SURFACE[tier],
@@ -84,7 +90,8 @@ export function MembershipCard({
           </section>
           <section
             aria-hidden={!back}
-            className="pw-card-face rounded-pw-card bg-pw-surface text-pw-ink shadow-pw-float flex aspect-[1.586] [transform:rotateY(180deg)] gap-4 p-5 [grid-area:1/1]"
+            inert={!back}
+            className="pw-card-face rounded-pw-card bg-pw-surface text-pw-ink shadow-pw-float flex min-h-full [transform:rotateY(180deg)] gap-4 p-5 [grid-area:1/1]"
           >
             <div className="flex min-w-0 flex-1 flex-col gap-1.5 text-[13px]">
               <span className="text-[15px] font-semibold">{M.card.back.title}</span>
@@ -142,6 +149,7 @@ export function TierCard({
   features,
   current,
   onChoose,
+  chooseLabel,
 }: {
   tier: Exclude<Tier, "basic">;
   monthlyUgx: number;
@@ -149,6 +157,8 @@ export function TierCard({
   features: string[];
   current: boolean;
   onChoose: () => void;
+  /** The button's words; the kit's default is the trial offer. */
+  chooseLabel?: string;
 }) {
   return (
     <section className="rounded-pw-card bg-pw-surface shadow-pw-card flex flex-col gap-3 p-5">
@@ -175,7 +185,7 @@ export function TierCard({
         disabled={current}
         className={buttonClass(current ? "soft" : "accent", "m", current)}
       >
-        {current ? TIER_NAME[tier] : M.plans.trial}
+        {current ? TIER_NAME[tier] : (chooseLabel ?? M.plans.trial)}
       </button>
     </section>
   );

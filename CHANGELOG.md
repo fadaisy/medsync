@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 Me, membership and Plus on both platforms (Step 10) — 16 Nov 2026
+
+- Me (behind `appV2Web` / `appV2Mobile`): the membership card (front, back, turn over), a QR of a short-lived token, the plans from approved prices, the 30-day trial with its reveal, and paying a plan through the engine. What is always free sits beside the plans (MR9).
+- S24: `pt-medical-id-token` issues a signed token that ends after 5 minutes (`_shared/medical-id-token.ts`, tested: expiry, tampering, a foreign key). It returns the QR as a grid, so the phone draws it without a new dependency. The apps refresh it before it ends.
+- `pt-plus`: the trial (no card, nothing charged at the end, S25) and payment through the one engine. Migration 0303 (GATED, not applied): membership bills with Tether as the merchant, Tether's own receipt counter, and the period starts when paid ([ADR 0520](docs/adr/0520-plus-paid-through-the-engine-tether-as-merchant.md)). Sandbox only until Tether's merchant agreement is signed.
+- Choosing a plan starts the free month when it is still available, else opens payment. The hidden card face is `inert` (an axe finding).
+- Shared rules in `packages/patient-core/membership.ts`: the tier a person holds now, and plans from approved prices.
+- Fixed: migration 0304 (GATED) adds the 0288 MFA gate to every table 0299–0301 put RLS on (they enabled it in a loop the guard could not see). Hospital staff now need AAL2 to read them; patients are unaffected. The PGlite harness takes an `aal` on its actor.
+
 ### Added — Patient app v2 Care mode on the web, behind careModeOn() (Step 9) — 16 Nov 2026
 
 - `careModeOn()` on the web: Gate CG signed AND `careMode` and `appV2Web` in `PATIENT_FLAGS`; `GATE_CG_SIGNED` is false, so it is off whatever the environment says (tested).

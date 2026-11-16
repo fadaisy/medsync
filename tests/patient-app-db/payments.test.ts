@@ -19,7 +19,12 @@ import {
   reception,
 } from "../emr-db/_pglite";
 
-const as = (userId: string | null): Actor => ({ userId, role: userId ? "authenticated" : "anon" });
+// Every actor carries an aal2 token, so the 0288/0304 MFA gate is never what hides a row here (one test checks it).
+const as = (userId: string | null): Actor => ({
+  userId,
+  role: userId ? "authenticated" : "anon",
+  aal: "aal2",
+});
 
 let pg: Pg;
 let H: string, H2: string, D: string, D2: string;
@@ -282,6 +287,14 @@ describe.skipIf(!laneOn)("patient payments (0299)", () => {
       expect(await sees(A, paidByAgent)).toBe(1);
       expect(await sees(A, b)).toBe(0);
       expect(await sees(null, b)).toBe(-1);
+    });
+
+    it("0304: hospital staff without MFA read no bill; the patient still does", async () => {
+      const aal1 = (u: string): Actor => ({ userId: u, role: "authenticated", aal: "aal1" });
+      const staff = await probe(pg, aal1(R), `SELECT id FROM public.bills WHERE id = $1`, [b]);
+      expect(staff.ok && staff.rows.length).toBe(0);
+      const mine = await probe(pg, aal1(P), `SELECT id FROM public.bills WHERE id = $1`, [b]);
+      expect(mine.ok && mine.rows.length).toBe(1);
     });
 
     it("the one status view follows the same rows", async () => {

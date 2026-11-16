@@ -31,6 +31,8 @@ import {
 } from "@/lib/booking";
 import { SMS_CONSENT_COPY } from "@/lib/consent-copy";
 import { fetchSmsConsent, setSmsConsent } from "@/lib/notifications";
+import { MeMembershipRoute } from "@/features/v2/me-membership";
+import { flag } from "@/lib/flags";
 import { pushPermission, registerPushToken } from "@/lib/push";
 import { useSession } from "@/lib/session";
 import { useNow } from "@/lib/use-now";
@@ -155,6 +157,19 @@ export default function MeTab() {
 
   return (
     <Screen title="Me" underNav helpSource="me" gap={tSpace[2.5]}>
+      {flag("appV2Mobile") ? (
+        <MeMembershipRoute
+          name={id.name ?? "Name not recorded"}
+          code={id.code}
+          id={{
+            emergencyContact: nokOnFile ? "Next of kin on file" : "—",
+            bloodGroup: null,
+            allergies: card.allergies === "None listed" ? [] : [card.allergies],
+            conditions: card.conditions === "None listed" ? [] : [card.conditions],
+            hospitalLine: id.facility ?? "—",
+          }}
+        />
+      ) : null}
       <HealthCard
         data={{
           holder: id.name ?? "Name not recorded",

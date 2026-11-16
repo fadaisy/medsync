@@ -20,7 +20,12 @@ import {
   staff,
 } from "../emr-db/_pglite";
 
-const as = (userId: string | null): Actor => ({ userId, role: userId ? "authenticated" : "anon" });
+// Every actor carries an aal2 token, so the 0288/0304 MFA gate is never what hides a row here (one test checks it).
+const as = (userId: string | null): Actor => ({
+  userId,
+  role: userId ? "authenticated" : "anon",
+  aal: "aal2",
+});
 
 const PROTECTED = [
   "queue_order",
