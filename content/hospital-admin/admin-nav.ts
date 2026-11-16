@@ -21,7 +21,7 @@ export const ADMIN_NAV = {
     activity: "Activity",
     departments: "Departments",
     emergency: "Emergency and support",
-    staff: "Staff",
+    staff: "People",
     profile: "Hospital profile",
     intake: "Intake",
     requests: "Requests",

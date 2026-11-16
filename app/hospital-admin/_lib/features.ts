@@ -31,7 +31,6 @@ export type FeatureIconKey =
   | "departments"
   | "scheduling"
   | "intake"
-  | "admins"
   | "audit"
   | "reports"
   | "requests"
@@ -75,8 +74,8 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
   },
   {
     slug: "staff",
-    label: "Staff",
-    hint: "Pending approvals · directory · roles · onboarding",
+    label: "People",
+    hint: "To review · invitations · directory · admins",
     iconKey: "staff",
     placeholder: false,
   },
@@ -114,13 +113,6 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
     hint: "Fill rate · no-shows · wait accuracy · demand · SMS spend",
     iconKey: "reports",
     placeholder: false,
-  },
-  {
-    slug: "admins",
-    label: "Admins",
-    hint: "Primary + backup admin · audited succession",
-    iconKey: "admins",
-    placeholder: true,
   },
   {
     slug: "activity",
