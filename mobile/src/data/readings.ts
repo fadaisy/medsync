@@ -4,8 +4,10 @@ import type { SaveResult } from "@/offline/outbox";
 import type { SavedReading } from "@patient-core/log";
 import { readingsFrom, whenWords } from "@patient-core/log";
 
+import { saveCareReading } from "@/data/care-v2";
 import { addLog, useHealthLog } from "@/data/health-log";
 import { track } from "@/lib/analytics";
+import { flag } from "@/lib/flags";
 import { readingValueText, SUGAR_CONTEXT_WORDS } from "@/lib/readings";
 
 export type { SavedReading } from "@patient-core/log";
@@ -61,6 +63,8 @@ export const readingsRepo = {
     opts: { entry: "sheet" | "page"; taps: number; feel?: string[] },
   ): Promise<SaveResult> {
     track("reading_saved", { entry: opts.entry, taps: opts.taps, kind: input.kind });
+    // Care mode (Step 7): the same row, with a client key the care team's copy shares (S18, S19).
+    if (flag("careMode")) return saveCareReading(input, readingToRow(input, opts.feel ?? []));
     return addLog(readingToRow(input, opts.feel ?? []));
   },
 };

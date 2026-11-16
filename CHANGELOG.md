@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 Care mode on the phone, part 1, behind appV2Mobile and careMode (Step 7) — 16 Nov 2026
+
+- `careMode` on the phone (gate A5: replaces `mobileClinicalData`), off until Gate CG like the flag it replaces.
+- Care tab Today: one hero from the ladder (S17, all 32 combinations tested), the plan as a day bar with tickable rows, reading snippets for the programme's measures (+ Log opens Add a reading set to that measure), and the medicines week.
+- Plan page (`/care/plan`) and Medicines v2: why, when and status; "as on your pharmacy label"; never an amount (MR3).
+- Shared rules in `packages/patient-core/care-plan.ts`: the plan as a day in Kampala time, the week, the ladder's input, the 10-day card.
+- Offline (S18): dose ticks and readings queue in the outbox and replay to `pt-dose-event` / `pt-care-reading` with the same client key; a care-mode reading's log row uses its id as that key, so the team's copy is the same row.
+
 ### Added — Patient app v2 booking payments on both platforms, sandbox only (Step 6) — 16 Nov 2026
 
 - The visit page (phone and web, behind the v2 flags) shows what the visit owes and what was paid:

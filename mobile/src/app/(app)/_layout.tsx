@@ -68,6 +68,7 @@ export default function AppLayout() {
         <Stack.Screen name="care/labs" />
         <Stack.Screen name="care/activity" />
         <Stack.Screen name="care/chat" />
+        <Stack.Screen name="care/plan" />
         <Stack.Screen name="records/index" />
         <Stack.Screen name="records/[id]" />
         <Stack.Screen name="places/index" />
