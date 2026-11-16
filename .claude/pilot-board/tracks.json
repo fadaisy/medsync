@@ -184,10 +184,10 @@
     "area": "Claude",
     "task": "Clinic floor follow-up: pregnancy and SpO2 scale 2 as engine inputs, then wiring",
     "status": "Running",
-    "progress": 45,
+    "progress": 50,
     "branch": "feat/clinic-floor-engine-inputs",
-    "note": "Changes 1–2 pushed (ad7b0bb): pregnancy and SpO2 scale 2 reach the engine; age and sex now come from the patient record. 23/23 tests. Change 3 (past readings for Trends) waits for your go. Session session_01AyHv1Boe5cQsa3jrparsCw.",
-    "updated": "2026-11-15"
+    "note": "Changes 1–2 pushed (ad7b0bb). Change 3 approved 16 Nov: Trends shows earlier readings from all hospitals the nurse may already see (no policy widened). Session session_01AyHv1Boe5cQsa3jrparsCw.",
+    "updated": "2026-11-16"
   },
   {
     "id": "cloud-desk-js",
@@ -196,8 +196,8 @@
     "status": "Done",
     "progress": 100,
     "branch": "perf/reception-desk-first-load",
-    "note": "Pushed (81f54c8), not merged, no behaviour change. /reception first load 342 → 263 KB (shared root 230); /doctor, /nurse, /hospital-admin, /admin each about 30–55 KB lighter. 160 KB needs cutting the shared root (Sentry is the one choice). Open: 3 axe issues and slow typing in the Code check-in dialog (both already on main). Not measured signed in.",
-    "updated": "2026-11-15"
+    "note": "Pushed (81f54c8), not merged, no behaviour change. /reception first load 342 → 263 KB (shared root 230); /doctor, /nurse, /hospital-admin, /admin each about 30–55 KB lighter. 160 KB needs cutting the shared root (Sentry is the one choice). Open: 3 axe issues and slow typing in the Code check-in dialog (both already on main). Not measured signed in. You ruled 16 Nov: keep Sentry loading from the start.",
+    "updated": "2026-11-16"
   },
   {
     "id": "cloud-pilot-branches",
