@@ -5,8 +5,11 @@ import type { FloorPort } from "./port";
 import type { FloorData } from "@/lib/clinic-floor/fixture";
 import { useEffect, useMemo, useState } from "react";
 
-import { recordFloorEventAction, triageOnFloorAction } from "@/app/clinic/actions";
-import { FLOOR } from "@/content/clinic-floor/floor";
+import {
+  bookFloorFollowUpAction,
+  recordFloorEventAction,
+  triageOnFloorAction,
+} from "@/app/clinic/actions";
 import { floorOffline } from "@/lib/clinic-floor/queue";
 import { ClinicFloor } from "./floor";
 
@@ -19,8 +22,14 @@ const livePort: FloorPort = {
     fd.set("floor", JSON.stringify(floor));
     return triageOnFloorAction({}, fd);
   },
-  // ponytail: a clinician cannot book through the desk's action (reception scope); the desk books it (REPORT §9).
-  followUp: async () => ({ ok: false, error: FLOOR.finish.deskBooks }),
+  followUp: (f) =>
+    bookFloorFollowUpAction({
+      intakeId: f.intakeId,
+      clinicId: f.clinicId,
+      day: f.day,
+      doctorUserId: f.doctorUserId,
+      reason: f.reason,
+    }),
 };
 
 export function FloorLive({ data, view }: { data: FloorData; view?: View }) {

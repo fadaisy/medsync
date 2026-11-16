@@ -19,6 +19,8 @@ export const FLOOR_ERRORS = {
   notYourHospital: "That visit is not on this floor.",
   invalid: "Please check and try again.",
   saveFailed: "Could not save. Try again.",
+  noSession: "No clinic session on that day. Choose another day, or the desk books it.",
+  followUpDesk: "This patient has no account yet. The desk books the follow-up.",
 } as const;
 
 export const FLOOR = {
