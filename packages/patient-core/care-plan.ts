@@ -40,6 +40,23 @@ export interface PlanSlot {
   state: SlotState;
 }
 
+/** Plan items as the care team wrote them; anything malformed is left out, never guessed (MR3). */
+export function planItemsOf(raw: unknown): CarePlanItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((i) => {
+    const o = i as Record<string, unknown>;
+    if (typeof o.key !== "string" || typeof o.name !== "string" || !Array.isArray(o.times))
+      return [];
+    const times = o.times.filter(
+      (t): t is string => typeof t === "string" && /^\d{2}:\d{2}$/.test(t),
+    );
+    const kind = o.kind === "check" || o.kind === "walk" ? o.kind : "dose";
+    return [
+      { key: o.key, name: o.name, why: typeof o.why === "string" ? o.why : null, kind, times },
+    ];
+  });
+}
+
 const KAMPALA_MS = 3 * 3600_000;
 /** A slot is "due" from 30 minutes before its time to 2 hours after; then "missed". */
 const EARLY_MS = 30 * 60_000;

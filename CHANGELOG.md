@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 Care mode on the web, behind careModeOn() (Step 9) — 16 Nov 2026
+
+- `careModeOn()` on the web: Gate CG signed AND `careMode` and `appV2Web` in `PATIENT_FLAGS`; `GATE_CG_SIGNED` is false, so it is off whatever the environment says (tested).
+- Today (`/patient/care`): the hero from the ladder (a due dose ticks from the hero), the plan as a 06:00–22:00 timeline with tickable points and rows with each slot's state in words, and the three working chart cards. S21: hover and keyboard focus switch each card's header to that day, gaps stay gaps, each chart has a summary. S22: + Log opens Add a reading set to that measure.
+- Plan (`/patient/care/plan`): a vertical timeline with ticks and the week of medicines. My care (`/patient/care/my-care`): the team and checks in one column, messages in the other.
+- S23: in care mode, a sugar of 3.2 opens the step-by-step danger flow in place of the reading form. Care-mode readings carry a client key and go to `pt-care-reading`, so the team is told.
+- The Overdue tag lives in `components/tide/v2-check-tag.tsx`, the only new file allowed amber.
+- Fixture gallery `/pw/gallery/care-v2?screen=today|plan|mycare|reading`. Axe clean at 4 widths × 2 themes.
+
 ### Added — Patient app v2 Care mode on the phone, part 2, behind appV2Mobile and careMode (Step 8) — 16 Nov 2026
 
 - My care (`/care/my-care`): the team grid (a name only with consent, S20; roles always; first contact tagged; next step) and checks this year (Overdue in amber with Book it, Due, Done).

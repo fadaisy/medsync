@@ -78,6 +78,8 @@ export interface PlanPoint {
   at: string;
   done: boolean;
   kind: "dose" | "check" | "walk";
+  /** The slot's state in words ("Due", "Later", "Missed"); absent: Taken or Due. */
+  word?: string;
 }
 
 const minutes = (t: string) => {
@@ -179,7 +181,9 @@ export function DoseRow({ point, onToggle }: { point: PlanPoint; onToggle: () =>
           {point.kind === "dose" ? ` · ${PL.label}` : ""}
         </span>
       </span>
-      <span className="text-pw-ink-3 text-[12px]">{point.done ? PL.taken : PL.due}</span>
+      <span className="text-pw-ink-3 text-[12px]">
+        {point.word ?? (point.done ? PL.taken : PL.due)}
+      </span>
     </button>
   );
 }

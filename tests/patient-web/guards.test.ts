@@ -43,6 +43,7 @@ const SIGNAL_ALLOWED = [
   "components/tide/care-sugar-diary.tsx",
   "components/tide/care-week-chart.tsx",
   "components/tide/v2-reading-card.tsx", // patient app v2: in target or above target, with its word
+  "components/tide/v2-check-tag.tsx", // patient app v2 §5.8: a check "Overdue" in amber, with its word
 ];
 
 describe("patient web guards", () => {

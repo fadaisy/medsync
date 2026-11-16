@@ -3,7 +3,7 @@ import type { ReadingKind } from "@patient-core/readings";
 import { ReadingForm } from "@/components/tide/reading-dialog";
 import { PageHeader } from "@/components/tide/shell";
 import { READINGS_COPY } from "@/content/patient/readings";
-import { patientFlag } from "@/lib/patient-web/flags";
+import { careModeOn, patientFlag } from "@/lib/patient-web/flags";
 import { recentReadingsAction } from "@/lib/patient-web/reading-actions";
 
 const KINDS: readonly ReadingKind[] = ["bp", "sugar", "pulse", "weight"];
@@ -28,6 +28,7 @@ export default async function ReadingsPage({
           initialKind={KINDS.find((k) => k === kind) ?? "bp"}
           recent={recent}
           sayIt={patientFlag("sayIt")}
+          careFlow={careModeOn()}
         />
       </div>
     </>

@@ -8,10 +8,13 @@
 import type { NewLog } from "@/data/health-log";
 import type { SaveResult } from "@/offline/outbox";
 import type { CareAlert, CarePlanItem, DoseTick, TeamAsk } from "@patient-core/care-plan";
+import { planItemsOf } from "@patient-core/care-plan";
 import type { ReadingInput } from "@patient-core/readings";
 
 import { addLog } from "@/data/health-log";
 import { currentUserId, enqueue, newId } from "@/offline/outbox";
+
+export { planItemsOf } from "@patient-core/care-plan";
 
 export interface CareData {
   enrolmentId: string;
@@ -26,18 +29,6 @@ export interface CareData {
 async function db() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   return (require("@/lib/supabase") as typeof import("@/lib/supabase")).supabase;
-}
-
-/** Plan items as the care team wrote them; anything malformed is left out, never guessed (MR3). */
-export function planItemsOf(raw: unknown): CarePlanItem[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.flatMap((i) => {
-    const o = i as Record<string, unknown>;
-    if (typeof o.key !== "string" || typeof o.name !== "string" || !Array.isArray(o.times)) return [];
-    const times = o.times.filter((t): t is string => typeof t === "string" && /^\d{2}:\d{2}$/.test(t));
-    const kind = o.kind === "check" || o.kind === "walk" ? o.kind : "dose";
-    return [{ key: o.key, name: o.name, why: typeof o.why === "string" ? o.why : null, kind, times }];
-  });
 }
 
 /** The patient's live programme and today's working set, or null when not in Care mode (or before 0301). */
