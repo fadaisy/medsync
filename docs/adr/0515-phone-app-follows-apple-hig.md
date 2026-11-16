@@ -1,4 +1,4 @@
-# 0471 — The phone app follows Apple's Human Interface Guidelines
+# 0515 — The phone app follows Apple's Human Interface Guidelines
 
 Date: 2026-11-01 · Status: accepted (owner, in chat)
 
