@@ -6,6 +6,7 @@
 import type { Metric } from "./care-trends";
 import type { SugarContext } from "./readings";
 
+import rules from "../clinical-rules/patient-thresholds.v0.json";
 import { targetBand } from "./care-trends";
 
 export type WeekDirection = "toward" | "away" | "flat";
@@ -97,4 +98,44 @@ export function plausible(
         ? { ok: true }
         : { ok: false, why: "Check the number. Weight is in kilograms." };
   }
+}
+
+/**
+ * What the reading card draws as its target (§5.7): a shaded band for sugar, two lines for blood pressure (top
+ * and bottom), nothing for weight unless the plan sets a next step. From the thresholds file only (MR10).
+ */
+export function targetMarks(
+  metric: Metric,
+  ctx: SugarContext,
+  weightNextStep: number | null = null,
+): {
+  band: { lo: number; hi: number } | null;
+  lines: { value: number; label: string; dashed: boolean }[];
+} {
+  if (metric === "bp")
+    return {
+      band: null,
+      lines: [
+        {
+          value: rules.bp.aboveTopAtLeast,
+          label: `Top below ${rules.bp.aboveTopAtLeast}`,
+          dashed: false,
+        },
+        {
+          value: rules.bp.aboveBottomAtLeast,
+          label: `Bottom below ${rules.bp.aboveBottomAtLeast}`,
+          dashed: false,
+        },
+      ],
+    };
+  if (metric === "weight")
+    return {
+      band: null,
+      lines:
+        weightNextStep === null
+          ? []
+          : [{ value: weightNextStep, label: "Next step", dashed: true }],
+    };
+  const band = targetBand(metric, ctx);
+  return { band, lines: [] };
 }

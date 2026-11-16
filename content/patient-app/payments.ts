@@ -3,7 +3,7 @@
  * Payment states are never red (MR5). Amounts come only from the engine's fee resolution; nothing here holds a
  * number. The CSO signs; Claude never edits the status.
  */
-import type { SignedCopy } from "@/content/signed-copy";
+import type { SignedCopy } from "../signed-copy";
 
 export const PAYMENTS_COPY_STATUS: SignedCopy = {
   status: "draft",

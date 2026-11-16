@@ -20,6 +20,9 @@
       ],
       "@patient/*": [
         "../lib/patient/*"
+      ],
+      "@content/*": [
+        "../content/*"
       ]
     },
     "resolveJsonModule": true,

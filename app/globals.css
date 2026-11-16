@@ -1781,6 +1781,57 @@ select:not([multiple]):not([size]):not(.appearance-none) {
   --pw-shadow-emergency: 0 6px 16px -6px rgba(220, 38, 38, 0.6);
 }
 /* pw-tokens:end */
+
+/* ─── Patient app v2 · the ticket's tear line (§5.3, W2) ─────────────────────────────────────────────
+   Two real half-circle cut-outs, made with a mask on the tear strip (not painted circles), and a dashed rule.
+   Vertical layout (phone width): a 24 px band across the ticket. From 761 px: a 24 px column. */
+.pw-ticket-tear {
+  height: 24px;
+  width: 100%;
+  background-image: linear-gradient(to right, var(--pw-ticket-tear) 55%, transparent 0);
+  background-size: 10px 1.5px;
+  background-repeat: repeat-x;
+  background-position: center;
+  -webkit-mask:
+    radial-gradient(circle 12px at 0 50%, transparent 11.5px, black 12px),
+    radial-gradient(circle 12px at 100% 50%, transparent 11.5px, black 12px);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle 12px at 0 50%, transparent 11.5px, black 12px),
+    radial-gradient(circle 12px at 100% 50%, transparent 11.5px, black 12px);
+  mask-composite: intersect;
+}
+@media (min-width: 761px) {
+  .pw-ticket-tear {
+    height: auto;
+    width: 24px;
+    background-image: linear-gradient(to bottom, var(--pw-ticket-tear) 55%, transparent 0);
+    background-size: 1.5px 10px;
+    background-repeat: repeat-y;
+    -webkit-mask:
+      radial-gradient(circle 12px at 50% 0, transparent 11.5px, black 12px),
+      radial-gradient(circle 12px at 50% 100%, transparent 11.5px, black 12px);
+    mask:
+      radial-gradient(circle 12px at 50% 0, transparent 11.5px, black 12px),
+      radial-gradient(circle 12px at 50% 100%, transparent 11.5px, black 12px);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+}
+/* The membership card turns over (M10); Reduce Motion swaps faces without the turn. */
+.pw-card-turn {
+  transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+}
+.pw-card-face {
+  backface-visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pw-card-turn {
+    transition: none;
+  }
+}
+
 /* The bell rings once every 4 s while anything is unseen (§4.1); `motion-safe:` only. */
 @keyframes pw-bell {
   0%,

@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 component kits, phone and web (Step 3) — 16 Nov 2026
+
+- One set of v2 components on both platforms, from one token source and one shared core: the ticket (navy half,
+  pink day number, a masked tear line, light stub; sideways on the web, vertical on phones), the payment line,
+  pay choice, prompt wait, receipt and refund tracker, the five visit stages and the Called banner, Today's hero
+  card, the plan as a day with dose rows, the readings card with its 10-day chart, the membership card that turns
+  over, and plan cards. Payment states use the accent, never clinical colours. Kit pages: `/pw/gallery/v2` and the
+  phone's `/dev/v2`; screenshots in `docs/patient-app/screens/step3/`. The danger hero is the only new red, on both
+  red allowlists for clinical-safety review. Words are shared from `content/patient-app` (drafts).
+
 ### Added — Care mode engine and care programmes priced by team (behind careMode) — 16 Nov 2026
 
 - Care programmes are priced from their team (roles, cost and caseload) by one shared formula, approved by a second

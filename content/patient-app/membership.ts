@@ -2,7 +2,7 @@
  * Patient app v2 · Me, the membership card and Plus (§5.9, M10–M11). Drafts for GATE A. Prices come from the
  * server (D-MR-10); nothing here holds a number. The CSO signs; Claude never edits the status.
  */
-import type { SignedCopy } from "@/content/signed-copy";
+import type { SignedCopy } from "../signed-copy";
 
 export const MEMBERSHIP_COPY_STATUS: SignedCopy = {
   status: "draft",

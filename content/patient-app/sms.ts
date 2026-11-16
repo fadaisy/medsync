@@ -5,7 +5,7 @@
  * no PHI beyond what the patient already knows (MR12). Fills in {braces}. The CSO signs; Claude never edits
  * the status.
  */
-import type { SignedCopy } from "@/content/signed-copy";
+import type { SignedCopy } from "../signed-copy";
 
 export const PATIENT_APP_SMS_COPY_STATUS: SignedCopy = {
   status: "draft",

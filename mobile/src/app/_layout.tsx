@@ -120,6 +120,7 @@ function RootNavigator() {
       <Stack.Protected guard={__DEV__}>
         <Stack.Screen name="dev/tide" />
         <Stack.Screen name="dev/screen" />
+        <Stack.Screen name="dev/v2" />
       </Stack.Protected>
     </Stack>
   );
