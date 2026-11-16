@@ -41,6 +41,7 @@ export const bills = pgTable("bills", {
   paidUgx: integer("paid_ugx").notNull().default(0),
   refundedUgx: integer("refunded_ugx").notNull().default(0),
   confidential: boolean("confidential").notNull().default(false),
+  platformShareUgx: integer("platform_share_ugx").notNull().default(0),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
 });

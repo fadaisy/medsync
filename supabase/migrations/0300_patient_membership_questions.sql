@@ -8,10 +8,10 @@
 -- bundle holds none. Paying for Plus goes through 0299's engine at Step 10 (after the trial; no card, no
 -- automatic charge, D-MR-09).
 
--- ─── 1. Plus prices (UGX; yearly = 10 months) ───────────────────────────────────
+-- ─── 1. Plus prices (UGX; quarterly = 3 months less 5%; yearly = 10 months) ───────
 CREATE TABLE IF NOT EXISTS public.plus_prices (
   tier         text NOT NULL CHECK (tier IN ('plus_family','plus_care','family_care')),
-  period       text NOT NULL CHECK (period IN ('monthly','yearly')),
+  period       text NOT NULL CHECK (period IN ('monthly','quarterly','yearly')),
   amount_ugx   integer NOT NULL CHECK (amount_ugx > 0),
   effective_from date NOT NULL DEFAULT current_date,
   approved_by  uuid REFERENCES auth.users(id),
@@ -19,19 +19,20 @@ CREATE TABLE IF NOT EXISTS public.plus_prices (
   PRIMARY KEY (tier, period, effective_from)
 );
 -- Draft prices for the owner to approve (approved_by stays NULL until then; the app shows only approved rows).
--- Benchmarks: a medical officer visit is about UGX 20,000-30,000 (UMDPC proposed GP cap UGX 30,000), so the
--- dearest monthly plan costs less than a third of one visit.
+-- From docs/patient-app/business-model.md, as revised: Plus Family is software only (cheap to serve), so it is
+-- priced for reach; Plus Care carries texts and refill packing. Programme members get Plus Care inside their
+-- programme price, not on top.
 INSERT INTO public.plus_prices (tier, period, amount_ugx) VALUES
-  ('plus_family','monthly',3000), ('plus_family','yearly',30000),
-  ('plus_care','monthly',5000),   ('plus_care','yearly',50000),
-  ('family_care','monthly',7000), ('family_care','yearly',70000)
+  ('plus_family','monthly',5000),  ('plus_family','quarterly',14250), ('plus_family','yearly',50000),
+  ('plus_care','monthly',10000),   ('plus_care','quarterly',28500),   ('plus_care','yearly',100000),
+  ('family_care','monthly',13000), ('family_care','quarterly',37050), ('family_care','yearly',130000)
 ON CONFLICT DO NOTHING;
 
 -- ─── 2. Memberships ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.memberships (
   user_id         uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   tier            text NOT NULL DEFAULT 'basic' CHECK (tier IN ('basic','plus_family','plus_care','family_care')),
-  period          text CHECK (period IN ('monthly','yearly')),
+  period          text CHECK (period IN ('monthly','quarterly','yearly')),
   status          text NOT NULL DEFAULT 'active' CHECK (status IN ('trial','active','lapsed','cancelled')),
   trial_ends_at   timestamptz,
   period_ends_at  timestamptz,

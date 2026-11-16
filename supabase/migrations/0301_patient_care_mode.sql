@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS public.care_team_members (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   enrolment_id   uuid NOT NULL REFERENCES public.care_enrolments(id) ON DELETE CASCADE,
   user_id        uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  role           text NOT NULL CHECK (role IN ('nurse','doctor','clinical_officer','nutritionist','counsellor',
+  role           text NOT NULL CHECK (role IN ('nurse','medical_officer','specialist','doctor','clinical_officer','nutritionist','counsellor','physiotherapist',
                    'pharmacist','vht')),
   first_contact  boolean NOT NULL DEFAULT false,
   name_consent   boolean NOT NULL DEFAULT false,
@@ -262,3 +262,136 @@ BEGIN
     EXECUTE format('GRANT EXECUTE ON FUNCTION public.%s TO service_role', f);
   END LOOP;
 END $$;
+
+-- ─── 11. Care programmes priced by their team (ADR 0519; business model §3–4) ─────────
+-- The hospital defines each programme: its condition, its team (roles with monthly cost and caseload) and its
+-- price, worked out by `_shared/care-pricing.ts` and approved by a second person, like fee bands (0296).
+-- Named by condition and team, never by rank (UMDPC). The hospital employs the team and receives the fee.
+CREATE TABLE IF NOT EXISTS public.care_programmes (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  hospital_id    uuid NOT NULL REFERENCES public.hospitals(id) ON DELETE RESTRICT,
+  condition      text NOT NULL CHECK (condition IN ('hypertension','diabetes','diabetes_hypertension',
+                   'diabetes_insulin','heart_failure','mental_health','other')),
+  name           text NOT NULL CHECK (length(name) BETWEEN 3 AND 80
+                   AND name !~* '\m(premium|gold|silver|platinum|vip|elite|best|superior|executive|deluxe)\M'),
+  team           jsonb NOT NULL CHECK (jsonb_typeof(team) = 'array' AND jsonb_array_length(team) > 0),
+  monthly_ugx    integer NOT NULL CHECK (monthly_ugx > 0),
+  quarterly_ugx  integer NOT NULL CHECK (quarterly_ugx > 0),
+  yearly_ugx     integer NOT NULL CHECK (yearly_ugx > 0),
+  proposed_by    uuid NOT NULL REFERENCES auth.users(id),
+  approved_by    uuid REFERENCES auth.users(id),
+  approved_at    timestamptz,
+  retired_at     timestamptz,
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT care_programmes_four_eyes CHECK (approved_by IS NULL OR approved_by <> proposed_by)
+);
+
+CREATE TABLE IF NOT EXISTS public.care_programme_addons (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  hospital_id  uuid NOT NULL REFERENCES public.hospitals(id) ON DELETE RESTRICT,
+  kind         text NOT NULL CHECK (kind IN ('nutrition','counselling','pharmacist_review','physician_review',
+                 'home_visit','physio')),
+  monthly_ugx  integer NOT NULL CHECK (monthly_ugx > 0),
+  proposed_by  uuid NOT NULL REFERENCES auth.users(id),
+  approved_by  uuid REFERENCES auth.users(id),
+  approved_at  timestamptz,
+  retired_at   timestamptz,
+  CONSTRAINT care_addons_four_eyes CHECK (approved_by IS NULL OR approved_by <> proposed_by)
+);
+
+ALTER TABLE public.care_enrolments ADD COLUMN IF NOT EXISTS programme_id uuid REFERENCES public.care_programmes(id);
+ALTER TABLE public.care_enrolments ADD COLUMN IF NOT EXISTS addon_ids uuid[] NOT NULL DEFAULT '{}';
+
+-- A paid stretch of a programme. Active only while its bill is paid; who paid is the payment engine's record.
+CREATE TABLE IF NOT EXISTS public.care_programme_periods (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  enrolment_id  uuid NOT NULL REFERENCES public.care_enrolments(id) ON DELETE RESTRICT,
+  bill_id       uuid NOT NULL UNIQUE REFERENCES public.bills(id) ON DELETE RESTRICT,
+  period        text NOT NULL CHECK (period IN ('monthly','quarterly','yearly')),
+  starts_on     date NOT NULL,
+  ends_on       date NOT NULL,
+  sponsor       text NOT NULL DEFAULT 'self' CHECK (sponsor IN ('self','household','employer','insurer','ngo','hospital')),
+  CONSTRAINT care_periods_span CHECK (ends_on > starts_on)
+);
+
+DO $$
+DECLARE t text;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['care_programmes','care_programme_addons','care_programme_periods'] LOOP
+    EXECUTE format('DROP TRIGGER IF EXISTS audit_%1$s ON public.%1$s', t);
+    EXECUTE format('CREATE TRIGGER audit_%1$s AFTER INSERT OR UPDATE OR DELETE ON public.%1$s
+      FOR EACH ROW EXECUTE FUNCTION public.audit_log_changes()', t);
+    EXECUTE format('ALTER TABLE public.%s ENABLE ROW LEVEL SECURITY', t);
+    EXECUTE format('ALTER TABLE public.%s FORCE ROW LEVEL SECURITY', t);
+    EXECUTE format('REVOKE ALL ON public.%s FROM anon, authenticated', t);
+    EXECUTE format('GRANT SELECT ON public.%s TO authenticated', t);
+  END LOOP;
+END $$;
+-- Approved programmes and add-ons are a hospital's public price list; drafts only its admins and staff see.
+CREATE POLICY care_programmes_read ON public.care_programmes FOR SELECT TO authenticated
+  USING ((approved_at IS NOT NULL AND retired_at IS NULL) OR private.pay_staff_reads(hospital_id));
+CREATE POLICY care_addons_read ON public.care_programme_addons FOR SELECT TO authenticated
+  USING ((approved_at IS NOT NULL AND retired_at IS NULL) OR private.pay_staff_reads(hospital_id));
+CREATE POLICY care_periods_read ON public.care_programme_periods FOR SELECT TO authenticated
+  USING (private.care_is_patient(enrolment_id) OR private.care_on_team(enrolment_id) OR EXISTS (
+    SELECT 1 FROM public.care_enrolments e WHERE e.id = enrolment_id AND private.pay_staff_reads(e.hospital_id)));
+
+-- Bill a programme period (service role). The amount comes only from the approved price list; Tether's share
+-- is worked out by the Edge Function with `tetherShare` and passed in, capped at half the bill.
+CREATE OR REPLACE FUNCTION public.care_programme_bill(p_enrolment uuid, p_period text, p_starts_on date,
+  p_platform_share integer, p_sponsor text DEFAULT 'self')
+  RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE e public.care_enrolments; pr public.care_programmes; v_total integer; v_addons integer; v_bill uuid;
+  v_months integer;
+BEGIN
+  SELECT * INTO e FROM public.care_enrolments WHERE id = p_enrolment AND ended_at IS NULL;
+  IF NOT FOUND THEN RAISE EXCEPTION 'no live enrolment' USING ERRCODE = 'P0002'; END IF;
+  SELECT * INTO pr FROM public.care_programmes WHERE id = e.programme_id AND approved_at IS NOT NULL
+    AND retired_at IS NULL;
+  IF NOT FOUND THEN RAISE EXCEPTION 'programme has no approved price' USING ERRCODE = '22023'; END IF;
+  v_months := CASE p_period WHEN 'monthly' THEN 1 WHEN 'quarterly' THEN 3 WHEN 'yearly' THEN 12 END;
+  IF v_months IS NULL THEN RAISE EXCEPTION 'bad period' USING ERRCODE = '22023'; END IF;
+  SELECT coalesce(sum(a.monthly_ugx), 0) INTO v_addons FROM public.care_programme_addons a
+   WHERE a.id = ANY (e.addon_ids) AND a.approved_at IS NOT NULL AND a.retired_at IS NULL;
+  v_total := CASE p_period WHEN 'monthly' THEN pr.monthly_ugx WHEN 'quarterly' THEN pr.quarterly_ugx
+             ELSE pr.yearly_ugx END
+           + CASE p_period WHEN 'monthly' THEN v_addons WHEN 'quarterly' THEN round(v_addons * 3 * 0.95)::int
+             ELSE v_addons * 10 END;
+  IF p_platform_share < 0 OR p_platform_share > v_total / 2 THEN
+    RAISE EXCEPTION 'platform share out of range' USING ERRCODE = '22023';
+  END IF;
+  INSERT INTO public.bills (hospital_id, patient_user_id, kind, total_ugx, platform_share_ugx)
+  VALUES (e.hospital_id, e.patient_user_id, 'programme', v_total, p_platform_share) RETURNING id INTO v_bill;
+  INSERT INTO public.bill_items (bill_id, kind, label, amount_ugx)
+  VALUES (v_bill, 'programme', pr.name, v_total - CASE p_period WHEN 'monthly' THEN v_addons
+          WHEN 'quarterly' THEN round(v_addons * 3 * 0.95)::int ELSE v_addons * 10 END);
+  IF v_addons > 0 THEN
+    INSERT INTO public.bill_items (bill_id, kind, label, amount_ugx)
+    VALUES (v_bill, 'programme_addon', 'Add-ons', CASE p_period WHEN 'monthly' THEN v_addons
+            WHEN 'quarterly' THEN round(v_addons * 3 * 0.95)::int ELSE v_addons * 10 END);
+  END IF;
+  INSERT INTO public.care_programme_periods (enrolment_id, bill_id, period, starts_on, ends_on, sponsor)
+  VALUES (e.id, v_bill, p_period, p_starts_on, (p_starts_on + make_interval(months => v_months))::date, p_sponsor);
+  RETURN v_bill;
+END $$;
+REVOKE ALL ON FUNCTION public.care_programme_bill(uuid, text, date, integer, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.care_programme_bill(uuid, text, date, integer, text) TO service_role;
+
+-- Is the proactive work paid for today? Safety does not read this: alerts, Help, results and the plan work
+-- either way (MR9 as amended). Only check-ins, messages from the team and reviews follow it.
+CREATE OR REPLACE VIEW public.care_programme_status WITH (security_invoker = true) AS
+SELECT e.id AS enrolment_id, e.patient_user_id, e.hospital_id, e.programme_id,
+       EXISTS (SELECT 1 FROM public.care_programme_periods p JOIN public.bills b ON b.id = p.bill_id
+               WHERE p.enrolment_id = e.id AND b.status = 'paid'
+                 AND current_date >= p.starts_on AND current_date < p.ends_on) AS proactive_active,
+       (SELECT max(p.ends_on) FROM public.care_programme_periods p JOIN public.bills b ON b.id = p.bill_id
+         WHERE p.enrolment_id = e.id AND b.status = 'paid') AS paid_through
+  FROM public.care_enrolments e WHERE e.ended_at IS NULL;
+GRANT SELECT ON public.care_programme_status TO authenticated;
+
+-- The team as the patient sees it (MR8): roles always; who the person is only with their consent.
+CREATE OR REPLACE VIEW public.care_team_view WITH (security_invoker = true) AS
+SELECT m.id, m.enrolment_id, m.role, m.first_contact, m.next_step,
+       CASE WHEN m.name_consent THEN m.user_id END AS member_user_id
+  FROM public.care_team_members m WHERE m.removed_at IS NULL;
+GRANT SELECT ON public.care_team_view TO authenticated;

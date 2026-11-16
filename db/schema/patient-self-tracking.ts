@@ -57,6 +57,8 @@ export const personalHealthLogs = pgTable(
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    /** Migration 0301: the offline queue's key, so a reading syncs once (patient app v2 MR13). */
+    clientKey: text("client_key"),
   },
   (t) => [
     check(

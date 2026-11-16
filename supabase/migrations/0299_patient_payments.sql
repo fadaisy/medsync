@@ -33,15 +33,18 @@ CREATE TABLE IF NOT EXISTS public.bills (
   appointment_id  uuid REFERENCES public.appointments(id) ON DELETE RESTRICT,
   patient_user_id uuid REFERENCES auth.users(id) ON DELETE RESTRICT,
   provisional_patient_id uuid REFERENCES public.provisional_patients(id) ON DELETE RESTRICT,
-  kind            text NOT NULL CHECK (kind IN ('visit','top_up')),
+  kind            text NOT NULL CHECK (kind IN ('visit','top_up','programme')),
   status          text NOT NULL DEFAULT 'open' CHECK (status IN ('open','paid','part_paid','waived','refunded')),
   currency        text NOT NULL DEFAULT 'UGX' CHECK (currency = 'UGX'),
   total_ugx       integer NOT NULL CHECK (total_ugx > 0),
   paid_ugx        integer NOT NULL DEFAULT 0 CHECK (paid_ugx >= 0),
   refunded_ugx    integer NOT NULL DEFAULT 0 CHECK (refunded_ugx >= 0),
   confidential    boolean NOT NULL DEFAULT false,
+  -- Tether's platform share, paid by the provider's split at settlement; Tether never holds the rest (ADR 0516).
+  platform_share_ugx integer NOT NULL DEFAULT 0 CHECK (platform_share_ugx >= 0),
   created_at      timestamptz NOT NULL DEFAULT now(),
   updated_at      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT bills_share_le_total CHECK (platform_share_ugx <= total_ugx),
   CONSTRAINT bills_one_patient CHECK ((patient_user_id IS NOT NULL)::int + (provisional_patient_id IS NOT NULL)::int = 1),
   CONSTRAINT bills_paid_le_total CHECK (paid_ugx <= total_ugx),
   CONSTRAINT bills_refund_le_paid CHECK (refunded_ugx <= paid_ugx)
@@ -52,7 +55,7 @@ CREATE INDEX IF NOT EXISTS bills_patient ON public.bills (patient_user_id, creat
 CREATE TABLE IF NOT EXISTS public.bill_items (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   bill_id     uuid NOT NULL REFERENCES public.bills(id) ON DELETE CASCADE,
-  kind        text NOT NULL CHECK (kind IN ('consultation','new_patient_file','top_up')),
+  kind        text NOT NULL CHECK (kind IN ('consultation','new_patient_file','top_up','programme','programme_addon')),
   label       text NOT NULL CHECK (length(label) BETWEEN 1 AND 80),
   amount_ugx  integer NOT NULL CHECK (amount_ugx > 0)
 );

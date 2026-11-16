@@ -52,14 +52,14 @@ Visit fees come only from each hospital's published Clinics & schedule fee bands
 | Specialist        | UGX 50,000 | —                                               |
 | Specialist top-up | UGX 20,000 | The difference between the two                  |
 
-**Plus (draft, server-held, hidden until approved in `plus_prices`):**
+**Plus (draft, server-held, hidden until approved in `plus_prices`; ADR 0519):**
 
-| Tier          | Monthly   | Yearly (10 months) |
-| ------------- | --------- | ------------------ |
-| Plus Family   | UGX 3,000 | UGX 30,000         |
-| Plus Care     | UGX 5,000 | UGX 50,000         |
-| Family + Care | UGX 7,000 | UGX 70,000         |
+| Tier          | Monthly    | Quarterly  | Yearly (10 months) |
+| ------------- | ---------- | ---------- | ------------------ |
+| Plus Family   | UGX 5,000  | UGX 14,250 | UGX 50,000         |
+| Plus Care     | UGX 10,000 | UGX 28,500 | UGX 100,000        |
+| Family + Care | UGX 13,000 | UGX 37,050 | UGX 130,000        |
 
-The dearest plan costs under a third of one medical officer visit a month.
+**Care programmes** are priced by each hospital from its team (`_shared/care-pricing.ts`), approved by a second person. Tether's share is recorded on the bill and paid by the provider's split, so the chosen provider must support split settlement in UGX. See `docs/patient-app/business-model.md` and ADR 0519.
 
 **Open: who is the merchant for Plus?** It is Tether's own product, so its money goes to a Tether account, not a hospital's. This is not "holding patient money for a hospital", but it needs Tether's own merchant agreement.

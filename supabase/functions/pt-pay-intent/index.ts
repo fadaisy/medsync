@@ -1,6 +1,7 @@
 /**
  * pt-pay-intent — pay a visit's fee with Mobile Money (patient app v2 §5.4 P1, P2, P4; PA1–PA5).
- * Input: { appointmentId, idempotencyKey, network, msisdn, billId? } (billId only for a specialist top-up, P3).
+ * Input: { appointmentId?, billId?, idempotencyKey, network, msisdn }: a visit (its fee), a visit's top-up bill
+ * (P3), or a care programme bill alone (ADR 0519).
  *
  * The caller is the patient, or a booking agent for them (D-PA-09). The amount is never sent by the client:
  * the bill comes from the booking's fee snapshot (0299 `pay_bill_for_appointment`). The same idempotency key
@@ -30,13 +31,15 @@ import { maskMsisdn, normaliseUgMsisdn, promptNarration, promptView } from "../_
 
 const log = makeLogger("pt-pay-intent");
 
-const InputSchema = z.object({
-  appointmentId: z.uuid(),
-  idempotencyKey: z.uuid(),
-  network: z.enum(["mtn", "airtel"]),
-  msisdn: z.string().min(9).max(20),
-  billId: z.uuid().optional(),
-});
+const InputSchema = z
+  .object({
+    appointmentId: z.uuid().optional(),
+    idempotencyKey: z.uuid(),
+    network: z.enum(["mtn", "airtel"]),
+    msisdn: z.string().min(9).max(20),
+    billId: z.uuid().optional(),
+  })
+  .refine((d) => d.appointmentId || d.billId, { message: "A visit or a bill is needed" });
 
 const PAYABLE = new Set([
   "requested",
@@ -46,6 +49,15 @@ const PAYABLE = new Set([
   "in_progress",
   "completed",
 ]);
+
+/** Who the money is for and where it goes: from a visit, or from a programme bill (ADR 0519). */
+interface Subject {
+  hospitalId: string;
+  hospitalName: string;
+  patientUserId: string | null;
+  provisionalPatientId: string | null;
+  appointmentId: string | null;
+}
 
 Deno.serve(async (request: Request) => {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
@@ -70,24 +82,48 @@ Deno.serve(async (request: Request) => {
   if (!caller) return unauthorized(init);
   const sb = serviceClient();
 
-  const { data: appt, error: apptErr } = await sb
-    .from("appointments")
-    .select("id, hospital_id, patient_user_id, provisional_patient_id, status, hospitals(name)")
-    .eq("id", input.appointmentId)
-    .maybeSingle();
-  if (apptErr) return serverError("could not read the visit", init);
-  if (!appt) return notFound(init);
-  if (!PAYABLE.has(appt.status)) return conflict("This visit can no longer be paid.", init);
+  let subject: Subject;
+  if (input.appointmentId) {
+    const { data: appt, error: apptErr } = await sb
+      .from("appointments")
+      .select("id, hospital_id, patient_user_id, provisional_patient_id, status, hospitals(name)")
+      .eq("id", input.appointmentId)
+      .maybeSingle();
+    if (apptErr) return serverError("could not read the visit", init);
+    if (!appt) return notFound(init);
+    if (!PAYABLE.has(appt.status)) return conflict("This visit can no longer be paid.", init);
+    subject = {
+      hospitalId: appt.hospital_id,
+      hospitalName: (appt.hospitals as { name: string } | null)?.name ?? "Hospital",
+      patientUserId: appt.patient_user_id,
+      provisionalPatientId: appt.provisional_patient_id,
+      appointmentId: appt.id,
+    };
+  } else {
+    const { data: b } = await sb
+      .from("bills")
+      .select("id, kind, hospital_id, patient_user_id, provisional_patient_id, hospitals(name)")
+      .eq("id", input.billId!)
+      .maybeSingle();
+    if (!b || b.kind !== "programme") return notFound(init);
+    subject = {
+      hospitalId: b.hospital_id,
+      hospitalName: (b.hospitals as { name: string } | null)?.name ?? "Hospital",
+      patientUserId: b.patient_user_id,
+      provisionalPatientId: b.provisional_patient_id,
+      appointmentId: null,
+    };
+  }
 
-  if (appt.patient_user_id !== caller.id) {
+  if (subject.patientUserId !== caller.id) {
     let agent = sb
       .from("booking_agents")
       .select("id")
       .eq("agent_user_id", caller.id)
       .is("revoked_at", null);
-    agent = appt.patient_user_id
-      ? agent.eq("patient_user_id", appt.patient_user_id)
-      : agent.eq("provisional_patient_id", appt.provisional_patient_id);
+    agent = subject.patientUserId
+      ? agent.eq("patient_user_id", subject.patientUserId)
+      : agent.eq("provisional_patient_id", subject.provisionalPatientId);
     const { data: link } = await agent.limit(1).maybeSingle();
     if (!link) return forbidden(init);
     const { data: allowed } = await sb.rpc("entitlement_allows", {
@@ -100,7 +136,7 @@ Deno.serve(async (request: Request) => {
   const { data: account } = await sb
     .from("hospital_payment_accounts")
     .select("provider, enabled, networks")
-    .eq("hospital_id", appt.hospital_id)
+    .eq("hospital_id", subject.hospitalId)
     .maybeSingle();
   if (!account?.enabled)
     return conflict("This hospital takes payment at the cash office for now.", init);
@@ -119,15 +155,17 @@ Deno.serve(async (request: Request) => {
   await sb.rpc("pay_expire_stale");
 
   let billId = input.billId ?? null;
-  if (billId) {
+  if (billId && subject.appointmentId) {
     const { data: b } = await sb
       .from("bills")
       .select("id, appointment_id")
       .eq("id", billId)
       .maybeSingle();
-    if (!b || b.appointment_id !== appt.id) return notFound(init);
-  } else {
-    const { data, error } = await sb.rpc("pay_bill_for_appointment", { p_appointment: appt.id });
+    if (!b || b.appointment_id !== subject.appointmentId) return notFound(init);
+  } else if (!billId) {
+    const { data, error } = await sb.rpc("pay_bill_for_appointment", {
+      p_appointment: subject.appointmentId,
+    });
     if (error) return serverError("could not make the bill", init);
     billId = data as string | null;
     if (!billId) return badRequest("This visit has no fee.", init);
@@ -155,7 +193,7 @@ Deno.serve(async (request: Request) => {
     );
   }
 
-  const hospitalName = (appt.hospitals as { name: string } | null)?.name ?? "Hospital";
+  const hospitalName = subject.hospitalName;
   let providerRef: string;
   try {
     ({ providerRef } = await adapter.requestToPay({

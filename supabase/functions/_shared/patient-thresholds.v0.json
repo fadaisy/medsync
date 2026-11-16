@@ -1,0 +1,37 @@
+{
+  "id": "patient-thresholds",
+  "version": "0.1.0",
+  "status": "pending-cso",
+  "note": "Patient-facing reading checks for the Tide app (law L7). Values from the Tide v1 build prompt §8.5. Not signed: every message they drive shows 'pending CSO sign-off'. Change values here only, never in code.",
+  "bp": {
+    "unit": "mmHg",
+    "dangerTopAtLeast": 180,
+    "dangerBottomAtLeast": 120,
+    "aboveTopAtLeast": 140,
+    "aboveBottomAtLeast": 90,
+    "lowTopBelow": 90,
+    "lowBottomBelow": 50,
+    "implausibleTopBelow": 50,
+    "implausibleBottomBelow": 30
+  },
+  "sugar": {
+    "unit": "mmol/L",
+    "dangerLowBelow": 4.0,
+    "dangerHighAtLeast": 16.7,
+    "targetMaxByContext": {
+      "fasting": 7.2,
+      "lunch": 7.2,
+      "supper": 7.2,
+      "after": 10,
+      "bedtime": 8.3,
+      "random": 10
+    }
+  },
+  "pulse": {
+    "unit": "beats per minute",
+    "dangerBelow": 40,
+    "dangerAbove": 130,
+    "unusualBelow": 50,
+    "unusualAbove": 100
+  }
+}
