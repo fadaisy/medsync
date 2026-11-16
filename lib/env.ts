@@ -61,6 +61,13 @@ export const env = createEnv({
     EXPO_PUSH_ACCESS_TOKEN: z.string().optional(),
     SMS_WEBHOOK_SECRET: z.string().min(16, "SMS_WEBHOOK_SECRET should be ≥ 16 chars.").optional(),
     /**
+     * Patient payments (ADR 0516, 0517). PAY_WEBHOOK_SECRET is the path segment the payment provider posts
+     * callbacks to: /api/pay/callback/<provider>/<secret>. PAY_SANDBOX_SECRET signs the sandbox's callbacks;
+     * it must match the Edge Functions' PAY_SANDBOX_SECRET. `openssl rand -hex 32` for both.
+     */
+    PAY_WEBHOOK_SECRET: z.string().min(16, "PAY_WEBHOOK_SECRET should be ≥ 16 chars.").optional(),
+    PAY_SANDBOX_SECRET: z.string().min(16, "PAY_SANDBOX_SECRET should be ≥ 16 chars.").optional(),
+    /**
      * Gate F (ADR 0091). USSD_WEBHOOK_SECRET is the path segment Africa's
      * Talking posts USSD callbacks to: /api/ussd/<secret>. AT_CALLBACK_IPS is
      * an optional comma-separated allowlist of AT's published source IPs,
@@ -102,6 +109,8 @@ export const env = createEnv({
     EXPO_PUSH_ACCESS_TOKEN: process.env.EXPO_PUSH_ACCESS_TOKEN,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     SMS_WEBHOOK_SECRET: process.env.SMS_WEBHOOK_SECRET,
+    PAY_WEBHOOK_SECRET: process.env.PAY_WEBHOOK_SECRET,
+    PAY_SANDBOX_SECRET: process.env.PAY_SANDBOX_SECRET,
     USSD_WEBHOOK_SECRET: process.env.USSD_WEBHOOK_SECRET,
     AT_CALLBACK_IPS: process.env.AT_CALLBACK_IPS,
     NODE_ENV: process.env.NODE_ENV,

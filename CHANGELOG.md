@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Care mode engine and care programmes priced by team (behind careMode) — 16 Nov 2026
+
+- Care programmes are priced from their team (roles, cost and caseload) by one shared formula, approved by a second
+  person and never named by rank ([ADR 0519](docs/adr/0519-care-programmes-priced-by-team.md)). A paid period switches
+  on the team's proactive work; danger alerts, Help, results and the plan stay free. Migration 0301 (GATED): enrolment,
+  versioned plans with no dose amounts, dose ticks and readings that sync once, the care team (names only with
+  consent), family helpers, messages, danger alerts from the server's copy of the patient's rule. Edge Functions
+  `pt-care-reading`, `pt-dose-event`, `pt-care-message`, `pt-programme-bill`; `pt-pay-intent` also pays programme
+  bills. Draft Plus prices revised to 5,000 / 10,000 / 13,000 a month. The MR9 change waits for the CSO
+  (`docs/patient-app/gate-a-amendment-1.md`).
+
+### Added — Patient payments core and membership engine (sandbox) — 16 Nov 2026
+
+- Patients can pay a visit's booking fee by Mobile Money once the screens land (patient app v2 Step 6). Money goes
+  to the hospital's own account through a licensed provider; Tether holds none
+  ([ADR 0516](docs/adr/0516-tether-never-holds-patient-money.md)). Exactly-once callbacks and gapless receipt numbers
+  ([ADR 0517](docs/adr/0517-exactly-once-payments.md)); refunds approved by the accounts supervisor, automatic when
+  the hospital cancels ([ADR 0518](docs/adr/0518-refunds-need-a-second-person.md)). Migrations 0299 and 0300 (GATED),
+  four Edge Functions, a sandbox provider only. Membership, Plus entitlements (Plus never buys care), draft Plus
+  prices held on the server, and Questions for the doctor. Setup steps: `docs/patient-app/payments-setup.md`.
+
 ### Fixed — The phone app follows Apple's HIG, on Expo SDK 58 — 16 Nov 2026
 
 - 44 pt touches, an 11 pt text floor, contrast, Reduce Motion and chart shapes on the phone app

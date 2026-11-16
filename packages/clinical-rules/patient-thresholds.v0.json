@@ -1,12 +1,12 @@
 {
   "id": "patient-thresholds",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "status": "pending-cso",
-  "note": "Patient-facing reading checks for the Tide app (law L7). Values from the Tide v1 build prompt §8.5. Not signed: every message they drive shows 'pending CSO sign-off'. Change values here only, never in code.",
+  "note": "Patient-facing reading checks for the Tide app (law L7). Values from the Tide v1 build prompt §8.5. Not signed: every message they drive shows 'pending CSO sign-off'. Change values here only, never in code. 0.2.0: very high BP is top >= 180 or bottom >= 110, chosen by the CSO in chat on 16 Nov 2026 (was 120); the other values stay pending CSO.",
   "bp": {
     "unit": "mmHg",
     "dangerTopAtLeast": 180,
-    "dangerBottomAtLeast": 120,
+    "dangerBottomAtLeast": 110,
     "aboveTopAtLeast": 140,
     "aboveBottomAtLeast": 90,
     "lowTopBelow": 90,
