@@ -4,7 +4,7 @@
  * screen. Booking behaviour, moving, cancelling and confirming are the booking slice's own (S9).
  */
 import type { OfferV2, VisitRowV2 } from "@/features/v2/visits-list";
-import type { VisitQuestion, VisitPay } from "@/data/visit-v2";
+import type { MoneyRows, VisitQuestion, VisitPay } from "@/data/visit-v2";
 import type { AppointmentRow } from "@/lib/booking";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Share, View } from "react-native";
@@ -13,7 +13,22 @@ import { stageOf } from "@patient-core/visit-stages";
 
 import { Button, Screen } from "@/components/tide";
 import { StageStrip, TicketV2 } from "@/components/tide/v2";
-import { addQuestion, chipFor, loadPayStatus, loadQuestions, markQuestion, ticketFor } from "@/data/visit-v2";
+import { kampalaStamp, visitMoney } from "@patient-core/visit-money";
+import {
+  addQuestion,
+  askRefund,
+  chipFor,
+  loadPayStatus,
+  loadQuestions,
+  loadVisitMoney,
+  markQuestion,
+  movedByClinic,
+  myMobile,
+  payVisit,
+  ticketFor,
+} from "@/data/visit-v2";
+import { VisitMoneySection } from "@/features/v2/visit-money";
+import { supabase } from "@/lib/supabase";
 import { loadVisit, loadWeek } from "@/data/visits";
 import { VisitDay } from "@/features/v2/visit-day";
 import { VisitsList } from "@/features/v2/visits-list";
@@ -58,7 +73,7 @@ async function fetchVisits(): Promise<VisitsState> {
   const pay = await loadPayStatus(all.map((v) => v.id));
   const offers: OfferV2[] = [];
   const sessions = new Map<string, string>();
-  for (const v of all.filter((x) => x.cancelledReason === "session_cancelled")) {
+  for (const v of all.filter(movedByClinic)) {
     const o = await fetchRebookingOffer(v.id).catch(() => null);
     if (!o) continue;
     sessions.set(v.id, o.sessionId);
@@ -114,16 +129,27 @@ export function VisitDayV2Route({ id }: { id: string }) {
   const [pay, setPay] = useState<VisitPay | undefined>(undefined);
   const [me, setMe] = useState("You");
   const [questions, setQuestions] = useState<VisitQuestion[]>([]);
+  const [money, setMoney] = useState<{ rows: MoneyRows; meId: string; msisdn: string | null } | null>(null);
   const refreshQuestions = useCallback(async () => setQuestions(await loadQuestions(id)), [id]);
+  const refreshMoney = useCallback(async (v: AppointmentRow) => {
+    const [rows, user, msisdn] = await Promise.all([
+      loadVisitMoney(v.id, v.hospitalId).catch(() => null),
+      supabase.auth.getUser().catch(() => null),
+      myMobile().catch(() => null),
+    ]);
+    const meId = user?.data.user?.id;
+    if (rows && meId) setMoney({ rows, meId, msisdn });
+    setPay((await loadPayStatus([v.id])).get(v.id));
+  }, []);
   useEffect(() => {
     void (async () => {
       const [v, profile] = await Promise.all([loadVisit(id), fetchPatientProfile().catch(() => null)]);
       setVisit(v);
       if (profile && "fullName" in profile) setMe(String((profile as { fullName?: string }).fullName ?? "You"));
-      if (v) setPay((await loadPayStatus([v.id])).get(v.id));
+      if (v) await refreshMoney(v);
       await refreshQuestions();
     })();
-  }, [id, refreshQuestions]);
+  }, [id, refreshQuestions, refreshMoney]);
   if (!visit) return <Screen title="Your visit"><Loading /></Screen>;
   const ticket = ticketFor(visit, pay, me);
   return (
@@ -150,7 +176,53 @@ export function VisitDayV2Route({ id }: { id: string }) {
             void Share.share({ message: `Clinic visit · ${ticket.dayLine} ${ticket.day} · ${ticket.window}` });
         }}
       />
+      {money ? (
+        <MoneyFor visit={visit} money={money} onChanged={() => void refreshMoney(visit)} />
+      ) : null}
     </Screen>
+  );
+}
+
+/** Step 6 (P2 to P5): the shared model over this visit's rows; pays and asks through the Edge Functions. */
+function MoneyFor({
+  visit,
+  money,
+  onChanged,
+}: {
+  visit: AppointmentRow;
+  money: { rows: MoneyRows; meId: string; msisdn: string | null };
+  onChanged: () => void;
+}) {
+  const m = visitMoney({
+    appointmentStatus: visit.status,
+    startsAtIso: visit.startsAtIso,
+    ...money.rows,
+    meUserId: money.meId,
+    patientUserId: visit.forMember ? `member:${visit.forMember}` : money.meId,
+    hospitalName: visit.hospitalName,
+    now: new Date(),
+  });
+  return (
+    <VisitMoneySection
+      money={m}
+      msisdn={money.msisdn}
+      cutoffLabel={m.cancelRule ? kampalaStamp(m.cancelRule.cutoffIso) : null}
+      payBill={async (i) => {
+        const r = await payVisit({
+          appointmentId: visit.id,
+          billId: i.kind === "top_up" ? i.billId : undefined,
+          network: i.network,
+          msisdn: i.msisdn,
+        });
+        if (r.ok) onChanged();
+        return r;
+      }}
+      askRefund={async () => {
+        const r = await askRefund(visit.id);
+        if (r.ok) onChanged();
+        return r;
+      }}
+    />
   );
 }
 

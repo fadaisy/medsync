@@ -29,14 +29,12 @@ export async function addQuestionAction(
     .safeParse({ id: appointmentId, body });
   if (!parsed.success) return { ok: false, error: "A question is 1 to 280 characters." };
   const sb = await createClient();
-  const { error } = await sb
-    .from("visit_questions")
-    .insert({
-      appointment_id: parsed.data.id,
-      author_user_id: scope.userId,
-      body: parsed.data.body,
-      suggested,
-    });
+  const { error } = await sb.from("visit_questions").insert({
+    appointment_id: parsed.data.id,
+    author_user_id: scope.userId,
+    body: parsed.data.body,
+    suggested,
+  });
   if (error) return { ok: false, error: "The question could not be saved. Try again." };
   refresh();
   return { ok: true };
@@ -64,6 +62,8 @@ export async function markQuestionAction(
 
 export async function payVisitAction(input: {
   appointmentId: string;
+  /** A top-up bill on this visit (P3); without it, the visit's own fee. */
+  billId?: string;
   network: Network;
   msisdn: string;
   idempotencyKey: string;
@@ -75,6 +75,7 @@ export async function payVisitAction(input: {
     "pt-pay-intent",
     {
       appointmentId: input.appointmentId,
+      ...(input.billId ? { billId: input.billId } : {}),
       idempotencyKey: input.idempotencyKey,
       network: input.network,
       msisdn: input.msisdn,
@@ -85,6 +86,21 @@ export async function payVisitAction(input: {
   const d = res.data?.data;
   refresh();
   return { ok: true, view: d?.view ?? promptView((d?.status ?? "failed") as never) };
+}
+
+/** After cancelling a paid visit: ask for the money back (`pt-refund-request`, P5). The server sets the amount. */
+export async function askRefundAction(appointmentId: string): Promise<Result<{ status: string }>> {
+  await requirePatientScope();
+  if (!z.uuid().safeParse(appointmentId).success)
+    return { ok: false, error: "That visit was not found." };
+  const res = await callEdge<{ data?: { status?: string } }>(
+    "pt-refund-request",
+    { appointmentId },
+    "patient-web.refund",
+  );
+  if (!res.ok) return { ok: false, error: res.error };
+  refresh();
+  return { ok: true, status: res.data?.data?.status ?? "waiting" };
 }
 
 /** "Keep" on a moved visit: take the next open day the clinic offered (`pt-accept-rebooking`, Gate E). */

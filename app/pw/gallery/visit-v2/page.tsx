@@ -11,7 +11,14 @@ export default async function VisitV2Gallery({
   searchParams: Promise<{ screen?: string }>;
 }) {
   const { screen = "day" } = await searchParams;
-  const title = screen === "book" ? "Book a visit" : screen === "visits" ? "Visits" : "Your visit";
+  const title =
+    screen === "pay"
+      ? "Paying"
+      : screen === "book"
+        ? "Book a visit"
+        : screen === "visits"
+          ? "Visits"
+          : "Your visit";
   return (
     <PatientShell>
       <PageHeader overline="Kit · v2" area="visits" title={title} demo />

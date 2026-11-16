@@ -21,6 +21,7 @@ import { requireReceptionScope } from "@/lib/reception/scope";
 import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/slots";
 import { AutoRefresh } from "../_components/auto-refresh";
 import { DayStrip, formatDayKey, weekOf } from "../_components/day-strip";
+import { DeskPaidPill, DeskPaidProvider } from "../_components/desk-paid";
 import { RouteControl } from "../_components/route-control";
 import { NoShowButton } from "./_components/no-show-button";
 import { QueuePanel } from "./_components/queue-panel";
@@ -265,106 +266,112 @@ function ExpectedToday({
         </div>
       ) : (
         <div className="border-border bg-card overflow-x-auto rounded-lg border">
-          <table className="w-full border-collapse text-left">
-            <caption className="sr-only">
-              Everyone expected today and not here yet, in the order they booked — earliest booking
-              first, however they booked. Ask for the name: a code from the app may be on a phone at
-              home.
-            </caption>
-            <thead className="border-border bg-muted/30 border-b">
-              <tr className="text-muted-foreground text-overline font-mono uppercase">
-                <th scope="col" className="px-4 py-2.5 font-normal">
-                  Patient
-                </th>
-                <th scope="col" className="px-4 py-2.5 font-normal">
-                  How booked
-                </th>
-                <th scope="col" className="px-4 py-2.5 font-normal">
-                  Booked at
-                </th>
-                <th scope="col" className="px-4 py-2.5 font-normal">
-                  Due
-                </th>
-                <th scope="col" className="px-4 py-2.5 font-normal">
-                  Status
-                </th>
-                <th scope="col" className="px-4 py-2.5 font-normal">
-                  <span className="sr-only">Send on</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-border/60 divide-y">
-              {expected.map((r) => (
-                <tr
-                  key={`${r.kind}-${r.id}`}
-                  className="hover:bg-ink-25 ease-expo-out align-top transition-colors duration-150"
-                >
-                  <td className="min-w-64 px-4 py-2.5">
-                    <div className="flex flex-col gap-1">
-                      <PatientIdentityCard
-                        patient={r.identity}
-                        trailing={
-                          r.kind === "booking" && !r.patientCode && r.provisional ? (
-                            <Pill tone="notice">
-                              {r.provisional.state === "rejected"
-                                ? "Not matched · register"
-                                : "Identity to confirm"}
-                            </Pill>
-                          ) : undefined
-                        }
-                      />
-                      <span className="text-muted-foreground text-caption pl-11 tabular-nums">
-                        {(r.kind === "booking"
-                          ? [
-                              r.bookingCode ? `booking ${r.bookingCode}` : null,
-                              r.clinicianName,
-                              r.departmentName,
-                              r.type === "virtual" ? "virtual" : null,
-                            ]
-                          : [r.departmentName]
-                        )
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="text-foreground text-body-s px-4 py-2.5 whitespace-nowrap">
-                    {r.bookedVia}
-                  </td>
-                  <td className="text-muted-foreground text-body-s px-4 py-2.5 font-mono whitespace-nowrap tabular-nums">
-                    {formatBookedAt(r.bookedAtIso, todayKey)}
-                  </td>
-                  <td className="text-foreground text-body-s px-4 py-2.5 font-mono whitespace-nowrap tabular-nums">
-                    {dueLabel(r)}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <div className="flex flex-col items-start gap-1">
-                      <Pill tone="neutral">
-                        {r.kind === "declared"
-                          ? "Coming today"
-                          : (STATUS_LABEL[r.status] ?? r.status)}
-                      </Pill>
-                      {r.kind === "booking" && (r.confirmedByPatient || r.priority === "urgent") ? (
-                        <span className="text-muted-foreground text-caption">
-                          {[
-                            r.confirmedByPatient ? "Patient confirmed" : null,
-                            r.priority === "urgent" ? "Urgent booking" : null,
-                          ]
+          <DeskPaidProvider
+            appointmentIds={expected.filter((r) => r.kind === "booking").map((r) => r.id)}
+          >
+            <table className="w-full border-collapse text-left">
+              <caption className="sr-only">
+                Everyone expected today and not here yet, in the order they booked — earliest
+                booking first, however they booked. Ask for the name: a code from the app may be on
+                a phone at home.
+              </caption>
+              <thead className="border-border bg-muted/30 border-b">
+                <tr className="text-muted-foreground text-overline font-mono uppercase">
+                  <th scope="col" className="px-4 py-2.5 font-normal">
+                    Patient
+                  </th>
+                  <th scope="col" className="px-4 py-2.5 font-normal">
+                    How booked
+                  </th>
+                  <th scope="col" className="px-4 py-2.5 font-normal">
+                    Booked at
+                  </th>
+                  <th scope="col" className="px-4 py-2.5 font-normal">
+                    Due
+                  </th>
+                  <th scope="col" className="px-4 py-2.5 font-normal">
+                    Status
+                  </th>
+                  <th scope="col" className="px-4 py-2.5 font-normal">
+                    <span className="sr-only">Send on</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-border/60 divide-y">
+                {expected.map((r) => (
+                  <tr
+                    key={`${r.kind}-${r.id}`}
+                    className="hover:bg-ink-25 ease-expo-out align-top transition-colors duration-150"
+                  >
+                    <td className="min-w-64 px-4 py-2.5">
+                      <div className="flex flex-col gap-1">
+                        <PatientIdentityCard
+                          patient={r.identity}
+                          trailing={
+                            r.kind === "booking" && !r.patientCode && r.provisional ? (
+                              <Pill tone="notice">
+                                {r.provisional.state === "rejected"
+                                  ? "Not matched · register"
+                                  : "Identity to confirm"}
+                              </Pill>
+                            ) : undefined
+                          }
+                        />
+                        <span className="text-muted-foreground text-caption pl-11 tabular-nums">
+                          {(r.kind === "booking"
+                            ? [
+                                r.bookingCode ? `booking ${r.bookingCode}` : null,
+                                r.clinicianName,
+                                r.departmentName,
+                                r.type === "virtual" ? "virtual" : null,
+                              ]
+                            : [r.departmentName]
+                          )
                             .filter(Boolean)
                             .join(" · ")}
                         </span>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <div className="flex flex-col items-end gap-2">
-                      <ExpectedAction r={r} departments={departments} now={now} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      </div>
+                    </td>
+                    <td className="text-foreground text-body-s px-4 py-2.5 whitespace-nowrap">
+                      {r.bookedVia}
+                    </td>
+                    <td className="text-muted-foreground text-body-s px-4 py-2.5 font-mono whitespace-nowrap tabular-nums">
+                      {formatBookedAt(r.bookedAtIso, todayKey)}
+                    </td>
+                    <td className="text-foreground text-body-s px-4 py-2.5 font-mono whitespace-nowrap tabular-nums">
+                      {dueLabel(r)}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex flex-col items-start gap-1">
+                        <Pill tone="neutral">
+                          {r.kind === "declared"
+                            ? "Coming today"
+                            : (STATUS_LABEL[r.status] ?? r.status)}
+                        </Pill>
+                        {r.kind === "booking" ? <DeskPaidPill appointmentId={r.id} /> : null}
+                        {r.kind === "booking" &&
+                        (r.confirmedByPatient || r.priority === "urgent") ? (
+                          <span className="text-muted-foreground text-caption">
+                            {[
+                              r.confirmedByPatient ? "Patient confirmed" : null,
+                              r.priority === "urgent" ? "Urgent booking" : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex flex-col items-end gap-2">
+                        <ExpectedAction r={r} departments={departments} now={now} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </DeskPaidProvider>
         </div>
       )}
     </>

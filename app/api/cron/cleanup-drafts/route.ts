@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq, isNull, lt, notExists } from "drizzle-orm";
+import { and, eq, isNull, lt, notExists, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { ussdSessions } from "@/db/schema/channels";
@@ -87,7 +87,16 @@ export async function GET(request: Request) {
     ).length;
     logger.info("cron.sweep-ussd-sessions.ran", { removed: ussd });
     const events = await pruneOnboardingEvents();
-    return NextResponse.json({ ok: true, removed, sessions, provisionals, ussd, events });
+    const patientApp = await sweepPatientApp();
+    return NextResponse.json({
+      ok: true,
+      removed,
+      sessions,
+      provisionals,
+      ussd,
+      events,
+      patientApp,
+    });
   } catch (e) {
     logger.error("cron.sweep-provisionals.failed", { reason: String(e) });
     return NextResponse.json(
@@ -112,6 +121,28 @@ async function pruneOnboardingEvents(): Promise<number | null> {
     return gone.length;
   } catch (e) {
     logger.warn("cron.prune-onboarding-events.failed", { reason: String(e) });
+    return null;
+  }
+}
+
+/**
+ * Patient app v2 (payments-setup row 8): expire Mobile Money prompts nobody answered (S13; the booking and
+ * the bill stand) and end Plus trials that ran out without a charge (S25). Both are idempotent SQL functions
+ * from 0299 and 0300. Its own try: before those GATED migrations are applied it logs and returns null.
+ */
+async function sweepPatientApp(): Promise<{ expired: number; lapsed: number } | null> {
+  try {
+    const [e] = (await db.execute(sql`select public.pay_expire_stale() as n`)) as unknown as {
+      n: number;
+    }[];
+    const [l] = (await db.execute(sql`select public.membership_lapse() as n`)) as unknown as {
+      n: number;
+    }[];
+    const out = { expired: Number(e?.n ?? 0), lapsed: Number(l?.n ?? 0) };
+    logger.info("cron.patient-app-sweep.ran", out);
+    return out;
+  } catch (e) {
+    logger.warn("cron.patient-app-sweep.failed", { reason: String(e) });
     return null;
   }
 }

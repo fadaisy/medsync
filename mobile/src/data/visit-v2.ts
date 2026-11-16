@@ -10,6 +10,7 @@ import type { TicketV2Props } from "@/components/tide/v2";
 import type { AppointmentRow } from "@/lib/booking";
 import type { BillStatus, Channel, Network, PromptView } from "@patient-core/payments";
 import type { VisitPay } from "@patient-core/ticket-view";
+import type { MoneyBill, MoneyReceipt, MoneyRefund } from "@patient-core/visit-money";
 import { normaliseUgMsisdn, promptView } from "@patient-core/payments";
 import {
   chipFor as sharedChip,
@@ -63,6 +64,8 @@ export function chipFor(pay: VisitPay | undefined) {
  */
 export async function payVisit(input: {
   appointmentId: string;
+  /** A top-up bill on this visit (P3); without it, the visit's own fee. */
+  billId?: string;
   network: Network;
   msisdn: string;
   idempotencyKey?: string;
@@ -70,6 +73,7 @@ export async function payVisit(input: {
   if (!normaliseUgMsisdn(input.msisdn)) return { ok: false, error: "That is not a Ugandan mobile number." };
   const res = await callEdge<{ status: string; view: PromptView }>("pt-pay-intent", {
     appointmentId: input.appointmentId,
+    ...(input.billId ? { billId: input.billId } : {}),
     idempotencyKey: input.idempotencyKey ?? requestId(),
     network: input.network,
     msisdn: input.msisdn,
@@ -140,4 +144,80 @@ export async function myMobile(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
   const phone = data.session?.user.phone ?? null;
   return phone && normaliseUgMsisdn(phone) ? phone : null;
+}
+
+/* ─── The money on one visit (Step 6, §5.4 P2 to P5) ──────────────────────────── */
+
+export interface MoneyRows {
+  bills: MoneyBill[];
+  receipts: MoneyReceipt[];
+  refunds: MoneyRefund[];
+  cutoffHours: number | null;
+}
+
+/** Bills, receipts and refunds on one visit, under RLS. Fails soft to empty before 0299 (no cut-off before 0302). */
+export async function loadVisitMoney(appointmentId: string, hospitalId: string): Promise<MoneyRows> {
+  const empty: MoneyRows = { bills: [], receipts: [], refunds: [], cutoffHours: null };
+  const { data: bills, error } = await supabase
+    .from("bills")
+    .select("id, kind, status, total_ugx, paid_ugx, refunded_ugx, bill_items(label, amount_ugx)")
+    .eq("appointment_id", appointmentId);
+  if (error || !bills) return empty;
+  const ids = (bills as { id: string }[]).map((b) => b.id);
+  const { data: receipts } = ids.length
+    ? await supabase
+        .from("receipts")
+        .select("id, number, bill_id, issued_at, total_ugx, method, reference, payer_user_id, item_label")
+        .in("bill_id", ids)
+    : { data: [] };
+  const rIds = ((receipts ?? []) as { id: string }[]).map((r) => r.id);
+  const [{ data: refunds }, { data: rule }] = await Promise.all([
+    rIds.length
+      ? supabase.from("refund_requests").select("receipt_id, status").in("receipt_id", rIds)
+      : Promise.resolve({ data: [] }),
+    supabase.from("hospital_refund_rules").select("refund_cutoff_hours").eq("hospital_id", hospitalId).maybeSingle(),
+  ]);
+  return {
+    bills: (bills as Record<string, unknown>[])
+      .filter((b) => b.kind === "visit" || b.kind === "top_up")
+      .map((b) => ({
+        id: b.id as string,
+        kind: b.kind as MoneyBill["kind"],
+        status: b.status as BillStatus,
+        totalUgx: b.total_ugx as number,
+        paidUgx: b.paid_ugx as number,
+        refundedUgx: b.refunded_ugx as number,
+        items: ((b.bill_items as { label: string; amount_ugx: number }[] | null) ?? []).map((i) => ({
+          label: i.label,
+          amountUgx: i.amount_ugx,
+        })),
+      })),
+    receipts: ((receipts ?? []) as Record<string, unknown>[]).map((r) => ({
+      id: r.id as string,
+      number: r.number as number,
+      billId: r.bill_id as string,
+      issuedAtIso: r.issued_at as string,
+      totalUgx: r.total_ugx as number,
+      method: r.method as MoneyReceipt["method"],
+      reference: (r.reference as string | null) ?? null,
+      payerUserId: (r.payer_user_id as string | null) ?? null,
+      itemLabel: r.item_label as string,
+    })),
+    refunds: ((refunds ?? []) as Record<string, unknown>[]).map((r) => ({
+      receiptId: r.receipt_id as string,
+      status: r.status as MoneyRefund["status"],
+    })),
+    cutoffHours: ((rule as { refund_cutoff_hours?: number } | null)?.refund_cutoff_hours as number | undefined) ?? null,
+  };
+}
+
+/** After cancelling a paid visit: ask for the money back (`pt-refund-request`). The server sets the amount (S15). */
+export async function askRefund(appointmentId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const res = await callEdge("pt-refund-request", { appointmentId });
+  return res.ok ? { ok: true } : { ok: false, error: res.error };
+}
+
+/** A visit the clinic moved by cancelling its day (Gate E): the one code the offer card branches on. */
+export function movedByClinic(v: Pick<AppointmentRow, "cancelledReason">): boolean {
+  return v.cancelledReason === "session_cancelled";
 }

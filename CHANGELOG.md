@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 booking payments on both platforms, sandbox only (Step 6) — 16 Nov 2026
+
+- The visit page (phone and web, behind the v2 flags) shows what the visit owes and what was paid:
+  - a bill on the day after check-in (P2), with Pay with MoMo or the cash office;
+  - a specialist top-up with what was paid at booking and the difference (P3);
+  - the refund rule before cancelling, "Ask for your refund" after, and the three-step tracker (P5);
+  - receipts per visit, naming nobody: "Paid by a household member for you".
+- One pure model, `packages/patient-core/visit-money.ts`, for both apps.
+- `ha-pay-desk` (new Edge Function): reception sends a Mobile Money prompt, records a counter payment through the same engine (one receipt), or adds a top-up bill.
+- Reception's Expected list shows Paid from the same `payment_status` view, polled every 5 s for today's rows (S16).
+- Migration 0302 (GATED, not applied): `hospital_refund_rules`, the refund cut-off a patient may read.
+- The nightly 02:00 cron also expires stale prompts and lapses ended Plus trials.
+- Fixture `/pw/gallery/visit-v2?screen=pay`. Real money stays off (`mobilePayments`).
+
 ### Added — Patient app v2 Visit mode on the web, behind appV2Web (Step 5) — 16 Nov 2026
 
 - With `appV2Web` on, the web shows:

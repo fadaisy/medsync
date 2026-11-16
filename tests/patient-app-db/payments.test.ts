@@ -316,6 +316,73 @@ describe.skipIf(!laneOn)("patient payments (0299)", () => {
     });
   });
 
+  it("S16: a counter payment (ha-pay-desk) is one receipt the desk and the patient read as Paid", async () => {
+    const appt = await visit(30_000);
+    const b = await bill(appt);
+    const key = `counter-${Date.now()}`;
+    const [i] = await q<{ id: string; amount_ugx: number }>(
+      `SELECT (x).id, (x).amount_ugx FROM (SELECT public.pay_intent_start($1, $2, 'counter', NULL, NULL, NULL, 'counter') x) s`,
+      [b, key],
+    );
+    const ref = `counter_${i!.id}`;
+    await q(`SELECT public.pay_intent_prompted($1, $2)`, [i!.id, ref]);
+    const apply = () =>
+      q<{ r: string }>(
+        `SELECT public.pay_apply_event('counter', $1, $1, 'succeeded', $2, true) AS r`,
+        [ref, i!.amount_ugx],
+      );
+    expect((await apply())[0]!.r).toBe("paid");
+    expect((await apply())[0]!.r).toBe("duplicate");
+    expect(await receipts(b)).toBe(1);
+    const read = async (who: string) => {
+      const r = await probe(
+        pg,
+        as(who),
+        `SELECT status, method, receipt_number FROM public.payment_status WHERE appointment_id = $1`,
+        [appt],
+      );
+      return r.ok ? r.rows[0] : null;
+    };
+    const desk = await read(R);
+    expect(desk).toMatchObject({ status: "paid", method: "counter" });
+    expect(await read(P)).toEqual(desk);
+  });
+
+  it("P3: a top-up is its own bill on the same visit; the visit bill stays paid", async () => {
+    const appt = await visit(20_000);
+    const b = await bill(appt);
+    const { ref } = await intent(b);
+    await event(ref, `topup-base-${Date.now()}`, "succeeded", 20_000);
+    const [t] = await q<{ b: string }>(
+      `SELECT public.pay_bill_top_up($1, 15000, 'Top-up · specialist') AS b`,
+      [appt],
+    );
+    const rows = await q<{ kind: string; status: string; total_ugx: number }>(
+      `SELECT kind, status, total_ugx FROM public.bills WHERE appointment_id = $1 ORDER BY kind DESC`,
+      [appt],
+    );
+    expect(rows).toEqual([
+      { kind: "visit", status: "paid", total_ugx: 20_000 },
+      { kind: "top_up", status: "open", total_ugx: 15_000 },
+    ]);
+    expect(t!.b).toBeTruthy();
+  });
+
+  it("0302: a patient reads only the refund cut-off, and only where Mobile Money is on", async () => {
+    await q(
+      `INSERT INTO public.hospital_payment_accounts (hospital_id, provider, enabled, refund_cutoff_hours)
+       VALUES ($1, 'sandbox', true, 12), ($2, 'sandbox', false, 48)
+       ON CONFLICT (hospital_id) DO UPDATE SET enabled = EXCLUDED.enabled,
+         refund_cutoff_hours = EXCLUDED.refund_cutoff_hours`,
+      [H, H2],
+    );
+    const r = await probe(pg, as(P), `SELECT * FROM public.hospital_refund_rules`);
+    expect(r.ok && r.rows).toEqual([{ hospital_id: H, refund_cutoff_hours: 12 }]);
+    expect((await probe(pg, as(null), `SELECT * FROM public.hospital_refund_rules`)).ok).toBe(
+      false,
+    );
+  });
+
   it("a confidential clinic's receipt says Clinic visit", async () => {
     const b = await bill(await visit(30_000));
     await pg.query(`UPDATE public.bills SET confidential = true WHERE id = $1`, [b]);

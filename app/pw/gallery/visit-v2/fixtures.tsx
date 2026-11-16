@@ -4,9 +4,11 @@ import type { WebQuestion } from "@/components/tide/v2-visit-web";
 import type { DayOption } from "@patient-core/book-days";
 import { useState } from "react";
 import { ticketView } from "@patient-core/ticket-view";
+import { visitMoney } from "@patient-core/visit-money";
 import { stageOf } from "@patient-core/visit-stages";
 
 import { BookOnePage } from "@/components/tide/v2-book-web";
+import { VisitMoneyWeb } from "@/components/tide/v2-money-web";
 import { VisitDayWeb, VisitsWeb } from "@/components/tide/v2-visit-web";
 
 const session = (
@@ -80,6 +82,7 @@ export function VisitV2Fixtures({ screen }: { screen: string }) {
     },
     { id: "q2", body: "When should I come back?", suggested: true, asked: false },
   ]);
+  if (screen === "pay") return <PayFixtures />;
   if (screen === "book")
     return (
       <BookOnePage
@@ -189,5 +192,90 @@ export function VisitV2Fixtures({ screen }: { screen: string }) {
         );
       }}
     />
+  );
+}
+
+/** Step 6 on fixtures: a bill on the day, a specialist top-up, a household receipt, and a refund on its way. */
+function PayFixtures() {
+  const now = new Date("2026-11-20T07:30:00Z");
+  const bill = (id: string, kind: "visit" | "top_up", total: number, paid: number) => ({
+    id,
+    kind,
+    status: paid >= total ? ("paid" as const) : ("open" as const),
+    totalUgx: total,
+    paidUgx: paid,
+    refundedUgx: 0,
+    items: [
+      { label: kind === "visit" ? "Medical officer" : "Top-up · specialist", amountUgx: total },
+    ],
+  });
+  const base = {
+    startsAtIso: "2026-11-20T05:00:00Z",
+    meUserId: "me",
+    patientUserId: "me",
+    hospitalName: "Demo Hospital",
+    cutoffHours: 24,
+    now,
+  };
+  const onTheDay = visitMoney({
+    ...base,
+    appointmentStatus: "arrived",
+    bills: [bill("b1", "visit", 30_000, 0)],
+    receipts: [],
+    refunds: [],
+  });
+  const topUp = visitMoney({
+    ...base,
+    appointmentStatus: "in_progress",
+    bills: [bill("b2", "visit", 30_000, 30_000), bill("t2", "top_up", 20_000, 0)],
+    receipts: [
+      {
+        id: "r2",
+        number: 41,
+        billId: "b2",
+        issuedAtIso: "2026-11-18T11:05:00Z",
+        totalUgx: 30_000,
+        method: "mtn",
+        reference: "SBX-41",
+        payerUserId: "agent",
+        itemLabel: "Medical officer",
+      },
+    ],
+    refunds: [],
+  });
+  const refund = visitMoney({
+    ...base,
+    appointmentStatus: "cancelled",
+    bills: [bill("b3", "visit", 30_000, 30_000)],
+    receipts: [
+      {
+        id: "r3",
+        number: 42,
+        billId: "b3",
+        issuedAtIso: "2026-11-17T08:00:00Z",
+        totalUgx: 30_000,
+        method: "airtel",
+        reference: "SBX-42",
+        payerUserId: "me",
+        itemLabel: "Clinic visit",
+      },
+    ],
+    refunds: [{ receiptId: "r3", status: "approved" }],
+  });
+  const pay = async () => ({ ok: true as const, view: "paid" as const });
+  const ask = async () => ({ ok: true as const });
+  return (
+    <div className="grid max-w-5xl grid-cols-1 gap-6 min-[1024px]:grid-cols-3">
+      {[onTheDay, topUp, refund].map((m, i) => (
+        <VisitMoneyWeb
+          key={i}
+          money={m}
+          msisdn="0772000123"
+          cutoffLabel={null}
+          payBill={pay}
+          askRefund={ask}
+        />
+      ))}
+    </div>
   );
 }
