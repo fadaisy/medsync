@@ -19,6 +19,7 @@ describe("the admin menu", () => {
       "profile",
       "requests",
       "reports",
+      "activity",
     ]);
   });
 

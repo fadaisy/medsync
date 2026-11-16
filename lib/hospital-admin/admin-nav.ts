@@ -76,10 +76,19 @@ export function adminNavGroups(opts: {
       items: [
         { key: "requests", label: I.requests, href: "/hospital-admin/requests", icon: "ticket" },
         { key: "reports", label: I.reports, href: "/hospital-admin/reports", icon: "print" },
+        { key: "activity", label: I.activity, href: "/hospital-admin/activity", icon: "clock" },
       ],
     },
   ];
 }
+
+/** Today, the admin's home (ADR 0517): drawn first, above Clinics & schedule's views, in both places. */
+export const ADMIN_HOME: AdminNavItem = {
+  key: "today",
+  label: ADMIN_NAV.items.today,
+  href: "/hospital-admin/today",
+  icon: "sun",
+};
 
 /** The item a path belongs to: the longest href that is the path or a parent of it. */
 export function activeKey(path: string, groups: readonly AdminNavGroup[]): string | null {

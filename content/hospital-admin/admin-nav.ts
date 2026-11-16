@@ -17,6 +17,8 @@ export const ADMIN_NAV = {
   signOut: "Sign out",
   groups: { hospital: "Hospital", followUp: "Follow-up" },
   items: {
+    today: "Today",
+    activity: "Activity",
     departments: "Departments",
     emergency: "Emergency and support",
     staff: "Staff",
@@ -74,4 +76,63 @@ export const REQUESTS = {
     gone: "This request is already closed, or is not at this hospital.",
     failed: "Could not save. Try again.",
   },
+} as const;
+
+export const TODAY = {
+  title: "Today",
+  lead: "{date} · what needs you across the hospital",
+  unknown: "—",
+  stats: {
+    booked: ["Booked today", "visits across the open clinics"],
+    waiting: ["Waiting for a clinician", "booking requests"],
+    review: ["People to review", "asked to join"],
+    unavailable: ["Unavailable now", "services reported"],
+  },
+  doNext: "Do next",
+  doNextSub: "The oldest first. Each opens where it is done.",
+  none: "Nothing needs you right now.",
+  todo: {
+    review: ["{n} people asked to join", "Approve or decline in People", "Review"],
+    urgent: ["{n} urgent requests wait for a clinician", "The oldest has waited {t}", "Open"],
+    stale: [
+      "{n} requests have waited over 2 days",
+      "Open the session in the week plan to change who runs it",
+      "Open",
+    ],
+    verify: [
+      "{n} changes to emergency and support wait for you to verify",
+      "Proposed by {names}",
+      "Verify",
+    ],
+    mine: [
+      "{n} of your changes wait for another admin",
+      "A second admin verifies them before they go live",
+      "Open",
+    ],
+    copy: ["Copy of results for {code}", "Reply by {date}", "Open"],
+    unavailable: ["{n} services are unavailable now", "Clear each one when it is back", "Open"],
+  },
+  launch: [
+    "Clinics and schedule",
+    "Get ready, clinics, the week plan and closures",
+    "Open Get ready",
+  ],
+  desk: [
+    "Arrivals",
+    "Patients are registered and checked in at the front desk, not in admin.",
+    "Open the front desk",
+  ],
+} as const;
+
+export const ACTIVITY = {
+  title: "Activity",
+  lead: "What admins changed at this hospital, with who, when and why",
+  tabs: { all: "Everything", schedule: "Schedule", people: "People", hospital: "Hospital" },
+  empty: "Nothing recorded in the last {days} days.",
+  more: "Showing the latest {n}.",
+  note: "Schedule drafts and published versions, with undo and bring back, stay under History in Clinics & schedule.",
+  someone: "An admin",
+  failed: "Activity could not be read just now. Try again later.",
+  windowNote: "The last {days} days.",
+  areas: { schedule: "Schedule", people: "People", hospital: "Hospital" },
 } as const;

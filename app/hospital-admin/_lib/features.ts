@@ -39,6 +39,8 @@ export type FeatureIconKey =
 
 export type FeatureSlug =
   | ""
+  | "today"
+  | "activity"
   | "staff"
   | "departments"
   | "clinics"
@@ -65,11 +67,11 @@ export interface FeatureArea {
 
 export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
   {
-    slug: "",
-    label: "Overview",
-    hint: "Operational KPIs — beds, ALOS, admissions, mortality",
+    slug: "today",
+    label: "Today",
+    hint: "What needs you across the hospital · counts · do next",
     iconKey: "overview",
-    placeholder: true,
+    placeholder: false,
   },
   {
     slug: "staff",
@@ -121,11 +123,11 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
     placeholder: true,
   },
   {
-    slug: "audit",
-    label: "Audit",
-    hint: "Scoped audit log — this hospital only",
+    slug: "activity",
+    label: "Activity",
+    hint: "What admins changed at this hospital · who, when and why",
     iconKey: "audit",
-    placeholder: true,
+    placeholder: false,
   },
   {
     slug: "profile",

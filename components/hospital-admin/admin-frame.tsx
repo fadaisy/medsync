@@ -10,9 +10,9 @@ import { DeskDialog, Icon, k, VIEW_ICONS, VIEWS } from "@/components/clinics-sch
 import { DeskShell } from "@/components/reception/shell";
 import { CS } from "@/content/clinics-schedule/copy";
 import { ADMIN_NAV } from "@/content/hospital-admin/admin-nav";
-import { activeKey } from "@/lib/hospital-admin/admin-nav";
+import { activeKey, ADMIN_HOME } from "@/lib/hospital-admin/admin-nav";
 import f from "./admin-frame.module.css";
-import { AdminNavGroups } from "./admin-nav-groups";
+import { AdminHomeNav, AdminNavGroups } from "./admin-nav-groups";
 
 /** Clinics & schedule draws its own desk shell with this same menu, so the frame steps aside there (ADR 0514). */
 const BARE = "/hospital-admin/clinics";
@@ -99,6 +99,9 @@ export function AdminFrame({
       clearToast={() => {}}
       side={
         <div className={k(rail && !drawer && "railed")} style={{ display: "contents" }}>
+          <AdminHomeNav
+            active={path === ADMIN_HOME.href || path.startsWith(`${ADMIN_HOME.href}/`)}
+          />
           <nav className={k("nav")} aria-label={CS.label}>
             {VIEWS.map((v) => (
               <Link key={v} href={`${BARE}?view=${v}`} className={k("nv")} title={CS.views[v]}>

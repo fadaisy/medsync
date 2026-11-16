@@ -1,10 +1,6 @@
 import { redirect } from "next/navigation";
 
-/**
- * The admin's home is Get ready in Clinics & schedule on both domains (ADR 0512 on Tether, ADR 0516 here) until
- * the Today page replaces it. The old Overview was a placeholder with two counts; Today will reuse those counts
- * (`staff-overview-card`, `scheduling-overview-card`).
- */
+/** The admin's home is Today on both domains (ADR 0517; it replaces Get ready as the landing, ADR 0512/0516). */
 export default function HospitalAdminIndexPage() {
-  redirect("/hospital-admin/clinics");
+  redirect("/hospital-admin/today");
 }

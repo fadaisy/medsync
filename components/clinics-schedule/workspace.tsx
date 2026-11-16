@@ -12,7 +12,7 @@ import type { Change, Edit } from "@/lib/clinics-schedule/model";
 import type { AdminNavGroup } from "@/lib/hospital-admin/admin-nav";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
-import { AdminNavGroups } from "@/components/hospital-admin/admin-nav-groups";
+import { AdminHomeNav, AdminNavGroups } from "@/components/hospital-admin/admin-nav-groups";
 import { DeskShell } from "@/components/reception/shell";
 import { CS, CS_ERRORS } from "@/content/clinics-schedule/copy";
 import { fill } from "@/content/lab-workspace-v2";
@@ -425,6 +425,7 @@ export function ClinicsWorkspace({
               <span>{todo[0]?.title ?? CS.launch.allLive}</span>
             </span>
           </button>
+          {groups.length ? <AdminHomeNav /> : null}
           <nav className={k("nav")} aria-label={CS.label}>
             {VIEWS.map((v, i) => (
               <button
