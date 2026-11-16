@@ -163,11 +163,11 @@
     "id": "prod-check",
     "area": "Claude",
     "task": "Check production after the redeploy: landing, Tether sign-in, Tether reception",
-    "status": "Blocked",
-    "progress": 0,
+    "status": "Done",
+    "progress": 100,
     "branch": "",
-    "note": "Your redeploy is done, but this cloud session cannot reach production (the network blocks the production hosts). Either allow the Tether and MedSync hosts for cloud sessions, or check / on both addresses, /sign-in and /reception on Tether yourself.",
-    "updated": "2026-11-15"
+    "note": "Checked 16 Nov on medsync-tether-site.vercel.app, signed out: / is the Tether landing; /sign-in is the Tether sign-in; /reception, /hospital-admin and /clinic go to the Tether sign-in. Not checked: anything signed in, and MedSync's own address. Small: /clinic sends people back to /nurse/triage after sign-in (one extra hop to the floor); /privacy is titled MedSync on Tether.",
+    "updated": "2026-11-16"
   },
   {
     "id": "doctor-confirm",
@@ -206,8 +206,8 @@
     "status": "Done",
     "progress": 100,
     "branch": "claude/booking-pilot-onto-main",
-    "note": "Pushed (54ba48d) on main, ready for you to merge: pilot numbers + clinic set-up guide, guide rewritten for Clinics & schedule. Go-live (cron + GO-LIVE.md) on claude/booking-pilot-go-live (43038d9): do not merge before Vercel Pro. Found: no \"Late by\" control since the old Scheduling page went; reminder toggle says 18:00 but the daily cron runs at 08:00 EAT.",
-    "updated": "2026-11-15"
+    "note": "Pushed (54ba48d) on main, ready for you to merge: pilot numbers + clinic set-up guide, guide rewritten for Clinics & schedule. Go-live (cron + GO-LIVE.md) on claude/booking-pilot-go-live (43038d9): do not merge before Vercel Pro. Found: no \"Late by\" control since the old Scheduling page went; reminder toggle says 18:00 but the daily cron runs at 08:00 EAT. 16 Nov: asked it to point the training sheet's running-late step at the desk's Running late control, and to note the 18:00 reminder wording in GO-LIVE.md.",
+    "updated": "2026-11-16"
   },
   {
     "id": "full-screen",

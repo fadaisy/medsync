@@ -18,6 +18,8 @@ Before you start, read `AGENTS.md`, `docs/CLAUDE-HANDOFF.md` and the notes these
 - `feat/inline-mfa-setup` is rebased onto main on `claude/funny-shannon-i7xgwp` with its ADR renumbered **0513**, because main already holds 0512 (admins land on Clinics). Typecheck, lint and tests pass, except patient-web help/care, which need `mobile/` installed.
 - Relaunched: clinic floor follow-up `session_01AyHv1Boe5cQsa3jrparsCw`, reception desk JS `session_01AyHv1CrXFaFGG8p5RNhHjU`, pilot branches and go-live `session_01AyHv1D2ewdBPDWcVvucFxZ`. The other 11 threads had nothing open.
 
+- 16 Nov: the owner said "use all your recommendations". Where a choice has a recommended option, take it and record it; this does not cover signing copy, migrations, policy changes, merges or deploys. The cloud environment now allows `medsync-tether-site.vercel.app` (the Tether production host).
+
 ## The program
 
 - **Goal:** the Tether booking pilot for about 5 private clinics in Uganda, running 30 days, web first.
