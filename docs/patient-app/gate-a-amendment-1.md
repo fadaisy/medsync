@@ -19,3 +19,7 @@ Status: **signed by Fadhul (CSO and owner), in chat, 16 Nov 2026** ("lets sign o
 ## Signature
 
 ☐ Signed by: **\*\***\_\_**\*\*** (CSO) · Date: **\_\_**
+
+## Clinical threshold chosen, 16 Nov 2026
+
+Very high blood pressure opens the danger flow and alerts the care team at **top ≥ 180 or bottom ≥ 110** (was bottom ≥ 120). Chosen by the CSO in chat. It lives in `packages/clinical-rules/patient-thresholds.v0.json`, now version 0.2.0, and in its server copy, which a test keeps identical. The file's other values stay pending CSO.
