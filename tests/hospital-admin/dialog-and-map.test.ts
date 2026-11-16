@@ -53,39 +53,3 @@ describe("finding the hospital on a map", () => {
     expect(dialog).toMatch(/onSubmit=\{\(ev\) => \{\s+ev\.preventDefault\(\);\s+void search\(\);/);
   });
 });
-
-describe("Google Maps when the site has a key (ADR 0522)", () => {
-  it("is optional, read from a public browser key", () => {
-    const env = read("lib/env.ts");
-    expect(env).toContain("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(20).optional()");
-    expect(read("app/hospital-admin/departments/emergency/_lib/google-maps.ts")).toContain(
-      'process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""',
-    );
-  });
-
-  it("falls back to OpenStreetMap without a key, or when Google refuses it or does not load", () => {
-    const view = read("app/hospital-admin/departments/emergency/_components/map-view.tsx");
-    expect(view).toContain(
-      "if (GOOGLE_MAPS_KEY && !failed) return <GoogleMap {...props} onFail={() => setFailed(true)} />;",
-    );
-    expect(view).toContain("return <EntranceMap {...props} />;");
-    const g = read("app/hospital-admin/departments/emergency/_components/google-map.tsx");
-    expect(g).toContain("onGoogleRefused(() => latest.current.onFail())");
-    expect(g).toContain(".catch(() => latest.current.onFail())");
-  });
-
-  it("searches with Google's geocoder inside Uganda, then OpenStreetMap if Google fails", () => {
-    expect(read("app/hospital-admin/departments/emergency/_lib/google-maps.ts")).toContain(
-      'componentRestrictions: { country: "UG" }',
-    );
-    expect(read("app/hospital-admin/departments/emergency/_components/pin-dialog.tsx")).toContain(
-      "(GOOGLE_MAPS_KEY ? await findPlacesGoogle(q) : null) ?? (await findPlaces(q))",
-    );
-  });
-
-  it("draws the pin in the action colour, never the emergency red", () => {
-    const g = read("app/hospital-admin/departments/emergency/_components/google-map.tsx");
-    expect(g).toContain('const PIN_FILL = "#2dd4bf";');
-    expect(g).not.toMatch(/#(ef4444|dc2626|ff0000)/i);
-  });
-});

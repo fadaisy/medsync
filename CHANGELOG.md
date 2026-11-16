@@ -5,14 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
-### Fixed — Admin dialogs, the Departments panel, and the hospital on Google Maps — 16 Nov 2026
+### Fixed — Admin dialogs, the Departments panel, and the hospital on a map — 16 Nov 2026
 
 - Medium dialogs in the admin workspace (Emergency and support's Change, Departments, Clinics & schedule) no longer
   collapse to one line; an input placed in a section's column no longer shrinks to a sliver.
 - The Departments panel's tabs stay on one line and its text buttons line up under their headings.
-- Emergency and support: find the hospital by name, switch between satellite and the street map, and see the pin on a
-  small map; with a Google Maps key the map is Google Maps ([ADR 0522](docs/adr/0522-google-maps-for-the-hospital-pin.md)),
-  otherwise OpenStreetMap. No floating Emergency over the admin desk, whose top bar carries it.
+- Emergency and support: find the hospital by name, switch between satellite and the street map, see the pin on a
+  small map, and check it in Google Maps' satellite view (a link; no Google key). No floating Emergency over the
+  admin desk, whose top bar carries it.
 
 ### Changed — One admin workspace, phase 2 — 16 Nov 2026
 
