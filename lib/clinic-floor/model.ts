@@ -5,9 +5,32 @@
  * numbers (D-CF-18). It holds no triage rule: levels and re-check bands arrive from the engine's record.
  */
 import type { RecheckBand } from "@/lib/triage/recommend";
-import type { AcuityLevel } from "@/lib/triage/types";
+import type { AcuityLevel, PregnancyStatus, TriageInput } from "@/lib/triage/types";
 
+import { inPregnancyAgeRange } from "@/lib/emr/reference/pregnancy";
 import { RECHECK_DUE_MINUTES } from "@/lib/triage/recommend";
+
+/** `patient_profiles.sex` → the floor's F / M; intersex, prefer-not-say or none stay unknown (null). */
+export function floorSex(sex: string | null | undefined): "F" | "M" | null {
+  return sex === "female" ? "F" : sex === "male" ? "M" : null;
+}
+
+/**
+ * The engine's context for one floor patient — the panel and the live loader build it the same way. A male patient
+ * is pinned to not pregnant (as /nurse/triage); reproductive age is the signed REF-PREG-AGE. No rule here.
+ */
+export function engineContext(
+  p: { sex: "F" | "M" | null; age: number | null },
+  pregnancy: PregnancyStatus,
+  spo2Scale2Enabled: boolean,
+): TriageInput["context"] {
+  return {
+    ageYears: p.age,
+    pregnancy: p.sex === "M" ? "not_pregnant" : pregnancy,
+    reproductiveAgeFemale: p.sex === "F" && inPregnancyAgeRange(p.age) === true,
+    spo2Scale2Enabled,
+  };
+}
 
 export const FLOOR_STEPS = ["triage", "line", "called", "with", "tests", "done"] as const;
 export type FloorStep = (typeof FLOOR_STEPS)[number];

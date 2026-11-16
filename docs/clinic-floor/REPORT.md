@@ -38,6 +38,9 @@ typecheck 0 · lint 0 · vitest: 8 files fail, all in the 92-file base list (env
 ## Open — needs the owner
 
 1. **Apply 0295** before the flag goes on: `cd /Users/airm1/Desktop/medsync/.claude/worktrees/clinic-floor-4f4be4 && npm run db:migrate`.
+
+   > **Update 16 Nov 2026** (branch `feat/clinic-floor-engine-inputs`, STOP-REPORTS "Follow-up 1–5b"). Items 2 (pregnancy and SpO₂ scale 2) and 3 (follow-up booking, results back, past readings, age/sex) are now built. The floor also logs PHI reads and refreshes every 10 s. Still open from item 2: the other discriminators, and recommendation accept/dismiss.
+
 2. **Parity gaps before cut-over** (engine inputs): SpO₂ scale 2 and pregnancy are not asked on the floor (sent as off / unknown). Keep `/nurse/triage` until they are added. Also not on the floor: other discriminators, recommendation accept/dismiss.
 3. **Not linked live:** follow-up booking (a clinician can't call the desk's reception-scope action; the desk books it), lab "results back" (no release join yet), past readings for Trends, age/sex on the live loader (the engine gets `ageYears: null`).
 4. **Dropped from the canvas:** "Check this value" plausibility (no engine helper; S10 forbids local numbers) and mobility/injury chips (the engine takes neither).

@@ -27,7 +27,7 @@ export default async function Page({
   // ADR 0509: on the Tether domain the floor is always on.
   const tether = isTetherHost((await headers()).get("host"));
   if (!tether && !clinicFloorLiveFor(scope.hospitalId)) notFound();
-  const [data, sp] = await Promise.all([loadFloorData(scope), searchParams]);
+  const [data, sp] = await Promise.all([loadFloorData(scope, { readings: false }), searchParams]);
   const cl = data.clinics.find((c) => c.id === sp.clinic) ?? data.clinics[0];
   if (!cl) notFound();
   const rows = projectFloor(data.people.map(toVisit), data.events).filter(

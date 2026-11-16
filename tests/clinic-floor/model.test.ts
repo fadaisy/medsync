@@ -9,8 +9,10 @@ import { describe, expect, it } from "vitest";
 import {
   canCall,
   doctorStates,
+  engineContext,
   FLOOR_STEPS,
   floorMetrics,
+  floorSex,
   lineOrder,
   projectFloor,
   projectVisit,
@@ -18,6 +20,7 @@ import {
   screenFeed,
   triageOrder,
 } from "@/lib/clinic-floor/model";
+import { inPregnancyAgeRange } from "@/lib/emr/reference/pregnancy";
 
 const T0 = Date.UTC(2026, 10, 13, 6, 0);
 const min = (n: number) => T0 + n * 60_000;
@@ -241,5 +244,31 @@ describe("D-CF-18 and CF6: metrics and the worklist", () => {
     );
     expect(triageOrder(rows).map((r) => r.intakeId)).toEqual(["flag", "old"]);
     expect(rows.every((r) => r.level === null)).toBe(true);
+  });
+});
+
+describe("engine context from the patient record (follow-up 2)", () => {
+  it("maps patient_profiles.sex to F / M and leaves the rest unknown", () => {
+    expect(floorSex("female")).toBe("F");
+    expect(floorSex("male")).toBe("M");
+    expect(floorSex("intersex")).toBeNull();
+    expect(floorSex("prefer_not_say")).toBeNull();
+    expect(floorSex(null)).toBeNull();
+  });
+
+  it("carries age, pins men to not pregnant, and reads reproductive age from REF-PREG-AGE", () => {
+    expect(engineContext({ sex: "M", age: 30 }, "pregnant", false)).toEqual({
+      ageYears: 30,
+      pregnancy: "not_pregnant",
+      reproductiveAgeFemale: false,
+      spo2Scale2Enabled: false,
+    });
+    const f = engineContext({ sex: "F", age: 30 }, "unknown", true);
+    expect(f.reproductiveAgeFemale).toBe(inPregnancyAgeRange(30) === true);
+    expect(f.pregnancy).toBe("unknown");
+    expect(f.spo2Scale2Enabled).toBe(true);
+    expect(engineContext({ sex: null, age: null }, "unknown", false).reproductiveAgeFemale).toBe(
+      false,
+    );
   });
 });

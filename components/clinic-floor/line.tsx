@@ -657,6 +657,7 @@ export function FinishDialog({ ctx, row }: { ctx: FloorCtx; row: FloorRow }) {
     if (off) return;
     setBusy(true);
     let code = "";
+    let err: string | null = null;
     if (fu && day != null) {
       const r = await ctx.port.followUp({
         intakeId: p.id,
@@ -667,6 +668,7 @@ export function FinishDialog({ ctx, row }: { ctx: FloorCtx; row: FloorRow }) {
         texts: sms,
       });
       if (r.ok) code = r.code;
+      else err = r.error;
     }
     if (out === "tests_back") ctx.record("sent_for_tests", p.id, { departmentId: p.clinic });
     else ctx.record("finish", p.id, { detail: out, departmentId: p.clinic });
@@ -676,7 +678,7 @@ export function FinishDialog({ ctx, row }: { ctx: FloorCtx; row: FloorRow }) {
       code
         ? fill(F.booked, { code })
         : fu
-          ? F.deskBooks
+          ? (err ?? F.deskBooks)
           : fill(L.toasts.finished, { name: p.name }),
     );
   };

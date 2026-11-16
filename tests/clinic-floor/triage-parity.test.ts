@@ -5,10 +5,11 @@
  */
 import type { Draft } from "@/components/clinic-floor/shared";
 import type { FloorPerson } from "@/lib/clinic-floor/fixture";
-import type { Acvpu, TriageInput } from "@/lib/triage/types";
+import type { Acvpu, PregnancyStatus, TriageInput } from "@/lib/triage/types";
 import { describe, expect, it } from "vitest";
 
 import { draftInput, THREATS } from "@/components/clinic-floor/shared";
+import { inPregnancyAgeRange } from "@/lib/emr/reference/pregnancy";
 import { runTriage } from "@/lib/triage/engine";
 
 let seed = 20261113;
@@ -23,6 +24,8 @@ const blank: Draft = {
   v: {},
   avpu: "A",
   o2: false,
+  preg: "unknown",
+  scale2: false,
   sugar: false,
   pick: null,
   why: "",
@@ -48,19 +51,28 @@ describe("triage panel ↔ engine parity", () => {
       const avpu = pick(["A", "C", "V", "P"] as Acvpu[]);
       const o2 = rnd() < 0.2;
       const sugar = rnd() < 0.5;
+      const preg = pick([
+        "unknown",
+        "not_pregnant",
+        "pregnant",
+        "postpartum_6wk",
+      ] as PregnancyStatus[]);
+      const scale2 = rnd() < 0.3;
       const d: Draft = {
         ...blank,
         avpu,
         o2,
         sugar,
+        preg,
+        scale2,
         v: Object.fromEntries(Object.entries(v).map(([k, n]) => [k, String(n)])),
       };
       const direct: TriageInput = {
         context: {
           ageYears: age,
-          pregnancy: "unknown",
-          reproductiveAgeFemale: sex === "F" && age < 50,
-          spo2Scale2Enabled: false,
+          pregnancy: sex === "M" ? "not_pregnant" : preg,
+          reproductiveAgeFemale: sex === "F" && inPregnancyAgeRange(age) === true,
+          spo2Scale2Enabled: scale2,
         },
         vitals: {
           systolicBp: v.sys,
@@ -79,7 +91,21 @@ describe("triage panel ↔ engine parity", () => {
       const b = runTriage(direct);
       expect(a.level).toBe(b.level);
       expect(a.reasoning).toEqual(b.reasoning);
+      expect(a.news2).toEqual(b.news2);
     }
+  });
+
+  it("a male patient is always sent as not pregnant, whatever the draft holds", () => {
+    const i = draftInput(person(30, "M"), { ...blank, preg: "pregnant" });
+    expect(i.context.pregnancy).toBe("not_pregnant");
+    expect(i.context.reproductiveAgeFemale).toBe(false);
+  });
+
+  it("pregnancy and SpO₂ scale 2 reach the engine as asked", () => {
+    const i = draftInput(person(30, "F"), { ...blank, preg: "pregnant", scale2: true });
+    expect(i.context.pregnancy).toBe("pregnant");
+    expect(i.context.spo2Scale2Enabled).toBe(true);
+    expect(i.context.reproductiveAgeFemale).toBe(true);
   });
 
   it("each manual Step 0 sign is L1 whatever the observations", () => {

@@ -9,12 +9,14 @@ import type {
   AcuityLevel,
   Acvpu,
   LifeThreatFlags,
+  PregnancyStatus,
   TriageInput,
   TriageVitals,
 } from "@/lib/triage/types";
 
 import { FLOOR } from "@/content/clinic-floor/floor";
 import { fill } from "@/content/lab-workspace-v2";
+import { engineContext } from "@/lib/clinic-floor/model";
 import { LIFE_THREAT_DISCRIMINATORS } from "@/lib/triage/discriminators";
 import { runTriage } from "@/lib/triage/engine";
 import { interpretVitals } from "@/lib/triage/interpret";
@@ -172,6 +174,10 @@ export interface Draft {
   v: Partial<Record<Field, string>>;
   avpu: Acvpu;
   o2: boolean;
+  /** Pregnancy as asked (engine context). Never read for a male patient: pinned to not_pregnant. */
+  preg: PregnancyStatus;
+  /** NEWS2 SpO₂ scale 2, set by the clinician (confirmed hypercapnic risk). */
+  scale2: boolean;
   sugar: boolean;
   pick: AcuityLevel | null;
   why: string;
@@ -199,12 +205,7 @@ export function draftInput(p: FloorPerson, d: Draft): TriageInput {
     consciousness: d.avpu,
   };
   return {
-    context: {
-      ageYears: p.age,
-      pregnancy: "unknown",
-      reproductiveAgeFemale: p.sex === "F" && p.age != null && p.age >= 12 && p.age < 50,
-      spo2Scale2Enabled: false,
-    },
+    context: engineContext(p, d.preg, d.scale2),
     vitals,
     lifeThreatFlags: Object.fromEntries(d.threats.map((k) => [k, true])),
   };

@@ -19,6 +19,8 @@ export const FLOOR_ERRORS = {
   notYourHospital: "That visit is not on this floor.",
   invalid: "Please check and try again.",
   saveFailed: "Could not save. Try again.",
+  noSession: "No clinic session on that day. Choose another day, or the desk books it.",
+  followUpDesk: "This patient has no account yet. The desk books the follow-up.",
 } as const;
 
 export const FLOOR = {
@@ -139,6 +141,15 @@ export const FLOOR = {
     consciousness: "Consciousness",
     acvpu: { A: "Alert", C: "New confusion", V: "Voice", P: "Pain", U: "Unresponsive" },
     oxygen: "On oxygen",
+    scale2: "SpO₂ scale 2",
+    scale2Title: "Only for confirmed hypercapnic risk (for example COPD), as the doctor has set.",
+    pregnancy: "Pregnancy",
+    pregnancyOpts: {
+      unknown: "Not known",
+      not_pregnant: "Not pregnant",
+      pregnant: "Pregnant",
+      postpartum_6wk: "Up to 6 weeks after birth",
+    },
     addSugar: "+ Blood sugar",
     check: "Check this value",
     checkLine: "{label} {v} looks unusual. Tap again to keep it.",
@@ -315,6 +326,11 @@ export const FLOOR = {
     lipid: { ldl: "LDL", total: "Total", hdl: "HDL", tg: "Triglycerides" },
     point: "{label}, {date}: {value}",
     none: "No readings yet",
+    source: {
+      today: "at triage today",
+      earlier: "at triage",
+      elsewhere: "at triage, another hospital",
+    },
   },
 
   finish: {
