@@ -60,9 +60,10 @@ export const maxDuration = 60;
  *
  * Same `CRON_SECRET` Bearer auth as the other crons.
  *
- * vercel.json schedules this every 15 minutes (`*∕15 * * * *`). That needs
- * Vercel PRO: Hobby refuses any sub-daily expression at DEPLOY time, so this
- * entry must not be deployed from a Hobby account (docs/booking-pilot/GO-LIVE.md).
+ * vercel.json runs this daily (`0 5 * * *`, 08:00 EAT) while the host is on
+ * Vercel Hobby, which refuses any sub-daily expression at DEPLOY time
+ * (tests/deploy/vercel-crons.test.ts guards it). Every 15 minutes needs Pro
+ * (docs/booking-pilot/GO-LIVE.md); the code below is ready for that rate.
  * Safe at that rate: the claim below, quiet-hour holds that move
  * `scheduled_at` to the window's end, and fallback rows keyed `:sms` with
  * ON CONFLICT DO NOTHING. tests/notifications/dispatches.test.ts runs a day

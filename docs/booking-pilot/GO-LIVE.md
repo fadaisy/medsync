@@ -13,14 +13,14 @@ Vercel env changes reach only new deployments: set everything first, then deploy
 
 ## 0. Blockers before the first real patient
 
-| What                                                    | Value                                                | Who             |
-| ------------------------------------------------------- | ---------------------------------------------------- | --------------- |
-| Vercel plan                                             | **Pro**                                              | Host            |
-| `vercel.json` → `/api/cron/dispatch-reminders` schedule | `*/15 * * * *` (branch `feat/booking-pilot-go-live`) | Code, after Pro |
-| `DEV_SKIP_MFA`                                          | **unset** in Production (removed 15 Nov; keep unset) | Host            |
-| `PHARMACY_DEV_HOSPITALS`                                | **unset** in Production (removed 15 Nov; keep unset) | Host            |
-| `SKIP_ENV_VALIDATION`                                   | **unset** everywhere on Vercel                       | Host            |
-| `MEDSYNC_ENV` (Supabase Functions secret)               | `production`                                         | Owner           |
+| What                                                    | Value                                                                  | Who             |
+| ------------------------------------------------------- | ---------------------------------------------------------------------- | --------------- |
+| Vercel plan                                             | **Pro**                                                                | Host            |
+| `vercel.json` → `/api/cron/dispatch-reminders` schedule | `0 5 * * *` (daily, 08:00 EAT) on Hobby; `*/15 * * * *` only after Pro | Code, after Pro |
+| `DEV_SKIP_MFA`                                          | **unset** in Production (removed 15 Nov; keep unset)                   | Host            |
+| `PHARMACY_DEV_HOSPITALS`                                | **unset** in Production (removed 15 Nov; keep unset)                   | Host            |
+| `SKIP_ENV_VALIDATION`                                   | **unset** everywhere on Vercel                                         | Host            |
+| `MEDSYNC_ENV` (Supabase Functions secret)               | `production`                                                           | Owner           |
 
 - **Reminders every 15 minutes need Vercel Pro.** Hobby refuses any cron more often than daily at deploy
   time, so the whole deploy fails. Do not merge `feat/booking-pilot-go-live` to `main`, and do not deploy it,
@@ -114,15 +114,15 @@ legal items behind these flags; flipping the flag does not make them true.
 
 ## 5. Crons (`vercel.json`)
 
-| Path                                 | Schedule                     | Note                                                                                                    |
-| ------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `/api/cron/dispatch-reminders`       | `*/15 * * * *`               | **Pro only.** Reminders, receipts, waitlist offers, push receipts, unconfirmed release                  |
-| `/api/cron/sweep-pre-arrivals`       | `0 4 * * *`                  | daily                                                                                                   |
-| `/api/cron/cleanup-drafts`           | `0 2 * * *`                  | daily                                                                                                   |
-| `/api/cron/sweep-break-glass`        | `0 3 * * *`                  | daily                                                                                                   |
-| `/api/cron/hmis-changes`             | `0 1 * * *`                  | daily                                                                                                   |
-| `/api/pharmacy/sms/daily`            | `0 5 * * *`                  | daily                                                                                                   |
-| `/api/cron/clinics-schedule-publish` | `0 19 * * *` and `0 3 * * *` | daily ×2 (22:00 and 06:00 EAT): publishes changes scheduled for "Tonight" or "Tomorrow" (ADR 0502/0508) |
+| Path                                 | Schedule                     | Note                                                                                                                                               |
+| ------------------------------------ | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/cron/dispatch-reminders`       | `0 5 * * *`                  | Daily on Hobby (16 Nov: `*/15` failed every deploy). Back to `*/15 * * * *` only after Pro; `tests/deploy/vercel-crons.test.ts` must then allow it |
+| `/api/cron/sweep-pre-arrivals`       | `0 4 * * *`                  | daily                                                                                                                                              |
+| `/api/cron/cleanup-drafts`           | `0 2 * * *`                  | daily                                                                                                                                              |
+| `/api/cron/sweep-break-glass`        | `0 3 * * *`                  | daily                                                                                                                                              |
+| `/api/cron/hmis-changes`             | `0 1 * * *`                  | daily                                                                                                                                              |
+| `/api/pharmacy/sms/daily`            | `0 5 * * *`                  | daily                                                                                                                                              |
+| `/api/cron/clinics-schedule-publish` | `0 19 * * *` and `0 3 * * *` | daily ×2 (22:00 and 06:00 EAT): publishes changes scheduled for "Tonight" or "Tomorrow" (ADR 0502/0508)                                            |
 
 The dispatcher is safe at 15 minutes: a row is claimed (`state` → `sent` only where it is still `queued` or
 `held`) before anything is sent; quiet hours (default 21:00–07:00 EAT, per hospital) park a row until the
