@@ -35,6 +35,7 @@ import { HealthCard } from "@/features/home/health-card";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { sinceBoot, track } from "@/lib/analytics";
 import { fetchMyAvatarUrl } from "@/lib/booking";
+import { HomeNextVisitV2 } from "@/features/v2/routes";
 import { flag } from "@/lib/flags";
 import { checkReading, readingValueText } from "@/lib/readings";
 import { useSession } from "@/lib/session";
@@ -227,6 +228,7 @@ export default function HomeScreen() {
         }
       >
         {shareShown ? <ActiveShareBanner /> : null}
+        {flag("appV2Mobile") ? <HomeNextVisitV2 me={first} /> : null}
 
         <Segments
           tone="accent"

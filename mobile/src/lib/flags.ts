@@ -16,7 +16,9 @@ export type Flag =
   | "mobileMapPin"
   | "mobilePhoneOtp"
   /** Care-team chat: hidden until there is a clinician inbox to answer it (ADR 0342). */
-  | "mobileChat";
+  | "mobileChat"
+  /** Patient app v2 on the phone (Visit mode first); old screens stay until Step 12 removes them. */
+  | "appV2Mobile";
 
 /** Gate CG governance artifact: not signed (17 Oct 2026). */
 export const GATE_CG_SIGNED = false;

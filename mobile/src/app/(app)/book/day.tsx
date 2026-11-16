@@ -3,7 +3,9 @@ import type { DayOption, Days, SessionOption, Ticket as TicketData } from "@/dat
 import type { NoteSelection } from "@/features/visits/symptom-note-logic";
 import type { Door } from "@/features/visits/why-coming";
 import type { AppointmentReason } from "@/lib/booking";
+import type { Network, PromptView } from "@patient-core/payments";
 import { useEffect, useState } from "react";
+import { defaultPayChoice, maskMsisdn } from "@patient-core/payments";
 import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, Text, View } from "react-native";
@@ -42,6 +44,8 @@ import { bookingSymptoms, EMPTY_NOTE } from "@/features/visits/symptom-note-logi
 import { Countdown, TimeWheel } from "@/features/visits/time-wheel";
 import { WhyComing } from "@/features/visits/why-coming";
 import { APPOINTMENT_REASONS, newIdempotencyKey } from "@/lib/booking";
+import { PayChoice, PromptStatus } from "@/components/tide/v2";
+import { myMobile, payVisit } from "@/data/visit-v2";
 import { flag } from "@/lib/flags";
 import { useSession } from "@/lib/session";
 import { useCatalogMode } from "@/lib/symptoms";
@@ -103,6 +107,23 @@ export default function BookDayScreen() {
   const [slotId, setSlotId] = useState<string | null>(null);
   const [whoId, setWhoId] = useState<string | null>(null);
   const [pay, setPay] = useState<"momo" | "later">("momo");
+  // Patient app v2 (appV2Mobile): the network, the number, and what the prompt said after booking.
+  const v2 = flag("appV2Mobile");
+  const [network, setNetwork] = useState<Network>("mtn");
+  const [mobile, setMobile] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState<PromptView | null>(null);
+  useEffect(() => {
+    if (!v2) return;
+    let live = true;
+    void myMobile().then((m) => {
+      if (!live) return;
+      setMobile(m);
+      if (defaultPayChoice(m) === "hospital") setPay("later");
+    });
+    return () => {
+      live = false;
+    };
+  }, [v2]);
   const [note, setNote] = useState("");
   const [symptoms, setSymptoms] = useState<NoteSelection>(EMPTY_NOTE);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -138,7 +159,7 @@ export default function BookDayScreen() {
     };
   }, [reason, doctor, department, hospital, attempt]);
 
-  if (ticket) return <Sent ticket={ticket} unsent={unsent} />;
+  if (ticket) return <Sent ticket={ticket} unsent={unsent} prompt={prompt} />;
 
   // The reason sets the fee and which clinic days take the visit, so it comes first.
   // Book a visit already asked it (its reason rides in the params): then this goes straight on.
@@ -310,7 +331,7 @@ export default function BookDayScreen() {
       note,
       forProvisionalId: params.member ?? null,
       patient,
-      payNow: pay === "momo",
+      payNow: !v2 && pay === "momo",
       idempotencyKey: k,
       now: new Date(),
       symptoms: bookingSymptoms(symptoms, CATALOG),
@@ -326,6 +347,12 @@ export default function BookDayScreen() {
     setUnsent(sent.failed);
     setKey(null);
     setTicketId(res.ticket.id);
+    // v2: paying comes after the booking exists and never changes it (PA2). A failure reads "Nothing was taken".
+    if (v2 && fee && pay === "momo" && mobile) {
+      setPrompt("approve_on_phone");
+      const paid = await payVisit({ appointmentId: res.ticket.id, network, msisdn: mobile });
+      setPrompt(paid.ok ? paid.view : "nothing_taken");
+    }
   };
 
   const header = {
@@ -546,7 +573,16 @@ export default function BookDayScreen() {
         />
       </View>
 
-      {session && fee ? (
+      {v2 && session && fee ? (
+        <PayChoice
+          value={pay === "momo" && mobile ? "momo" : "hospital"}
+          onChange={(v) => setPay(v === "momo" ? "momo" : "later")}
+          network={network}
+          maskedNumber={mobile ? maskMsisdn(mobile) : "No number on this account"}
+          onChangeNumber={() => setNetwork((n) => (n === "mtn" ? "airtel" : "mtn"))}
+        />
+      ) : null}
+      {!v2 && session && fee ? (
         <View style={{ gap: tSpace[2] }}>
           {fee ? (
             <View style={{ flexDirection: "row", gap: tSpace[2] }}>
@@ -597,7 +633,16 @@ export default function BookDayScreen() {
 }
 
 /** The day ticket and what happens next. */
-function Sent({ ticket: tk, unsent }: { ticket: TicketData; unsent: number }) {
+function Sent({
+  ticket: tk,
+  unsent,
+  prompt = null,
+}: {
+  ticket: TicketData;
+  unsent: number;
+  /** v2: what the Mobile Money prompt said after booking (PA2: the booking stands either way). */
+  prompt?: PromptView | null;
+}) {
   const t = useTide();
   const router = useRouter();
   const [paying, setPaying] = useState(false);
@@ -617,6 +662,7 @@ function Sent({ ticket: tk, unsent }: { ticket: TicketData; unsent: number }) {
       title={tk.awaiting ? "Waiting for the clinic" : "Your day is confirmed"}
       helpSource="ticket"
     >
+      {prompt ? <PromptStatus view={prompt} /> : null}
       <Ticket
         kind="day"
         hospitalName={tk.hospitalName}

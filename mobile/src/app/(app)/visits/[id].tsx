@@ -45,6 +45,7 @@ import {
   RESCHEDULABLE,
   STATUS_LABEL,
 } from "@/lib/booking";
+import { VisitDayV2Route } from "@/features/v2/routes";
 import { flag } from "@/lib/flags";
 import { confirmationPending } from "@/lib/notifications";
 import { useNow } from "@/lib/use-now";
@@ -71,7 +72,13 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 type Mode = "idle" | "move" | "cancel";
 type Outcome = { ok: true } | { ok: false; error: string };
 
+/** Patient app v2 (Step 4): the v2 day of the visit when `appV2Mobile` is on; this screen otherwise. */
 export default function VisitScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  return flag("appV2Mobile") && id ? <VisitDayV2Route id={id} /> : <LegacyVisitScreen />;
+}
+
+function LegacyVisitScreen() {
   const t = useTide();
   const router = useRouter();
   const insets = useSafeAreaInsets();

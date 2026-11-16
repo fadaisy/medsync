@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 Visit mode on the phone, behind appV2Mobile (Step 4) — 16 Nov 2026
+
+- With `appV2Mobile` on, the phone shows:
+  - Home's next-visit card (the v2 ticket and stage strip);
+  - the v2 Visits list: moved-visit offers first, upcoming visits with code and payment chip, past visits;
+  - the v2 day of the visit: ticket, quick actions, the five steps, Questions for the doctor;
+  - Book's pay choice, paying after the booking exists through `pt-pay-intent`.
+- Booking, moving, cancelling and confirming are unchanged; the current screens serve with the flag off.
+- Times show in hospital time (Kampala).
+- The moved-visit card is neutral, not amber, because the design system keeps amber for clinical state.
+
 ### Added — Patient app v2 component kits, phone and web (Step 3) — 16 Nov 2026
 
 - One set of v2 components on both platforms, from one token source and one shared core: the ticket (navy half,
