@@ -1,5 +1,5 @@
 {
-  "status": "unsigned — Fadhul signs at STOP 1 (patient app v2 §2, MR1). Seeded from docs/patient-app/feature-matrix.md. Nothing is dropped: every entry is a move. Old screens stay until Step 12.",
+  "status": "signed — Fadhul (CSO), in chat, 16 Nov 2026 (\"sign as recommended\"). Moves only; nothing dropped. Old screens stay until Step 12.",
   "dropped": [],
   "phone": {
     "(tabs)/index": "Visit mode Home (board 1); care parts move to Care mode Today (board 5)",

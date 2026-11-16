@@ -106,36 +106,36 @@ Confirm all four against the Bank of Uganda's list of licensed PSPs and PSOs (15
 
 Owner, 16 Nov: "go with your recommendations". That is recorded as intent; each line still needs Fadhul's signature.
 
-| #       | Decision                 | Recommendation (from the prompt unless noted)                                      | Signed |
-| ------- | ------------------------ | ---------------------------------------------------------------------------------- | ------ |
-| D-MR-01 | Care-mode switch         | By hospital enrolment                                                              | ☐      |
-| D-MR-02 | App badge                | System badge; red only for Help and danger                                         | ☐      |
-| D-MR-03 | Danger content           | As §5.8, signed before Care mode ships                                             | ☐      |
-| D-MR-04 | Help placement           | Full pill on Home, Today and danger; mini elsewhere; web top bar                   | ☐      |
-| D-MR-05 | Names on widgets         | Hidden by default                                                                  | ☐      |
-| D-MR-06 | Who answers messages     | Programme nurse, weekdays 8 am to 5 pm; auto-reply to Help out of hours            | ☐      |
-| D-MR-07 | Results                  | After clinician review, free                                                       | ☐      |
-| D-MR-08 | Plus entitlements        | As the prompt, **except booking for household members stays free** (A3)            | ☐      |
-| D-MR-09 | Trial                    | 30 days, no card, no charge, reminder 3 days before                                | ☐      |
-| D-MR-10 | Prices                   | From the server                                                                    | ☐      |
-| D-MR-11 | Targets                  | HEARTS defaults; personal from the plan; show who set them                         | ☐      |
-| D-MR-12 | + button                 | Keep (A1)                                                                          | ☐      |
-| D-MR-13 | Boards 9–14              | Reference only                                                                     | ☐      |
-| D-MR-14 | Language                 | English at launch                                                                  | ☐      |
-| D-PA-01 | Provider                 | Shortlist Flutterwave and Pesapal (§5); no real money until signed                 | ☐      |
-| D-PA-02 | Who contracts            | The hospital, as merchant                                                          | ☐      |
-| D-PA-03 | Default pay choice       | MoMo when a saved number exists, else at the hospital                              | ☐      |
-| D-PA-04 | Provider charges         | The hospital's                                                                     | ☐      |
-| D-PA-05 | Refund approver          | The accounts supervisor, never the requester                                       | ☐      |
-| D-PA-06 | Automatic refunds        | When the hospital cancels                                                          | ☐      |
-| D-PA-07 | Paid, then didn't come   | **Owner's own choice.** Recommendation: credit for 30 days, then refund on request | ☐      |
-| D-PA-08 | EFRIS                    | Fields only                                                                        | ☐      |
-| D-PA-09 | Pay for someone else     | Plus Family household at launch                                                    | ☐      |
-| D-PA-10 | Questions for the doctor | Triage nurse and doctor of that visit; not the desk                                | ☐      |
-| D-PA-11 | Web care mode            | Same Gate CG                                                                       | ☐      |
-| A2      | Deep links               | Add `tether://`, keep `medsync://`                                                 | ☐      |
-| A4      | Self-logging             | Wellness, shared by both modes                                                     | ☐      |
-| A5      | Flags                    | `careMode` replaces `mobileClinicalData`                                           | ☐      |
+| #       | Decision                 | Recommendation (from the prompt unless noted)                                      | Signed                        |
+| ------- | ------------------------ | ---------------------------------------------------------------------------------- | ----------------------------- |
+| D-MR-01 | Care-mode switch         | By hospital enrolment                                                              | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-02 | App badge                | System badge; red only for Help and danger                                         | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-03 | Danger content           | As §5.8, signed before Care mode ships                                             | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-04 | Help placement           | Full pill on Home, Today and danger; mini elsewhere; web top bar                   | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-05 | Names on widgets         | Hidden by default                                                                  | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-06 | Who answers messages     | Programme nurse, weekdays 8 am to 5 pm; auto-reply to Help out of hours            | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-07 | Results                  | After clinician review, free                                                       | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-08 | Plus entitlements        | As the prompt, **except booking for household members stays free** (A3)            | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-09 | Trial                    | 30 days, no card, no charge, reminder 3 days before                                | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-10 | Prices                   | From the server                                                                    | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-11 | Targets                  | HEARTS defaults; personal from the plan; show who set them                         | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-12 | + button                 | Keep (A1)                                                                          | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-13 | Boards 9–14              | Reference only                                                                     | ✓ signed in chat, 16 Nov 2026 |
+| D-MR-14 | Language                 | English at launch                                                                  | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-01 | Provider                 | Shortlist Flutterwave and Pesapal (§5); no real money until signed                 | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-02 | Who contracts            | The hospital, as merchant                                                          | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-03 | Default pay choice       | MoMo when a saved number exists, else at the hospital                              | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-04 | Provider charges         | The hospital's                                                                     | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-05 | Refund approver          | The accounts supervisor, never the requester                                       | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-06 | Automatic refunds        | When the hospital cancels                                                          | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-07 | Paid, then didn't come   | **Owner's own choice.** Recommendation: credit for 30 days, then refund on request | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-08 | EFRIS                    | Fields only                                                                        | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-09 | Pay for someone else     | Plus Family household at launch                                                    | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-10 | Questions for the doctor | Triage nurse and doctor of that visit; not the desk                                | ✓ signed in chat, 16 Nov 2026 |
+| D-PA-11 | Web care mode            | Same Gate CG                                                                       | ✓ signed in chat, 16 Nov 2026 |
+| A2      | Deep links               | Add `tether://`, keep `medsync://`                                                 | ✓ signed in chat, 16 Nov 2026 |
+| A4      | Self-logging             | Wellness, shared by both modes                                                     | ✓ signed in chat, 16 Nov 2026 |
+| A5      | Flags                    | `careMode` replaces `mobileClinicalData`                                           | ✓ signed in chat, 16 Nov 2026 |
 
 Signed by: **\*\***\_\_**\*\*** (CSO) · Date: **\_\_**
 
@@ -182,3 +182,19 @@ Signed by: **\*\***\_\_**\*\*** (CSO) · Date: **\_\_**
 In chat: "go with your recommendations, start step 2". Every recommendation in §6 is the owner's decision, including A1–A5 and the D-PA-07 recommendation (30-day credit, then a refund on request). The CSO signature line above stays for the formal sign-off; no `*_COPY_STATUS` was changed.
 
 ADR numbering moved: the payment decisions were written first, as **0516** (Tether never holds patient money), **0517** (exactly-once payments) and **0518** (refunds need a second person). The other six ADRs in §8 take the next free numbers when their steps build them.
+
+## 11. CSO signature, 16 Nov 2026
+
+Fadhul (CSO), in chat: "sign as recommended". Signed:
+
+- the whole §6 block as recommended;
+- A1–A5, with `careMode` off in production until Gate CG;
+- D-PA-07: a credit for another booking within 30 days, then a refund on request;
+- the feature matrix and `renames.json` as proposed.
+
+**Not signed by this:**
+
+- the draft strings (every `*_COPY_STATUS` stays `draft`);
+- Gate CG;
+- the danger content and targets;
+- D-PA-01 (no real money; provider fees, refunds and signing still to be verified from the provider's documentation).
