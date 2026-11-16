@@ -17,11 +17,14 @@ Builds on [ADR 0516](0516-one-admin-workspace.md) (phase 1: one frame, one menu)
 
 ### Departments and Emergency and support
 
-(Recorded at merge.)
+- **Departments** (`/hospital-admin/departments`): neutral counts, department cards filtered by All, Live and Not on Tether yet, and a detail panel with Overview (live, start department, head and acting head, place and hours, rename, archive), Booking rules (the old Booking policy, per department, through `ha-update-department-policy`) and Clinics and wards. Unavailable now (the old Availability) and Hours and places are views of the same page; closures link to Clinics & schedule's Closures. `/departments/booking-policy`, `/availability` and `/hours` forward there.
+- **Emergency and support** (`/hospital-admin/departments/emergency`): a receiving banner in ink, never red; changes waiting for a second admin with Verify and Reject through the existing hub ops (the proposer never sees Verify, and the Edge Function refuses them anyway); routing rows and support cards with a change dialog that has one control per stored type, checked by the same `checkCapabilityValue` as the Edge Function; "What the public sees" from the public page's own query.
+- **Pin the location**: a map dialog (Leaflet over OpenStreetMap, already a dependency) that sets the hospital's one coordinate pair through `ha-set-hospital-emergency-settings`, the path the profile form already used: one admin, audited. Making it a second-admin change, or adding pins for the ambulance drop-off and the gate, needs that Edge Function changed and new columns.
 
 ### Deferred
 
 - **Remind** a clinician about a waiting booking request. The phase 1 plan assumed one small Edge Function, but the message pipeline only messages patients: a staff reminder needs a new dispatch kind (a GATED migration to `notification_dispatches_kind_check`), the dispatcher's planning and wording for a staff recipient, and a choice of channel (in-app, push or SMS, which costs). Requests keeps "Open in week plan".
+- **Divert ambulances** and **"Confirm it is all still true"**: each needs a record (state or confirmed-at, who, reason) and an op. Receiving hours beyond none, daytime and 24 hours are not stored.
 - **Not stored, so not shown:** swapping the primary and backup admin, resending an invitation, copying an earlier invitation link (only its hash is kept); courier collection days for referred tests; imaging room, booked slot, portable and preset hours; a show/hide switch for a single test. Each needs a column or table and a write path.
 - **Intake** stays on MedSync's domain until the front desk covers all six arrival types.
 
