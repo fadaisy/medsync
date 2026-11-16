@@ -31,7 +31,7 @@ export default async function ServicesHubLayout({ children }: { children: ReactN
           </h1>
           {problems > 0 ? (
             <Link
-              href="/hospital-admin/departments/availability"
+              href="/hospital-admin/departments?view=unavailable"
               className="bg-status-caution-bg dark:text-status-caution-fg text-body-s inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium text-amber-800 hover:underline"
             >
               <AlertTriangleIcon className="size-3.5" aria-hidden />

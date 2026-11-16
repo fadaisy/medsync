@@ -68,7 +68,7 @@ const HUB_ACTIONS: ReadonlyArray<NavEntry> = [
     group: "Actions",
     label: "Report a problem",
     hint: "Something unavailable — a test, a ward, equipment",
-    href: "/hospital-admin/departments/availability?report=1",
+    href: "/hospital-admin/departments?view=unavailable&report=1",
     icon: AlertTriangleIcon,
     domain: "operations",
   },
