@@ -31,8 +31,10 @@ Vercel env changes reach only new deployments: set everything first, then deploy
   (`lib/boot-guard.ts`, `instrumentation.ts`), so leaving one on shows up as a dead deploy, not a quiet hole.
   Check Preview too if pilot clinics will ever use a preview URL: the guard only runs where
   `VERCEL_ENV=production`.
-- Reminder text on a clinic (Clinics & schedule → Booking) says "Sent at 18:00 the evening before". On the
-  daily cron (`0 5 * * *`, 08:00 EAT) that is not true: until Pro, turn that promise into the copy check.
+- The clinic **Reminder text** toggle (Clinics & schedule → Booking) says "Sent at 18:00 the evening before".
+  Until Vercel Pro, the reminder cron runs once a day at `0 5 * * *` (08:00 EAT), so the wording does not
+  match what happens. Changing it needs the CSO's sign-off: do not edit the signed copy; raise it with the
+  owner, or turn on Pro and the 15-minute cron.
 - `MEDSYNC_ENV=production` in Supabase Functions stops `pt-emergency-sheet` from serving draft rows when a
   caller asks for them. On Vercel it is optional: the app falls back to `VERCEL_ENV`.
 
