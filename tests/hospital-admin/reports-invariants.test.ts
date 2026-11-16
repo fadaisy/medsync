@@ -33,6 +33,8 @@ const stripComments = (src: string) =>
 
 const REPORTS = "lib/hospital-admin/reports.ts";
 const PAGE = "app/hospital-admin/reports/page.tsx";
+const VIEW = "app/hospital-admin/reports/_components/reports-view.tsx";
+const COPY = "content/hospital-admin/profile-reports.ts";
 const ROLLUP = "app/admin/scheduling-rollup/page.tsx";
 
 describe("the reports page is scoped, and says what its numbers are", () => {
@@ -49,10 +51,16 @@ describe("the reports page is scoped, and says what its numbers are", () => {
     expect(page).toContain("fetchHospitalReport(scope.hospitalId");
   });
 
+  // ADR 0516 phase 2: the page draws in the desk; its words live in the content file, and the view prints the
+  // ruling above the tiles.
   it("states the ruling in words next to the numbers", () => {
-    const page = read(PAGE);
-    expect(page).toContain("never a patient");
-    expect(page).toMatch(/nothing in the booking path reads these figures/i);
+    const copy = read(COPY);
+    expect(copy).toContain("never a patient");
+    expect(copy).toMatch(/nothing in the booking path reads these figures/i);
+    const view = stripComments(read(VIEW));
+    const rulingAt = view.indexOf("R.ruling.body");
+    expect(rulingAt).toBeGreaterThan(-1);
+    expect(rulingAt).toBeLessThan(view.indexOf("data.tiles.map"));
   });
 
   it("is registered as a live feature area", () => {

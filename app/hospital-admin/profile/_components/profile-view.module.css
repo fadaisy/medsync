@@ -1,0 +1,37 @@
+/* Hospital profile (ADR 0516, phase 2): two columns of desk cards that fold to one on a phone. */
+.g2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 14px;
+  align-items: start;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.pad {
+  padding: 14px 16px;
+}
+.start {
+  align-self: flex-start;
+}
+/* A long value (entrance directions) wraps under its label instead of squeezing it. */
+.sum > div {
+  flex-wrap: wrap;
+}
+.sum b {
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.coords {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 12px;
+}
+/* A dialog's form: its fields and buttons stay the dialog's own children, with the dialog's gap between them. */
+.form {
+  display: contents;
+}

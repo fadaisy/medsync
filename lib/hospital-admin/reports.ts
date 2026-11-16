@@ -173,7 +173,7 @@ export interface HospitalReport extends TenantAggregates {
   perLine: LineAggregates[];
   /** Every session with at least one called position, worst share first. */
   perSession: SessionAccuracy[];
-  /** Messages sent in the window by kind and channel — the SentTodayPanel's rows. */
+  /** Messages sent in the window by kind and channel — the Sent table on Reports. */
   sent: SentRow[];
 }
 
