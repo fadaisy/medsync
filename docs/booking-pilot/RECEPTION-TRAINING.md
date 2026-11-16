@@ -284,8 +284,11 @@ you to choose a new day."
 - Patients with the app see the notice. **Patients without the app: call them** `[owner decision: who calls
 and from which list]`.
 
-**Running late.** `[check before training: the **Late by (minutes)** control was on the old Scheduling
-page, removed at the Clinics & schedule cut-over (ADR 0508); it is not in the new workspace]`
+**Running late: the desk does this** (new Tether desk, `RECEPTION_DESK` on; ADR 0485). On the desk's
+calendar, tap the clinic's session → **Running late**. The dialog reads "{clinic} is running late · Today".
+Pick the minutes (**15 min**, **30 min**, **45 min**, **1 hour** or **Over an hour**) → **Save**. At 30 minutes or more "Patients booked
+are texted the new time."; under that "Under 30 minutes: no text is sent." The desk then shows "{clinic}
+running {n} min late". On the old desk there is no Running late control.
 
 ---
 
