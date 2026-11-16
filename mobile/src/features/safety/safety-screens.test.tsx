@@ -95,7 +95,10 @@ describe("SOS countdown", () => {
     setAnalyticsSink((e) => events.push(e));
     openURL = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
   });
-  afterEach(() => {
+  afterEach(async () => {
+    // Under SDK 58 the run hangs if the screen is still mounted when real
+    // timers come back, so unmount while the fake clock is still in place.
+    await act(async () => screen.unmount());
     openURL.mockRestore();
     jest.useRealTimers();
   });
