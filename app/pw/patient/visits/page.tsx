@@ -1,6 +1,7 @@
 import type { WeekVisit } from "./_components/week-view";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { chipFor, inKampala, ticketView, WEEKDAY_SHORT } from "@patient-core/ticket-view";
 import { STATUS_LABEL } from "@patient-core/visits";
 import {
   dayKeyOf,
@@ -19,11 +20,14 @@ import { ICON } from "@/components/tide/kit";
 import { PageHeader } from "@/components/tide/shell";
 import { VISITS_COPY as C } from "@/content/patient/visits";
 import { loadMedicines, today as todayDoses } from "@/lib/patient-web/day";
+import { patientFlag } from "@/lib/patient-web/flags";
+import { loadPayStatus } from "@/lib/patient-web/visit-v2";
 import { loadWeek } from "@/lib/patient-web/visits-data";
 import { formatFullDate, formatOfferExpiry } from "@/lib/patient/booking-format";
 import { requirePatientScope } from "@/lib/patient/scope";
-import { fetchWaitlist } from "@/lib/patient/waitlist";
+import { fetchRebookingOffers, fetchWaitlist } from "@/lib/patient/waitlist";
 import { RetryButton } from "../_components/home-bits";
+import { VisitsV2 } from "./_components/visits-v2";
 import { WaitlistOffer } from "./_components/waitlist-offer";
 import { WeekView } from "./_components/week-view";
 import { reasonTitle } from "./_lib/reason";
@@ -59,6 +63,54 @@ export default async function VisitsPage() {
           hospitalName: v.hospitalName,
         }))
     : [];
+
+  // Patient app v2 (W4), behind appV2Web: offers first, upcoming with code and payment, past, a month by person.
+  if (patientFlag("appV2Web") && week) {
+    const all = [...week.upcoming, ...week.past];
+    const pay = await loadPayStatus(all.map((v) => v.id)).catch(() => new Map());
+    const cancelled = all.filter((v) => v.cancelledReason === "session_cancelled");
+    const offersMap = await fetchRebookingOffers(cancelled.map((v) => v.id)).catch(() => new Map());
+    const offers = cancelled.flatMap((v) => {
+      const o = offersMap.get(v.id);
+      return o
+        ? [
+            {
+              id: v.id,
+              sessionId: o.nextSessionId,
+              title: `${v.departmentName} moved`,
+              line: `The clinic cancelled this day. Next open day: ${shortDayOf(dayKeyOf(o.nextSessionStartsAtIso))}.`,
+            },
+          ]
+        : [];
+    });
+    const row = (v: (typeof all)[number]) => {
+      const t = ticketView(v, pay.get(v.id), "You");
+      const d = inKampala(v.startsAtIso);
+      return {
+        id: v.id,
+        href: `/patient/visits/${v.id}`,
+        dateIso: d.toISOString(),
+        day: t.day,
+        dayLabel: WEEKDAY_SHORT[d.getUTCDay()]!,
+        clinic: v.departmentName,
+        who: v.forMember ?? "You",
+        window: t.window,
+        code: t.code,
+        chip: chipFor(v.quotedFeeUgx, pay.get(v.id)),
+      };
+    };
+    return (
+      <>
+        <PageHeader overline={C.overline} area="visits" title={C.title} />
+        <VisitsV2
+          offers={offers}
+          upcoming={week.upcoming.filter((v) => onCalendar(v.status)).map(row)}
+          past={week.past.map(row)}
+          month={`${inKampala(now.toISOString()).getUTCFullYear()}-${String(inKampala(now.toISOString()).getUTCMonth() + 1).padStart(2, "0")}`}
+        />
+      </>
+    );
+  }
 
   return (
     <>

@@ -9,22 +9,18 @@
 import type { TicketV2Props } from "@/components/tide/v2";
 import type { AppointmentRow } from "@/lib/booking";
 import type { BillStatus, Channel, Network, PromptView } from "@patient-core/payments";
-import { normaliseUgMsisdn, paymentChip, promptView, ticketPayLine } from "@patient-core/payments";
+import type { VisitPay } from "@patient-core/ticket-view";
+import { normaliseUgMsisdn, promptView } from "@patient-core/payments";
+import {
+  chipFor as sharedChip,
+  payLineFor as sharedPayLine,
+  ticketView,
+} from "@patient-core/ticket-view";
 
 import { callEdge, requestId } from "@/lib/edge";
 import { supabase } from "@/lib/supabase";
 
-export interface VisitPay {
-  appointmentId: string;
-  billId: string;
-  status: BillStatus;
-  totalUgx: number;
-  paidUgx: number;
-  refundedUgx: number;
-  method: Network | "counter" | null;
-  receiptNumber: number | null;
-  paidChannel: Channel | null;
-}
+export type { VisitPay } from "@patient-core/ticket-view";
 
 /** The one payment status per visit (PA5). Missing view or no rows: an empty map, never an error. */
 export async function loadPayStatus(appointmentIds: string[]): Promise<Map<string, VisitPay>> {
@@ -52,21 +48,13 @@ export async function loadPayStatus(appointmentIds: string[]): Promise<Map<strin
   return out;
 }
 
-/** The payment line for a visit: the bill if there is one, else the fee quoted at booking (not yet billed). */
+/** The payment line and chip: the shared rule (@patient-core/ticket-view). */
 export function payLineFor(visit: { quotedFeeUgx: number | null }, pay: VisitPay | undefined) {
-  if (pay) {
-    return ticketPayLine(
-      { status: pay.status, totalUgx: pay.totalUgx, paidUgx: pay.paidUgx, refundedUgx: pay.refundedUgx },
-      pay.method && pay.receiptNumber !== null ? { method: pay.method, number: pay.receiptNumber } : null,
-    );
-  }
-  return visit.quotedFeeUgx && visit.quotedFeeUgx > 0
-    ? ({ kind: "to_pay", amountUgx: visit.quotedFeeUgx } as const)
-    : ({ kind: "free" } as const);
+  return sharedPayLine(visit.quotedFeeUgx, pay);
 }
 
 export function chipFor(pay: VisitPay | undefined) {
-  return pay ? paymentChip({ status: pay.status, totalUgx: pay.totalUgx }, pay.paidChannel) : "at_hospital";
+  return pay ? sharedChip(pay.totalUgx, pay) : "at_hospital";
 }
 
 /**
@@ -135,56 +123,16 @@ export async function markQuestion(id: string, change: "asked" | "not_asked" | "
   return !error;
 }
 
-/* ─── The v2 ticket's view of a visit ───────────────────────────────────────── */
+/* ─── The v2 ticket's view of a visit: the shared rule ─────────────────────────── */
 
-const WEEKDAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-/** Hospital time: Kampala is UTC+3 all year, so a visit reads the same wherever the phone thinks it is. */
-const KAMPALA_MS = 3 * 3600_000;
-const inKampala = (iso: string) => new Date(new Date(iso).getTime() + KAMPALA_MS);
-const hhmm = (iso: string) => {
-  const d = inKampala(iso);
-  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
-};
-
-/** "K7M42Q" → "K7M 42Q": the desk code in two groups of three. */
-export function groupCode(code: string | null): string {
-  if (!code) return "—";
-  const c = code.replace(/\s+/g, "").toUpperCase();
-  return c.length === 6 ? `${c.slice(0, 3)} ${c.slice(3)}` : c;
-}
+export { groupCode } from "@patient-core/ticket-view";
 
 export function ticketFor(
   v: AppointmentRow & { quotedFeeUgx?: number | null },
   pay: VisitPay | undefined,
   patientName: string,
 ): TicketV2Props {
-  const d = inKampala(v.startsAtIso);
-  const session = v.sessionId !== null;
-  const window =
-    session && v.arrivalWindowStartIso && v.arrivalWindowEndIso
-      ? `${hhmm(v.arrivalWindowStartIso)} to ${hhmm(v.arrivalWindowEndIso)}`
-      : hhmm(v.startsAtIso);
-  const initials = v.hospitalName
-    .split(/\s+/)
-    .filter((w) => /^[A-Za-z]/.test(w))
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join("");
-  return {
-    hospitalName: v.hospitalName,
-    hospitalInitials: initials || "H",
-    day: String(d.getUTCDate()),
-    dayLine: `${WEEKDAY[d.getUTCDay()]} · ${MONTH[d.getUTCMonth()]}`,
-    window,
-    doctorTime: !session,
-    clinic: v.departmentName,
-    room: null,
-    patient: v.forMember ?? patientName,
-    block: null,
-    pay: payLineFor({ quotedFeeUgx: v.quotedFeeUgx ?? null }, pay),
-    code: groupCode(v.bookingCode),
-  };
+  return ticketView(v, pay, patientName);
 }
 
 /** The signed-in patient's own mobile number, for the pay choice (D-PA-03). Null when the account has none. */

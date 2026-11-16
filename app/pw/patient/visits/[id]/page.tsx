@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ticketView } from "@patient-core/ticket-view";
+import { stageOf } from "@patient-core/visit-stages";
 import { STATUS_LABEL } from "@patient-core/visits";
 import {
   clockOf,
@@ -18,9 +20,12 @@ import { z } from "zod";
 
 import { Avatar, Band, buttonClass, Card, ICON, Note, Pill } from "@/components/tide/kit";
 import { PageHeader } from "@/components/tide/shell";
+import { VisitDayWeb } from "@/components/tide/v2-visit-web";
 import { VisitTicket } from "@/components/tide/visits-ticket";
 import { VISITS_COPY as C } from "@/content/patient/visits";
 import { patientFlag } from "@/lib/patient-web/flags";
+import { loadPayStatus, loadQuestions } from "@/lib/patient-web/visit-v2";
+import { addQuestionAction, markQuestionAction } from "@/lib/patient-web/visit-v2-actions";
 import { loadVisit } from "@/lib/patient-web/visits-data";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { fetchRebookingOffers } from "@/lib/patient/waitlist";
@@ -76,6 +81,52 @@ export default async function VisitPage({ params }: { params: Promise<{ id: stri
     visit.cancelledReason === "session_cancelled"
       ? ((await fetchRebookingOffers([visit.id]).catch(() => null))?.get(visit.id) ?? null)
       : null;
+
+  const actions = (
+    <VisitActions
+      visitId={visit.id}
+      controls={controls}
+      live={live}
+      answered={visit.confirmedByPatientAtIso !== null}
+      rebook={
+        visit.cancelledReason === "session_cancelled"
+          ? rebook && {
+              sessionId: rebook.nextSessionId,
+              day: shortDayOf(dayKeyOf(rebook.nextSessionStartsAtIso)),
+            }
+          : undefined
+      }
+    />
+  );
+
+  // Patient app v2 (W3), behind appV2Web: the sideways ticket, quick actions, stages and Questions for the
+  // doctor; the move, cancel and confirm controls are the booking slice's own, unchanged.
+  if (patientFlag("appV2Web")) {
+    const [pay, questions] = await Promise.all([
+      loadPayStatus([visit.id]).catch(() => new Map()),
+      loadQuestions(visit.id).catch(() => []),
+    ]);
+    const ticket = ticketView(visit, pay.get(visit.id), "You");
+    return (
+      <>
+        <PageHeader back={back} title={title} />
+        <div className="flex flex-col gap-6">
+          <VisitDayWeb
+            ticket={ticket}
+            stage={stageOf(visit.status, null)}
+            stageTimes={[null, null, null, null, null]}
+            questions={questions}
+            nurseNote={null}
+            directionsHref={maps}
+            smsText={`Tether: your code is ${ticket.code}. Show it at the desk.`}
+            addQuestion={addQuestionAction.bind(null, visit.id)}
+            markQuestion={markQuestionAction}
+          />
+          <div className="max-w-2xl">{actions}</div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

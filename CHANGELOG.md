@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 Visit mode on the web, behind appV2Web (Step 5) — 16 Nov 2026
+
+- With `appV2Web` on, the web shows:
+  - Book on one page (W1): who and why, clinic, day with places left, time, and a sticky summary with the pay choice;
+  - the v2 Visits list (W4): moved-visit offers first, upcoming with payment chips, past, and a month calendar;
+  - the v2 visit page (W2, W3): the ticket at every width, calendar file, directions, the text we sent, the five steps, Questions for the doctor.
+- The ticket's text comes from one shared builder, `packages/patient-core/ticket-view.ts`, used by the phone and the web.
+- Legacy routes keep redirecting through the existing MOVED list. Fixture gallery at `/pw/gallery/visit-v2`. Book v2 is not used for the doctor flow.
+
 ### Added — Patient app v2 Visit mode on the phone, behind appV2Mobile (Step 4) — 16 Nov 2026
 
 - With `appV2Mobile` on, the phone shows:
