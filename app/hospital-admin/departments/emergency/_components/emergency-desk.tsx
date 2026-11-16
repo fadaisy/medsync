@@ -20,7 +20,7 @@ import e from "./emergency.module.css";
 import { PinDialog } from "./pin-dialog";
 
 // Leaflet needs `window`, and stays out of the page's first load.
-const EntranceMap = dynamic(() => import("./entrance-map"), {
+const EntranceMap = dynamic(() => import("./map-view"), {
   ssr: false,
   loading: () => <div className={`${e.map} ${e.mapSm}`} />,
 });

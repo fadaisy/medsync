@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Fixed — Admin dialogs, the Departments panel, and the hospital on Google Maps — 16 Nov 2026
+
+- Medium dialogs in the admin workspace (Emergency and support's Change, Departments, Clinics & schedule) no longer
+  collapse to one line; an input placed in a section's column no longer shrinks to a sliver.
+- The Departments panel's tabs stay on one line and its text buttons line up under their headings.
+- Emergency and support: find the hospital by name, switch between satellite and the street map, and see the pin on a
+  small map; with a Google Maps key the map is Google Maps ([ADR 0522](docs/adr/0522-google-maps-for-the-hospital-pin.md)),
+  otherwise OpenStreetMap. No floating Emergency over the admin desk, whose top bar carries it.
+
 ### Changed — One admin workspace, phase 2 — 16 Nov 2026
 
 - Every hospital-admin page is now drawn in the Tether desk's own components ([ADR 0521](docs/adr/0521-admin-workspace-phase-2.md)).

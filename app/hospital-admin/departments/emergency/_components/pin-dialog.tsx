@@ -10,12 +10,13 @@ import { Chip, ChipRow, DeskDialog, Field, k, Seg } from "@/components/clinics-s
 import { EMERG } from "@/content/hospital-admin/emergency";
 import { setLocationAction } from "../_lib/actions";
 import { findPlaces, googleMapsUrl } from "../_lib/geo";
+import { findPlacesGoogle, GOOGLE_MAPS_KEY } from "../_lib/google-maps";
 import { coordsText, parseCoords } from "../_lib/model";
 import { useOp } from "../../_lib/use-op";
 import e from "./emergency.module.css";
 
 // Leaflet needs `window`, and stays out of the page's first load.
-const EntranceMap = dynamic(() => import("./entrance-map"), {
+const EntranceMap = dynamic(() => import("./map-view"), {
   ssr: false,
   loading: () => <div className={e.map} />,
 });
@@ -79,7 +80,8 @@ export function PinDialog({
   const search = async () => {
     if (q.trim().length < 3 || find.state === "busy") return;
     setFind({ state: "busy" });
-    const hits = await findPlaces(q);
+    // Google's geocoder when the site has a Google Maps key; OpenStreetMap's place search otherwise, or if Google fails.
+    const hits = (GOOGLE_MAPS_KEY ? await findPlacesGoogle(q) : null) ?? (await findPlaces(q));
     if (hits === null) setFind({ state: "failed" });
     else if (!hits.length) setFind({ state: "none" });
     else if (hits.length === 1) {

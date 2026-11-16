@@ -90,6 +90,13 @@ export const env = createEnv({
 
     // Phase 0.8 — public Sentry DSN for client-side error reporting.
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+
+    /**
+     * Google Maps in the browser (ADR 0522): the hospital's pin on Emergency and support. A browser key, restricted
+     * to the site's address in Google Cloud, with the Maps JavaScript API and the Geocoding API. Optional: without
+     * it the map is OpenStreetMap with satellite imagery.
+     */
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(20).optional(),
   },
   /**
    * Next.js inlines NEXT_PUBLIC_* at build time. Server vars must be referenced
@@ -117,6 +124,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   emptyStringAsUndefined: true,
