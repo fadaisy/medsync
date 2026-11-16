@@ -891,6 +891,7 @@ export function WardEditor({
               <Button
                 onClick={() => void openPublish()}
                 disabled={conflicted}
+                data-tour="wt-w-publish"
                 title={stopping ? B.checks.stop(stopping) : undefined}
               >
                 {B.publish}
@@ -904,6 +905,7 @@ export function WardEditor({
         <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto xl:grid-cols-[200px_minmax(0,1fr)_264px] xl:overflow-hidden 2xl:grid-cols-[216px_minmax(0,1fr)_288px]">
           <aside
             aria-label="Palette"
+            data-tour="wt-w-pal"
             className="border-border bg-card order-3 overflow-y-auto border-t p-3 pb-24 xl:order-1 xl:border-t-0 xl:border-r"
           >
             <Palette
@@ -988,6 +990,7 @@ export function WardEditor({
                 <div
                   ref={planRef}
                   tabIndex={0}
+                  data-tour="wt-w-plan"
                   onKeyDown={onPlanKey}
                   aria-label={`Floor plan of ${data.ward.name}, ${doc.beds.length} ${doc.beds.length === 1 ? "bed" : "beds"}. Arrow keys nudge the selection; R rotates; Delete removes; Enter places the item chosen in the palette.`}
                   className="focus-visible:outline-ring flex min-h-[280px] flex-1 flex-col rounded-md outline-offset-2 focus-visible:outline-2"
@@ -1059,6 +1062,7 @@ export function WardEditor({
 
           <aside
             aria-label="Inspector"
+            data-tour="wt-w-insp"
             className="border-border bg-card order-2 overflow-y-auto border-t p-3 xl:order-3 xl:border-t-0 xl:border-l xl:pb-24"
           >
             {selection.length > 1 ? (
@@ -1198,6 +1202,7 @@ function StartPanel({
     <div className="bg-ink-100 flex flex-1 items-start justify-center overflow-y-auto p-6">
       <section
         aria-labelledby="start-title"
+        data-tour="wt-w-start"
         className="bg-card shadow-card flex w-full max-w-2xl flex-col gap-5 rounded-lg p-6"
       >
         <div className="flex flex-col gap-1">

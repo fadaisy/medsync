@@ -9,11 +9,25 @@ import { adminNavFor } from "../_lib/admin-nav";
 export const metadata: Metadata = { title: CS.label };
 
 /** Clinics & schedule (ADR 0501): one workspace over the engine's records, with the one admin menu (ADR 0520). */
-export default async function Page({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string; clinic?: string; tab?: string }>;
+}) {
   const scope = await requireHospitalAdminScope();
   const [data, nav] = await Promise.all([
     loadClinicsSchedule(scope),
     adminNavFor(scope.hospitalId),
   ]);
-  return <LiveClinics data={data} view={(await searchParams).view} groups={nav.groups} />;
+  const sp = await searchParams;
+  const one = (v: unknown) => (typeof v === "string" ? v : undefined);
+  return (
+    <LiveClinics
+      data={data}
+      view={one(sp.view)}
+      clinic={one(sp.clinic)}
+      tab={one(sp.tab)}
+      groups={nav.groups}
+    />
+  );
 }

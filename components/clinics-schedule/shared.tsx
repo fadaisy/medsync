@@ -179,6 +179,7 @@ export function Seg<T extends string | number>({
   label,
   sm = true,
   className,
+  tour,
 }: {
   opts: readonly (readonly [T, string])[];
   value: T | null;
@@ -186,9 +187,16 @@ export function Seg<T extends string | number>({
   label?: string;
   sm?: boolean;
   className?: string;
+  /** The admin guide's target key (`data-tour`, ADR 0522). */
+  tour?: string;
 }) {
   return (
-    <div className={`${k("seg", sm && "sm")} ${className ?? ""}`} role="group" aria-label={label}>
+    <div
+      className={`${k("seg", sm && "sm")} ${className ?? ""}`}
+      role="group"
+      aria-label={label}
+      data-tour={tour}
+    >
       {opts.map(([v, l]) => (
         <button
           key={String(v)}
@@ -251,15 +259,18 @@ export function Field({
   hint,
   children,
   as = "div",
+  tour,
 }: {
   label: ReactNode;
   hint?: ReactNode;
   children: ReactNode;
   as?: "div" | "label";
+  /** The admin guide's target key (`data-tour`, ADR 0522). */
+  tour?: string;
 }) {
   const T = as;
   return (
-    <T className={k("su-f")}>
+    <T className={k("su-f")} data-tour={tour}>
       <span>
         {label}
         {hint != null ? <small>{hint}</small> : null}

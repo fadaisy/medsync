@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — The new-admin guide — 16 Nov 2026
+
+- A guide for a new hospital admin, across the whole admin workspace ([ADR 0522](docs/adr/0522-new-admin-guide.md)):
+  a **welcome** on first sign-in (once per person in this browser), **16 walkthroughs** that go to the real page and
+  put a spotlight and a curved arrow on the real control, and the **Tether guide** (a ? in the sidebar): 26 how-tos
+  in 7 topics with search, each with "Walk me through it", "Watch it done" and "Take me there".
+- **Set up Tether** on Today: seven steps, each Done only when the hospital's own records say so (a live department,
+  an invitation sent, the location and routing set, a clinic taking bookings, a published week, a paired device);
+  a fact that cannot be read stays To do. Hide it, and bring it back from the guide.
+- **Six motion demos** play the real screens without changing anything: they only open pages and point, and the bar
+  says "A demo: nothing is changed".
+- People, Departments, Laboratory and imaging and Requests now follow their URL's tab when it changes (the back
+  button, a walkthrough); Clinics & schedule opens a clinic's panel from `?clinic=&tab=`. No migration, no new Edge
+  Function, no new dependency. Wording is a draft.
+
 ### Fixed — Admin dialogs, the Departments panel, and the hospital on a map — 16 Nov 2026
 
 - Medium dialogs in the admin workspace (Emergency and support's Change, Departments, Clinics & schedule) no longer

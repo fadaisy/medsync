@@ -55,6 +55,13 @@ const PATHS: Record<string, ReactNode> = {
     </>
   ),
   nav: <path d="M3 11l19-9-9 19-2-8-8-2z" />,
+  /** A ? in a circle: the admin guide (ADR 0522). */
+  help: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01" />
+    </>
+  ),
   eye: (
     <>
       <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />

@@ -44,6 +44,7 @@ export function ReportsView({
           </div>
           <span className={k("grow")} />
           <Seg
+            tour="wt-rep-win"
             label={R.window}
             opts={windows.map((d) => [d, fill(R.windowOpt, { d })] as const)}
             value={data.days}
@@ -59,6 +60,7 @@ export function ReportsView({
 
         <div
           className={k("su-dst")}
+          data-tour="wt-rep-stats"
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}
         >
           {data.tiles.map((t) => (

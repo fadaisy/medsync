@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import { k } from "@/components/clinics-schedule/shared";
+import { useUrlState } from "@/components/hospital-admin/use-url-state";
 import {
   AddTestsDialog,
   LevelDialog,
@@ -64,8 +65,9 @@ export function LabView({
 }) {
   const router = useRouter();
   const act = useMenuAction();
-  const [tab, setTab] = useState<LabTab>(initial);
-  const [sel, setSel] = useState<string | null>(test);
+  // The tab and the open test follow the URL (back button, the guide's walkthroughs: ADR 0522).
+  const [tab, setTab] = useUrlState<LabTab>(initial);
+  const [sel, setSel] = useUrlState<string | null>(test);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [addError, setAddError] = useState<string | null>(null);
   const [adding, startAdding] = useTransition();
@@ -113,6 +115,7 @@ export function LabView({
             type="button"
             className={k("btn", "sm")}
             onClick={() => setDialog({ kind: "level" })}
+            data-tour="wt-lab-level"
           >
             {L.startLevel}
           </button>
@@ -120,12 +123,13 @@ export function LabView({
             type="button"
             className={k("btn", "sm", "k")}
             onClick={() => setDialog({ kind: "add" })}
+            data-tour="wt-lab-add"
           >
             {L.addTests}
           </button>
         </div>
 
-        <div className={`${k("su-dst")} ${v.stats}`}>
+        <div className={`${k("su-dst")} ${v.stats}`} data-tour="wt-lab-stats">
           {tiles.map(([value, label, sub]) => (
             <div key={label} className={`${k("su-dsc", "mid")} ${v.still}`}>
               <span className={k("su-dsd")} aria-hidden="true" />
@@ -139,7 +143,12 @@ export function LabView({
         </div>
 
         <div className={k("su-ctb")}>
-          <div className={`${k("su-cfs")} ${v.tabs}`} role="tablist" aria-label={T.label}>
+          <div
+            className={`${k("su-cfs")} ${v.tabs}`}
+            role="tablist"
+            aria-label={T.label}
+            data-tour="wt-lab-tabs"
+          >
             {tabs.map(([t, label, count]) => (
               <button
                 key={t}

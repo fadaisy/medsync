@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { k } from "@/components/clinics-schedule/shared";
+import { useUrlState } from "@/components/hospital-admin/use-url-state";
 import { PEOPLE } from "@/content/hospital-admin/people";
 import { fill } from "@/content/lab-workspace-v2";
 import { peopleHref } from "../_lib/people";
@@ -50,8 +51,9 @@ export function PeopleView({
   me: string;
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<PeopleTab>(initialTab);
-  const [sel, setSel] = useState<string | null>(aff);
+  // The tab and the open person follow the URL (back button, the guide's walkthroughs: ADR 0522).
+  const [tab, setTab] = useUrlState<PeopleTab>(initialTab);
+  const [sel, setSel] = useUrlState<string | null>(aff);
   const [inviting, setInviting] = useState(false);
   const [issued, setIssued] = useState<readonly IssuedInvitation[]>([]);
   const [said, setSaid] = useState("");
@@ -97,6 +99,7 @@ export function PeopleView({
             type="button"
             className={k("btn", "sm", tab === "invites" && "k")}
             onClick={() => setInviting(true)}
+            data-tour="wt-invite"
           >
             {PEOPLE.invite}
           </button>

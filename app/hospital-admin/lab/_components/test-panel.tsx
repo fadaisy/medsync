@@ -69,6 +69,7 @@ export function TestPanel({
           onPick={(w) => set({ where: w })}
           label={D.where}
           className={v.wrapSeg}
+          tour="wt-lab-where"
         />
         {o.where === "in_house" ? (
           <>
@@ -102,7 +103,11 @@ export function TestPanel({
           </>
         ) : null}
         {o.where !== "not_offered" ? (
-          <Field as="label" label={o.where === "referred" ? C.referredToLabel : C.downRefer}>
+          <Field
+            as="label"
+            label={o.where === "referred" ? C.referredToLabel : C.downRefer}
+            tour="wt-lab-labs"
+          >
             <input
               className={k("in")}
               maxLength={120}
@@ -114,7 +119,7 @@ export function TestPanel({
       </div>
 
       {o.where !== "not_offered" ? (
-        <div className={k("su-sec")}>
+        <div className={k("su-sec")} data-tour="wt-lab-tat">
           <span className={k("cap")}>{D.tat}</span>
           <Field
             as="label"

@@ -96,7 +96,7 @@ export function InvitationsList({
         </div>
       ) : null}
 
-      <div className={k("su-card")}>
+      <div className={k("su-card")} data-tour="wt-invites">
         <div className={k("su-ch")}>
           <b>{I.cardTitle}</b>
           <small>{I.cardSub}</small>

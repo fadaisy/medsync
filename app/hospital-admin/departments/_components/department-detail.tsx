@@ -81,6 +81,7 @@ export function DepartmentDetail({
         onPick={setTab}
         label={dept.name}
         className={d.tabs}
+        tour="wt-dp-tabs"
       />
       {tab === "overview" ? (
         <Overview dept={dept} data={data} assign={assign} onBooking={() => setTab("booking")} />
@@ -158,7 +159,7 @@ function Overview({
   return (
     <>
       <ErrorNote error={op.error} />
-      <div className={k("su-sec")}>
+      <div className={k("su-sec")} data-tour="wt-dp-live">
         <Toggle
           on={dept.live}
           disabled={op.busy}
@@ -208,7 +209,7 @@ function Overview({
         ) : null}
       </div>
 
-      <div className={k("su-sec")}>
+      <div className={k("su-sec")} data-tour="wt-dp-heads">
         <span className={k("cap")}>{inCharge ? D.inChargeCap : D.headCap}</span>
         {people.length ? (
           <ChipRow label={inCharge ? D.inChargeCap : D.headCap}>

@@ -39,7 +39,7 @@ export function ProfileView({
         </div>
         <div className={v.g2}>
           <div className={v.col}>
-            <div className={k("su-card")}>
+            <div className={k("su-card")} data-tour="wt-pf-id">
               <div className={k("su-ch")}>
                 <b>{P.identity.title}</b>
                 <small>{P.identity.sub}</small>

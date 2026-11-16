@@ -11,8 +11,10 @@ import { DeskShell } from "@/components/reception/shell";
 import { CS } from "@/content/clinics-schedule/copy";
 import { ADMIN_NAV } from "@/content/hospital-admin/admin-nav";
 import { activeKey, ADMIN_HOME } from "@/lib/hospital-admin/admin-nav";
+import { navTour } from "@/lib/hospital-admin/guide/keys";
 import f from "./admin-frame.module.css";
 import { AdminHomeNav, AdminNavGroups } from "./admin-nav-groups";
+import { GuideNavButton } from "./guide/guide-button";
 
 /** Clinics & schedule draws its own desk shell with this same menu, so the frame steps aside there (ADR 0514). */
 const BARE = "/hospital-admin/clinics";
@@ -104,7 +106,13 @@ export function AdminFrame({
           />
           <nav className={k("nav")} aria-label={CS.label}>
             {VIEWS.map((v) => (
-              <Link key={v} href={`${BARE}?view=${v}`} className={k("nv")} title={CS.views[v]}>
+              <Link
+                key={v}
+                href={`${BARE}?view=${v}`}
+                className={k("nv")}
+                title={CS.views[v]}
+                data-tour={navTour(CS.views[v])}
+              >
                 <Icon n={VIEW_ICONS[v]} size={19} />
                 <span className={k("lbl")}>{CS.views[v]}</span>
               </Link>
@@ -112,6 +120,7 @@ export function AdminFrame({
           </nav>
           <AdminNavGroups groups={groups} active={active} />
           <div className={k("grow")} />
+          <GuideNavButton />
         </div>
       }
       top={

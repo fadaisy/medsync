@@ -37,7 +37,7 @@ export function ReferralsTab({
         </div>
       ) : null}
       {groups.length ? (
-        <div className={v.g2}>
+        <div className={v.g2} data-tour="wt-lab-refer">
           {groups.map((g) => (
             <div key={g.lab} className={k("su-card")}>
               <div className={k("su-ch")}>

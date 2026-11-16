@@ -181,7 +181,7 @@ export function ClinicsView({ ctx }: { ctx: Ctx }) {
             </span>
           </div>
           <span className={k("grow")} />
-          <button type="button" className={k("btn", "sm")} onClick={add}>
+          <button type="button" className={k("btn", "sm")} onClick={add} data-tour="wt-add-clinic">
             {CS.clinics.add}
           </button>
         </div>
@@ -238,7 +238,7 @@ export function ClinicsView({ ctx }: { ctx: Ctx }) {
           ) : null}
         </div>
       </div>
-      {sel ? <Editor key={sel.id} ctx={ctx} c={sel} tab0={tabSel} /> : null}
+      {sel ? <Editor key={`${sel.id}#${tabSel ?? ""}`} ctx={ctx} c={sel} tab0={tabSel} /> : null}
     </div>
   );
 }
@@ -258,6 +258,8 @@ function ClinicRow({ ctx, c, on }: { ctx: Ctx; c: Clinic; on: boolean }) {
       className={k("su-cr2", on && "sel")}
       onClick={() => ctx.setSel(on ? null : c.id)}
       aria-pressed={on}
+      data-guide-list="clinic"
+      data-guide-id={c.id}
     >
       <span className={k("su-ctile")} style={{ background: c.colour }} aria-hidden="true">
         {abbr(c)}
@@ -351,7 +353,7 @@ function Editor({ ctx, c, tab0 }: { ctx: Ctx; c: Clinic; tab0?: Tab }) {
   };
 
   return (
-    <aside className={k("det", "su-det")} aria-label={c.name}>
+    <aside className={k("det", "su-det")} aria-label={c.name} data-tour="wt-clinic-panel">
       <div className={k("su-dh")}>
         <span className={k("su-sw")} style={{ background: c.colour }} aria-hidden="true" />
         <div>
@@ -384,7 +386,7 @@ function Editor({ ctx, c, tab0 }: { ctx: Ctx; c: Clinic; tab0?: Tab }) {
         ) : null}
       </div>
       {r.status === "setup" ? (
-        <div className={k("su-blk")}>
+        <div className={k("su-blk")} data-tour="wt-clinic-blockers">
           <b>{CS.ed.before}</b>
           {r.blockers.map((b) => (
             <button
@@ -416,7 +418,7 @@ function Editor({ ctx, c, tab0 }: { ctx: Ctx; c: Clinic; tab0?: Tab }) {
           ))}
         </div>
       ) : null}
-      <div className={k("ttabs", "su-etabs")} role="tablist">
+      <div className={k("ttabs", "su-etabs")} role="tablist" data-tour="wt-clinic-tabs">
         {TABS.map((t) => (
           <button
             key={t}
@@ -435,7 +437,7 @@ function Editor({ ctx, c, tab0 }: { ctx: Ctx; c: Clinic; tab0?: Tab }) {
       {tab === "booking" ? <Booking ctx={ctx} c={c} set={set} /> : null}
       {tab === "fee" ? <Fee ctx={ctx} c={c} set={set} /> : null}
       {tab === "desks" ? <Desks ctx={ctx} c={c} /> : null}
-      <div className={k("su-dfoot")}>
+      <div className={k("su-dfoot")} data-tour="wt-clinic-open">
         {r.status === "ready" ? (
           <button
             type="button"
@@ -526,7 +528,7 @@ function Basics({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
   const over = c.words.length > 140;
   return (
     <div className={k("su-sec")}>
-      <Field as="label" label={CS.ed.name}>
+      <Field as="label" label={CS.ed.name} tour="wt-clinic-name">
         <Txt value={c.name} onCommit={(v) => v.trim() && set(CS.ed.name, { name: v.trim() })} />
       </Field>
       <Field as="label" label={CS.ed.short} hint={CS.ed.shortH}>
@@ -571,7 +573,7 @@ function Basics({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
           />
         ) : null}
       </Field>
-      <Field label={CS.ed.dept}>
+      <Field label={CS.ed.dept} tour="wt-clinic-dept">
         <ChipRow label={CS.ed.dept}>
           {Object.entries(d.departments).map(([id, x]) => (
             <Chip
@@ -584,7 +586,7 @@ function Basics({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
           ))}
         </ChipRow>
       </Field>
-      <Field label={CS.ed.where} hint={CS.ed.whereH}>
+      <Field label={CS.ed.where} hint={CS.ed.whereH} tour="wt-clinic-rooms">
         <ChipRow label={CS.ed.where}>
           {blocks.map((b) => (
             <Chip
@@ -673,7 +675,7 @@ function Basics({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
           </div>
         </Field>
       ) : null}
-      <Field label={CS.ed.serves}>
+      <Field label={CS.ed.serves} tour="wt-clinic-serves">
         <div className={k("su-kinds", "three")}>
           {CS.ed.tiers.map(([v, l, sub]) => (
             <button
@@ -716,7 +718,7 @@ function Basics({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
         flip={() => set(CS.ed.toggles.referral[0], { referral: !c.referral })}
         t={CS.ed.toggles.referral}
       />
-      <div className={k("su-prev")}>
+      <div className={k("su-prev")} data-tour="wt-clinic-preview">
         <span className={k("cap")}>{CS.ed.howSee}</span>
         <div className={k("su-pc")}>
           <span className={k("su-pcd")} style={{ background: c.colour }} aria-hidden="true" />
@@ -746,7 +748,7 @@ function Basics({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
 function Words({ c, set, over }: { c: Clinic; set: Set; over: boolean }) {
   const [v, setV] = useState(c.words);
   return (
-    <label className={k("su-f")}>
+    <label className={k("su-f")} data-tour="wt-clinic-words">
       <span>
         {CS.ed.words}
         <small className={k(v.length > 140 && "over")}>{fill(CS.ed.wordsN, { n: v.length })}</small>
@@ -768,7 +770,7 @@ function Sessions({ ctx, c }: { ctx: Ctx; c: Clinic }) {
   const xs = sessionsOf(view, c.id);
   const days = [...new Set(xs.map((x) => x.weekday))];
   return (
-    <div className={k("su-sec")}>
+    <div className={k("su-sec")} data-tour="wt-clinic-sessions">
       <p className={k("su-sum")}>
         <b>{days.map(dayName).join(", ") || CS.ed.noSessions}</b> · <b>{placesAWeek(view, c.id)}</b>{" "}
         {CS.ready.capTitle.toLowerCase()}
@@ -806,6 +808,7 @@ function Sessions({ ctx, c }: { ctx: Ctx; c: Clinic }) {
               type="button"
               className={k("su-add")}
               onClick={() => ctx.modal({ k: "ses", clinicId: c.id, weekday: w })}
+              data-tour={w === WEEK[0] ? "wt-ses-add" : undefined}
               aria-label={fill(CS.week.addIn, { day: dayName(w), clinic: c.name })}
               title={fill(CS.week.addIn, { day: dayName(w), clinic: c.name })}
             >
@@ -822,7 +825,7 @@ function Booking({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
   const rule = (what: string, p: Partial<Clinic["rules"]>) =>
     set(what, { rules: { ...c.rules, ...p } });
   return (
-    <div className={k("su-sec")}>
+    <div className={k("su-sec")} data-tour="wt-clinic-booking">
       <Field label={CS.ed.bookingOpens}>
         <Seg
           opts={CS.ed.ahead}
@@ -989,7 +992,7 @@ function Fee({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
         a.name.localeCompare(b.name),
     );
   return (
-    <div className={k("su-sec")}>
+    <div className={k("su-sec")} data-tour="wt-clinic-fee">
       <div className={k("su-kinds", "three")}>
         {CS.ed.feeModes.map(([v, l, sub]) => (
           <button
@@ -1216,7 +1219,7 @@ function Fee({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
 function Desks({ ctx, c }: { ctx: Ctx; c: Clinic }) {
   const { view } = ctx;
   return (
-    <div className={k("su-sec")}>
+    <div className={k("su-sec")} data-tour="wt-clinic-desk">
       <p className={k("su-note")}>{CS.ed.desksH}</p>
       {Object.values(view.devices)
         .filter((d) => d.kind !== "tablet")

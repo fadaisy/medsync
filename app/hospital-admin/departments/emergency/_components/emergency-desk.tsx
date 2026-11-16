@@ -91,7 +91,7 @@ export function EmergencyDesk({
           </div>
         </div>
 
-        <div className={`${e.hero} ${edValue === "none" ? e.off : ""}`}>
+        <div className={`${e.hero} ${edValue === "none" ? e.off : ""}`} data-tour="wt-em-hero">
           <span className={e.heroIcon} aria-hidden="true">
             <Icon n="arrivals" size={22} />
           </span>
@@ -182,7 +182,7 @@ export function EmergencyDesk({
         ) : null}
 
         <div className={e.em}>
-          <div className={k("su-card")}>
+          <div className={k("su-card")} data-tour="wt-em-routes">
             <div className={k("su-ch")}>
               <b>{EMERG.routing.title}</b>
               <small>{EMERG.routing.sub}</small>
@@ -238,7 +238,7 @@ export function EmergencyDesk({
           <b>{EMERG.support.title}</b>
           <small>{EMERG.support.sub}</small>
         </div>
-        <div className={e.sup}>
+        <div className={e.sup} data-tour="wt-em-sup">
           {SUPPORT.map((n) => {
             const keys = KEYS.filter((x) => x.section === n);
             const waiting = keys.some((x) => cap(x.key).pending);
@@ -322,6 +322,7 @@ function RowAction({ k: x, c, onChange }: { k: CapabilityKey; c: Cap; onChange: 
       type="button"
       className={k("btn", "sm", x.section === 1 ? undefined : "q")}
       onClick={onChange}
+      data-tour={x.section === 1 ? "wt-em-change" : undefined}
     >
       {EMERG.row.change}
     </button>
@@ -332,7 +333,7 @@ function RowAction({ k: x, c, onChange }: { k: CapabilityKey; c: Cap; onChange: 
 function HelpScreen({ help, pinned }: { help: HelpPreview; pinned: boolean }) {
   const H = EMERG.help;
   return (
-    <div className={e.help} aria-label={H.title}>
+    <div className={e.help} aria-label={H.title} data-tour="wt-em-help">
       <span className={k("cap")}>{H.title}</span>
       <div className={e.phone}>
         <b>{help.name}</b>

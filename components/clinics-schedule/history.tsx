@@ -74,7 +74,7 @@ export function HistoryView({ ctx, undo }: { ctx: Ctx; undo: (id: string) => voi
           </div>
         </div>
 
-        <div className={k("su-card", "su-hx")}>
+        <div className={k("su-card", "su-hx")} data-tour="wt-hx">
           <div className={k("su-ch")}>
             <b>{CS.history.drafts}</b>
             <small>{CS.history.draftsH}</small>
@@ -122,7 +122,7 @@ export function HistoryView({ ctx, undo }: { ctx: Ctx; undo: (id: string) => voi
 
         <div className={k("su-hxl")}>
           {versions.map((v, i) => (
-            <div key={v.number} className={k("su-card", "su-hxi")}>
+            <div key={v.number} className={k("su-card", "su-hxi")} data-tour="wt-hist-row">
               <div className={k("su-hxh")}>
                 <span className={k("su-hxd")} aria-hidden="true" />
                 <span className={k("su-cn")}>

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
@@ -18,7 +19,8 @@ export const metadata: Metadata = {
  * the admin's hospital and refuses a hospital that is suspended, offboarded or out of agreement. Feature pages
  * re-call it server-side or read `useHospitalScope()` on the client.
  *
- * The shell is the Tether desk frame with one admin menu (ADR 0520); the menu's two counts are best-effort.
+ * The shell is the Tether desk frame with one admin menu (ADR 0520); the menu's two counts are best-effort. The
+ * guide (ADR 0522) remembers its welcome per person under a hash of the user's id, never the id itself.
  */
 export default async function HospitalAdminLayout({ children }: { children: ReactNode }) {
   const scope = await requireHospitalAdminScope();
@@ -35,6 +37,7 @@ export default async function HospitalAdminLayout({ children }: { children: Reac
         designation: scope.designation,
       }}
       userName={scope.userEmail}
+      guideKey={createHash("sha256").update(scope.userId).digest("hex").slice(0, 16)}
       tether={tether}
       groups={groups}
     >

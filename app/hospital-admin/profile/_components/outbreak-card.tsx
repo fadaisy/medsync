@@ -28,7 +28,7 @@ export function OutbreakCard({ on, reason }: { on: boolean | null; reason: strin
 
   if (on === null)
     return (
-      <div className={k("su-card")}>
+      <div className={k("su-card")} data-tour="wt-ob">
         <div className={k("su-ch")}>
           <b>{O.title}</b>
         </div>
@@ -61,7 +61,7 @@ export function OutbreakCard({ on, reason }: { on: boolean | null; reason: strin
   };
 
   return (
-    <div className={k("su-card")}>
+    <div className={k("su-card")} data-tour="wt-ob">
       <div className={k("su-ch")}>
         <b>{O.title}</b>
         <small>{on ? O.on : O.off}</small>
