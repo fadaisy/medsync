@@ -9,7 +9,7 @@ import { availabilityCount } from "@/lib/services/data";
 import { getHospitalPendingStaffCount } from "./staff-pending-count";
 
 /**
- * The admin menu for this request (ADR 0515): Intake only off the Tether domain, and the two live counts. Both
+ * The admin menu for this request (ADR 0516): Intake only off the Tether domain, and the two live counts. Both
  * counts are best-effort and fall back to none, so a slow query never blocks the menu.
  */
 export async function adminNavFor(

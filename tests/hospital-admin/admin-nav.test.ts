@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { activeKey, adminNavGroups } from "@/lib/hospital-admin/admin-nav";
 
-/** ADR 0515: one admin menu, the same in the admin frame and the Clinics & schedule rail. */
+/** ADR 0516: one admin menu, the same in the admin frame and the Clinics & schedule rail. */
 const read = (rel: string) => readFileSync(resolve(process.cwd(), rel), "utf8");
 const keys = (tether: boolean) =>
   adminNavGroups({ tether }).flatMap((g) => g.items.map((i) => i.key));
@@ -22,7 +22,7 @@ describe("the admin menu", () => {
     ]);
   });
 
-  it("keeps Intake off the Tether domain and on MedSync's (ADR 0500, 0515)", () => {
+  it("keeps Intake off the Tether domain and on MedSync's (ADR 0500, 0516)", () => {
     expect(keys(true)).not.toContain("intake");
     expect(keys(false)).toContain("intake");
   });

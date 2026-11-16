@@ -13,7 +13,7 @@ const stripComments = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 const LIB = "lib/hospital-admin/pending.ts";
-// ADR 0515: Pending moved from Reports to Requests, as rows built on the server and a desk view.
+// ADR 0516: Pending moved from Reports to Requests, as rows built on the server and a desk view.
 const ROWS = "app/hospital-admin/requests/_lib/pending-rows.ts";
 const VIEW = "app/hospital-admin/requests/_components/requests-view.tsx";
 const PAGE = "app/hospital-admin/requests/page.tsx";
@@ -80,7 +80,7 @@ describe("Requests shows the rows as they came, and marks only the clinic's dela
     expect(rows).toMatch(/^import "server-only";/);
   });
 
-  it("marks Urgent and a stale wait with neutral tags, never red (ADR 0515, design rules)", () => {
+  it("marks Urgent and a stale wait with neutral tags, never red (ADR 0516, design rules)", () => {
     expect(view).toContain('k("su-st", "setup")');
     expect(view).not.toMatch(/critical|"red"|"r"\)/);
   });

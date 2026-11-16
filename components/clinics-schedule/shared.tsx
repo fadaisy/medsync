@@ -41,7 +41,7 @@ export const VIEWS: readonly View[] = [
   "history",
 ];
 
-/** Each view's rail icon, shared by the workspace and the admin frame (ADR 0515). */
+/** Each view's rail icon, shared by the workspace and the admin frame (ADR 0516). */
 export const VIEW_ICONS: Record<View, string> = {
   ready: "tick",
   clinics: "calendar",

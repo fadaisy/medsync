@@ -1,11 +1,11 @@
 # One admin workspace: phase 1 report (16 Nov 2026)
 
-Branch `claude/funny-shannon-i7xgwp`, from `main` c40ede0f. ADR 0515. No migration, no Edge Function, no flag.
+Branch `claude/funny-shannon-i7xgwp`, from `main` c40ede0f. ADR 0516. No migration, no Edge Function, no flag.
 
 ## Source
 
 - Prototype and critique: canvas "Tether admin, harmonized" (https://claude.ai/artifact/HarTXgkAUCwG4rcDSRV5r3), built on the Tether Clinics & Schedule canvas (https://claude.ai/artifact/DsGesqF3pfLyE4nkWJj7i4).
-- Decisions: taken 16 Nov on the owner's standing ruling "use all your recommendations"; recorded in ADR 0515 and on the canvas's critique board.
+- Decisions: taken 16 Nov on the owner's standing ruling "use all your recommendations"; recorded in ADR 0516 and on the canvas's critique board.
 
 ## Built (phase 1)
 

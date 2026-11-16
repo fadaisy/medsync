@@ -65,7 +65,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const days = parseReportDays(params.days);
   const window = reportWindow(days);
-  // Pending moved on to Requests (ADR 0515): a queue to act on, not a report.
+  // Pending moved on to Requests (ADR 0516): a queue to act on, not a report.
   const [report, pilot] = await Promise.all([
     fetchHospitalReport(scope.hospitalId, window),
     fetchPilotWeeks(scope.hospitalId),

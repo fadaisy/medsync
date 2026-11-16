@@ -233,7 +233,7 @@ export interface DirectoryAffiliationRow {
   departmentName: string;
   employmentType: string;
   state: string;
-  /** NULL for non-clinical staff, who have no council (ADR 0515: they were missing from the directory). */
+  /** NULL for non-clinical staff, who have no council (ADR 0516: they were missing from the directory). */
   councilName: string | null;
   /** Council registration number — operationally queryable, intentionally
    * plaintext, but the UI keeps it masked-until-expanded. NULL for non-clinical staff. */

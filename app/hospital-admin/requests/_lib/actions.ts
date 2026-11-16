@@ -13,7 +13,7 @@ import { logger } from "@/lib/logger";
 const Input = z.object({ id: z.uuid(), note: z.string().trim().min(8).max(300) });
 
 /**
- * PR-15, ADR 0515: the admin marks a copy of results sent. The note says how it went out; the request row keeps it
+ * PR-15, ADR 0516: the admin marks a copy of results sent. The note says how it went out; the request row keeps it
  * with who and when (`fulfilled_by`, `fulfilled_at`), which is the record. Only an open request at this hospital
  * can be closed, and the caller is told when nothing changed.
  */

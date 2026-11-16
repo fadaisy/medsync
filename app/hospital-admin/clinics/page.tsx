@@ -8,7 +8,7 @@ import { adminNavFor } from "../_lib/admin-nav";
 
 export const metadata: Metadata = { title: CS.label };
 
-/** Clinics & schedule (ADR 0501): one workspace over the engine's records, with the one admin menu (ADR 0515). */
+/** Clinics & schedule (ADR 0501): one workspace over the engine's records, with the one admin menu (ADR 0516). */
 export default async function Page({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const scope = await requireHospitalAdminScope();
   const [data, nav] = await Promise.all([

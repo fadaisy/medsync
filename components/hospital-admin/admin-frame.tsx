@@ -23,7 +23,7 @@ const typing = (e: KeyboardEvent) => {
 };
 
 /**
- * Every hospital-admin page outside Clinics & schedule, in the same Tether desk shell and menu (ADR 0515): the
+ * Every hospital-admin page outside Clinics & schedule, in the same Tether desk shell and menu (ADR 0516): the
  * workspace's seven views as links, then the shared groups. The page itself scrolls inside the shell's body.
  */
 export function AdminFrame({

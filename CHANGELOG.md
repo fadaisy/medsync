@@ -9,13 +9,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 - Every hospital-admin page now opens in the Tether desk with one menu: Clinics & schedule's seven views, then
   Hospital (Departments, Emergency and support, Staff, Hospital profile; Intake off the Tether domain only) and
-  Follow-up (Requests, Reports) ([ADR 0515](docs/adr/0515-one-admin-workspace.md)). No menu item leads to a
+  Follow-up (Requests, Reports) ([ADR 0516](docs/adr/0516-one-admin-workspace.md)). No menu item leads to a
   placeholder; `/hospital-admin` opens Clinics & schedule.
 - New Requests page: booking requests waiting for a clinician (moved from Reports) and copies of results (moved from
   the unlisted records-requests page, which forwards there). Mark sent asks how the copy went out and reports a
   failed or repeated save. Urgent is a neutral tag, no longer red.
 - Fixed: non-clinical staff were missing from the Staff directory; ⌘K's clinic results opened a page that does not
   exist; a form field could collapse to one line in the desk's dialogs. Wording is a draft.
+
+### Fixed — The phone app follows Apple's HIG, on Expo SDK 58 — 16 Nov 2026
+
+- 44 pt touches, an 11 pt text floor, contrast, Reduce Motion and chart shapes on the phone app
+  ([ADR 0515](docs/adr/0515-phone-app-follows-apple-hig.md), first drafted as 0471, a number `main` had since used).
+  The phone app moves to Expo SDK 58 (React Native 0.88, Reanimated 4.7).
 
 ### Fixed — Clinics & schedule and the reception desk open full screen — 15 Nov 2026
 

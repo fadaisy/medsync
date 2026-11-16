@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Icon, k } from "@/components/clinics-schedule/shared";
 
 /**
- * The admin menu's groups after Clinics & schedule's views (ADR 0515), in the desk rail's own classes. Drawn by the
+ * The admin menu's groups after Clinics & schedule's views (ADR 0516), in the desk rail's own classes. Drawn by the
  * Clinics & schedule rail and by the admin frame, so the menu is the same everywhere.
  */
 export function AdminNavGroups({

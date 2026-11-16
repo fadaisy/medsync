@@ -1,6 +1,6 @@
-# ADR 0515: One admin workspace: every admin page in the Tether desk, one menu
+# ADR 0516: One admin workspace: every admin page in the Tether desk, one menu
 
-**Status:** Accepted, 16 Nov 2026. Fadhul approved the harmonized admin prototype (canvas "Tether admin, harmonized", built on the Tether Clinics & Schedule canvas) and said "build". The three open decisions were taken on his standing ruling "use all your recommendations" and are recorded below. This is phase 1.
+**Status:** Accepted, 16 Nov 2026. Fadhul approved the harmonized admin prototype (canvas "Tether admin, harmonized", built on the Tether Clinics & Schedule canvas) and said "build". The three open decisions were taken on the owner's standing ruling "use all your recommendations" and are recorded below. This is phase 1.
 
 ## Context
 

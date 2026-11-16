@@ -1,5 +1,5 @@
 /**
- * The hospital-admin menu after Clinics & schedule's own views (ADR 0515). One list for both places it is drawn:
+ * The hospital-admin menu after Clinics & schedule's own views (ADR 0516). One list for both places it is drawn:
  * the admin frame around every other admin page, and the Clinics & schedule rail, so the menu reads the same
  * wherever the admin is. Client-safe: no server imports.
  */
@@ -31,7 +31,7 @@ const fill = (t: string, n: number) => t.replace("{n}", String(n));
 
 /**
  * The groups. Intake stays off the menu on the Tether domain, where arrivals are the front desk's (ADR 0500); on
- * MedSync's domain it stays until the desk covers every arrival type (ADR 0515).
+ * MedSync's domain it stays until the desk covers every arrival type (ADR 0516).
  */
 export function adminNavGroups(opts: {
   tether: boolean;

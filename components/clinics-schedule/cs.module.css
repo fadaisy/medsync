@@ -1112,7 +1112,7 @@ button.su-hi:hover {
   color: var(--cautfg);
   font-weight: 700;
 }
-/* `.in` grows along a row; in a field's column that squashed it to one line of text (ADR 0515). */
+/* `.in` grows along a row; in a field's column that squashed it to one line of text (ADR 0516). */
 .su-f > .in {
   flex: none;
 }
