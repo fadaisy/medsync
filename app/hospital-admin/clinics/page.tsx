@@ -4,6 +4,7 @@ import { LiveClinics } from "@/components/clinics-schedule/entry";
 import { CS } from "@/content/clinics-schedule/copy";
 import { loadClinicsSchedule } from "@/lib/clinics-schedule/load";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { MORE } from "./_lib/more";
 
 export const metadata: Metadata = { title: CS.label };
 
@@ -11,5 +12,5 @@ export const metadata: Metadata = { title: CS.label };
 export default async function Page({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const scope = await requireHospitalAdminScope();
   const data = await loadClinicsSchedule(scope);
-  return <LiveClinics data={data} view={(await searchParams).view} />;
+  return <LiveClinics data={data} view={(await searchParams).view} more={MORE} />;
 }
