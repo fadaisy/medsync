@@ -184,9 +184,9 @@
     "area": "Claude",
     "task": "Clinic floor follow-up: pregnancy and SpO2 scale 2 as engine inputs, then wiring",
     "status": "Running",
-    "progress": 50,
+    "progress": 65,
     "branch": "feat/clinic-floor-engine-inputs",
-    "note": "Changes 1–2 pushed (ad7b0bb). Change 3 approved 16 Nov: Trends shows earlier readings from all hospitals the nurse may already see (no policy widened). Session session_01AyHv1Boe5cQsa3jrparsCw.",
+    "note": "Changes 1–3 pushed (3848748): pregnancy and SpO2 scale 2, age and sex from the record, Trends from earlier readings (read with the nurse's own access, no policy changed). 25/25 tests. Approved 16 Nov: log floor reads in the access log, and change 4 (lab results back). Session session_01AyHv1Boe5cQsa3jrparsCw.",
     "updated": "2026-11-16"
   },
   {
