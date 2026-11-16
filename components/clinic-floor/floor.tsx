@@ -11,6 +11,7 @@ import type { FloorEventInput } from "@/app/clinic/actions";
 import type { ShellToast } from "@/components/reception/shell";
 import type { FloorClinic, FloorData, FloorPerson, Role } from "@/lib/clinic-floor/fixture";
 import type { DoctorState, EventKind, FloorEvent, FloorRow } from "@/lib/clinic-floor/model";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { DeskShell } from "@/components/reception/shell";
@@ -79,6 +80,23 @@ export function ClinicFloor({
   const [rail, setRail] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [modal, setModal] = useState<Modal>(null);
+
+  // Live refresh (owner ruling 16 Nov): every view re-reads the floor every 10 s, the same beat as the
+  // waiting-room screen, so releases, triages and calls made on other devices show up. Not on the fixture,
+  // not offline (the queue owns that), and not while a dialog is open, so nothing moves under a hand.
+  const router = useRouter();
+  useEffect(() => {
+    if (data.fixture || offline || modal) return;
+    const id = setInterval(() => router.refresh(), 10_000);
+    return () => clearInterval(id);
+  }, [router, data.fixture, offline, modal]);
+  // A refresh brings new server data: adopt it during render (state was seeded once from `data`).
+  const [synced, setSynced] = useState(data);
+  if (synced !== data) {
+    setSynced(data);
+    setPeople(data.people);
+    setEvents(data.events);
+  }
   const [toast, setToast] = useState<ShellToast | null>(null);
   const [sel, setSel] = useState<FloorCtx["sel"]>(null);
   const [q, setQ] = useState("");
