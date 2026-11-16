@@ -3,7 +3,6 @@ import type { Ratio } from "@/lib/hospital-admin/reports";
 import type { Metadata } from "next";
 
 import { PilotWeeksNote, PilotWeeksTable } from "@/components/scheduling/pilot-weeks";
-import { fetchPendingRequests } from "@/lib/hospital-admin/pending";
 import { fetchPilotWeeks, PILOT_WEEKS } from "@/lib/hospital-admin/pilot";
 import {
   fetchHospitalReport,
@@ -17,11 +16,9 @@ import {
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { cn } from "@/lib/utils";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
-import { fetchStats } from "../_components/scheduling-overview-card";
 import { SegmentedLink } from "../_components/segmented-link";
 import { LabAggregates } from "./_components/lab-aggregates";
 import { LineTable, SessionTable } from "./_components/line-tables";
-import { PendingDialog } from "./_components/pending-dialog";
 import { SentTodayPanel } from "./_components/sent-today-panel";
 
 export const metadata: Metadata = {
@@ -68,11 +65,9 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const days = parseReportDays(params.days);
   const window = reportWindow(days);
-  // Pending moved here from the old Scheduling page at the Clinics & schedule cut-over.
-  const [report, pending, stats, pilot] = await Promise.all([
+  // Pending moved on to Requests (ADR 0515): a queue to act on, not a report.
+  const [report, pilot] = await Promise.all([
     fetchHospitalReport(scope.hospitalId, window),
-    fetchPendingRequests(scope.hospitalId),
-    fetchStats(scope.hospitalId),
     fetchPilotWeeks(scope.hospitalId),
   ]);
   const pilotData = pilot.hospitals.get(scope.hospitalId);
@@ -127,11 +122,6 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           since {since}, East Africa Time
         </span>
       </nav>
-
-      {/* The rows behind the number; when the stats query failed, the list itself is the count. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <PendingDialog rows={pending} value={stats?.pendingApproval ?? pending.length} />
-      </div>
 
       {/* The ruling, in words (ADR 0094; PRD §3.3.4). Placed above the
           numbers so it is read before the no-show figure is. */}

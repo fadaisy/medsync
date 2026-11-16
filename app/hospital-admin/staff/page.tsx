@@ -233,10 +233,11 @@ export interface DirectoryAffiliationRow {
   departmentName: string;
   employmentType: string;
   state: string;
-  councilName: string;
+  /** NULL for non-clinical staff, who have no council (ADR 0515: they were missing from the directory). */
+  councilName: string | null;
   /** Council registration number — operationally queryable, intentionally
-   * plaintext, but the UI keeps it masked-until-expanded. */
-  registrationNumber: string;
+   * plaintext, but the UI keeps it masked-until-expanded. NULL for non-clinical staff. */
+  registrationNumber: string | null;
 }
 
 const DIRECTORY_STATES = ["approved", "active", "suspended", "deactivated"] as const;
@@ -260,8 +261,9 @@ async function fetchDirectoryAffiliations(hospitalId: string): Promise<Directory
     })
     .from(staffAffiliations)
     .innerJoin(users, eq(users.id, staffAffiliations.userId))
-    .innerJoin(clinicianProfiles, eq(clinicianProfiles.id, staffAffiliations.userId))
-    .innerJoin(councils, eq(councils.id, clinicianProfiles.councilId))
+    // Left joins: non-clinical staff have no clinician profile or council and must still be listed.
+    .leftJoin(clinicianProfiles, eq(clinicianProfiles.id, staffAffiliations.userId))
+    .leftJoin(councils, eq(councils.id, clinicianProfiles.councilId))
     .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
     .innerJoin(roles, eq(roles.id, staffAffiliations.roleId))
     .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, staffAffiliations.departmentId))

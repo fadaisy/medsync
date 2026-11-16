@@ -1,0 +1,12 @@
+/* The admin frame (ADR 0515): the desk shell's body clips, so each admin page scrolls inside it. */
+.page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.tools {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}

@@ -84,7 +84,7 @@ export function DirectoryTable({
       if (query) {
         const q = query.trim().toLowerCase();
         const hay =
-          `${r.fullName} ${r.email} ${r.roleName} ${r.departmentName} ${r.cadreName} ${r.registrationNumber}`.toLowerCase();
+          `${r.fullName} ${r.email} ${r.roleName} ${r.departmentName} ${r.cadreName} ${r.registrationNumber ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -149,9 +149,15 @@ export function DirectoryTable({
       id: "council",
       header: "Council #",
       mono: true,
-      cell: (row) => (
-        <MaskedReg registrationNumber={row.registrationNumber} councilName={row.councilName} />
-      ),
+      cell: (row) =>
+        row.registrationNumber ? (
+          <MaskedReg
+            registrationNumber={row.registrationNumber}
+            councilName={row.councilName ?? ""}
+          />
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
       hideOnNarrow: true,
     },
     {

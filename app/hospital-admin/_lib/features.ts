@@ -34,6 +34,7 @@ export type FeatureIconKey =
   | "admins"
   | "audit"
   | "reports"
+  | "requests"
   | "profile";
 
 export type FeatureSlug =
@@ -42,6 +43,7 @@ export type FeatureSlug =
   | "departments"
   | "clinics"
   | "intake"
+  | "requests"
   | "reports"
   | "admins"
   | "audit"
@@ -98,6 +100,13 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
     placeholder: false,
   },
   {
+    slug: "requests",
+    label: "Requests",
+    hint: "Waiting for a clinician · copies of results",
+    iconKey: "requests",
+    placeholder: false,
+  },
+  {
     slug: "reports",
     label: "Reports",
     hint: "Fill rate · no-shows · wait accuracy · demand · SMS spend",
@@ -121,9 +130,9 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
   {
     slug: "profile",
     label: "Hospital profile",
-    hint: "Profile · DPA · agreement status",
+    hint: "Identity · emergency coordinates · outbreak mode",
     iconKey: "profile",
-    placeholder: true,
+    placeholder: false,
   },
 ];
 

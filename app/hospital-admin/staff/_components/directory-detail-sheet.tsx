@@ -120,8 +120,8 @@ function DetailContent({
 
           <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-[11.5px]">
             <Meta label="Email" value={item.email} mono />
-            <Meta label="Council" value={item.councilName} />
-            <Meta label="Reg. #" value={item.registrationNumber} mono />
+            <Meta label="Council" value={item.councilName ?? "—"} />
+            <Meta label="Reg. #" value={item.registrationNumber ?? "—"} mono />
           </dl>
         </div>
       </SheetHeader>
@@ -137,8 +137,8 @@ function DetailContent({
                 label: "Employment",
                 value: item.employmentType.replace(/_/g, " "),
               },
-              { label: "Council", value: item.councilName },
-              { label: "Registration #", value: item.registrationNumber, mono: true },
+              { label: "Council", value: item.councilName ?? "—" },
+              { label: "Registration #", value: item.registrationNumber ?? "—", mono: true },
             ]}
           />
         </Section>

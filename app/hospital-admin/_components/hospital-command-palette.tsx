@@ -12,6 +12,7 @@ import {
   CalendarPlusIcon,
   FileTextIcon,
   FlaskConicalIcon,
+  InboxIcon,
   LayoutDashboardIcon,
   PrinterIcon,
   ScrollTextIcon,
@@ -117,6 +118,7 @@ const PALETTE_ICONS: Record<string, LucideIcon> = {
   scheduling: CalendarClockIcon,
   admins: ShieldCheckIcon,
   audit: ScrollTextIcon,
+  requests: InboxIcon,
   profile: FileTextIcon,
 };
 
@@ -126,6 +128,7 @@ const PALETTE_DOMAIN: Record<string, Domain> = {
   departments: "operations",
   scheduling: "operations",
   intake: "operations",
+  requests: "operations",
   admins: "admin",
   audit: "admin",
   profile: "admin",
