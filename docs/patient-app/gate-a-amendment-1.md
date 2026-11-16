@@ -23,3 +23,12 @@ Status: **signed by Fadhul (CSO and owner), in chat, 16 Nov 2026** ("lets sign o
 ## Clinical threshold chosen, 16 Nov 2026
 
 Very high blood pressure opens the danger flow and alerts the care team at **top ≥ 180 or bottom ≥ 110** (was bottom ≥ 120). Chosen by the CSO in chat. It lives in `packages/clinical-rules/patient-thresholds.v0.json`, now version 0.2.0, and in its server copy, which a test keeps identical. The file's other values stay pending CSO.
+
+## Red allowlist additions, 16 Nov 2026
+
+The CSO approved in chat ("red danger card approved"): Today's danger hero card may be red, and only it.
+
+- Phone: `mobile/src/components/tide/v2-hero.tsx`, on the list in `mobile/src/theme/colour-laws.test.ts`.
+- Web: `components/tide/v2-care.tsx`, on the list in `tests/patient-web/guards.test.ts`.
+
+Every other v2 component stays off red; payment states use the accent colour.
