@@ -23,11 +23,11 @@
     "id": "reminders",
     "area": "Claude",
     "task": "Reminders every 15 minutes and the go-live switch list",
-    "status": "Done",
+    "status": "Needs you",
     "progress": 100,
     "branch": "feat/booking-pilot-go-live",
-    "note": "Pushed (a8fe8824), not merged (2 ahead of main). Reminders every 15 minutes with a no-double-send test; docs/booking-pilot/GO-LIVE.md lists every setting. Do not merge until the host is on Vercel Pro.",
-    "updated": "2026-11-15"
+    "note": "Merged 16 Nov (#310), which broke every production deploy on Hobby. Fix on claude/funny-shannon-i7xgwp (3e9ce751): reminders back to daily 08:00, with a test that blocks sub-daily crons. Merge it, then deploy main. 15-minute reminders return with Vercel Pro.",
+    "updated": "2026-11-16"
   },
   {
     "id": "metrics",
