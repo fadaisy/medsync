@@ -30,13 +30,6 @@ export const k = (...n: (string | false | null | undefined)[]) =>
     .map((x) => [cs[x as string], desk[x as string]].filter(Boolean).join(" "))
     .join(" ");
 
-/** A link to another hospital-admin page in the rail's "More" group (ADR 0514). */
-export interface MoreLink {
-  href: string;
-  label: string;
-  icon: string;
-}
-
 export type View = "ready" | "clinics" | "week" | "closures" | "people" | "devices" | "history";
 export const VIEWS: readonly View[] = [
   "ready",
@@ -47,6 +40,17 @@ export const VIEWS: readonly View[] = [
   "devices",
   "history",
 ];
+
+/** Each view's rail icon, shared by the workspace and the admin frame (ADR 0520). */
+export const VIEW_ICONS: Record<View, string> = {
+  ready: "tick",
+  clinics: "calendar",
+  week: "clock",
+  closures: "sun",
+  people: "person",
+  devices: "nav",
+  history: "swap",
+};
 
 export type Modal =
   | { k: "ses"; clinicId: string; id?: string; weekday?: Weekday }

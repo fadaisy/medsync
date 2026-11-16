@@ -16,7 +16,10 @@ const read = (rel: string) =>
 
 const FILES = {
   profilePage: "app/hospital-admin/profile/page.tsx",
-  profileForm: "app/hospital-admin/profile/_components/emergency-settings-form.tsx",
+  profileView: "app/hospital-admin/profile/_components/profile-view.tsx",
+  profileForm: "app/hospital-admin/profile/_components/emergency-card.tsx",
+  profileOutbreak: "app/hospital-admin/profile/_components/outbreak-card.tsx",
+  profileCopy: "content/hospital-admin/profile-reports.ts",
   profileActions: "app/hospital-admin/profile/actions.ts",
   adminPage: "app/admin/emergency/page.tsx",
   adminForms: "app/admin/emergency/_components/governance-forms.tsx",
@@ -53,9 +56,18 @@ describe("/hospital-admin/profile — the emergency settings form", () => {
     expect(SRC.profilePage).not.toContain("PlaceholderSurface");
   });
 
-  it("the page keeps a Profile panel beside the Emergency panel", () => {
-    expect(SRC.profilePage).toContain('title="Profile"');
-    expect(SRC.profilePage).toContain('title="Emergency"');
+  // ADR 0520 phase 2: the page is drawn in the desk; the identity card sits beside the Emergency card.
+  it("the page keeps an Identity card beside the Emergency card", () => {
+    expect(SRC.profilePage).toContain("<ProfileView");
+    expect(SRC.profileView).toContain("P.identity.title");
+    expect(SRC.profileView).toContain("<EmergencyCard");
+    expect(SRC.profileCopy).toMatch(/identity: \{\s*title: "Identity"/);
+    expect(SRC.profileCopy).toMatch(/emergency: \{\s*title: "Emergency"/);
+  });
+
+  it("drops the admin's own designation and points to People › Admins", () => {
+    expect(SRC.profilePage).not.toContain("designation");
+    expect(SRC.profileView).toContain('href="/hospital-admin/staff?tab=admins"');
   });
 
   // ADR 0158 (CAP-5): the routing values moved to Departments & services, where a second admin
@@ -73,14 +85,15 @@ describe("/hospital-admin/profile — the emergency settings form", () => {
       expect(form, name).not.toContain(`name="${name}"`);
     }
     expect(form).toContain('href="/hospital-admin/departments/emergency"');
-    expect(form).toMatch(/second admin to verify/);
+    expect(SRC.profileCopy).toMatch(/second admin to verify/);
   });
 
   it("the coordinates stay editable here, with the honest 'nearest' hint and an audit note", () => {
     for (const name of ["latitude", "longitude", "reason"]) {
       expect(SRC.profileForm, name).toContain(`name="${name}"`);
     }
-    expect(SRC.profileForm).toMatch(/orders hospitals by\s+name/);
+    expect(SRC.profileCopy).toMatch(/orders hospitals by\s+name/);
+    expect(SRC.profileForm).toContain("setEmergencySettingsAction(");
   });
 
   it("the action resolves the scope, never trusts a hospital_id from the form, and calls the function", () => {

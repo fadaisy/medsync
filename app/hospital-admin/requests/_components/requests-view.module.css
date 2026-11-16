@@ -1,0 +1,17 @@
+/* Requests (ADR 0520): on a phone a row's tags and button move under its title instead of squeezing it. */
+.acts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+@media (max-width: 600px) {
+  .row {
+    flex-wrap: wrap;
+  }
+  .acts {
+    width: 100%;
+    flex-wrap: wrap;
+    padding-left: 42px;
+  }
+}

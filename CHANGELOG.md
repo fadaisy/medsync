@@ -5,6 +5,35 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — One admin workspace, phase 2 — 16 Nov 2026
+
+- Every hospital-admin page is now drawn in the Tether desk's own components ([ADR 0521](docs/adr/0521-admin-workspace-phase-2.md)).
+  **Today** is the admin's home on both domains and first in the menu: four counts that each open where the work is
+  done, and a Do next list. **Activity** (replacing the Audit placeholder) lists this hospital's audited admin actions
+  only, never one about a patient.
+- **People** (was Staff): To review, Invitations, Directory and Admins, with the person in a side panel and centred
+  dialogs. **Departments**: cards, booking rules per department, Unavailable now and Hours and places in one page.
+  **Emergency and support**: one page, a change dialog with one control per setting, the second-admin flow as before,
+  what the public sees, and a map to pin the hospital's location.
+- **Wards and beds** and **Laboratory and imaging** are set up in full from the admin workspace, also on Tether
+  (superseding ADR 0499 for these two): ward cards with live plans, the ward builder's publishing bar, and the test
+  menu, referrals, hours, imaging and profiles. Hospital profile and Reports are rebuilt with the same actions and
+  figures; SMS spend is shown once.
+- Old addresses forward (Admins, Audit, Booking policy, Availability, Hours, Diagnostics). Remind is deferred: it
+  needs a staff message kind. No migration. Wording is a draft.
+
+### Changed — One admin workspace — 16 Nov 2026
+
+- Every hospital-admin page now opens in the Tether desk with one menu: Clinics & schedule's seven views, then
+  Hospital (Departments, Emergency and support, Staff, Hospital profile; Intake off the Tether domain only) and
+  Follow-up (Requests, Reports) ([ADR 0520](docs/adr/0520-one-admin-workspace.md)). No menu item leads to a
+  placeholder; `/hospital-admin` opens Clinics & schedule.
+- New Requests page: booking requests waiting for a clinician (moved from Reports) and copies of results (moved from
+  the unlisted records-requests page, which forwards there). Mark sent asks how the copy went out and reports a
+  failed or repeated save. Urgent is a neutral tag, no longer red.
+- Fixed: non-clinical staff were missing from the Staff directory; ⌘K's clinic results opened a page that does not
+  exist; a form field could collapse to one line in the desk's dialogs. Wording is a draft.
+
 ### Added — Care mode engine and care programmes priced by team (behind careMode) — 16 Nov 2026
 
 - Care programmes are priced from their team (roles, cost and caseload) by one shared formula, approved by a second

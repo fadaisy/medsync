@@ -1,20 +1,28 @@
+import type { Metadata } from "next";
+
+import { EMERG } from "@/content/hospital-admin/emergency";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { loadCapabilities } from "@/lib/services/data";
-import { EmergencyView } from "../_components/emergency-view";
+import { EmergencyDesk } from "./_components/emergency-desk";
+import { loadEmergencyExtras } from "./_lib/load";
 
+export const metadata: Metadata = { title: EMERG.title };
 export const dynamic = "force-dynamic";
 
 /**
- * Emergency & support (§5.7). One page, numbered sections, no Next. Routing values (CAP-4) change
- * only through a second person (CAP-5); the emergency pathway's own columns are edited here and
- * written only on verification (CAP-2). "Is this pending change mine?" is decided on the server —
- * the client never receives a user id (contract §3).
+ * Emergency and support (ADR 0520 phase 2), one page in the Tether desk: whether the hospital receives emergencies,
+ * the changes waiting for a second admin, the routing values and what the hospital can take in, what the public
+ * Help screen shows, and the hospital's point on the map. Routing values (CAP-4) change only through a second
+ * person (CAP-5); "is this pending change mine?" is decided here, so the client never receives a user id.
  */
 export default async function EmergencyPage() {
   const scope = await requireHospitalAdminScope();
-  const caps = await loadCapabilities(scope.hospitalId);
+  const [caps, extras] = await Promise.all([
+    loadCapabilities(scope.hospitalId),
+    loadEmergencyExtras(scope.hospitalId),
+  ]);
   return (
-    <EmergencyView
+    <EmergencyDesk
       caps={caps.map((c) => ({
         key: c.key,
         value: c.value,
@@ -30,6 +38,8 @@ export default async function EmergencyPage() {
         derived: c.derived,
         derivedFrom: c.derivedFrom,
       }))}
+      location={extras.location}
+      help={extras.help}
     />
   );
 }

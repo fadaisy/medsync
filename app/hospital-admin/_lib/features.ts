@@ -31,17 +31,22 @@ export type FeatureIconKey =
   | "departments"
   | "scheduling"
   | "intake"
-  | "admins"
   | "audit"
   | "reports"
+  | "requests"
   | "profile";
 
 export type FeatureSlug =
   | ""
+  | "today"
+  | "activity"
+  | "departments/wards"
+  | "lab"
   | "staff"
   | "departments"
   | "clinics"
   | "intake"
+  | "requests"
   | "reports"
   | "admins"
   | "audit"
@@ -63,23 +68,37 @@ export interface FeatureArea {
 
 export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
   {
-    slug: "",
-    label: "Overview",
-    hint: "Operational KPIs — beds, ALOS, admissions, mortality",
+    slug: "today",
+    label: "Today",
+    hint: "What needs you across the hospital · counts · do next",
     iconKey: "overview",
-    placeholder: true,
+    placeholder: false,
   },
   {
     slug: "staff",
-    label: "Staff",
-    hint: "Pending approvals · directory · roles · onboarding",
+    label: "People",
+    hint: "To review · invitations · directory · admins",
     iconKey: "staff",
     placeholder: false,
   },
   {
     slug: "departments",
     label: "Departments & services",
-    hint: "Departments · heads · wards & beds · booking policy · tests · emergency & support · availability",
+    hint: "Departments · heads · booking rules · emergency & support · availability",
+    iconKey: "departments",
+    placeholder: false,
+  },
+  {
+    slug: "departments/wards",
+    label: "Wards and beds",
+    hint: "Wards · beds · ward layout · live bed board",
+    iconKey: "departments",
+    placeholder: false,
+  },
+  {
+    slug: "lab",
+    label: "Laboratory and imaging",
+    hint: "Test menu · referrals · hours · imaging · profiles",
     iconKey: "departments",
     placeholder: false,
   },
@@ -98,6 +117,13 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
     placeholder: false,
   },
   {
+    slug: "requests",
+    label: "Requests",
+    hint: "Waiting for a clinician · copies of results",
+    iconKey: "requests",
+    placeholder: false,
+  },
+  {
     slug: "reports",
     label: "Reports",
     hint: "Fill rate · no-shows · wait accuracy · demand · SMS spend",
@@ -105,25 +131,18 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
     placeholder: false,
   },
   {
-    slug: "admins",
-    label: "Admins",
-    hint: "Primary + backup admin · audited succession",
-    iconKey: "admins",
-    placeholder: true,
-  },
-  {
-    slug: "audit",
-    label: "Audit",
-    hint: "Scoped audit log — this hospital only",
+    slug: "activity",
+    label: "Activity",
+    hint: "What admins changed at this hospital · who, when and why",
     iconKey: "audit",
-    placeholder: true,
+    placeholder: false,
   },
   {
     slug: "profile",
     label: "Hospital profile",
-    hint: "Profile · DPA · agreement status",
+    hint: "Identity · emergency coordinates · outbreak mode",
     iconKey: "profile",
-    placeholder: true,
+    placeholder: false,
   },
 ];
 

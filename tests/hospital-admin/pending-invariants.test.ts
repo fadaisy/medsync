@@ -13,8 +13,12 @@ const stripComments = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
 const LIB = "lib/hospital-admin/pending.ts";
-const DIALOG = "app/hospital-admin/reports/_components/pending-dialog.tsx";
-const PAGE = "app/hospital-admin/reports/page.tsx";
+// ADR 0520: Pending moved from Reports to Requests, as rows built on the server and a desk view.
+const ROWS = "app/hospital-admin/requests/_lib/pending-rows.ts";
+const VIEW = "app/hospital-admin/requests/_components/requests-view.tsx";
+const PAGE = "app/hospital-admin/requests/page.tsx";
+const REPORTS_PAGE = "app/hospital-admin/reports/page.tsx";
+const COPY = "content/hospital-admin/admin-nav.ts";
 
 describe("the pending lib selects a patient's code and nothing else about them", () => {
   const src = stripComments(read(LIB));
@@ -57,46 +61,54 @@ describe("the pending lib selects a patient's code and nothing else about them",
   });
 });
 
-describe("the dialog shows rows as they came, and colours only the clinic's delay", () => {
-  const src = stripComments(read(DIALOG));
+describe("Requests shows the rows as they came, and marks only the clinic's delay", () => {
+  const rows = stripComments(read(ROWS));
+  const view = stripComments(read(VIEW));
 
-  it("does not sort — no column is sortable and no sort state exists", () => {
-    expect(src).not.toContain("sortable");
-    expect(src).not.toContain("onSortChange");
-    expect(src).not.toMatch(/\.sort\(/);
+  it("does not sort: no sort state and no .sort() in the rows or the view", () => {
+    for (const src of [rows, view]) {
+      expect(src).not.toContain("sortable");
+      expect(src).not.toContain("onSortChange");
+      expect(src).not.toMatch(/\.sort\(/);
+    }
   });
 
-  it("gives a tone only to waiting time and to the appointment's priority", () => {
-    const tones = [...src.matchAll(/<Pill tone="(\w+)">(\w+)<\/Pill>/g)].map(
-      (m) => `${m[1]}:${m[2]}`,
-    );
-    expect(tones.sort()).toEqual(["critical:Urgent", "notice:Stale"]);
-    // Stale is measured from createdAt — the clinic's clock, not a patient attribute.
-    expect(src).toMatch(/now - r\.createdAt\.getTime\(\)/);
-    expect(src).not.toMatch(/patientCode\s*[=!]==/);
+  it("measures age from createdAt (the clinic's clock) and names the patient by code only", () => {
+    expect(rows).toMatch(/now - r\.createdAt\.getTime\(\)/);
+    expect(rows).toContain("r.patientCode ?? C.provisional");
+    expect(rows).not.toMatch(/patientCode\s*[=!]==/);
+    expect(rows).toMatch(/^import "server-only";/);
   });
 
-  it("says what waits, says who acts, and says when nothing does", () => {
-    expect(src).toContain("Awaiting a clinician");
-    expect(src).toContain("Nothing is waiting for a clinician.");
-    expect(src).toContain("Clinicians confirm or decline these from their own schedule.");
-    // Read-only: nothing in the dialog posts.
-    expect(src).not.toMatch(/useActionState|<form|action=/);
+  it("marks Urgent and a stale wait with neutral tags, never red (ADR 0520, design rules)", () => {
+    expect(view).toContain('k("su-st", "setup")');
+    expect(view).not.toMatch(/critical|"red"|"r"\)/);
+  });
+
+  it("says what waits, who acts, and when nothing does; the clinician list never posts", () => {
+    const copy = read(COPY);
+    expect(copy).toContain("Nothing is waiting for a clinician.");
+    expect(copy).toContain("Clinicians confirm or decline these from their own schedule");
+    const clinician = view.slice(view.indexOf('tab === "clinician"'), view.indexOf("P.note"));
+    expect(clinician).not.toMatch(/Action\(|<form|action=/);
+    expect(clinician).toContain('href="/hospital-admin/clinics?view=week"');
   });
 });
 
-describe("the reports page opens the Pending stat", () => {
+describe("the Requests page reads inside the scope; Reports no longer lists Pending", () => {
   const page = stripComments(read(PAGE));
 
-  it("fetches the rows inside the scope and renders PendingDialog in the strip", () => {
+  it("fetches the rows after the scope check, for the scope's hospital", () => {
     const scopeAt = page.indexOf("await requireHospitalAdminScope()");
-    const fetchAt = page.indexOf("fetchPendingRequests(scope.hospitalId)");
+    const fetchAt = page.indexOf("loadPendingRows(scope.hospitalId)");
     expect(scopeAt).toBeGreaterThan(-1);
     expect(fetchAt).toBeGreaterThan(scopeAt);
-    expect(page).toMatch(
-      /<PendingDialog rows=\{pending\} value=\{stats\?\.pendingApproval \?\? pending\.length\}/,
-    );
-    // The old static card is gone: no StatCard labelled Pending remains.
-    expect(page).not.toMatch(/<StatCard\s+label="Pending"/);
+    expect(read(ROWS)).toContain("fetchPendingRequests(hospitalId)");
+  });
+
+  it("Reports keeps its numbers and drops the queue", () => {
+    const reports = stripComments(read(REPORTS_PAGE));
+    expect(reports).not.toContain("fetchPendingRequests");
+    expect(reports).not.toContain("PendingDialog");
   });
 });

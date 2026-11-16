@@ -12,6 +12,7 @@ import {
   CalendarPlusIcon,
   FileTextIcon,
   FlaskConicalIcon,
+  InboxIcon,
   LayoutDashboardIcon,
   PrinterIcon,
   ScrollTextIcon,
@@ -67,7 +68,7 @@ const HUB_ACTIONS: ReadonlyArray<NavEntry> = [
     group: "Actions",
     label: "Report a problem",
     hint: "Something unavailable — a test, a ward, equipment",
-    href: "/hospital-admin/departments/availability?report=1",
+    href: "/hospital-admin/departments?view=unavailable&report=1",
     icon: AlertTriangleIcon,
     domain: "operations",
   },
@@ -117,15 +118,17 @@ const PALETTE_ICONS: Record<string, LucideIcon> = {
   scheduling: CalendarClockIcon,
   admins: ShieldCheckIcon,
   audit: ScrollTextIcon,
+  requests: InboxIcon,
   profile: FileTextIcon,
 };
 
-/** Matches the sidebar's domains (hospital-sidebar-item.tsx). */
+/** The icons for each area (the old sidebar's domains). */
 const PALETTE_DOMAIN: Record<string, Domain> = {
   staff: "admin",
   departments: "operations",
   scheduling: "operations",
   intake: "operations",
+  requests: "operations",
   admins: "admin",
   audit: "admin",
   profile: "admin",

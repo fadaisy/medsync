@@ -1,0 +1,196 @@
+import type { DepartmentRow, HeadRow, PlaceRow } from "@/lib/services/data";
+import type { LegacyPlan, OpenProblem } from "@/supabase/functions/_shared/services-hub";
+
+import { DEPTS } from "@/content/hospital-admin/departments";
+import { fill } from "@/content/lab-workspace-v2";
+
+/*
+ * The Departments page's shapes and small pure helpers (ADR 0520 phase 2), shared by the server page and the
+ * client desk. Nothing here reads the database.
+ */
+
+/** One department's booking rules (`department_scheduling_policy`); absent = unrestricted (ADR 0084 §14). */
+export interface BookingRules {
+  slot: number;
+  buffer: number;
+  auto: boolean;
+  /** ISO weekdays, 1 = Monday. */
+  days: number[];
+  /** Minutes past local midnight. */
+  start: number;
+  end: number;
+  twoReminders: boolean;
+  virtual: boolean;
+  notes: string | null;
+}
+
+/** What the editor shows for a department with no rules: the table's column defaults (migration 0052's one reminder). */
+export const UNSET_RULES: BookingRules = {
+  slot: 15,
+  buffer: 0,
+  auto: false,
+  days: [1, 2, 3, 4, 5],
+  start: 480,
+  end: 1020,
+  twoReminders: false,
+  virtual: false,
+  notes: null,
+};
+
+export const DAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
+/** 480 → "08:00". */
+export const hm = (m: number) =>
+  `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+/** "Mon–Fri · 08:00–17:00 · 15 min": the three facts a desk asks about. */
+export function rulesSummary(r: BookingRules | null | undefined): string {
+  if (!r) return DEPTS.detail.unrestricted;
+  const days = [...r.days].sort((a, b) => a - b);
+  const run = days.length > 1 && days[days.length - 1]! - days[0]! === days.length - 1;
+  const dayTxt =
+    days.length === 0
+      ? DEPTS.rules.noDaysTxt
+      : days.length === 7
+        ? DEPTS.rules.every
+        : run
+          ? `${DAY_SHORT[days[0]! - 1]}–${DAY_SHORT[days[days.length - 1]! - 1]}`
+          : days.map((d) => DAY_SHORT[d - 1]).join(" ");
+  return fill(DEPTS.rules.summary, {
+    days: dayTxt,
+    from: hm(r.start),
+    to: hm(r.end),
+    slot: r.slot,
+  });
+}
+
+/** "1 clinic" / "3 clinics". */
+export const plural = (pair: readonly [string, string], n: number) =>
+  fill(n === 1 ? pair[0] : pair[1], { n });
+
+export type ClinicLite = {
+  id: string;
+  name: string;
+  departmentId: string;
+  unitId: string | null;
+  status: string;
+};
+export type WardLite = {
+  id: string;
+  name: string;
+  departmentId: string | null;
+  bedCount: number;
+  closed: boolean;
+  archived: boolean;
+};
+export type Person = { userId: string; name: string; departmentId: string; cadre: string | null };
+export type Counts = Record<
+  "staff" | "wards" | "clinics" | "bookedSessions",
+  Record<string, number>
+>;
+
+export interface FirstRun {
+  preset: {
+    levelLabel: string;
+    version: string;
+    section: string;
+    source: string;
+    add: { kind: string; code: string; label: string }[];
+    skip: number;
+  } | null;
+  legacy: "offered" | "declined" | "accepted" | "none";
+  legacyPlan: LegacyPlan | null;
+}
+
+export interface ClosedWard {
+  id: string;
+  name: string;
+  departmentId: string | null;
+  reason: string | null;
+  since: string;
+  back: string | null;
+}
+export interface ClosureNow {
+  id: string;
+  scope: string;
+  departmentId: string | null;
+  startsOn: string;
+  endsOn: string;
+  reason: string;
+}
+export interface HistoryRow {
+  problemId: string;
+  kind: string;
+  label: string;
+  state: string;
+  reason: string | null;
+  since: string;
+  resolvedAt: string;
+  days: number;
+}
+export type SubjectKind =
+  | "department"
+  | "ward"
+  | "clinic"
+  | "test"
+  | "lab_section"
+  | "imaging"
+  | "capability";
+export type Subjects = Record<SubjectKind, { ref: string; label: string }[]>;
+
+export interface DepartmentsData {
+  departments: DepartmentRow[];
+  heads: { current: HeadRow[]; history: HeadRow[] };
+  counts: Counts;
+  pool: Person[];
+  places: PlaceRow[];
+  clinics: ClinicLite[];
+  wards: WardLite[];
+  /** Pharmacy units that are dispensing points → what each serves (ADR 0236). */
+  points: Record<string, string>;
+  goLive: boolean;
+  pharmacyDemo: boolean;
+  rules: Record<string, BookingRules>;
+  firstRun: FirstRun;
+  problems: OpenProblem[];
+  closedWards: ClosedWard[];
+  closures: ClosureNow[];
+  history: HistoryRow[];
+  subjects: Subjects;
+  opdHours: Record<string, { from: string; to: string }[]> | null;
+  holidays: { date: string; name: string; provisional: boolean; source: string }[];
+}
+
+export type View = "cards" | "unavailable" | "hours";
+
+export const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Africa/Kampala",
+  });
+export const fmtDay = (ymd: string) =>
+  new Date(`${ymd}T12:00:00+03:00`).toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Africa/Kampala",
+  });
+
+/** A department's own id and its units' ids: what its clinics, wards and staff hang off. */
+export const idsOf = (d: DepartmentRow, all: readonly DepartmentRow[]) => [
+  d.id,
+  ...all.filter((u) => u.parentId === d.id).map((u) => u.id),
+];
+
+/** Two letters for a department's tile: "Internal Medicine" → "IM". */
+export const abbr = (name: string) =>
+  name
+    .replace(/ and | of | & /gi, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();

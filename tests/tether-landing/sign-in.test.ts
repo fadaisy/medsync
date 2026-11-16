@@ -78,8 +78,8 @@ describe("tetherHome", () => {
   it("sends the door page to the Tether sign-in, where the doors are (ADR 0510)", () => {
     expect(tetherHome("/get-started")).toBe("/sign-in");
   });
-  it("sends the admin home to Clinics & schedule (ADR 0512)", () => {
-    expect(tetherHome("/hospital-admin")).toBe("/hospital-admin/clinics");
+  it("sends the admin home to Today (ADR 0512, 0521)", () => {
+    expect(tetherHome("/hospital-admin")).toBe("/hospital-admin/today");
     expect(tetherHome("/hospital-admin/clinics")).toBeNull();
     expect(tetherHome("/hospital-admin/departments")).toBeNull();
   });
