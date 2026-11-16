@@ -206,7 +206,7 @@
     "status": "Done",
     "progress": 100,
     "branch": "claude/booking-pilot-onto-main",
-    "note": "Pushed (54ba48d) on main, ready for you to merge: pilot numbers + clinic set-up guide, guide rewritten for Clinics & schedule. Go-live (cron + GO-LIVE.md) on claude/booking-pilot-go-live (43038d9): do not merge before Vercel Pro. Found: no \"Late by\" control since the old Scheduling page went; reminder toggle says 18:00 but the daily cron runs at 08:00 EAT. 16 Nov: asked it to point the training sheet's running-late step at the desk's Running late control, and to note the 18:00 reminder wording in GO-LIVE.md.",
+    "note": "Ready to merge: claude/booking-pilot-onto-main (c16ab37): pilot numbers + clinic set-up guide, rewritten for Clinics & schedule; running late now points at the desk (texts go automatically at 30 min or more). Go-live on claude/booking-pilot-go-live (fb89678): do not merge before Vercel Pro; GO-LIVE.md notes the 18:00 reminder wording vs the 08:00 job (wording change needs you).",
     "updated": "2026-11-16"
   },
   {
