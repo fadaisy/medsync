@@ -324,6 +324,11 @@ export const FLOOR = {
     lipid: { ldl: "LDL", total: "Total", hdl: "HDL", tg: "Triglycerides" },
     point: "{label}, {date}: {value}",
     none: "No readings yet",
+    source: {
+      today: "at triage today",
+      earlier: "at triage",
+      elsewhere: "at triage, another hospital",
+    },
   },
 
   finish: {

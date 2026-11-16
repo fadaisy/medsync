@@ -2,10 +2,12 @@ import "server-only";
 
 import type { FloorClinic, FloorData, FloorPerson, Role } from "./fixture";
 import type { EventKind, FloorEvent } from "./model";
+import type { Reading, TriageRow } from "./trends";
 import type { TriageScope } from "@/lib/triage/scope";
 import type { AcuityLevel, TriageInput, TriageVitals } from "@/lib/triage/types";
 import { and, asc, eq, gte, inArray, lt, ne, notInArray } from "drizzle-orm";
 
+import { FLOOR } from "@/content/clinic-floor/floor";
 import { db } from "@/db";
 import { clinicFloorEvents } from "@/db/schema/clinic-floor";
 import { clinicSessions } from "@/db/schema/clinic-sessions";
@@ -17,12 +19,15 @@ import { users } from "@/db/schema/users";
 import { computeAgeYears } from "@/lib/age";
 import { fetchIncomingPreArrivals } from "@/lib/emergency/queries";
 import { listHospitalDepartments } from "@/lib/intake/queries";
+import { logger } from "@/lib/logger";
 import { clinicOf, preAlertOf } from "@/lib/reception/desk/map";
 import { kampala } from "@/lib/reception/desk/model";
+import { createClient } from "@/lib/supabase/server";
 import { runTriage } from "@/lib/triage/engine";
 import { recommend } from "@/lib/triage/recommend";
 import { ETA_BAND_LABEL } from "@/supabase/functions/_shared/pre-arrival";
 import { engineContext, floorSex } from "./model";
+import { triageReadings } from "./trends";
 
 const DAY = 86_400_000;
 const hhmm = (d: Date) =>
@@ -38,7 +43,10 @@ const hhmm = (d: Date) =>
  * input as stored, `vitals_snapshot`), today's floor events and today's clinic sessions. Levels are the assigned
  * level on the record; the re-check band is re-derived by the engine from that input. No name goes to the logs.
  */
-export async function loadFloorData(scope: TriageScope): Promise<FloorData> {
+export async function loadFloorData(
+  scope: TriageScope,
+  { readings = true }: { readings?: boolean } = {},
+): Promise<FloorData> {
   const now = new Date();
   const dayStart = new Date(Date.parse(`${kampala(now).key}T00:00:00+03:00`));
   const dayEnd = new Date(dayStart.getTime() + DAY);
@@ -123,6 +131,11 @@ export async function loadFloorData(scope: TriageScope): Promise<FloorData> {
         .orderBy(asc(triageRecords.triagedAt))
     : [];
   const latest = new Map(records.map((r) => [r.intakeId, r]));
+  // The waiting-room screen sends codes and rooms only (S3), so it skips the readings.
+  const past = await pastReadings(
+    readings ? intakes.flatMap((r) => (r.patientUserId ? [r.patientUserId] : [])) : [],
+    { hospitalId: scope.hospitalId, dayStart: dayStart.getTime() },
+  );
 
   const clinics: FloorClinic[] = depts.map((d, i) => {
     const mine = sess.filter((s) => s.departmentId === d.id);
@@ -192,7 +205,7 @@ export async function loadFloorData(scope: TriageScope): Promise<FloorData> {
       meds: [],
       allergy: null,
       hist: [],
-      readings: [],
+      readings: (r.patientUserId && past.get(r.patientUserId)) || [],
       // ponytail: lab release (encounter_results.released_at) joins in with the lab round-trip (REPORT §9).
       resultsReleasedAt: [],
     };
@@ -226,6 +239,47 @@ export async function loadFloorData(scope: TriageScope): Promise<FloorData> {
     }),
     fixture: false,
   };
+}
+
+/**
+ * Every triage reading for these patients that the signed-in user may see (follow-up 3, owner ruling 16 Nov: all
+ * hospitals). Read through the user's own Supabase client so RLS decides (`triage_records_select_scoped`): records
+ * at a hospital where they hold an active clinical affiliation, or that they triaged themselves. No bypass.
+ */
+async function pastReadings(
+  patientIds: string[],
+  here: { hospitalId: string; dayStart: number },
+): Promise<Map<string, Reading[]>> {
+  const out = new Map<string, Reading[]>();
+  const ids = [...new Set(patientIds)];
+  if (!ids.length) return out;
+  const supabase = await createClient();
+  // ponytail: 50 patients a request keeps the URL short; the newest 1,000 rows each. Page further if a floor needs it.
+  for (let i = 0; i < ids.length; i += 50) {
+    const { data, error } = await supabase
+      .from("triage_records")
+      .select("patient_user_id, hospital_id, triaged_at, vitals_snapshot")
+      .in("patient_user_id", ids.slice(i, i + 50))
+      .order("triaged_at", { ascending: false })
+      .limit(1000);
+    if (error) {
+      logger.error("clinic_floor.past_readings_failed", { reason: error.message });
+      continue;
+    }
+    for (const row of data ?? []) {
+      if (!row.patient_user_id || !isVitals(row.vitals_snapshot)) continue;
+      const t: TriageRow = {
+        at: new Date(row.triaged_at).getTime(),
+        hospitalId: row.hospital_id,
+        vitals: row.vitals_snapshot,
+      };
+      const list = out.get(row.patient_user_id) ?? [];
+      list.push(...triageReadings([t], here, FLOOR.trends.source));
+      out.set(row.patient_user_id, list);
+    }
+  }
+  for (const list of out.values()) list.sort((a, b) => a.at - b.at);
+  return out;
 }
 
 function isVitals(v: unknown): v is TriageVitals {

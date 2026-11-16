@@ -47,6 +47,39 @@ export interface TrendCard {
   series: Series[];
 }
 
+/** One stored triage reading as RLS returns it (`triage_records`: vitals snapshot, time, hospital). */
+export interface TriageRow {
+  at: number;
+  hospitalId: string;
+  vitals: { systolicBp?: number | null; diastolicBp?: number | null; bloodGlucose?: number | null };
+}
+
+/**
+ * Stored triage readings → trend readings (follow-up 3) — a projection, no rule. Blood pressure needs both
+ * numbers; triage sugar is untimed, so it is only ever `sugar_random` (S21). The source says when and where.
+ */
+export function triageReadings(
+  rows: readonly TriageRow[],
+  here: { hospitalId: string; dayStart: number },
+  label: { today: string; earlier: string; elsewhere: string },
+): Reading[] {
+  return rows.flatMap((r) => {
+    const source =
+      r.hospitalId !== here.hospitalId
+        ? label.elsewhere
+        : r.at >= here.dayStart
+          ? label.today
+          : label.earlier;
+    const v = r.vitals;
+    const out: Reading[] = [];
+    if (typeof v.systolicBp === "number" && typeof v.diastolicBp === "number")
+      out.push({ code: "bp", at: r.at, value: v.systolicBp, value2: v.diastolicBp, source });
+    if (typeof v.bloodGlucose === "number")
+      out.push({ code: "sugar_random", at: r.at, value: v.bloodGlucose, source });
+    return out;
+  });
+}
+
 const TIMINGS: GlucoseTiming[] = ["fasting", "before_lunch", "after_meal_2h", "bedtime"];
 const LIPIDS = ["ldl", "total", "hdl", "tg"] as const;
 
