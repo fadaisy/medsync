@@ -1,6 +1,8 @@
 # Patient app v2 · Step 11 · Native dependencies for widgets and Live Activities
 
-**Status: waiting for the owner.** The prompt says no new dependency without stopping to flag it, with its size, licence and an alternative (rule 9). Nothing below is installed.
+**Status: deferred by the owner (16 Nov 2026: "lets first leave out widgets").** No widget or Live Activity work in this slice; S27 and S28 are not attempted. The options below stay for when it is picked up.
+
+**Was: waiting for the owner.** The prompt says no new dependency without stopping to flag it, with its size, licence and an alternative (rule 9). Nothing below is installed.
 
 What Step 11 needs (§5.10): phone widgets (the next visit, today's next dose), the lock screen, and a Live Activity for the day of the visit. S27: names hidden by default, no confidential names, no Help. S28: "Called" reaches the Live Activity within 5 seconds in the harness. All of it sits behind the `widgets` flag.
 

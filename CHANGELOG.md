@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 parity reports and report (Step 12, draft) — 16 Nov 2026
+
+- `docs/patient-app/parity-phone.md`, `parity-web.md`: every feature-matrix row marked v2, Kept or Gap; nothing lost (old screens serve; flags off). Drafts for signature.
+- `docs/patient-app/REPORT.md`: the steps, all success checks with evidence, unmeasured budgets, the owner's list and the gaps. Widgets (Step 11) deferred by the owner.
+
 ### Added — Patient app v2 Me, membership and Plus on both platforms (Step 10) — 16 Nov 2026
 
 - Me (behind `appV2Web` / `appV2Mobile`): the membership card (front, back, turn over), a QR of a short-lived token, the plans from approved prices, the 30-day trial with its reveal, and paying a plan through the engine. What is always free sits beside the plans (MR9).
