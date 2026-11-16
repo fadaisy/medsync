@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 Care mode on the phone, part 2, behind appV2Mobile and careMode (Step 8) — 16 Nov 2026
+
+- My care (`/care/my-care`): the team grid (a name only with consent, S20; roles always; first contact tagged; next step) and checks this year (Overdue in amber with Book it, Due, Done).
+- Messages (`/care/messages`): the thread, the team's hours, "Not for emergencies" with Help, quick prompts and a composer; a check-in (a team request) shows on top until answered; offline messages wait and replay with one client key.
+- Wellness (`/wellness`, gate A4): the patient's own move, mood and eat logging, shared by both modes.
+- Danger flows (`@patient-core/danger-flow`): low sugar (something sweet, sit, a real 15-minute recheck, better or Help) and very high BP (a second reading at or above 180/110 means call the nurse today); a warning sign is Help from any step; works offline; each recheck is saved so the team is told when online (S19). Words drafted, pending CSO.
+
 ### Added — Patient app v2 Care mode on the phone, part 1, behind appV2Mobile and careMode (Step 7) — 16 Nov 2026
 
 - `careMode` on the phone (gate A5: replaces `mobileClinicalData`), off until Gate CG like the flag it replaces.

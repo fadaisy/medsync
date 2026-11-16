@@ -48,9 +48,14 @@ export default function CareTab() {
 }
 
 function CareTodayTabV2() {
+  const router = useRouter();
   return (
     <Screen underNav bell title={CARE_V2_COPY.hero.title}>
       <CareTodayV2Route />
+      <View style={{ gap: tSpace[3], marginTop: tSpace[5] }}>
+        <Button label={CARE_V2_COPY.myCare.title} variant="outline" icon="users" onPress={() => router.push("/care/my-care")} />
+        <Button label={CARE_V2_COPY.wellness.title} variant="outline" icon="heart" onPress={() => router.push("/wellness")} />
+      </View>
     </Screen>
   );
 }

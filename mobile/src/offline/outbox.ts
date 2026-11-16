@@ -162,7 +162,8 @@ export function flushOutbox(): Promise<number> {
       if (!me) return 0;
       const client = await db();
       return await drain(async (item) => {
-        if (item.kind === "reading" || item.kind === "dose") return sendCare(item, me);
+        if (item.kind === "reading" || item.kind === "dose" || (item.kind === "message" && item.payload.owner))
+          return sendCare(item, me);
         const row = rowOf(item);
         if (!row || row.patient_user_id !== me) return false;
         const { error } = await client.from(String(item.payload.table)).insert(row);
@@ -179,7 +180,7 @@ export function flushOutbox(): Promise<number> {
 }
 
 /**
- * Care mode (Step 7, MR13, S18): a queued reading or dose tick replays to its Edge Function with the same client
+ * Care mode (Steps 7 and 8, MR13, S18): a queued reading, dose tick or care message replays to its Edge Function with the same client
  * key, so the server saves it once however often it arrives. Sent, or refused for good (a 4xx), leaves the
  * queue; offline or a server error stays for a later try. Another account's item stays.
  */
@@ -187,7 +188,7 @@ async function sendCare(item: OutboxItem, me: string): Promise<boolean> {
   if (item.payload.owner !== me) return false;
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { callEdge } = require("@/lib/edge") as typeof import("@/lib/edge");
-  const fn = item.kind === "reading" ? "pt-care-reading" : "pt-dose-event";
+  const fn = item.kind === "reading" ? "pt-care-reading" : item.kind === "dose" ? "pt-dose-event" : "pt-care-message";
   const res = await callEdge(fn, item.payload.body as Record<string, unknown>);
   if (res.ok) return true;
   if (res.code === "offline") return false;

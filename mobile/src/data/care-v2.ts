@@ -60,12 +60,15 @@ export async function loadCare(now: Date = new Date()): Promise<CareData | null>
       sb.from("care_alerts").select("kind, created_at, acknowledged_at").eq("enrolment_id", enrolmentId).gte("created_at", since),
       sb
         .from("care_messages")
-        .select("id, created_at")
+        .select("id, created_at, from_patient, kind")
         .eq("enrolment_id", enrolmentId)
-        .eq("from_patient", false)
-        .eq("kind", "request")
-        .is("read_at", null),
+        .gte("created_at", since)
+        .order("created_at", { ascending: true }),
     ]);
+    // A check-in (a team request) needs an answer until the patient writes after it.
+    const thread = (asks.data ?? []) as { id: string; created_at: string; from_patient: boolean; kind: string }[];
+    const lastMine = thread.filter((m) => m.from_patient).at(-1)?.created_at ?? "";
+    const open = thread.filter((m) => !m.from_patient && m.kind === "request" && m.created_at > lastMine);
     return {
       enrolmentId,
       programme: mode.programme as string,
@@ -83,7 +86,7 @@ export async function loadCare(now: Date = new Date()): Promise<CareData | null>
         acknowledged: a.acknowledged_at !== null,
       })),
       // The team's name is never shown here; "Your care team" is the screen's words (MR names-with-consent).
-      asks: ((asks.data ?? []) as Record<string, string>[]).map((m) => ({ id: m.id!, from: "team", atIso: m.created_at! })),
+      asks: open.map((m) => ({ id: m.id, from: "team", atIso: m.created_at })),
     };
   } catch {
     return null;
