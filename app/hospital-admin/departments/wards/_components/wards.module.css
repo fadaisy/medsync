@@ -1,4 +1,4 @@
-/* Wards and beds (phase 2 of ADR 0516): the desk's own classes, plus the ward cards and their live plans. Every bed
+/* Wards and beds (phase 2 of ADR 0520): the desk's own classes, plus the ward cards and their live plans. Every bed
    state is written beside its picture; the bar only repeats the words, and red never appears. */
 .stats {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

@@ -1,4 +1,4 @@
-/* People (ADR 0516 phase 2): the few rules the desk modules do not already have. Tokens only. */
+/* People (ADR 0520 phase 2): the few rules the desk modules do not already have. Tokens only. */
 
 /* A row's tags and buttons; on a phone they move under the title instead of squeezing it (as on Requests). */
 .acts {

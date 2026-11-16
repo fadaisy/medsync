@@ -99,7 +99,7 @@
     "input": {
       "kind": "bp",
       "top": 120,
-      "bottom": 119.9
+      "bottom": 109.9
     },
     "level": "watch"
   },
@@ -107,7 +107,7 @@
     "input": {
       "kind": "bp",
       "top": 120,
-      "bottom": 120
+      "bottom": 110
     },
     "level": "danger"
   },
@@ -115,7 +115,7 @@
     "input": {
       "kind": "bp",
       "top": 120,
-      "bottom": 120.1
+      "bottom": 110.1
     },
     "level": "danger"
   },

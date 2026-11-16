@@ -5,7 +5,7 @@ import { DEPTS } from "@/content/hospital-admin/departments";
 import { fill } from "@/content/lab-workspace-v2";
 
 /*
- * The Departments page's shapes and small pure helpers (ADR 0516 phase 2), shared by the server page and the
+ * The Departments page's shapes and small pure helpers (ADR 0520 phase 2), shared by the server page and the
  * client desk. Nothing here reads the database.
  */
 

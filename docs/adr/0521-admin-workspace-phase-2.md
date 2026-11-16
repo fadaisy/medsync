@@ -1,8 +1,8 @@
-# ADR 0517: One admin workspace, phase 2: every admin page in the desk's own components
+# ADR 0521: One admin workspace, phase 2: every admin page in the desk's own components
 
 **Status:** Accepted, 16 Nov 2026. The owner approved the prototype (canvas "Tether admin, harmonized", versions 10–13) and said "go ahead with the phase 2 build". Choices with a recommended option were taken on the owner's standing ruling "use all your recommendations", including Remind (deferred, below). Wording is a draft.
 
-Builds on [ADR 0516](0516-one-admin-workspace.md) (phase 1: one frame, one menu). Supersedes [ADR 0499](0499-tether-is-this-app-on-its-own-domain.md) for wards and beds and the laboratory and imaging set-up only: the owner decided on 16 Nov that the hospital admin sets them up in full from the admin workspace, on both domains. Pharmacy set-up stays on MedSync.
+Builds on [ADR 0520](0520-one-admin-workspace.md) (phase 1: one frame, one menu). Supersedes [ADR 0499](0499-tether-is-this-app-on-its-own-domain.md) for wards and beds and the laboratory and imaging set-up only: the owner decided on 16 Nov that the hospital admin sets them up in full from the admin workspace, on both domains. Pharmacy set-up stays on MedSync.
 
 ## Decision
 

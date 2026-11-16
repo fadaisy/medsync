@@ -13,7 +13,7 @@ import {
 import { emptyLayout } from "@/supabase/functions/_shared/ward-layout";
 
 /*
- * Wards and beds in the admin workspace (phase 2 of ADR 0516): the list's counts come from the bed board's states
+ * Wards and beds in the admin workspace (phase 2 of ADR 0520): the list's counts come from the bed board's states
  * and the register, never estimated; a ward without a published plan has no live states.
  */
 

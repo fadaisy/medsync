@@ -20,7 +20,7 @@ const DATE = new Intl.DateTimeFormat("en-GB", {
 });
 
 /**
- * Today (ADR 0517), the admin's home on both domains: four counts that each open where the work is done, and a
+ * Today (ADR 0521), the admin's home on both domains: four counts that each open where the work is done, and a
  * short Do next list from the same records as the menu's badges and Requests.
  */
 export default async function TodayPage() {

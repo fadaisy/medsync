@@ -1,5 +1,5 @@
 /**
- * Laboratory and imaging (phase 2 of ADR 0516): the page's numbers and groupings, pure and client-safe. Everything
+ * Laboratory and imaging (phase 2 of ADR 0520): the page's numbers and groupings, pure and client-safe. Everything
  * is read from the hospital's own menu rows and the signed catalogue; nothing is filled in for the lab (a missing
  * turnaround stays missing, Law 5).
  */

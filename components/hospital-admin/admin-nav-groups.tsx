@@ -7,7 +7,7 @@ import { Icon, k } from "@/components/clinics-schedule/shared";
 import { ADMIN_HOME } from "@/lib/hospital-admin/admin-nav";
 
 /**
- * The admin menu's groups after Clinics & schedule's views (ADR 0516), in the desk rail's own classes. Drawn by the
+ * The admin menu's groups after Clinics & schedule's views (ADR 0520), in the desk rail's own classes. Drawn by the
  * Clinics & schedule rail and by the admin frame, so the menu is the same everywhere.
  */
 export function AdminNavGroups({
@@ -48,7 +48,7 @@ export function AdminNavGroups({
   );
 }
 
-/** Today, above Clinics & schedule's views (ADR 0517), drawn by the admin frame and the Clinics & schedule rail. */
+/** Today, above Clinics & schedule's views (ADR 0521), drawn by the admin frame and the Clinics & schedule rail. */
 export function AdminHomeNav({ active = false }: { active?: boolean }) {
   return (
     <nav className={k("nav")} aria-label={ADMIN_HOME.label}>

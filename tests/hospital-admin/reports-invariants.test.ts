@@ -51,7 +51,7 @@ describe("the reports page is scoped, and says what its numbers are", () => {
     expect(page).toContain("fetchHospitalReport(scope.hospitalId");
   });
 
-  // ADR 0516 phase 2: the page draws in the desk; its words live in the content file, and the view prints the
+  // ADR 0520 phase 2: the page draws in the desk; its words live in the content file, and the view prints the
   // ruling above the tiles.
   it("states the ruling in words next to the numbers", () => {
     const copy = read(COPY);

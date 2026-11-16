@@ -9,11 +9,11 @@ import { FEATURE_AREAS, featurePath } from "../_lib/features";
 import { HospitalCommandPalette } from "./hospital-command-palette";
 import { HospitalScopeProvider } from "./scope-provider";
 
-/** Placeholders and the index stay out of ⌘K: nothing on the menu leads to an empty page (ADR 0516). */
+/** Placeholders and the index stay out of ⌘K: nothing on the menu leads to an empty page (ADR 0520). */
 const OFF_MENU = new Set(["", "admins", "audit"]);
 
 /**
- * Hospital-admin workspace shell (ADR 0516): the scope provider every admin page reads, around the Tether desk
+ * Hospital-admin workspace shell (ADR 0520): the scope provider every admin page reads, around the Tether desk
  * frame with the one admin menu. Clinics & schedule draws its own desk with the same menu, so the frame steps
  * aside there (ADR 0514).
  */

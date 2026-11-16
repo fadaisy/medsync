@@ -4,7 +4,7 @@ import { EMERG } from "@/content/hospital-admin/emergency";
 import { fill } from "@/content/lab-workspace-v2";
 
 /*
- * Emergency and support's shapes and pure helpers (ADR 0516 phase 2), shared by the server page and the client.
+ * Emergency and support's shapes and pure helpers (ADR 0520 phase 2), shared by the server page and the client.
  */
 
 /** One setting as the page sees it. `mine` is decided on the server; the client never receives a user id. */

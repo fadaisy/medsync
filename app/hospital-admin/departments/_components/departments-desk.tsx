@@ -20,7 +20,7 @@ type Filter = "all" | "live" | "off" | "archived";
 const PATH = "/hospital-admin/departments";
 
 /**
- * Departments (ADR 0516 phase 2), in the Tether desk look of the approved prototype: four counts, the department
+ * Departments (ADR 0520 phase 2), in the Tether desk look of the approved prototype: four counts, the department
  * cards with All / Live / Not on Tether yet, one department's panel beside them, and the page's two other views,
  * "Unavailable now" and "Hours and places". Every change goes through ha-services-hub (or the booking-rules
  * function) and the page refreshes from the database.

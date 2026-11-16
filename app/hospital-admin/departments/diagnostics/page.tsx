@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 /**
- * Diagnostics moved to Laboratory and imaging (phase 2 of ADR 0516): the test menu, its profiles and imaging are set
+ * Diagnostics moved to Laboratory and imaging (phase 2 of ADR 0520): the test menu, its profiles and imaging are set
  * up there now. An old link keeps its place: `?sub=imaging` opens Imaging, `?tab=profiles` opens Profiles, `?test=`
  * opens that test. The one
  * result path switch stays at its own address under here.

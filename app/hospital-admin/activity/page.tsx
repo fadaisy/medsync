@@ -5,7 +5,7 @@ import { ActivityView } from "./_components/activity-view";
 export const dynamic = "force-dynamic";
 
 /**
- * Activity (ADR 0517): the read-only record of what admins changed at this hospital, from the audited admin
+ * Activity (ADR 0521): the read-only record of what admins changed at this hospital, from the audited admin
  * actions only. Schedule drafts and versions, with undo, stay in Clinics & schedule's History.
  */
 export default async function ActivityPage() {

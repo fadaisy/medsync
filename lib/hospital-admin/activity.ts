@@ -1,5 +1,5 @@
 /**
- * Activity (ADR 0517): what admins changed at one hospital, read from `sa_audit_log` the way a department's History
+ * Activity (ADR 0521): what admins changed at one hospital, read from `sa_audit_log` the way a department's History
  * tab already does (`loadItemHistory`). Only the admin actions below are ever read: an action about a patient
  * (bookings, visits, observations, resus, triage) never reaches this page, so it shows no health information.
  * Client-safe: the loader lives in `activity-load.ts`.

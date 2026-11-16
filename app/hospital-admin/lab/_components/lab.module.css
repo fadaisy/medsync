@@ -1,4 +1,4 @@
-/* Laboratory and imaging (phase 2 of ADR 0516): the desk's own classes, plus the menu table, the section list and
+/* Laboratory and imaging (phase 2 of ADR 0520): the desk's own classes, plus the menu table, the section list and
    the bulk bar. Neutral throughout: where a test is done is a square tag with its word, never a colour. */
 /* The page fills the admin frame's page, so the list and a test's detail each scroll on their own. */
 .fill {

@@ -39,7 +39,7 @@ const KEYS = CAPABILITY_KEYS.filter((x) => x.key !== "opd_hours");
 type Modal = { k: "change"; key: string } | { k: "reject"; key: string } | { k: "pin" } | null;
 
 /**
- * Emergency and support (ADR 0516 phase 2), in the Tether desk as the approved prototype: the receiving banner (ink,
+ * Emergency and support (ADR 0520 phase 2), in the Tether desk as the approved prototype: the receiving banner (ink,
  * never red), the changes waiting for a second admin with Verify and Reject, the routing card beside what the public
  * Help screen shows, and the support cards. Every Change opens one dialog with the proper control for that value.
  */

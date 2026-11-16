@@ -13,7 +13,7 @@ import v from "./reports-view.module.css";
 const PATH = "/hospital-admin/reports";
 
 /**
- * Reports (ADR 0516, phase 2) in the Tether desk look. Every figure is neutral: a rate is not a status, so no tile
+ * Reports (ADR 0520, phase 2) in the Tether desk look. Every figure is neutral: a rate is not a status, so no tile
  * carries a tone, and the one flag ("positions not honoured") is a neutral square tag with its words. The window is
  * kept in the URL (`?days=`), so the page stays server-rendered from the same queries.
  */

@@ -13,7 +13,7 @@ import {
 import { MIN_RATE_SAMPLE, ratio, reportWindow } from "@/lib/hospital-admin/reports";
 
 /**
- * Hospital profile and Reports in the Tether desk (ADR 0516, phase 2). The view lib only formats what the reports
+ * Hospital profile and Reports in the Tether desk (ADR 0520, phase 2). The view lib only formats what the reports
  * lib computed: these pin that the thin-sample rule still prints words, SMS spend is printed once, and the pages
  * keep their actions, their dialogs and the design rules.
  */

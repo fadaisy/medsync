@@ -1,4 +1,4 @@
-/* Requests (ADR 0516): on a phone a row's tags and button move under its title instead of squeezing it. */
+/* Requests (ADR 0520): on a phone a row's tags and button move under its title instead of squeezing it. */
 .acts {
   display: flex;
   align-items: center;

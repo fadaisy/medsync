@@ -31,7 +31,7 @@ const LINKS = {
   newWard: `${HUB}/wards?new=1`,
 };
 
-/** The ward builder in the admin frame (phase 2 of ADR 0516): the same editor, filling the frame's page. */
+/** The ward builder in the admin frame (phase 2 of ADR 0520): the same editor, filling the frame's page. */
 export function LayoutEditorClient({ data }: { data: LayoutEditorData }) {
   return <WardEditor data={data} actions={ACTIONS} links={LINKS} fit="frame" />;
 }

@@ -32,7 +32,7 @@ const COUNTED: BedState[] = ["free", "occupied", "arriving", "cleaning", "reserv
 const BAR: BedState[] = ["occupied", "arriving", "cleaning", "reserved", "out"];
 
 /**
- * Wards and beds (phase 2 of ADR 0516), in the Tether desk: the counts, the wards by department with each one's
+ * Wards and beds (phase 2 of ADR 0520), in the Tether desk: the counts, the wards by department with each one's
  * live plan and its beds written out, and the ward panel. Every bed state carries its word; the bar is only a
  * picture of the words beside it.
  */

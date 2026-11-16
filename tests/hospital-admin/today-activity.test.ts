@@ -10,7 +10,7 @@ import { todayStats, todayTodo, waitedText } from "@/lib/hospital-admin/today";
 const read = (rel: string) => readFileSync(resolve(process.cwd(), rel), "utf8");
 const DAY = 86_400_000;
 
-/** ADR 0517: Today is the admin's home; Activity shows admin actions only. */
+/** ADR 0521: Today is the admin's home; Activity shows admin actions only. */
 describe("Today", () => {
   const base = { booked: 12, pending: [], review: 0, unavailable: 0, verify: [], copies: [] };
 

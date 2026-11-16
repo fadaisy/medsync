@@ -13,7 +13,7 @@ import {
 import { templateFor } from "@/lib/lab/test-menu";
 
 /*
- * Laboratory and imaging in the admin workspace (phase 2 of ADR 0516): the counts and groupings read the menu as
+ * Laboratory and imaging in the admin workspace (phase 2 of ADR 0520): the counts and groupings read the menu as
  * it is (a turnaround nobody entered stays empty), the writes are the test menu's own actions on the hub surface,
  * and Diagnostics forwards here.
  */

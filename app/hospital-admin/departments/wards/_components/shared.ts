@@ -1,4 +1,4 @@
-/** Wards and beds (phase 2 of ADR 0516): what the list, the panel and the dialogs share. */
+/** Wards and beds (phase 2 of ADR 0520): what the list, the panel and the dialogs share. */
 
 export const BASE = "/hospital-admin/departments/wards";
 

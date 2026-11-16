@@ -1,4 +1,4 @@
-/* Emergency and support (ADR 0516 phase 2): what the desk's own classes do not cover. Desk tokens only; never red.
+/* Emergency and support (ADR 0520 phase 2): what the desk's own classes do not cover. Desk tokens only; never red.
    Receiving emergencies is ink on the surface; not receiving is a heavier ink border with the words. */
 
 .head {

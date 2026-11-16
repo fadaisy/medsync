@@ -14,7 +14,7 @@ import {
 import { PEOPLE, PEOPLE_COPY_STATUS } from "@/content/hospital-admin/people";
 
 /**
- * People (ADR 0516 phase 2): /hospital-admin/staff rebuilt in the desk look with To review, Invitations, Directory
+ * People (ADR 0520 phase 2): /hospital-admin/staff rebuilt in the desk look with To review, Invitations, Directory
  * and Admins. The helpers are pure; the rules about colour, pop-ups and writes are checked in the source, since
  * the writes go to Edge Functions the test lane does not run.
  */

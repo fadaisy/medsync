@@ -36,7 +36,7 @@ type Dialog =
   | null;
 
 /**
- * Laboratory and imaging (phase 2 of ADR 0516), in the Tether desk. The test menu is the lab's own store, edited
+ * Laboratory and imaging (phase 2 of ADR 0520), in the Tether desk. The test menu is the lab's own store, edited
  * through the same actions as the lab's Set-up → Tests; a test's detail opens beside the list. Every count is the
  * menu's own: nothing is estimated, and a turnaround nobody entered stays empty.
  */

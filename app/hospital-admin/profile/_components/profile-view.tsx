@@ -10,7 +10,7 @@ import { OutbreakCard } from "./outbreak-card";
 import v from "./profile-view.module.css";
 
 /**
- * Hospital profile (ADR 0516, phase 2) in the Tether desk look: identity, the emergency settings with the
+ * Hospital profile (ADR 0520, phase 2) in the Tether desk look: identity, the emergency settings with the
  * facility's location, and outbreak mode. Settings, not an emergency: nothing here is red.
  */
 export function ProfileView({

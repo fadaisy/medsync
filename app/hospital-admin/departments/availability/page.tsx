@@ -1,6 +1,6 @@
 import { permanentRedirect } from "next/navigation";
 
-/** Availability is the Departments page's "Unavailable now" view (ADR 0516 phase 2); `?report=1` still opens the report. */
+/** Availability is the Departments page's "Unavailable now" view (ADR 0520 phase 2); `?report=1` still opens the report. */
 export default async function AvailabilityPage({
   searchParams,
 }: {

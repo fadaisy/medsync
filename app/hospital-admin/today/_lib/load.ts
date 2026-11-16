@@ -28,7 +28,7 @@ const soft = async <T>(p: Promise<T>): Promise<T | null> => {
   }
 };
 
-/** Everything Today reads, at one instant. Each source falls back to null on its own (ADR 0517). */
+/** Everything Today reads, at one instant. Each source falls back to null on its own (ADR 0521). */
 export async function loadToday(
   hospitalId: string,
   userId: string,

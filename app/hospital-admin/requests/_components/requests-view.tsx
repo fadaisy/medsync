@@ -25,7 +25,7 @@ const DUE = new Intl.DateTimeFormat("en-GB", {
 const dueText = (d: string) => DUE.format(new Date(`${d}T00:00:00Z`));
 
 /**
- * Requests (ADR 0516), in the Tether desk look. The clinician list is read-only and in the order it came: the
+ * Requests (ADR 0520), in the Tether desk look. The clinician list is read-only and in the order it came: the
  * admin opens the session in the week plan to change who runs it. A copy of results is marked sent with a note.
  */
 export function RequestsView({

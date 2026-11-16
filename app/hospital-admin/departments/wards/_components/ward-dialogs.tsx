@@ -10,7 +10,7 @@ import { WARD_AGE_GROUPS, WARD_SEXES, WARD_TYPES } from "@/supabase/functions/_s
 import { useWardOp } from "./use-ward-op";
 
 /*
- * The ward dialogs (phase 2 of ADR 0516): centred desk dialogs, never side sheets (ADR 0161). Each runs one
+ * The ward dialogs (phase 2 of ADR 0520): centred desk dialogs, never side sheets (ADR 0161). Each runs one
  * ha-services-hub op the old panel ran; the parent mounts a dialog only while it is open, so each opens fresh.
  */
 

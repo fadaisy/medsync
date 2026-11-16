@@ -7,7 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ### Changed — One admin workspace, phase 2 — 16 Nov 2026
 
-- Every hospital-admin page is now drawn in the Tether desk's own components ([ADR 0517](docs/adr/0517-admin-workspace-phase-2.md)).
+- Every hospital-admin page is now drawn in the Tether desk's own components ([ADR 0521](docs/adr/0521-admin-workspace-phase-2.md)).
   **Today** is the admin's home on both domains and first in the menu: four counts that each open where the work is
   done, and a Do next list. **Activity** (replacing the Audit placeholder) lists this hospital's audited admin actions
   only, never one about a patient.
@@ -26,13 +26,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 - Every hospital-admin page now opens in the Tether desk with one menu: Clinics & schedule's seven views, then
   Hospital (Departments, Emergency and support, Staff, Hospital profile; Intake off the Tether domain only) and
-  Follow-up (Requests, Reports) ([ADR 0516](docs/adr/0516-one-admin-workspace.md)). No menu item leads to a
+  Follow-up (Requests, Reports) ([ADR 0520](docs/adr/0520-one-admin-workspace.md)). No menu item leads to a
   placeholder; `/hospital-admin` opens Clinics & schedule.
 - New Requests page: booking requests waiting for a clinician (moved from Reports) and copies of results (moved from
   the unlisted records-requests page, which forwards there). Mark sent asks how the copy went out and reports a
   failed or repeated save. Urgent is a neutral tag, no longer red.
 - Fixed: non-clinical staff were missing from the Staff directory; ⌘K's clinic results opened a page that does not
   exist; a form field could collapse to one line in the desk's dialogs. Wording is a draft.
+
+### Added — Care mode engine and care programmes priced by team (behind careMode) — 16 Nov 2026
+
+- Care programmes are priced from their team (roles, cost and caseload) by one shared formula, approved by a second
+  person and never named by rank ([ADR 0519](docs/adr/0519-care-programmes-priced-by-team.md)). A paid period switches
+  on the team's proactive work; danger alerts, Help, results and the plan stay free. Migration 0301 (GATED): enrolment,
+  versioned plans with no dose amounts, dose ticks and readings that sync once, the care team (names only with
+  consent), family helpers, messages, danger alerts from the server's copy of the patient's rule. Edge Functions
+  `pt-care-reading`, `pt-dose-event`, `pt-care-message`, `pt-programme-bill`; `pt-pay-intent` also pays programme
+  bills. Draft Plus prices revised to 5,000 / 10,000 / 13,000 a month. The MR9 change waits for the CSO
+  (`docs/patient-app/gate-a-amendment-1.md`).
+
+### Added — Patient payments core and membership engine (sandbox) — 16 Nov 2026
+
+- Patients can pay a visit's booking fee by Mobile Money once the screens land (patient app v2 Step 6). Money goes
+  to the hospital's own account through a licensed provider; Tether holds none
+  ([ADR 0516](docs/adr/0516-tether-never-holds-patient-money.md)). Exactly-once callbacks and gapless receipt numbers
+  ([ADR 0517](docs/adr/0517-exactly-once-payments.md)); refunds approved by the accounts supervisor, automatic when
+  the hospital cancels ([ADR 0518](docs/adr/0518-refunds-need-a-second-person.md)). Migrations 0299 and 0300 (GATED),
+  four Edge Functions, a sandbox provider only. Membership, Plus entitlements (Plus never buys care), draft Plus
+  prices held on the server, and Questions for the doctor. Setup steps: `docs/patient-app/payments-setup.md`.
 
 ### Fixed — The phone app follows Apple's HIG, on Expo SDK 58 — 16 Nov 2026
 

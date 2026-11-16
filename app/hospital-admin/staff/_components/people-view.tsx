@@ -24,7 +24,7 @@ import { InvitationsList, InviteDialog } from "./invitations";
 import { ReviewList, ReviewPanel } from "./review";
 
 /**
- * People (ADR 0516 phase 2), in the Tether desk look: To review, Invitations, Directory and Admins. To review and
+ * People (ADR 0520 phase 2), in the Tether desk look: To review, Invitations, Directory and Admins. To review and
  * Directory open a person in a panel beside the list (the desk's detail panel, not a sheet: it never covers the
  * page); every confirmation is a centred dialog or happens in that panel.
  */

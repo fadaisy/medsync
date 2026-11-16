@@ -1,5 +1,5 @@
 /**
- * Emergency and support (ADR 0516, phase 2): the one page in the Tether desk where an admin keeps what ambulances,
+ * Emergency and support (ADR 0520, phase 2): the one page in the Tether desk where an admin keeps what ambulances,
  * the emergency map and the Help screen say about the hospital. Every string an admin reads there lives here.
  * Draft wording from the approved prototype ("Tether admin, harmonized"); Claude never edits the status. The
  * settings' own names (CAPABILITY_KEYS) are reused from the services hub and are not repeated here.

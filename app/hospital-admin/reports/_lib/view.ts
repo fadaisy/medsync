@@ -11,7 +11,7 @@ import {
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 
 /**
- * Reports (ADR 0516, phase 2): the page's figures as the desk view prints them. Pure formatting over
+ * Reports (ADR 0520, phase 2): the page's figures as the desk view prints them. Pure formatting over
  * `fetchHospitalReport` and `fetchPilotWeeks`: no figure is computed here that the lib did not compute, and a rate
  * the lib left without a share (under MIN_RATE_SAMPLE) prints "Too few to say", never a percentage. SMS spend is
  * printed once, as a tile; the Sent table breaks the messages down by kind and channel without a second total.

@@ -1,4 +1,4 @@
-/* Departments (ADR 0516 phase 2): what the desk's own classes do not already cover. Desk tokens only; states carry words. */
+/* Departments (ADR 0520 phase 2): what the desk's own classes do not already cover. Desk tokens only; states carry words. */
 
 /* the counts strip: four even tiles, two on a tablet, one on a phone (cs.module.css stacks them at 720px) */
 .stats.stats {

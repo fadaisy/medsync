@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * People (ADR 0516 phase 2): who works here and who is asking to. Four tabs in the desk look, the tab in the URL
+ * People (ADR 0520 phase 2): who works here and who is asking to. Four tabs in the desk look, the tab in the URL
  * (`?tab=invites|directory|admins`; To review needs none, and the old `?tab=pending` still opens it) and an open
  * person in `?aff=`. Every write goes through the Server Actions in `actions.ts`, which forward to the staff Edge
  * Functions; the Edge Functions check the role and the hospital and write the audit row.

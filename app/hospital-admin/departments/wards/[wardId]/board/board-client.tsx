@@ -29,7 +29,7 @@ const LINKS = {
   layout: (id: string) => `${HUB}/wards/${id}/layout`,
 };
 
-/** The live bed board in the admin frame (phase 2 of ADR 0516): the same board, filling the frame's page. */
+/** The live bed board in the admin frame (phase 2 of ADR 0520): the same board, filling the frame's page. */
 export function BoardClient({ data, hospitalId }: { data: BoardData; hospitalId: string }) {
   return (
     <BedBoard

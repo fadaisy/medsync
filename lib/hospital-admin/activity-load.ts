@@ -9,7 +9,7 @@ import { users } from "@/db/schema/users";
 import { ACTIVITY_ACTION_KEYS, ACTIVITY_DAYS, ACTIVITY_LIMIT, activityLine } from "./activity";
 
 /**
- * This hospital's admin activity, newest first (ADR 0517). The same scoping as `loadItemHistory`: a row is this
+ * This hospital's admin activity, newest first (ADR 0521). The same scoping as `loadItemHistory`: a row is this
  * hospital's when it targets the hospital or carries its id in the before or after data. Only allowlisted admin
  * actions are read, never a patient-facing one. `cut` when the list hit its limit.
  */

@@ -9,7 +9,7 @@ import { callEdge } from "@/lib/supabase/edge";
 import { IMAGING_ITEMS } from "@/supabase/functions/_shared/services-hub";
 
 /*
- * Laboratory and imaging (phase 2 of ADR 0516): the writes the test menu's own actions do not cover, through the
+ * Laboratory and imaging (phase 2 of ADR 0520): the writes the test menu's own actions do not cover, through the
  * same ha-services-hub ops the old Diagnostics tab ran. The scope ALWAYS comes from requireHospitalAdminScope(); the
  * Edge Function owns the role check, the audit row and the write. The test menu writes stay in
  * lib/lab/test-menu-actions.ts (surface "hub").

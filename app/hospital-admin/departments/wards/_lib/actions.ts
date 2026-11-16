@@ -9,7 +9,7 @@ import { callEdge } from "@/lib/supabase/edge";
 import { wardBuilderLiveFor } from "@/lib/wards/feature";
 
 /*
- * Wards and beds (phase 2 of ADR 0516): the list's writes, the same ha-services-hub ops the old panel ran and no
+ * Wards and beds (phase 2 of ADR 0520): the list's writes, the same ha-services-hub ops the old panel ran and no
  * others. The scope ALWAYS comes from requireHospitalAdminScope(); a hospital_id from the page is overwritten. The
  * Edge Function owns Zod, the role check, the audit row and the write.
  */

@@ -1,5 +1,5 @@
 /**
- * Laboratory and imaging in the admin workspace (phase 2 of ADR 0516): the page around the hospital's test menu
+ * Laboratory and imaging in the admin workspace (phase 2 of ADR 0520): the page around the hospital's test menu
  * and its imaging services. The test menu's own words stay in content/lab-test-menu.ts and are reused as they are.
  * Wording follows the approved prototype. Draft until the CSO signs; Claude never edits the status.
  */

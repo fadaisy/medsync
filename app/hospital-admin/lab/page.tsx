@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 const TABS: readonly LabTab[] = ["menu", "referrals", "hours", "imaging", "profiles", "compare"];
 
 /**
- * Laboratory and imaging (phase 2 of ADR 0516): the hospital's test menu and its imaging services, set up from the
+ * Laboratory and imaging (phase 2 of ADR 0520): the hospital's test menu and its imaging services, set up from the
  * admin workspace. The menu is the same store and the same actions as the lab's Set-up → Tests (surface "hub",
  * TM-D09: the hospital admin may edit it); restricted test names stay masked for the admin (Law 6). Imaging is the
  * A.4 catalogue, folded in from the old Departments › Diagnostics tab.

@@ -1,4 +1,4 @@
-/* Hospital profile (ADR 0516, phase 2): two columns of desk cards that fold to one on a phone. */
+/* Hospital profile (ADR 0520, phase 2): two columns of desk cards that fold to one on a phone. */
 .g2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));

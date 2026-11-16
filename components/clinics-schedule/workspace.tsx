@@ -70,7 +70,7 @@ export function ClinicsWorkspace({
   port: CsPort;
   forceOffline?: boolean;
   initialView?: View;
-  /** The admin menu's other groups (ADR 0516), the same as in the admin frame. */
+  /** The admin menu's other groups (ADR 0520), the same as in the admin frame. */
   groups?: readonly AdminNavGroup[];
 }) {
   const [published, setPublished] = useState(data.published);

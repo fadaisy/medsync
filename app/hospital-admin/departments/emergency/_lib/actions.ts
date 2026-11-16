@@ -10,7 +10,7 @@ import { capabilityKey } from "@/supabase/functions/_shared/services-hub";
 import { runHubOp } from "../../actions";
 
 /*
- * Emergency and support (ADR 0516 phase 2). Every value goes through ha-services-hub, which keeps the two-admin rule
+ * Emergency and support (ADR 0520 phase 2). Every value goes through ha-services-hub, which keeps the two-admin rule
  * (CAP-5): a routing value is written to pending_* and only a different admin's verify makes it live; the function
  * refuses the author's own verify. The scope always comes from requireHospitalAdminScope(), never the page.
  */

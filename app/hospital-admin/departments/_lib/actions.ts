@@ -8,7 +8,7 @@ import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { callEdge } from "@/lib/supabase/edge";
 
 /*
- * The Departments page's booking rules (ADR 0516 phase 2; moved from the Booking policy page). The scope comes from
+ * The Departments page's booking rules (ADR 0520 phase 2; moved from the Booking policy page). The scope comes from
  * requireHospitalAdminScope(), never the page; ha-update-department-policy owns the role check, the audit and the
  * write. This schema mirrors the function's, which mirrors the table's CHECKs, so a bad value is refused in words
  * before it travels.

@@ -273,7 +273,7 @@ export function WardEditor({
   links: EditorLinks;
   /** Where the editor opens (the styleguide fixtures use it; the page doesn't). */
   initial?: { selected?: ItemRef | null; view?: "plan" | "items"; lens?: Lens; tool?: Tool };
-  /** `frame`: fill the admin frame's page (phase 2 of ADR 0516) instead of the screen under a 3rem top bar. */
+  /** `frame`: fill the admin frame's page (phase 2 of ADR 0520) instead of the screen under a 3rem top bar. */
   fit?: "screen" | "frame";
 }) {
   const router = useRouter();
@@ -789,7 +789,7 @@ export function WardEditor({
     current: t.id === wardId,
   }));
   const inService = doc?.beds.filter((b) => b.status === "in") ?? [];
-  // The publishing bar (phase 2 of ADR 0516): where the plan stands, and what the checks say.
+  // The publishing bar (phase 2 of ADR 0520): where the plan stands, and what the checks say.
   const B = WARDS.builder;
   const isDraft = hasDraft || unsaved;
   const published = !!data.published || save.kind === "published";

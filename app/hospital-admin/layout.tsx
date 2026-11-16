@@ -18,7 +18,7 @@ export const metadata: Metadata = {
  * the admin's hospital and refuses a hospital that is suspended, offboarded or out of agreement. Feature pages
  * re-call it server-side or read `useHospitalScope()` on the client.
  *
- * The shell is the Tether desk frame with one admin menu (ADR 0516); the menu's two counts are best-effort.
+ * The shell is the Tether desk frame with one admin menu (ADR 0520); the menu's two counts are best-effort.
  */
 export default async function HospitalAdminLayout({ children }: { children: ReactNode }) {
   const scope = await requireHospitalAdminScope();

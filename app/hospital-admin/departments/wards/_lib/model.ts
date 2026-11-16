@@ -1,5 +1,5 @@
 /**
- * Wards and beds (phase 2 of ADR 0516): the list's numbers, pure and client-safe. Every bed state comes from a
+ * Wards and beds (phase 2 of ADR 0520): the list's numbers, pure and client-safe. Every bed state comes from a
  * ward's live bed board (lib/wards/board.ts, ADR 0194); out of service comes from the register. Nothing here is
  * estimated: a ward without a published floor plan has no live states, and is counted only by its register.
  */

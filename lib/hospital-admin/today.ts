@@ -1,5 +1,5 @@
 /**
- * Today (ADR 0517): the admin's home. Counts that each lead somewhere, and a short "Do next" list built from the
+ * Today (ADR 0521): the admin's home. Counts that each lead somewhere, and a short "Do next" list built from the
  * same records as the menu's badges and the Requests page. Every source is best-effort: a count that could not be
  * read is `null` and prints as a dash, never as zero. Pure and client-safe; the loader is `today-load.ts`.
  */

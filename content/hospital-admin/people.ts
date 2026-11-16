@@ -1,5 +1,5 @@
 /**
- * People (ADR 0516 phase 2): the admin page at /hospital-admin/staff with To review, Invitations, Directory and
+ * People (ADR 0520 phase 2): the admin page at /hospital-admin/staff with To review, Invitations, Directory and
  * Admins, in the Tether desk look. Every string the page shows lives here. Draft until the CSO signs; Claude never
  * edits the status.
  */
@@ -28,7 +28,7 @@ export const PEOPLE = {
   short: "Write at least 8 characters.",
   failed: "Could not save. Try again.",
 
-  /** How long someone has waited, in words. `stale` is the neutral tag from 7 days (ADR 0516: never a colour). */
+  /** How long someone has waited, in words. `stale` is the neutral tag from 7 days (ADR 0520: never a colour). */
   age: {
     today: "Asked today",
     one: "Asked yesterday",

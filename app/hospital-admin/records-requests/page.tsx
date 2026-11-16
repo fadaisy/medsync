@@ -1,6 +1,6 @@
 import { permanentRedirect } from "next/navigation";
 
-/** Copy requests moved into Requests (ADR 0516); the old address keeps working. */
+/** Copy requests moved into Requests (ADR 0520); the old address keeps working. */
 export default function RecordsRequestsPage() {
   permanentRedirect("/hospital-admin/requests?tab=copies");
 }

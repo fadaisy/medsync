@@ -24,7 +24,7 @@ interface PageProps {
 }
 
 /**
- * Reports (Gate H, PRD §3.4; in the Tether desk since ADR 0516 phase 2).
+ * Reports (Gate H, PRD §3.4; in the Tether desk since ADR 0520 phase 2).
  *
  * Six tiles, each with its window and its denominator, and a sample floor (MIN_RATE_SAMPLE) under which a rate
  * says "too few to say" instead of a percentage. The one flag on the page, "positions not honoured", is the §3.6
@@ -33,7 +33,7 @@ interface PageProps {
  * booking path reads these figures"), because the no-show figure is easy to misread.
  *
  * The window comes from `?days=`; anything outside REPORT_WINDOWS falls back to the default. Pending moved on to
- * Requests (ADR 0516): a queue to act on, not a report.
+ * Requests (ADR 0520): a queue to act on, not a report.
  */
 export default async function ReportsPage({ searchParams }: PageProps) {
   const scope = await requireHospitalAdminScope();

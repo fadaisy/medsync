@@ -1,5 +1,5 @@
 /**
- * Hospital profile and Reports in the Tether desk (ADR 0516, phase 2). Every string an admin reads on the two pages
+ * Hospital profile and Reports in the Tether desk (ADR 0520, phase 2). Every string an admin reads on the two pages
  * lives here. Draft until the CSO signs; Claude never edits the status.
  *
  * The outbreak wording describes what the clerking desk does (D-CV-06); the reports wording states each figure's

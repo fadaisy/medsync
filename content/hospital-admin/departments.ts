@@ -1,5 +1,5 @@
 /**
- * Departments (ADR 0516, phase 2): the departments page in the Tether desk, with its detail panel, the
+ * Departments (ADR 0520, phase 2): the departments page in the Tether desk, with its detail panel, the
  * "Unavailable now" list and "Hours and places". Every string an admin reads on those screens lives here. Draft
  * wording from the approved prototype ("Tether admin, harmonized"); Claude never edits the status.
  */

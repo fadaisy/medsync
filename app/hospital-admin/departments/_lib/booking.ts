@@ -8,7 +8,7 @@ import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { departmentSchedulingPolicy } from "@/db/schema/scheduling";
 
 /**
- * Each department's booking rules (moved from the Booking policy page, ADR 0516 phase 2). A left join: a department
+ * Each department's booking rules (moved from the Booking policy page, ADR 0520 phase 2). A left join: a department
  * with no policy row is unrestricted (ADR 0084 §14), a state the panel shows and can replace.
  */
 export async function loadBookingRules(hospitalId: string): Promise<Record<string, BookingRules>> {

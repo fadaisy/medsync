@@ -41,7 +41,7 @@ type Search = Record<string, string | string[] | undefined>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? null;
 
 /**
- * Departments (ADR 0516 phase 2), in the Tether desk: the counts, the department cards and one department's panel
+ * Departments (ADR 0520 phase 2), in the Tether desk: the counts, the department cards and one department's panel
  * (overview, booking rules, clinics and wards), "Unavailable now" (was Availability) and "Hours and places" (was
  * Hours & places; closures moved to Clinics & schedule). Deep links: `?open=<id>`, `?assign=head`, `?add=1`,
  * `?view=unavailable|hours`, `?report=1`.

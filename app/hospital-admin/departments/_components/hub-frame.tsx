@@ -5,7 +5,7 @@ import { useSelectedLayoutSegments } from "next/navigation";
 
 /**
  * The hub's frame (title, counts, tabs, a 6xl column) for the pages still in the older look. Departments, Emergency
- * and support, and Wards and beds draw their own Tether desk pages (ADR 0517), so the frame steps aside there; a
+ * and support, and Wards and beds draw their own Tether desk pages (ADR 0521), so the frame steps aside there; a
  * ward's layout and bed board are full-height working pages (ADR 0191) that fill the admin frame's scrolling page.
  */
 export function HubFrame({ chrome, children }: { chrome: ReactNode; children: ReactNode }) {

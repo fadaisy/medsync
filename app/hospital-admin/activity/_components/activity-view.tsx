@@ -28,7 +28,7 @@ const ICON: Record<ActivityArea, string> = {
   hospital: "card",
 };
 
-/** Activity (ADR 0517) in the Tether desk look: a filter by area, then one line per audited admin action. */
+/** Activity (ADR 0521) in the Tether desk look: a filter by area, then one line per audited admin action. */
 export function ActivityView({
   rows,
   cut,

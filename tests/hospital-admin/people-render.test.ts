@@ -10,7 +10,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 /**
- * People (ADR 0516 phase 2) renders every tab, and a person open beside the list, from rows shaped like the
+ * People (ADR 0520 phase 2) renders every tab, and a person open beside the list, from rows shaped like the
  * page's queries. Placeholder people only; the actions are stubbed because the render never calls them.
  */
 vi.mock("next/navigation", () => ({

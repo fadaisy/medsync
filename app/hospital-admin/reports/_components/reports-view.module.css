@@ -1,4 +1,4 @@
-/* Reports (ADR 0516, phase 2): the desk's tables and tiles, on the frame's tokens. */
+/* Reports (ADR 0520, phase 2): the desk's tables and tiles, on the frame's tokens. */
 /* A tile here is a figure, not a button. */
 div.tile {
   cursor: default;

@@ -1,4 +1,4 @@
-/* The admin frame (ADR 0516): the desk shell's body clips, so each admin page scrolls inside it. */
+/* The admin frame (ADR 0520): the desk shell's body clips, so each admin page scrolls inside it. */
 .page {
   flex: 1;
   min-height: 0;

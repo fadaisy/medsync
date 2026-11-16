@@ -9,7 +9,7 @@ import { EMERGENCY_COPY_STATUS } from "@/content/hospital-admin/emergency";
 import { capabilityKey, checkCapabilityValue } from "@/supabase/functions/_shared/services-hub";
 
 /*
- * ADR 0516 phase 2: Departments and Emergency and support in the Tether desk. The rules held at source level (the
+ * ADR 0520 phase 2: Departments and Emergency and support in the Tether desk. The rules held at source level (the
  * pages run only against Supabase), plus the pure helpers. Comments are stripped so a file may explain a rule.
  */
 const read = (rel: string) =>

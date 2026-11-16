@@ -1,5 +1,5 @@
 /**
- * Wards and beds in the admin workspace (phase 2 of ADR 0516): the list, the ward panel, its dialogs, and the
+ * Wards and beds in the admin workspace (phase 2 of ADR 0520): the list, the ward panel, its dialogs, and the
  * ward builder's publishing bar. Wording follows the approved prototype. Draft until the CSO signs; Claude never
  * edits the status.
  */

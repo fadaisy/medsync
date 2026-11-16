@@ -56,7 +56,7 @@ describe("/hospital-admin/profile — the emergency settings form", () => {
     expect(SRC.profilePage).not.toContain("PlaceholderSurface");
   });
 
-  // ADR 0516 phase 2: the page is drawn in the desk; the identity card sits beside the Emergency card.
+  // ADR 0520 phase 2: the page is drawn in the desk; the identity card sits beside the Emergency card.
   it("the page keeps an Identity card beside the Emergency card", () => {
     expect(SRC.profilePage).toContain("<ProfileView");
     expect(SRC.profileView).toContain("P.identity.title");

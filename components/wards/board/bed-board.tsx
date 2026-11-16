@@ -136,7 +136,7 @@ export function BedBoard({
   initialSelected?: string | null;
   /** Subscribe to the live topic (off in the styleguide fixture). */
   live?: boolean;
-  /** `frame`: fill the admin frame's page (phase 2 of ADR 0516) instead of the screen under a 3rem top bar. */
+  /** `frame`: fill the admin frame's page (phase 2 of ADR 0520) instead of the screen under a 3rem top bar. */
   fit?: "screen" | "frame";
 }) {
   const router = useRouter();

@@ -85,7 +85,7 @@ const TETHER_HOMES: Record<string, string> = {
   "/nurse": "/clinic",
   "/nurse/triage": "/clinic?view=triage",
   "/doctor": "/clinic?view=line",
-  "/hospital-admin": "/hospital-admin/today", // ADR 0512, 0517: Today is the admin home
+  "/hospital-admin": "/hospital-admin/today", // ADR 0512, 0521: Today is the admin home
   // ADR 0510: the four ways to join sit beside the Tether sign-in form; MedSync's door page is not Tether's.
   "/get-started": "/sign-in",
 };

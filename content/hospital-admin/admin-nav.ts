@@ -1,5 +1,5 @@
 /**
- * The hospital-admin menu outside Clinics & schedule's own views (ADR 0516), and the Requests page. Every string an
+ * The hospital-admin menu outside Clinics & schedule's own views (ADR 0520), and the Requests page. Every string an
  * admin reads in the shared frame lives here. Draft until the CSO signs; Claude never edits the status.
  */
 import type { SignedCopy } from "@/content/signed-copy";

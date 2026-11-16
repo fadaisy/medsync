@@ -1,5 +1,5 @@
 /**
- * People (ADR 0516 phase 2): the page's pure helpers, shared by the server page and the client view. No server
+ * People (ADR 0520 phase 2): the page's pure helpers, shared by the server page and the client view. No server
  * imports, no clock: every age is measured once on the server and passed in.
  */
 import { PEOPLE } from "@/content/hospital-admin/people";

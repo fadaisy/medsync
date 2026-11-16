@@ -7,7 +7,7 @@ import { Icon, k } from "@/components/clinics-schedule/shared";
 import { TODAY } from "@/content/hospital-admin/admin-nav";
 import { fill } from "@/content/lab-workspace-v2";
 
-/** Today (ADR 0517) in the Tether desk look. Every tile is neutral: a count is a workflow state, never red, amber or green. */
+/** Today (ADR 0521) in the Tether desk look. Every tile is neutral: a count is a workflow state, never red, amber or green. */
 export function TodayView({
   date,
   stats,

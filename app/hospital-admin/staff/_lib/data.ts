@@ -15,7 +15,7 @@ import { BLOCKED_USER_STATES } from "@/lib/auth/reachable";
 import { sortAdmins } from "./people";
 
 /**
- * People (ADR 0516 phase 2): the page's reads, every one scoped to the admin's hospital. The four staff queries
+ * People (ADR 0520 phase 2): the page's reads, every one scoped to the admin's hospital. The four staff queries
  * moved here unchanged from the old Staff page; the admins query is new and only reads.
  */
 
@@ -149,7 +149,7 @@ export interface DirectoryAffiliationRow {
   departmentName: string;
   employmentType: string;
   state: string;
-  /** NULL for non-clinical staff, who have no council (ADR 0516: they were missing from the directory). */
+  /** NULL for non-clinical staff, who have no council (ADR 0520: they were missing from the directory). */
   councilName: string | null;
   /** Council registration number — operationally queryable, intentionally
    * plaintext, but the UI keeps it masked-until-expanded. NULL for non-clinical staff. */

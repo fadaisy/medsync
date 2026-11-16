@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Profile · Hospital admin · MedSync
 export const dynamic = "force-dynamic";
 
 /**
- * The hospital's profile, in the Tether desk (ADR 0516, phase 2): the identity the scope already carries
+ * The hospital's profile, in the Tether desk (ADR 0520, phase 2): the identity the scope already carries
  * (read-only; the superadmin owns those fields), the emergency settings (routing values read-only since ADR 0158,
  * the coordinates editable, ADR 0098 ruling 5) and outbreak mode (D-CV-06). Every read pins `scope.hospitalId`;
  * Drizzle bypasses RLS. The admin's own designation moved to People › Admins.

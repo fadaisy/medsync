@@ -19,7 +19,7 @@ export const metadata: Metadata = { title: WARDS.title };
 export const dynamic = "force-dynamic";
 
 /**
- * Wards and beds (phase 2 of ADR 0516), in the Tether desk. With WARD_BUILDER on, each ward with a published layout
+ * Wards and beds (phase 2 of ADR 0520), in the Tether desk. With WARD_BUILDER on, each ward with a published layout
  * shows its live plan and its bed states from the bed board (ADR 0194, the engine behind every count here); off,
  * the list works from the register alone and the builder entry is hidden.
  */
