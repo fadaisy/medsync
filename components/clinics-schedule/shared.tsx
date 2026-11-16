@@ -24,10 +24,21 @@ import { initials } from "@/lib/reception/desk/model";
 import cs from "./cs.module.css";
 
 /** Class names from this module and the desk module (both apply when both define one). */
+/**
+ * Names that mean something else in the reception desk's stylesheet: `md` is the canvas's medium dialog
+ * (`su-m md`) but the desk calendar's 34px day cell, which squashed every medium dialog to one line. The desk
+ * calendar uses its own helper, so here these map to this workspace's class only.
+ */
+const CS_ONLY = new Set(["md"]);
+
 export const k = (...n: (string | false | null | undefined)[]) =>
   n
     .filter(Boolean)
-    .map((x) => [cs[x as string], desk[x as string]].filter(Boolean).join(" "))
+    .map((x) =>
+      [cs[x as string], CS_ONLY.has(x as string) ? undefined : desk[x as string]]
+        .filter(Boolean)
+        .join(" "),
+    )
     .join(" ");
 
 export type View = "ready" | "clinics" | "week" | "closures" | "people" | "devices" | "history";

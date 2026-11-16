@@ -80,7 +80,7 @@ export function DepartmentDetail({
         value={tab}
         onPick={setTab}
         label={dept.name}
-        className={d.wrapSeg}
+        className={d.tabs}
       />
       {tab === "overview" ? (
         <Overview dept={dept} data={data} assign={assign} onBooking={() => setTab("booking")} />
@@ -198,7 +198,7 @@ function Overview({
           ) : (
             <button
               type="button"
-              className={k("btn", "sm", "q")}
+              className={`${k("btn", "sm", "q")} ${d.start}`}
               disabled={op.busy}
               onClick={() => op.run({ op: "set_start_department", department_id: dept.id })}
             >
@@ -332,7 +332,7 @@ function Overview({
       <div className={k("su-sec")}>
         <span className={k("cap")}>{D.bookingCap}</span>
         <p className={k("su-note")}>{rulesSummary(data.rules[dept.id])}</p>
-        <button type="button" className={k("btn", "sm", "q")} onClick={onBooking}>
+        <button type="button" className={`${k("btn", "sm", "q")} ${d.start}`} onClick={onBooking}>
           {D.tabs.booking}
         </button>
       </div>
@@ -438,7 +438,11 @@ function Overview({
             </div>
           </div>
         ) : (
-          <button type="button" className={k("btn", "sm", "q")} onClick={() => setArchiving(true)}>
+          <button
+            type="button"
+            className={`${k("btn", "sm", "q")} ${d.start}`}
+            onClick={() => setArchiving(true)}
+          >
             {D.archive}
           </button>
         )}
@@ -461,7 +465,7 @@ function History({ dept, data }: { dept: DepartmentRow; data: DepartmentsData })
     <div className={k("su-sec")}>
       <span className={k("cap")}>{D.history}</span>
       {!open ? (
-        <button type="button" className={k("btn", "sm", "q")} onClick={show}>
+        <button type="button" className={`${k("btn", "sm", "q")} ${d.start}`} onClick={show}>
           {D.showHistory}
         </button>
       ) : (
@@ -772,12 +776,18 @@ function Inside({ dept, data }: { dept: DepartmentRow; data: DepartmentsData }) 
         )}
         {isPharmacy && units.length ? <p className={k("su-note")}>{PHARMACY.points.note}</p> : null}
         {isPharmacy && data.goLive ? (
-          <Link href="/hospital-admin/departments/pharmacy" className={k("btn", "sm", "q")}>
+          <Link
+            href="/hospital-admin/departments/pharmacy"
+            className={`${k("btn", "sm", "q")} ${d.start}`}
+          >
             {D.pharmacySettings}
           </Link>
         ) : null}
         {isPharmacy && data.pharmacyDemo ? (
-          <Link href="/hospital-admin/departments/pharmacy/demo" className={k("btn", "sm", "q")}>
+          <Link
+            href="/hospital-admin/departments/pharmacy/demo"
+            className={`${k("btn", "sm", "q")} ${d.start}`}
+          >
             {D.pharmacyDemo}
           </Link>
         ) : null}
@@ -833,7 +843,7 @@ function Inside({ dept, data }: { dept: DepartmentRow; data: DepartmentsData }) 
 
       <div className={k("su-sec")}>
         <p className={k("su-note")}>{fill(D.staffLine, { n: staff })}</p>
-        <Link href="/hospital-admin/staff" className={k("btn", "sm", "q")}>
+        <Link href="/hospital-admin/staff" className={`${k("btn", "sm", "q")} ${d.start}`}>
           {D.openStaff}
         </Link>
       </div>
