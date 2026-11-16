@@ -170,3 +170,6 @@ export * from "./clinic-leads";
 
 // ─── Clinics and schedule (migration 0296, GATED) ───
 export * from "./clinics-schedule";
+
+// ─── Patient payments, membership, Questions for the doctor (migrations 0299, 0300, GATED) ───
+export * from "./patient-payments";

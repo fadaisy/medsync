@@ -1,0 +1,88 @@
+{
+  "_note": "Patient app v2 Appendix A, payment cases. Invented people; stand-in fees anchored on real benchmarks: the Uganda Medical and Dental Practitioners Council's proposed general practitioner cap of UGX 30,000 and a specialist average of about UGX 85,000 (Daily Monitor). A real hospital's fees always come from its published Clinics & schedule fee bands, never from this file. Plus prices are the draft rows in migration 0300, for the owner to approve.",
+  "fees": {
+    "medicalOfficerUgx": 30000,
+    "specialistUgx": 50000,
+    "topUpUgx": 20000,
+    "newPatientFileUgx": null
+  },
+  "bills": [
+    {
+      "case": "Paid in the app at booking",
+      "patient": "Esther",
+      "totalUgx": 30000,
+      "paidUgx": 30000,
+      "refundedUgx": 0,
+      "status": "paid",
+      "channel": "app",
+      "method": "mtn",
+      "receiptNumber": 421,
+      "chip": "paid_app"
+    },
+    {
+      "case": "Pays at the hospital",
+      "patient": "Moses",
+      "totalUgx": 30000,
+      "paidUgx": 0,
+      "refundedUgx": 0,
+      "status": "open",
+      "channel": null,
+      "method": null,
+      "receiptNumber": null,
+      "chip": "at_hospital"
+    },
+    {
+      "case": "Paid ahead at the counter",
+      "patient": "Sarah",
+      "totalUgx": 30000,
+      "paidUgx": 30000,
+      "refundedUgx": 0,
+      "status": "paid",
+      "channel": "counter",
+      "method": "counter",
+      "receiptNumber": 422,
+      "chip": "paid_counter"
+    },
+    {
+      "case": "Failed prompt, not enough balance",
+      "patient": "Daniel",
+      "totalUgx": 30000,
+      "paidUgx": 0,
+      "refundedUgx": 0,
+      "status": "open",
+      "channel": null,
+      "method": null,
+      "receiptNumber": null,
+      "chip": "at_hospital"
+    },
+    {
+      "case": "Specialist top-up",
+      "patient": "Peter",
+      "totalUgx": 20000,
+      "paidUgx": 0,
+      "refundedUgx": 0,
+      "status": "open",
+      "channel": null,
+      "method": null,
+      "receiptNumber": null,
+      "chip": "at_hospital"
+    },
+    {
+      "case": "Refunded after a hospital closure",
+      "patient": "Rose",
+      "totalUgx": 30000,
+      "paidUgx": 30000,
+      "refundedUgx": 30000,
+      "status": "refunded",
+      "channel": "app",
+      "method": "mtn",
+      "receiptNumber": 423,
+      "chip": "none"
+    }
+  ],
+  "plusPricesUgx": {
+    "plus_family": { "monthly": 3000, "yearly": 30000 },
+    "plus_care": { "monthly": 5000, "yearly": 50000 },
+    "family_care": { "monthly": 7000, "yearly": 70000 }
+  }
+}

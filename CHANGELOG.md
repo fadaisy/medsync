@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient payments core and membership engine (sandbox) — 16 Nov 2026
+
+- Patients can pay a visit's booking fee by Mobile Money once the screens land (patient app v2 Step 6). Money goes
+  to the hospital's own account through a licensed provider; Tether holds none
+  ([ADR 0516](docs/adr/0516-tether-never-holds-patient-money.md)). Exactly-once callbacks and gapless receipt numbers
+  ([ADR 0517](docs/adr/0517-exactly-once-payments.md)); refunds approved by the accounts supervisor, automatic when
+  the hospital cancels ([ADR 0518](docs/adr/0518-refunds-need-a-second-person.md)). Migrations 0299 and 0300 (GATED),
+  four Edge Functions, a sandbox provider only. Membership, Plus entitlements (Plus never buys care), draft Plus
+  prices held on the server, and Questions for the doctor. Setup steps: `docs/patient-app/payments-setup.md`.
+
 ### Fixed — The phone app follows Apple's HIG, on Expo SDK 58 — 16 Nov 2026
 
 - 44 pt touches, an 11 pt text floor, contrast, Reduce Motion and chart shapes on the phone app
