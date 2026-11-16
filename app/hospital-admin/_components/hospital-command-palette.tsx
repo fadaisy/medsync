@@ -122,7 +122,7 @@ const PALETTE_ICONS: Record<string, LucideIcon> = {
   profile: FileTextIcon,
 };
 
-/** Matches the sidebar's domains (hospital-sidebar-item.tsx). */
+/** The icons for each area (the old sidebar's domains). */
 const PALETTE_DOMAIN: Record<string, Domain> = {
   staff: "admin",
   departments: "operations",

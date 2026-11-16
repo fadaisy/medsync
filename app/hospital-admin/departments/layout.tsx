@@ -1,69 +1,25 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { AlertTriangleIcon } from "lucide-react";
 
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
-import { availabilityCount, hubSummary } from "@/lib/services/data";
 import { HubFrame } from "./_components/hub-frame";
-import { HubTabs } from "./_components/hub-tabs";
 
 /**
- * Departments & services (ADR 0150) — the frame every tab renders in: title, one-line lead, the
- * amber count when anything is out, a strip of REAL counts (Law 5: no occupancy), the tabs.
+ * Departments and the pages under it. Departments, Emergency and support, and Wards and beds draw their own desk
+ * pages (ADR 0517). The pages still in the older look (pharmacy set-up, which stays on MedSync, and the one result
+ * path) get a link back to Departments; the old hub title, counts and tabs are gone, so nothing is queried for them.
  */
 export default async function ServicesHubLayout({ children }: { children: ReactNode }) {
-  const scope = await requireHospitalAdminScope();
-  const [summary, problems] = await Promise.all([
-    hubSummary(scope.hospitalId),
-    availabilityCount(scope.hospitalId),
-  ]);
-  const n = (v: number, one: string, many = `${one}s`) => (
-    <span>
-      <span className="text-foreground font-mono tabular-nums">{v}</span> {v === 1 ? one : many}
-    </span>
-  );
+  await requireHospitalAdminScope();
   const chrome = (
-    <>
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <h1 className="font-display text-display-s text-foreground">
-            Departments &amp; services
-          </h1>
-          {problems > 0 ? (
-            <Link
-              href="/hospital-admin/departments?view=unavailable"
-              className="bg-status-caution-bg dark:text-status-caution-fg text-body-s inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium text-amber-800 hover:underline"
-            >
-              <AlertTriangleIcon className="size-3.5" aria-hidden />
-              {problems} {problems === 1 ? "thing" : "things"} unavailable · View
-            </Link>
-          ) : null}
-        </div>
-        <p className="text-muted-foreground max-w-2xl text-[13.5px] leading-relaxed">
-          What your hospital runs, where and when. Staff sign-up, booking, ordering and emergency
-          directions all read from here.
-        </p>
-        <p className="text-muted-foreground text-body-s flex flex-wrap gap-x-3 gap-y-1">
-          {n(summary.departments, "department")}
-          <span aria-hidden>·</span>
-          <span>
-            <span className="text-foreground font-mono tabular-nums">{summary.live}</span> live
-          </span>
-          <span aria-hidden>·</span>
-          {n(summary.wards, "ward")}
-          <span aria-hidden>·</span>
-          {n(summary.beds, "bed")}
-          <span aria-hidden>·</span>
-          {n(summary.clinics, "clinic")}
-          <span aria-hidden>·</span>
-          <span>
-            <span className="text-foreground font-mono tabular-nums">{summary.testsInHouse}</span>{" "}
-            tests in-house
-          </span>
-        </p>
-      </header>
-      <HubTabs />
-    </>
+    <nav aria-label="Breadcrumb" className="text-body-s text-muted-foreground">
+      <Link
+        href="/hospital-admin/departments"
+        className="hover:text-foreground underline-offset-2 hover:underline"
+      >
+        Departments
+      </Link>
+    </nav>
   );
   return <HubFrame chrome={chrome}>{children}</HubFrame>;
 }
