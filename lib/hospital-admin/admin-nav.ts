@@ -48,6 +48,13 @@ export function adminNavGroups(opts: {
       badge: c.unavailable ? fill(ADMIN_NAV.unavailable, c.unavailable) : "",
     },
     {
+      key: "wards",
+      label: I.wards,
+      href: "/hospital-admin/departments/wards",
+      icon: "arrivals",
+    },
+    { key: "lab", label: I.lab, href: "/hospital-admin/lab", icon: "search" },
+    {
       key: "emergency",
       label: I.emergency,
       href: "/hospital-admin/departments/emergency",

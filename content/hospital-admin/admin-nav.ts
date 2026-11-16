@@ -20,6 +20,8 @@ export const ADMIN_NAV = {
     today: "Today",
     activity: "Activity",
     departments: "Departments",
+    wards: "Wards and beds",
+    lab: "Laboratory and imaging",
     emergency: "Emergency and support",
     staff: "People",
     profile: "Hospital profile",

@@ -14,6 +14,8 @@ describe("the admin menu", () => {
     expect(adminNavGroups({ tether: true }).map((g) => g.label)).toEqual(["Hospital", "Follow-up"]);
     expect(keys(true)).toEqual([
       "departments",
+      "wards",
+      "lab",
       "emergency",
       "staff",
       "profile",
@@ -48,7 +50,9 @@ describe("the admin menu", () => {
   it("marks the longest matching item as current", () => {
     const g = adminNavGroups({ tether: true });
     expect(activeKey("/hospital-admin/departments/emergency", g)).toBe("emergency");
-    expect(activeKey("/hospital-admin/departments/wards", g)).toBe("departments");
+    expect(activeKey("/hospital-admin/departments/wards", g)).toBe("wards");
+    expect(activeKey("/hospital-admin/departments/wards/w1/layout", g)).toBe("wards");
+    expect(activeKey("/hospital-admin/lab", g)).toBe("lab");
     expect(activeKey("/hospital-admin/departments", g)).toBe("departments");
     expect(activeKey("/hospital-admin/requests", g)).toBe("requests");
     expect(activeKey("/hospital-admin/reportsx", g)).toBeNull();

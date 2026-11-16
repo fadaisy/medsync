@@ -40,6 +40,8 @@ export type FeatureSlug =
   | ""
   | "today"
   | "activity"
+  | "departments/wards"
+  | "lab"
   | "staff"
   | "departments"
   | "clinics"
@@ -82,7 +84,21 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
   {
     slug: "departments",
     label: "Departments & services",
-    hint: "Departments · heads · wards & beds · booking policy · tests · emergency & support · availability",
+    hint: "Departments · heads · booking rules · emergency & support · availability",
+    iconKey: "departments",
+    placeholder: false,
+  },
+  {
+    slug: "departments/wards",
+    label: "Wards and beds",
+    hint: "Wards · beds · ward layout · live bed board",
+    iconKey: "departments",
+    placeholder: false,
+  },
+  {
+    slug: "lab",
+    label: "Laboratory and imaging",
+    hint: "Test menu · referrals · hours · imaging · profiles",
     iconKey: "departments",
     placeholder: false,
   },
