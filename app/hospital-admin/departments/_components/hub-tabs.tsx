@@ -13,11 +13,8 @@ import { cn } from "@/lib/utils";
 export const HUB_TABS = [
   { href: "/hospital-admin/departments", label: "Departments" },
   { href: "/hospital-admin/departments/wards", label: "Wards & beds" },
-  { href: "/hospital-admin/departments/booking-policy", label: "Booking policy" },
   { href: "/hospital-admin/departments/diagnostics", label: "Diagnostics" },
   { href: "/hospital-admin/departments/emergency", label: "Emergency & support" },
-  { href: "/hospital-admin/departments/availability", label: "Availability" },
-  { href: "/hospital-admin/departments/hours", label: "Hours & places" },
 ] as const;
 
 function currentTab(pathname: string) {
