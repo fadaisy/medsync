@@ -3,6 +3,7 @@
 import type { BoardData } from "@/lib/wards/board";
 
 import { BedBoard } from "@/components/wards/board/bed-board";
+import { WARDS } from "@/content/hospital-admin/wards";
 import {
   adminAllocateAdmissionBed,
   adminAssignBed,
@@ -23,15 +24,21 @@ const ACTIONS = {
   releaseAdmission: adminReleaseAdmissionBed,
 };
 const LINKS = {
-  crumbs: [
-    { label: "Hospital admin", href: "/hospital-admin" },
-    { label: "Departments & services", href: HUB },
-    { label: "Wards", href: `${HUB}/wards` },
-  ],
+  crumbs: [{ label: WARDS.builder.crumb, href: `${HUB}/wards` }],
   board: (id: string) => `${HUB}/wards/${id}/board`,
   layout: (id: string) => `${HUB}/wards/${id}/layout`,
 };
 
+/** The live bed board in the admin frame (phase 2 of ADR 0516): the same board, filling the frame's page. */
 export function BoardClient({ data, hospitalId }: { data: BoardData; hospitalId: string }) {
-  return <BedBoard data={data} hospitalId={hospitalId} mayAct actions={ACTIONS} links={LINKS} />;
+  return (
+    <BedBoard
+      data={data}
+      hospitalId={hospitalId}
+      mayAct
+      actions={ACTIONS}
+      links={LINKS}
+      fit="frame"
+    />
+  );
 }
