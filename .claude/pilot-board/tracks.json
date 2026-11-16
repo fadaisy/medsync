@@ -183,10 +183,10 @@
     "id": "cloud-floor",
     "area": "Claude",
     "task": "Clinic floor follow-up: pregnancy and SpO2 scale 2 as engine inputs, then wiring",
-    "status": "Running",
-    "progress": 85,
+    "status": "Done",
+    "progress": 100,
     "branch": "feat/clinic-floor-engine-inputs",
-    "note": "Changes 1–4 pushed (1845974): pregnancy and SpO2 scale 2, age and sex, Trends, lab results back, and floor reads in the access log (once a day per patient). 25/25 tests; the database queries are not tested here. Approved 16 Nov: change 5 (follow-up booking from Finish visit) and a 10-second refresh on the line. Session session_01AyHv1Boe5cQsa3jrparsCw.",
+    "note": "Pushed (aa0ef1f), ready to merge, no migration. Pregnancy and SpO2 scale 2, age and sex, Trends, lab results back, access log, follow-up booking from Finish visit, and a 10-second refresh on every floor view. Build and 139 tests pass. Needs a signed-in check: follow-up booking, results back, Trends across hospitals, refresh. The finish form's texts switch is not sent (the booking function has no opt-out).",
     "updated": "2026-11-16"
   },
   {
@@ -346,8 +346,8 @@
     "status": "Needs you",
     "progress": null,
     "branch": "",
-    "note": "All drafts (docs/clinic-floor/REPORT.md). Then turn CLINIC_FLOOR on at one clinic for 2 days, and delete the old pages and flag. Also: the new pregnancy and SpO2 scale 2 strings (content/clinic-floor/floor.ts on feat/clinic-floor-engine-inputs).",
-    "updated": "2026-11-15"
+    "note": "All drafts (docs/clinic-floor/REPORT.md). Then turn CLINIC_FLOOR on at one clinic for 2 days, and delete the old pages and flag. Also: the new pregnancy and SpO2 scale 2 strings (content/clinic-floor/floor.ts on feat/clinic-floor-engine-inputs). New drafts from the follow-up: pregnancy, scale 2, trend sources, no-session and follow-up messages.",
+    "updated": "2026-11-16"
   },
   {
     "id": "landing-signoffs",
@@ -466,8 +466,8 @@
     "status": "Needs you",
     "progress": null,
     "branch": "",
-    "note": "Ready to merge: claude/funny-shannon-i7xgwp (inline MFA ADR 0513, full-screen fix ADR 0514, handout, board), claude/booking-pilot-onto-main (pilot numbers, clinic guide), perf/reception-desk-first-load (lighter pages). Later: feat/clinic-floor-engine-inputs when its changes are done; claude/booking-pilot-go-live only after Vercel Pro.",
-    "updated": "2026-11-15"
+    "note": "Ready to merge: claude/funny-shannon-i7xgwp (inline MFA ADR 0513, full-screen fix ADR 0514, handout, board), claude/booking-pilot-onto-main (pilot numbers, clinic guide), perf/reception-desk-first-load (lighter pages), feat/clinic-floor-engine-inputs (floor follow-up). claude/booking-pilot-go-live only after Vercel Pro.",
+    "updated": "2026-11-16"
   },
   {
     "id": "deploy",
