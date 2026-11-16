@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { KeyboardTypeOptions, TextInputProps } from "react-native";
+import type { KeyboardTypeOptions, TextInputInstance, TextInputProps } from "react-native";
 import { useRef } from "react";
 import { formatUgPhone, isUgMobile } from "@patient-core/getting-in-signup";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -30,7 +30,7 @@ export function FieldLabel({ children, optional }: { children: string; optional?
     <Text style={[tType.caption, { fontSize: 13, color: t.ink2 }]}>
       {children}
       {optional ? (
-        <Text style={{ fontFamily: tFont.medium, color: t.ink4 }}> (optional)</Text>
+        <Text style={{ fontFamily: tFont.medium, color: t.ink3 }}> (optional)</Text>
       ) : null}
     </Text>
   );
@@ -223,7 +223,7 @@ export function OtpBoxes({
   length?: number;
 }) {
   const t = useTide();
-  const ref = useRef<TextInput>(null);
+  const ref = useRef<TextInputInstance>(null);
   return (
     <Pressable
       onPress={() => ref.current?.focus()}

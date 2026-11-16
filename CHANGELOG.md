@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Fixed — The phone app follows Apple's HIG, on Expo SDK 58 — 16 Nov 2026
+
+- 44 pt touches, an 11 pt text floor, contrast, Reduce Motion and chart shapes on the phone app
+  ([ADR 0515](docs/adr/0515-phone-app-follows-apple-hig.md), first drafted as 0471, a number `main` had since used).
+  The phone app moves to Expo SDK 58 (React Native 0.88, Reanimated 4.7).
+
 ### Fixed — Clinics & schedule and the reception desk open full screen — 15 Nov 2026
 
 - The old admin and reception frames no longer wrap the new workspaces, which drew a second sidebar and top bar and
