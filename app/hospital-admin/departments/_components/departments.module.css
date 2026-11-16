@@ -124,6 +124,7 @@
   flex: 0 1 140px !important;
 }
 .select {
+  flex-basis: auto !important;
   height: 44px !important;
   font-size: 15px !important;
 }
@@ -212,6 +213,26 @@
 .wrapSeg {
   flex-wrap: wrap;
   height: auto;
+  border-radius: 20px;
+}
+
+/* The panel's three tabs: one row of equal parts that never wraps into a second pill line. */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  width: 100%;
+}
+.tabs > button {
+  padding: 0 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+/* A quiet text button in a section's column sits under its text, not centred across the panel. */
+.start {
+  align-self: flex-start;
 }
 
 @media (max-width: 600px) {

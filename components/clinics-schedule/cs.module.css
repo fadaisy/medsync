@@ -1116,6 +1116,11 @@ button.su-hi:hover {
 .su-f > .in {
   flex: none;
 }
+/* The same in a section's column: an input placed straight in `.su-sec` kept `flex: 1` and collapsed to a sliver. */
+.su-sec > .in,
+.det > .in {
+  flex: none;
+}
 .su-ta {
   height: auto !important;
   padding: 10px 14px;

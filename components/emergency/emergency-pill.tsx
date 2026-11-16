@@ -43,6 +43,8 @@ const HEADER_EMERGENCY = [
   // The clinic floor's shell carries Emergency at every width (ADR 0491, CF8).
   "/clinic",
   "/styleguide/clinic-floor",
+  // The admin workspace's desk top bar carries Emergency at every width (ADR 0520), so no second one floats over it.
+  "/hospital-admin",
 ];
 
 /** Staff workspaces keep "Emergency"; under Tide every other route says "Help" (D-TW-04). */

@@ -1,7 +1,9 @@
 "use client";
 
 import type { Cap, HelpPreview, Location } from "../_lib/model";
+import type { MapLayer } from "./entrance-map";
 import type { CapabilityKey } from "@/supabase/functions/_shared/services-hub";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -10,11 +12,18 @@ import { EMERG } from "@/content/hospital-admin/emergency";
 import { fill } from "@/content/lab-workspace-v2";
 import { CAPABILITY_KEYS, CAPABILITY_SECTIONS } from "@/supabase/functions/_shared/services-hub";
 import { rejectCapabilityAction, verifyCapabilityAction } from "../_lib/actions";
+import { googleMapsUrl } from "../_lib/geo";
 import { coordsText, fmtPhone, show } from "../_lib/model";
 import { useOp } from "../../_lib/use-op";
 import { ChangeDialog } from "./change-dialog";
 import e from "./emergency.module.css";
 import { PinDialog } from "./pin-dialog";
+
+// Leaflet needs `window`, and stays out of the page's first load.
+const EntranceMap = dynamic(() => import("./entrance-map"), {
+  ssr: false,
+  loading: () => <div className={`${e.map} ${e.mapSm}`} />,
+});
 
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", {
@@ -219,7 +228,10 @@ export function EmergencyDesk({
               </span>
             </div>
           </div>
-          <HelpScreen help={help} pinned={location.latitude !== null} />
+          <div className={e.side}>
+            <HelpScreen help={help} pinned={location.latitude !== null} />
+            <LocationCard location={location} onMove={() => setModal({ k: "pin" })} />
+          </div>
         </div>
 
         <div className={`${k("su-ch")} ${e.plain}`}>
@@ -430,5 +442,61 @@ function RejectDialog({
         </button>
       </div>
     </DeskDialog>
+  );
+}
+
+/** The hospital's pin, previewed on satellite imagery or the street map, with a check in Google Maps. */
+function LocationCard({ location, onMove }: { location: Location; onMove: () => void }) {
+  const [layer, setLayer] = useState<MapLayer>("satellite");
+  const L = EMERG.locationCard;
+  const P = EMERG.pin;
+  const pin =
+    location.latitude !== null && location.longitude !== null
+      ? { lat: location.latitude, lng: location.longitude }
+      : null;
+  return (
+    <div className={`${k("su-card")} ${e.locCard}`}>
+      <div className={e.locHead}>
+        <b>{L.title}</b>
+        {pin ? (
+          <span className={e.layerSeg}>
+            {(["satellite", "map"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                className={layer === v ? e.layerOn : undefined}
+                aria-pressed={layer === v}
+                onClick={() => setLayer(v)}
+              >
+                {P.layers[v]}
+              </button>
+            ))}
+          </span>
+        ) : null}
+      </div>
+      {pin ? (
+        <>
+          <EntranceMap pin={pin} label={L.preview} layer={layer} interactive={false} small />
+          <small className={e.locCoords}>{coordsText(pin.lat, pin.lng)}</small>
+        </>
+      ) : (
+        <p className={k("su-note")}>{L.none}</p>
+      )}
+      <div className={e.acts}>
+        <button type="button" className={k("btn", "sm")} onClick={onMove}>
+          {pin ? L.move : L.pin}
+        </button>
+        {pin ? (
+          <a
+            className={k("btn", "sm", "q")}
+            href={googleMapsUrl(pin.lat, pin.lng)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {P.google}
+          </a>
+        ) : null}
+      </div>
+    </div>
   );
 }
