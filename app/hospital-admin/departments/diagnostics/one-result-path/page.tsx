@@ -64,10 +64,10 @@ export default async function OneResultPathPage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6">
       <header className="flex flex-col gap-1">
         <Link
-          href="/hospital-admin/departments/diagnostics"
+          href="/hospital-admin/lab"
           className="text-body-s text-teal-700 underline-offset-4 hover:underline"
         >
-          Back to diagnostics
+          Back to Laboratory and imaging
         </Link>
         <h1 className="text-heading-m">One result path for the laboratory</h1>
         <p className="text-body-s text-muted-foreground max-w-[70ch]">
