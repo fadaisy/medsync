@@ -5,12 +5,14 @@ import type { EventKind, FloorEvent } from "./model";
 import type { Reading, TriageRow } from "./trends";
 import type { TriageScope } from "@/lib/triage/scope";
 import type { AcuityLevel, TriageInput, TriageVitals } from "@/lib/triage/types";
-import { and, asc, eq, gte, inArray, lt, ne, notInArray } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNotNull, lt, ne, notInArray } from "drizzle-orm";
 
 import { FLOOR } from "@/content/clinic-floor/floor";
 import { db } from "@/db";
 import { clinicFloorEvents } from "@/db/schema/clinic-floor";
 import { clinicSessions } from "@/db/schema/clinic-sessions";
+import { clinicalPhiAccessLog } from "@/db/schema/doctor-workspace";
+import { encounterOrders, encounterResults } from "@/db/schema/encounter";
 import { patientIntakes } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointments } from "@/db/schema/scheduling";
@@ -131,11 +133,36 @@ export async function loadFloorData(
         .orderBy(asc(triageRecords.triagedAt))
     : [];
   const latest = new Map(records.map((r) => [r.intakeId, r]));
+  const patients = [...new Set(intakes.flatMap((r) => (r.patientUserId ? [r.patientUserId] : [])))];
+  // Lab "results back" (follow-up 4): released results for today's patients at this hospital, released today.
+  // Encounters carry no intake, so the match is patient + hospital + day; the model keeps only those released
+  // after the visit was sent for tests. Times only: no value leaves the database here.
+  const released = patients.length
+    ? await db
+        .select({ patientUserId: encounterOrders.patientUserId, at: encounterResults.releasedAt })
+        .from(encounterResults)
+        .innerJoin(encounterOrders, eq(encounterOrders.id, encounterResults.orderId))
+        .where(
+          and(
+            eq(encounterOrders.hospitalId, scope.hospitalId),
+            inArray(encounterOrders.patientUserId, patients),
+            eq(encounterResults.qualityStatus, "released"),
+            isNotNull(encounterResults.releasedAt),
+            gte(encounterResults.releasedAt, dayStart),
+          ),
+        )
+    : [];
+  const backAt = new Map<string, number[]>();
+  for (const x of released) {
+    if (!x.patientUserId || !x.at) continue;
+    backAt.set(x.patientUserId, [...(backAt.get(x.patientUserId) ?? []), x.at.getTime()]);
+  }
+
   // The waiting-room screen sends codes and rooms only (S3), so it skips the readings.
-  const past = await pastReadings(
-    readings ? intakes.flatMap((r) => (r.patientUserId ? [r.patientUserId] : [])) : [],
-    { hospitalId: scope.hospitalId, dayStart: dayStart.getTime() },
-  );
+  const past = await pastReadings(readings ? patients : [], {
+    hospitalId: scope.hospitalId,
+    dayStart: dayStart.getTime(),
+  });
 
   const clinics: FloorClinic[] = depts.map((d, i) => {
     const mine = sess.filter((s) => s.departmentId === d.id);
@@ -206,10 +233,46 @@ export async function loadFloorData(
       allergy: null,
       hist: [],
       readings: (r.patientUserId && past.get(r.patientUserId)) || [],
-      // ponytail: lab release (encounter_results.released_at) joins in with the lab round-trip (REPORT §9).
-      resultsReleasedAt: [],
+      resultsReleasedAt: (r.patientUserId && backAt.get(r.patientUserId)) || [],
     };
   });
+
+  // Owner ruling 16 Nov: the floor logs its patient reads like the nurse worklist (one row per patient shown,
+  // basis department_recent). The screen (codes only) does not log.
+  // The board refreshes every 10 s, so each user logs each patient once a day on this surface, not on every load.
+  if (readings && patients.length) {
+    try {
+      const done = new Set(
+        (
+          await db
+            .select({ id: clinicalPhiAccessLog.patientUserId })
+            .from(clinicalPhiAccessLog)
+            .where(
+              and(
+                eq(clinicalPhiAccessLog.clinicianUserId, scope.userId),
+                eq(clinicalPhiAccessLog.hospitalId, scope.hospitalId),
+                eq(clinicalPhiAccessLog.surface, "clinic_floor"),
+                inArray(clinicalPhiAccessLog.patientUserId, patients),
+                gte(clinicalPhiAccessLog.createdAt, dayStart),
+              ),
+            )
+        ).map((x) => x.id),
+      );
+      const fresh = patients.filter((id) => !done.has(id));
+      if (fresh.length)
+        await db.insert(clinicalPhiAccessLog).values(
+          fresh.map((id) => ({
+            hospitalId: scope.hospitalId,
+            clinicianUserId: scope.userId,
+            patientUserId: id,
+            accessBasis: "department_recent" as const,
+            surface: "clinic_floor",
+          })),
+        );
+    } catch (e) {
+      logger.error("clinic_floor.phi_audit_failed", { reason: String(e) });
+    }
+  }
 
   const floorEvents: FloorEvent[] = events.map((e) => ({
     intakeId: e.intakeId,
