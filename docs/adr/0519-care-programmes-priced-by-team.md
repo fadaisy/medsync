@@ -1,6 +1,6 @@
 # 0519 — Care programmes are priced by their team; safety is never priced
 
-Date: 2026-11-16 · Status: accepted by the owner in chat ("continue the build with your recommendations"). The change to MR9 and D-MR-08 below needs the CSO's signature (`docs/patient-app/gate-a-amendment-1.md`).
+Date: 2026-11-16 · Status: accepted by the owner in chat ("continue the build with your recommendations"). The change to MR9 and D-MR-08 was signed by the CSO in chat on 16 Nov 2026 (`docs/patient-app/gate-a-amendment-1.md`).
 
 ## Decision
 
@@ -13,7 +13,7 @@ Date: 2026-11-16 · Status: accepted by the owner in chat ("continue the build w
 - **Money:** the hospital employs the team and receives the fee. Tether's platform share, UGX 9,000 a member-month or 20% after the collection fee (whichever is higher, never above half the fee), is recorded on the bill and paid by the provider's split at settlement (ADR 0516).
 - **What a paid period switches on:** proactive work: check-ins, team messages, reviews, sessions.
 - **What stays free, paid or not:** danger alerts reaching the team, Help, the danger flows, results, the plan, readings and medicine ticks.
-- **Plus draft prices** (server-held, hidden until approved):
+- **Plus prices** (server-held; approved by the owner in chat, 16 Nov 2026):
 
   | Tier          | Monthly (UGX) |
   | ------------- | ------------- |

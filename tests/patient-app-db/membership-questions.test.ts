@@ -124,12 +124,20 @@ describe.skipIf(!laneOn)("membership and questions (0300)", () => {
     expect(bills.rows).toHaveLength(0);
   });
 
-  it("prices: draft rows are hidden until the owner approves them; clients cannot write them", async () => {
+  it("prices: approved rows show, a draft row stays hidden, clients cannot write them", async () => {
     const u = await authUser(pg, "price");
-    const draft = await probe(pg, as(u), `SELECT * FROM public.plus_prices`);
-    expect(draft.ok && draft.rows.length).toBe(0);
-    const { rows } = await pg.query<{ tier: string; period: string; amount_ugx: number }>(
+    await pg.query(
+      `INSERT INTO public.plus_prices (tier, period, amount_ugx, effective_from) VALUES ('plus_care','monthly',99000,'2099-01-01')`,
+    );
+    const seen = await probe(
+      pg,
+      as(u),
       `SELECT tier, period, amount_ugx FROM public.plus_prices ORDER BY tier, period`,
+    );
+    expect(seen.ok && seen.rows.length).toBe(9);
+    expect(seen.ok && seen.rows.some((r) => r.amount_ugx === 99000)).toBe(false);
+    const { rows } = await pg.query<{ tier: string; period: string; amount_ugx: number }>(
+      `SELECT tier, period, amount_ugx FROM public.plus_prices WHERE approved_at IS NOT NULL`,
     );
     for (const r of rows.filter((x) => x.period === "yearly")) {
       const monthly = rows.find((x) => x.tier === r.tier && x.period === "monthly")!;

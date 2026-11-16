@@ -1,6 +1,6 @@
 # GATE A · Amendment 1: care programmes cost money; safety stays free
 
-Status: **for the CSO's signature.** The owner approved this in chat on 16 Nov 2026 ("continue the build with your recommendations"). Code is built behind `careMode`, which stays off in production until Gate CG.
+Status: **signed by Fadhul (CSO and owner), in chat, 16 Nov 2026** ("lets sign off what needs to be signed"). The owner approved this in chat on 16 Nov 2026 ("continue the build with your recommendations"). Code is built behind `careMode`, which stays off in production until Gate CG.
 
 ## What changes
 
@@ -18,4 +18,4 @@ Status: **for the CSO's signature.** The owner approved this in chat on 16 Nov 2
 
 ## Signature
 
-☐ Signed by: ******\_\_****** (CSO) · Date: **\_\_**
+☐ Signed by: **\*\***\_\_**\*\*** (CSO) · Date: **\_\_**

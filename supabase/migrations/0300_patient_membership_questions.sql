@@ -18,14 +18,15 @@ CREATE TABLE IF NOT EXISTS public.plus_prices (
   approved_at  timestamptz,
   PRIMARY KEY (tier, period, effective_from)
 );
--- Draft prices for the owner to approve (approved_by stays NULL until then; the app shows only approved rows).
--- From docs/patient-app/business-model.md, as revised: Plus Family is software only (cheap to serve), so it is
--- priced for reach; Plus Care carries texts and refill packing. Programme members get Plus Care inside their
--- programme price, not on top.
-INSERT INTO public.plus_prices (tier, period, amount_ugx) VALUES
-  ('plus_family','monthly',5000),  ('plus_family','quarterly',14250), ('plus_family','yearly',50000),
-  ('plus_care','monthly',10000),   ('plus_care','quarterly',28500),   ('plus_care','yearly',100000),
-  ('family_care','monthly',13000), ('family_care','quarterly',37050), ('family_care','yearly',130000)
+-- Prices approved by the owner in chat on 16 Nov 2026 (ADR 0519; docs/patient-app/gate-a-amendment-1.md). A later
+-- change is a new row with a new effective_from, approved in the app; approved_by stays NULL on these seed rows
+-- because the approval was given in chat, not by an account. Programme members get Plus Care in their programme.
+INSERT INTO public.plus_prices (tier, period, amount_ugx, approved_at) VALUES
+  ('plus_family','monthly',5000,'2026-11-16'),  ('plus_family','quarterly',14250,'2026-11-16'),
+  ('plus_family','yearly',50000,'2026-11-16'),  ('plus_care','monthly',10000,'2026-11-16'),
+  ('plus_care','quarterly',28500,'2026-11-16'), ('plus_care','yearly',100000,'2026-11-16'),
+  ('family_care','monthly',13000,'2026-11-16'), ('family_care','quarterly',37050,'2026-11-16'),
+  ('family_care','yearly',130000,'2026-11-16')
 ON CONFLICT DO NOTHING;
 
 -- ─── 2. Memberships ─────────────────────────────────────────────────────────────
