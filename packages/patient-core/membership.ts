@@ -65,12 +65,17 @@ export function plansFrom(prices: PriceRow[], today: string): Plan[] {
   });
 }
 
-/** "TP 4K7 2QM" style member number from a stable id: grouped, never the id itself. */
+/**
+ * The member number on the card: the patient's own MedSync ID, whole, in its own groups ("MS-2026-00035" reads
+ * "MS 2026 00035", the same as the health card). A code with no separators is grouped in threes. Never cut short:
+ * the last digits are what tell two members apart.
+ */
 export function memberNumber(code: string | null): string {
   if (!code) return "—";
-  const c = code
-    .replace(/[^A-Za-z0-9]/g, "")
+  const groups = code
     .toUpperCase()
-    .slice(0, 9);
-  return c.match(/.{1,3}/g)?.join(" ") ?? c;
+    .split(/[^A-Z0-9]+/)
+    .filter(Boolean);
+  if (groups.length > 1) return groups.join(" ");
+  return (groups[0] ?? "").match(/.{1,3}/g)?.join(" ") ?? "—";
 }
