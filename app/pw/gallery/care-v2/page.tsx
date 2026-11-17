@@ -1,4 +1,5 @@
 import { PageHeader, PatientShell } from "@/components/tide/shell";
+import { GALLERY_SHELL } from "../v2-shell";
 import { CareV2Fixtures } from "./fixtures";
 
 /**
@@ -15,7 +16,7 @@ export default async function CareV2Gallery({
   const title =
     { plan: "Your plan today", mycare: "My care", reading: "Add a reading" }[screen] ?? "Today";
   return (
-    <PatientShell>
+    <PatientShell v2={GALLERY_SHELL}>
       <PageHeader overline="Kit · v2" area="readings" title={title} demo />
       <CareV2Fixtures screen={screen} />
     </PatientShell>

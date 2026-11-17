@@ -100,13 +100,13 @@ export const VISITS_COPY = {
     `You booked this for ${member}. It can be moved or cancelled at the desk.`,
   gettingThere: "Getting there",
   showCode: (code: string) => `Show code ${code} at the desk when you arrive.`,
-  showNumber: "Show your MedSync number at the desk when you arrive.",
+  showNumber: "Show your Tether number at the desk when you arrive.",
   noPin: (hospital: string) =>
     `${hospital} has not put its place on the map yet. Your map app can search for it.`,
   directionsInMaps: "Directions in Maps",
   moveTitle: "Pick another day and time",
   moveLoading: "Finding the days the clinic has open",
-  moveNone: "No other day is open with this clinician on MedSync yet.",
+  moveNone: "No other day is open with this clinician on Tether yet.",
   moveFailed: "Couldn't load the days the clinic has open.",
   moveSubmit: "Move my visit",
   keepIt: "Keep it",
@@ -128,7 +128,7 @@ export const VISITS_COPY = {
 
   // mobile/src/components/tide/ticket.tsx
   ticket: {
-    brand: "MedSync",
+    brand: "Tether",
     visitTicket: "Visit ticket",
     day: "Day",
     time: "Time",

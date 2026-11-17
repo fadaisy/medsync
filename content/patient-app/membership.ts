@@ -24,6 +24,8 @@ export const MEMBERSHIP_COPY = {
       showConditions: "Show conditions",
       hospitalLine: "Hospital line",
       qrNote: "This code works for a short time only.",
+      ageSex: "Age",
+      nextOfKin: "Next of kin",
     },
   },
   tiers: {
@@ -64,6 +66,7 @@ export const MEMBERSHIP_COPY = {
       family_care: ["Everything in Plus Family", "Everything in Plus Care"],
     },
   },
+  appVersion: "Tether {version}",
   reveal: {
     title: "Welcome to {tier}",
     note: "Your free month runs to {date}. Nothing is charged when it ends.",

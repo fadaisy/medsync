@@ -24,6 +24,12 @@ const TIER_NAME: Record<Tier, string> = {
 };
 
 export interface MedicalId {
+  /** "54 · F": from the old health card's front (MR1: nothing lost when it went). */
+  ageSex?: string | null;
+  /** Next of kin on file, in words. */
+  nextOfKin?: string | null;
+  /** "If found, call …" or "If found, please return to …". */
+  ifFound?: string | null;
   emergencyContact: string;
   bloodGroup: string | null;
   allergies: string[];
@@ -121,6 +127,17 @@ export function MembershipCard({
               <span>
                 <b>{M.card.back.hospitalLine}:</b> {id.hospitalLine}
               </span>
+              {id.ageSex ? (
+                <span>
+                  <b>{M.card.back.ageSex}:</b> {id.ageSex}
+                </span>
+              ) : null}
+              {id.nextOfKin ? (
+                <span>
+                  <b>{M.card.back.nextOfKin}:</b> {id.nextOfKin}
+                </span>
+              ) : null}
+              {id.ifFound ? <span className="text-pw-ink-2">{id.ifFound}</span> : null}
             </div>
             <div className="flex w-28 shrink-0 flex-col items-center gap-1">
               {id.qr}

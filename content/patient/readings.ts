@@ -60,7 +60,7 @@ export const READINGS_COPY = {
   photoFilled: "Read from the photo. Check the numbers, then save.",
   photoNoRead:
     "Couldn't read the numbers. Try again with the screen filling the photo, or type them.",
-  photoOffline: "Couldn't reach MedSync. Check your connection, or type the numbers.",
+  photoOffline: "Couldn't reach Tether. Check your connection, or type the numbers.",
   signInAgain: "Sign in again.",
 
   // mobile/src/app/(app)/danger.tsx and reading-sheet.tsx (the danger card)
