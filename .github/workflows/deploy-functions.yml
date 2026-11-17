@@ -64,6 +64,6 @@ jobs:
           # One function at a time, so the log says which one failed.
           for f in $FUNCTIONS; do
             echo "::group::$f"
-            supabase functions deploy "$f" --project-ref "$PROJECT_REF" --use-api
+            supabase functions deploy "$f" --project-ref "$PROJECT_REF" --use-api --yes
             echo "::endgroup::"
           done
