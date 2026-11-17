@@ -57,7 +57,12 @@ export function ActivityView({
           </div>
         </div>
         <div className={k("su-ctb")}>
-          <div className={k("su-cfs")} role="tablist" aria-label={ACTIVITY.title}>
+          <div
+            className={k("su-cfs")}
+            role="tablist"
+            data-tour="wt-ac-tabs"
+            aria-label={ACTIVITY.title}
+          >
             {tabs.map(([t, label]) => (
               <button
                 key={t}

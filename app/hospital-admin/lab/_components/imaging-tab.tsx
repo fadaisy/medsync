@@ -59,7 +59,7 @@ export function ImagingTab({
           )}
         </p>
       ) : null}
-      <div className={v.g2}>
+      <div className={v.g2} data-tour="wt-lab-img">
         {IMAGING_ITEMS.map((it) => {
           const o = byCode.get(it.code);
           const p = problems.find((x) => x.subjectRef === it.code);

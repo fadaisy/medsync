@@ -13,6 +13,7 @@ import type { AdminNavGroup } from "@/lib/hospital-admin/admin-nav";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { AdminHomeNav, AdminNavGroups } from "@/components/hospital-admin/admin-nav-groups";
+import { GuideNavButton } from "@/components/hospital-admin/guide/guide-button";
 import { DeskShell } from "@/components/reception/shell";
 import { CS, CS_ERRORS } from "@/content/clinics-schedule/copy";
 import { fill } from "@/content/lab-workspace-v2";
@@ -25,6 +26,8 @@ import {
   readiness,
   undoFrom,
 } from "@/lib/clinics-schedule/model";
+import { navTour } from "@/lib/hospital-admin/guide/keys";
+import { GUIDE_NAV_EVENT } from "@/lib/hospital-admin/guide/route";
 import { ClinicsView } from "./clinics";
 import { ClosuresView, CxDialog } from "./closures";
 import { DeviceDialog, DevicesView } from "./devices";
@@ -50,6 +53,10 @@ const typing = (e: KeyboardEvent) => {
   return !!t && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName));
 };
 
+/** A clinic (and one of its tabs) from the URL, as the workspace's `sel` ("id#tab"). */
+const selFrom = (clinic?: string | null, tab?: string | null) =>
+  clinic ? (tab ? `${clinic}#${tab}` : clinic) : null;
+
 const onlineSub = (cb: () => void) => {
   window.addEventListener("online", cb);
   window.addEventListener("offline", cb);
@@ -64,12 +71,17 @@ export function ClinicsWorkspace({
   port,
   forceOffline = false,
   initialView = "ready",
+  initialClinic = null,
+  initialTab = null,
   groups = [],
 }: {
   data: CsData;
   port: CsPort;
   forceOffline?: boolean;
   initialView?: View;
+  /** `?clinic=` and `?tab=`: open one clinic's panel on a tab (the guide's walkthroughs, ADR 0522). */
+  initialClinic?: string | null;
+  initialTab?: string | null;
   /** The admin menu's other groups (ADR 0520), the same as in the admin frame. */
   groups?: readonly AdminNavGroup[];
 }) {
@@ -79,7 +91,7 @@ export function ClinicsWorkspace({
   const [job, setJob] = useState<Job | null>(data.job);
   const [user, setUser] = useState<CsUser>(data.user);
   const [view, setView] = useState<View>(initialView);
-  const [sel, setSel] = useState<string | null>(null);
+  const [sel, setSel] = useState<string | null>(selFrom(initialClinic, initialTab));
   const [modal, setModal] = useState<Modal | null>(null);
   const [toast, setToast] = useState<{ text: string; undo?: () => void } | null>(null);
   const [q, setQ] = useState("");
@@ -104,6 +116,24 @@ export function ClinicsWorkspace({
         void Promise.all(fresh.map((c) => port.saveChange(c))).then(() => localDrafts.write([]));
     });
   }, [data, port]);
+
+  // The guide (ADR 0522) opens a view by URL; this desk keeps its view in state, so it follows the guide's link at
+  // once. It only changes what is shown.
+  useEffect(() => {
+    const onGuide = (e: Event) => {
+      const href = (e as CustomEvent<string>).detail;
+      if (typeof href !== "string") return;
+      const u = new URL(href, window.location.origin);
+      if (u.pathname !== "/hospital-admin/clinics") return;
+      const v = u.searchParams.get("view");
+      setView((VIEWS as readonly string[]).includes(v ?? "") ? (v as View) : "ready");
+      setSel(selFrom(u.searchParams.get("clinic"), u.searchParams.get("tab")));
+      setModal(null);
+      setDrawer(false);
+    };
+    window.addEventListener(GUIDE_NAV_EVENT, onGuide);
+    return () => window.removeEventListener(GUIDE_NAV_EVENT, onGuide);
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -435,6 +465,7 @@ export function ClinicsWorkspace({
                 onClick={() => go(v)}
                 title={`${CS.views[v]} (${i + 1})`}
                 aria-current={view === v ? "page" : undefined}
+                data-tour={navTour(CS.views[v])}
               >
                 <Icon n={ICONS[v]} size={19} />
                 <span className={k("lbl")}>{CS.views[v]}</span>
@@ -445,11 +476,12 @@ export function ClinicsWorkspace({
           </nav>
           <AdminNavGroups groups={groups} />
           <div className={k("grow")} />
+          <GuideNavButton />
         </div>
       }
       top={
         <>
-          <label className={k("srch")}>
+          <label className={k("srch")} data-tour="search">
             <span className={k("sr")}>{CS.top.find}</span>
             <Icon n="search" size={17} />
             <input
@@ -471,6 +503,7 @@ export function ClinicsWorkspace({
               type="button"
               className={k("su-pub-pill")}
               onClick={() => setModal({ k: "publish" })}
+              data-tour="wt-publish"
             >
               <span>
                 {drafts.length === 1 ? CS.top.change1 : fill(CS.top.changes, { n: drafts.length })}

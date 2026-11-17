@@ -38,7 +38,12 @@ export function UnavailableNow({ data, reporting }: { data: DepartmentsData; rep
       <div className={`${k("ahead")} ${d.head}`}>
         <p className={k("su-note")}>{U.note}</p>
         <span className={k("grow")} />
-        <button type="button" className={k("btn", "sm")} onClick={() => setReport(true)}>
+        <button
+          type="button"
+          className={k("btn", "sm")}
+          onClick={() => setReport(true)}
+          data-tour="wt-dp-prob"
+        >
           {U.report}
         </button>
       </div>

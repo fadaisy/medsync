@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { DeskDialog, Field, Icon, k } from "@/components/clinics-schedule/shared";
+import { useUrlState } from "@/components/hospital-admin/use-url-state";
 import { REQUESTS } from "@/content/hospital-admin/admin-nav";
 import { fill } from "@/content/lab-workspace-v2";
 import { fulfilRecordsRequestAction } from "../_lib/actions";
@@ -40,7 +41,7 @@ export function RequestsView({
   copies: readonly CopyRequest[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>(initial);
+  const [tab, setTab] = useUrlState<Tab>(initial);
   const [sel, setSel] = useState<CopyRequest | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +90,12 @@ export function RequestsView({
           </div>
         </div>
         <div className={k("su-ctb")}>
-          <div className={k("su-cfs")} role="tablist" aria-label={REQUESTS.title}>
+          <div
+            className={k("su-cfs")}
+            role="tablist"
+            data-tour="wt-rq-tabs"
+            aria-label={REQUESTS.title}
+          >
             {tabs.map(([t, label, n]) => (
               <button
                 key={t}
@@ -109,7 +115,7 @@ export function RequestsView({
         {tab === "clinician" ? (
           <>
             <p className={k("su-note")}>{C.note}</p>
-            <div className={k("su-card")}>
+            <div className={k("su-card")} data-tour="wt-rq-rows">
               {pending.length ? (
                 pending.map((r) => (
                   <div key={r.id} className={`${k("su-td")} ${v.row}`}>
@@ -141,7 +147,7 @@ export function RequestsView({
         ) : (
           <>
             <p className={k("su-note")}>{P.note}</p>
-            <div className={k("su-card")}>
+            <div className={k("su-card")} data-tour="wt-cp-rows">
               {copies.length ? (
                 copies.map((c) => (
                   <div key={c.id} className={`${k("su-td")} ${v.row}`}>

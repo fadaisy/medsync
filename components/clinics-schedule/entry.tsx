@@ -38,14 +38,26 @@ const asView = (v?: string): View =>
 export function LiveClinics({
   data,
   view,
+  clinic,
+  tab,
   groups,
 }: {
   data: CsData;
   view?: string;
+  /** `?clinic=` and `?tab=`: one clinic's panel, opened on a tab (ADR 0522). */
+  clinic?: string;
+  tab?: string;
   groups?: readonly AdminNavGroup[];
 }) {
   return (
-    <ClinicsWorkspace data={data} port={livePort} initialView={asView(view)} groups={groups} />
+    <ClinicsWorkspace
+      data={data}
+      port={livePort}
+      initialView={asView(view)}
+      initialClinic={clinic ?? null}
+      initialTab={tab ?? null}
+      groups={groups}
+    />
   );
 }
 

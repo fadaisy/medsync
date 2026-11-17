@@ -139,7 +139,7 @@ export function WardsView({
         </div>
         {!departments.length ? <p className={k("su-note")}>{WARDS.noDepartment}</p> : null}
 
-        <div className={`${k("su-dst")} ${v.stats}`}>
+        <div className={`${k("su-dst")} ${v.stats}`} data-tour="wt-w-stats">
           {tiles
             .filter((t) => t.show)
             .map((t) =>
@@ -179,7 +179,7 @@ export function WardsView({
               <b>{g.name}</b>
               <small>{WARDS.groupMeta(g.wards.length)}</small>
             </div>
-            <div className={v.cards}>
+            <div className={v.cards} data-tour="wt-w-cards">
               {g.wards.map((w) => (
                 <WardCard
                   key={w.id}
@@ -267,7 +267,15 @@ function WardCard({
     .join(" · ");
   const base = `${BASE}/${w.id}`;
   return (
-    <article className={`${k("su-card")} ${v.card} ${on ? v.on : ""}`}>
+    <article
+      className={`${k("su-card")} ${v.card} ${on ? v.on : ""}`}
+      data-guide-list={
+        builder && !w.archived
+          ? `ward ${w.layout?.published || w.layout?.draft ? "ward-laid" : "ward-new"}`
+          : undefined
+      }
+      data-guide-id={builder && !w.archived ? w.id : undefined}
+    >
       <button type="button" className={v.open} aria-expanded={on} onClick={onOpen}>
         <span className={v.head}>
           <span className={`${k("su-ctile")} ${v.ab}`} aria-hidden="true">
@@ -324,7 +332,7 @@ function WardCard({
         {w.closed ? <span className={k("su-note")}>{C.closedWhy(w.closed.reason)}</span> : null}
       </button>
       {builder && !w.archived ? (
-        <span className={v.foot}>
+        <span className={v.foot} data-tour="wt-w-modes">
           <span className={k("grow")} />
           {w.layout?.published ? (
             <Link className={k("btn", "sm", "q")} href={`${base}/board`}>

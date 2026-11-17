@@ -31,7 +31,7 @@ export function ReviewList({
 }) {
   return (
     <>
-      <div className={k("su-card", "su-lr")}>
+      <div className={k("su-card", "su-lr")} data-tour="wt-review">
         <div className={k("su-ch")}>
           <b>{R.cardTitle}</b>
           <small>{R.cardSub}</small>

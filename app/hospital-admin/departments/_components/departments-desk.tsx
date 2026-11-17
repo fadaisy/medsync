@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { k, Seg } from "@/components/clinics-schedule/shared";
+import { useUrlState } from "@/components/hospital-admin/use-url-state";
 import { DEPTS } from "@/content/hospital-admin/departments";
 import { fill } from "@/content/lab-workspace-v2";
 import { abbr, idsOf, plural } from "../_lib/model";
@@ -41,9 +42,10 @@ export function DepartmentsDesk({
   data: DepartmentsData;
 }) {
   const router = useRouter();
-  const [view, setView] = useState<View>(initialView);
+  // The view and the open department follow the URL (back button, the guide's walkthroughs: ADR 0522).
+  const [view, setView] = useUrlState<View>(initialView);
   const [filter, setFilter] = useState<Filter>("all");
-  const [sel, setSel] = useState<string | null>(openId);
+  const [sel, setSel] = useUrlState<string | null>(openId);
   const [modal, setModal] = useState<"add" | "preset" | "legacy" | null>(adding ? "add" : null);
 
   const { departments, heads, counts, wards, clinics } = data;
@@ -142,12 +144,17 @@ export function DepartmentsDesk({
               {DEPTS.bringIn}
             </button>
           ) : null}
-          <button type="button" className={k("btn", "sm", "k")} onClick={() => setModal("add")}>
+          <button
+            type="button"
+            className={k("btn", "sm", "k")}
+            onClick={() => setModal("add")}
+            data-tour="wt-dp-add"
+          >
             {DEPTS.add}
           </button>
         </div>
 
-        <div className={`${k("su-dst")} ${d.stats}`}>
+        <div className={`${k("su-dst")} ${d.stats}`} data-tour="wt-dp-stats">
           {stats.map(([n, [label, sub], cls, go]) => (
             <button
               key={label}
@@ -179,7 +186,12 @@ export function DepartmentsDesk({
         ) : (
           <>
             <div className={k("su-ctb")}>
-              <div className={k("su-cfs")} role="group" aria-label={DEPTS.title}>
+              <div
+                className={k("su-cfs")}
+                role="group"
+                aria-label={DEPTS.title}
+                data-tour="wt-dp-filters"
+              >
                 {filters.map(([f, label, n]) => (
                   <button
                     key={f}
@@ -198,7 +210,7 @@ export function DepartmentsDesk({
               <OffNote ids={offList.map((x) => x.id)} name={offList[0]!.name} />
             ) : null}
             {shown.length ? (
-              <div className={d.cards}>
+              <div className={d.cards} data-tour="wt-dp-cards">
                 {shown.map((x) => {
                   const ids = idsOf(x, departments);
                   const head = headOf(x.id);
@@ -211,6 +223,8 @@ export function DepartmentsDesk({
                       aria-pressed={on}
                       className={`${k("su-card")} ${d.card} ${on ? d.on : ""}`}
                       onClick={() => setSel(on ? null : x.id)}
+                      data-guide-list="dept"
+                      data-guide-id={x.id}
                     >
                       <span className={d.cardHead}>
                         <span className={`${k("su-ctile")} ${d.tile}`} aria-hidden="true">

@@ -1,21 +1,28 @@
 "use client";
 
+import type { SetupFacts } from "@/lib/hospital-admin/guide/setup";
 import type { TodayStat, TodayTodo } from "@/lib/hospital-admin/today";
 import Link from "next/link";
 
 import { Icon, k } from "@/components/clinics-schedule/shared";
+import { SetupCard } from "@/components/hospital-admin/guide/setup-card";
 import { TODAY } from "@/content/hospital-admin/admin-nav";
 import { fill } from "@/content/lab-workspace-v2";
 
-/** Today (ADR 0521) in the Tether desk look. Every tile is neutral: a count is a workflow state, never red, amber or green. */
+/**
+ * Today (ADR 0521) in the Tether desk look. Every tile is neutral: a count is a workflow state, never red, amber or
+ * green. "Set up Tether" (ADR 0522) sits on top until the admin hides it.
+ */
 export function TodayView({
   date,
   stats,
   todo,
+  setup,
 }: {
   date: string;
   stats: readonly TodayStat[];
   todo: readonly TodayTodo[];
+  setup: SetupFacts;
 }) {
   return (
     <div className={k("su-wrap")}>
@@ -26,9 +33,11 @@ export function TodayView({
             <span className={k("adate")}>{fill(TODAY.lead, { date })}</span>
           </div>
         </div>
+        <SetupCard facts={setup} />
         <div
           className={k("su-dst")}
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}
+          data-tour="wt-today-stats"
         >
           {stats.map((s) => (
             <Link key={s.key} href={s.href} className={k("su-dsc", "mid")}>
@@ -42,7 +51,7 @@ export function TodayView({
           ))}
         </div>
         <div className={k("su-hero")}>
-          <div className={k("su-card", "su-todo")}>
+          <div className={k("su-card", "su-todo")} data-tour="wt-today-todo">
             <div className={k("su-ch")}>
               <b>{TODAY.doNext}</b>
               <small>{TODAY.doNextSub}</small>

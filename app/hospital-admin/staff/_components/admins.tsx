@@ -16,7 +16,7 @@ const A = PEOPLE.admins;
 export function AdminsList({ rows, me }: { rows: readonly HospitalAdminRow[]; me: string }) {
   return (
     <>
-      <div className={k("su-card", "su-lr")}>
+      <div className={k("su-card", "su-lr")} data-tour="wt-admins">
         <div className={k("su-ch")}>
           <b>{A.cardTitle}</b>
           <small>{A.cardSub}</small>

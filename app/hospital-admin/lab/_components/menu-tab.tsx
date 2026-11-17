@@ -76,7 +76,7 @@ export function MenuTab({
 
   return (
     <div className={v.lab}>
-      <nav className={v.secs} aria-label={M.sections}>
+      <nav className={v.secs} aria-label={M.sections} data-tour="wt-lab-secs">
         {[{ key: "all" as const, display: M.all }, ...SECTIONS]
           .map((s) => ({
             ...s,
@@ -150,7 +150,7 @@ export function MenuTab({
           />
         ) : null}
 
-        <div className={`${k("su-card")} ${v.scx}`}>
+        <div className={`${k("su-card")} ${v.scx}`} data-tour="wt-lab-table">
           <div className={`${v.r} ${v.hd}`} aria-hidden="true">
             <span />
             <span>{M.cols.test}</span>
@@ -163,7 +163,12 @@ export function MenuTab({
             const name = r.t.masked ? C.restrictedTest : r.t.display;
             const problem = data.problems[r.t.code];
             return (
-              <div key={r.t.code} className={`${v.r} ${sel === r.t.code ? v.sel : ""}`}>
+              <div
+                key={r.t.code}
+                className={`${v.r} ${sel === r.t.code ? v.sel : ""}`}
+                data-guide-list="lab-test"
+                data-guide-id={r.t.code}
+              >
                 <input
                   type="checkbox"
                   className={v.chk}

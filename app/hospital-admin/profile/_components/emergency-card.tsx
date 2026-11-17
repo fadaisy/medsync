@@ -32,7 +32,7 @@ export function EmergencyCard({ settings }: { settings: EmergencySettings | null
 
   if (!settings)
     return (
-      <div className={k("su-card")}>
+      <div className={k("su-card")} data-tour="wt-pf-em">
         <div className={k("su-ch")}>
           <b>{E.title}</b>
         </div>
@@ -72,7 +72,7 @@ export function EmergencyCard({ settings }: { settings: EmergencySettings | null
   };
 
   return (
-    <div className={k("su-card")}>
+    <div className={k("su-card")} data-tour="wt-pf-em">
       <div className={k("su-ch")}>
         <b>{E.title}</b>
         <small>{E.sub}</small>
