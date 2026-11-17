@@ -26,6 +26,8 @@ import { useReadings } from "@/data/readings";
 import { trendTiles } from "@/data/trends";
 import { lastSevenDays, longDate } from "@/features/care/logic";
 import { flag } from "@/lib/flags";
+import { CareTodayV2Route } from "@/features/v2/care-routes";
+import { CARE_V2_COPY } from "@content/patient-app/care";
 import { THRESHOLDS_NOTE } from "@/lib/readings";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
@@ -39,7 +41,26 @@ const n = (v: number) => v.toLocaleString("en-US");
  * patient who has logged nothing. The care-team card shows only while chat
  * is on (`mobileChat`); until then it offers "Book a visit".
  */
+/** Care mode, v2 (Step 7): Today from the ladder, behind `appV2Mobile` and `careMode` (off until Gate CG). */
 export default function CareTab() {
+  if (flag("appV2Mobile") && flag("careMode")) return <CareTodayTabV2 />;
+  return <CareTabV1 />;
+}
+
+function CareTodayTabV2() {
+  const router = useRouter();
+  return (
+    <Screen underNav bell title={CARE_V2_COPY.hero.title}>
+      <CareTodayV2Route />
+      <View style={{ gap: tSpace[3], marginTop: tSpace[5] }}>
+        <Button label={CARE_V2_COPY.myCare.title} variant="outline" icon="users" onPress={() => router.push("/care/my-care")} />
+        <Button label={CARE_V2_COPY.wellness.title} variant="outline" icon="heart" onPress={() => router.push("/wellness")} />
+      </View>
+    </Screen>
+  );
+}
+
+function CareTabV1() {
   const t = useTide();
   const router = useRouter();
   const now = useNow();

@@ -30,7 +30,8 @@ export const hospitalPaymentAccounts = pgTable("hospital_payment_accounts", {
 
 export const bills = pgTable("bills", {
   id: uuid("id").primaryKey().defaultRandom(),
-  hospitalId: uuid("hospital_id").notNull(),
+  // 0303: no hospital for a membership bill (Tether is the merchant, ADR 0523).
+  hospitalId: uuid("hospital_id"),
   appointmentId: uuid("appointment_id"),
   patientUserId: uuid("patient_user_id"),
   provisionalPatientId: uuid("provisional_patient_id"),
@@ -42,6 +43,8 @@ export const bills = pgTable("bills", {
   refundedUgx: integer("refunded_ugx").notNull().default(0),
   confidential: boolean("confidential").notNull().default(false),
   platformShareUgx: integer("platform_share_ugx").notNull().default(0),
+  membershipTier: text("membership_tier"),
+  membershipPeriod: text("membership_period"),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
 });
@@ -57,7 +60,7 @@ export const billItems = pgTable("bill_items", {
 export const paymentIntents = pgTable("payment_intents", {
   id: uuid("id").primaryKey().defaultRandom(),
   billId: uuid("bill_id").notNull(),
-  hospitalId: uuid("hospital_id").notNull(),
+  hospitalId: uuid("hospital_id"),
   amountUgx: integer("amount_ugx").notNull(),
   channel: text("channel").notNull(),
   network: text("network"),
@@ -85,6 +88,12 @@ export const paymentCallbacks = pgTable("payment_callbacks", {
   receivedAt: timestamp("received_at", tz).notNull().defaultNow(),
 });
 
+/** 0303: Tether's own receipt numbers, apart from every hospital's (one row). */
+export const tetherReceiptCounter = pgTable("tether_receipt_counter", {
+  one: boolean("one").primaryKey().default(true),
+  lastNumber: integer("last_number").notNull().default(0),
+});
+
 export const receiptCounters = pgTable("receipt_counters", {
   hospitalId: uuid("hospital_id").primaryKey(),
   lastNumber: integer("last_number").notNull().default(0),
@@ -92,7 +101,7 @@ export const receiptCounters = pgTable("receipt_counters", {
 
 export const receipts = pgTable("receipts", {
   id: uuid("id").primaryKey().defaultRandom(),
-  hospitalId: uuid("hospital_id").notNull(),
+  hospitalId: uuid("hospital_id"),
   number: integer("number").notNull(),
   billId: uuid("bill_id").notNull(),
   intentId: uuid("intent_id").notNull(),

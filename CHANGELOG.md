@@ -5,6 +5,88 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient app v2 parity reports and report (Step 12, draft) — 16 Nov 2026
+
+- `docs/patient-app/parity-phone.md`, `parity-web.md`: every feature-matrix row marked v2, Kept or Gap; nothing lost (old screens serve; flags off). Drafts for signature.
+- `docs/patient-app/REPORT.md`: the steps, all success checks with evidence, unmeasured budgets, the owner's list and the gaps. Widgets (Step 11) deferred by the owner.
+
+### Added — Patient app v2 Me, membership and Plus on both platforms (Step 10) — 16 Nov 2026
+
+- Me (behind `appV2Web` / `appV2Mobile`): the membership card (front, back, turn over), a QR of a short-lived token, the plans from approved prices, the 30-day trial with its reveal, and paying a plan through the engine. What is always free sits beside the plans (MR9).
+- S24: `pt-medical-id-token` issues a signed token that ends after 5 minutes (`_shared/medical-id-token.ts`, tested: expiry, tampering, a foreign key). It returns the QR as a grid, so the phone draws it without a new dependency. The apps refresh it before it ends.
+- `pt-plus`: the trial (no card, nothing charged at the end, S25) and payment through the one engine. Migration 0303 (GATED, not applied): membership bills with Tether as the merchant, Tether's own receipt counter, and the period starts when paid ([ADR 0523](docs/adr/0523-plus-paid-through-the-engine-tether-as-merchant.md)). Sandbox only until Tether's merchant agreement is signed.
+- Choosing a plan starts the free month when it is still available, else opens payment. The hidden card face is `inert` (an axe finding).
+- Shared rules in `packages/patient-core/membership.ts`: the tier a person holds now, and plans from approved prices.
+- Fixed: migration 0304 (GATED) adds the 0288 MFA gate to every table 0299–0301 put RLS on (they enabled it in a loop the guard could not see). Hospital staff now need AAL2 to read them; patients are unaffected. The PGlite harness takes an `aal` on its actor.
+
+### Added — Patient app v2 Care mode on the web, behind careModeOn() (Step 9) — 16 Nov 2026
+
+- `careModeOn()` on the web: Gate CG signed AND `careMode` and `appV2Web` in `PATIENT_FLAGS`; `GATE_CG_SIGNED` is false, so it is off whatever the environment says (tested).
+- Today (`/patient/care`): the hero from the ladder (a due dose ticks from the hero), the plan as a 06:00–22:00 timeline with tickable points and rows with each slot's state in words, and the three working chart cards. S21: hover and keyboard focus switch each card's header to that day, gaps stay gaps, each chart has a summary. S22: + Log opens Add a reading set to that measure.
+- Plan (`/patient/care/plan`): a vertical timeline with ticks and the week of medicines. My care (`/patient/care/my-care`): the team and checks in one column, messages in the other.
+- S23: in care mode, a sugar of 3.2 opens the step-by-step danger flow in place of the reading form. Care-mode readings carry a client key and go to `pt-care-reading`, so the team is told.
+- The Overdue tag lives in `components/tide/v2-check-tag.tsx`, the only new file allowed amber.
+- Fixture gallery `/pw/gallery/care-v2?screen=today|plan|mycare|reading`. Axe clean at 4 widths × 2 themes.
+
+### Added — Patient app v2 Care mode on the phone, part 2, behind appV2Mobile and careMode (Step 8) — 16 Nov 2026
+
+- My care (`/care/my-care`): the team grid (a name only with consent, S20; roles always; first contact tagged; next step) and checks this year (Overdue in amber with Book it, Due, Done).
+- Messages (`/care/messages`): the thread, the team's hours, "Not for emergencies" with Help, quick prompts and a composer; a check-in (a team request) shows on top until answered; offline messages wait and replay with one client key.
+- Wellness (`/wellness`, gate A4): the patient's own move, mood and eat logging, shared by both modes.
+- Danger flows (`@patient-core/danger-flow`): low sugar (something sweet, sit, a real 15-minute recheck, better or Help) and very high BP (a second reading at or above 180/110 means call the nurse today); a warning sign is Help from any step; works offline; each recheck is saved so the team is told when online (S19). Words drafted, pending CSO.
+
+### Added — Patient app v2 Care mode on the phone, part 1, behind appV2Mobile and careMode (Step 7) — 16 Nov 2026
+
+- `careMode` on the phone (gate A5: replaces `mobileClinicalData`), off until Gate CG like the flag it replaces.
+- Care tab Today: one hero from the ladder (S17, all 32 combinations tested), the plan as a day bar with tickable rows, reading snippets for the programme's measures (+ Log opens Add a reading set to that measure), and the medicines week.
+- Plan page (`/care/plan`) and Medicines v2: why, when and status; "as on your pharmacy label"; never an amount (MR3).
+- Shared rules in `packages/patient-core/care-plan.ts`: the plan as a day in Kampala time, the week, the ladder's input, the 10-day card.
+- Offline (S18): dose ticks and readings queue in the outbox and replay to `pt-dose-event` / `pt-care-reading` with the same client key; a care-mode reading's log row uses its id as that key, so the team's copy is the same row.
+
+### Added — Patient app v2 booking payments on both platforms, sandbox only (Step 6) — 16 Nov 2026
+
+- The visit page (phone and web, behind the v2 flags) shows what the visit owes and what was paid:
+  - a bill on the day after check-in (P2), with Pay with MoMo or the cash office;
+  - a specialist top-up with what was paid at booking and the difference (P3);
+  - the refund rule before cancelling, "Ask for your refund" after, and the three-step tracker (P5);
+  - receipts per visit, naming nobody: "Paid by a household member for you".
+- One pure model, `packages/patient-core/visit-money.ts`, for both apps.
+- `ha-pay-desk` (new Edge Function): reception sends a Mobile Money prompt, records a counter payment through the same engine (one receipt), or adds a top-up bill.
+- Reception's Expected list shows Paid from the same `payment_status` view, polled every 5 s for today's rows (S16).
+- Migration 0302 (GATED, not applied): `hospital_refund_rules`, the refund cut-off a patient may read.
+- The nightly 02:00 cron also expires stale prompts and lapses ended Plus trials.
+- Fixture `/pw/gallery/visit-v2?screen=pay`. Real money stays off (`mobilePayments`).
+
+### Added — Patient app v2 Visit mode on the web, behind appV2Web (Step 5) — 16 Nov 2026
+
+- With `appV2Web` on, the web shows:
+  - Book on one page (W1): who and why, clinic, day with places left, time, and a sticky summary with the pay choice;
+  - the v2 Visits list (W4): moved-visit offers first, upcoming with payment chips, past, and a month calendar;
+  - the v2 visit page (W2, W3): the ticket at every width, calendar file, directions, the text we sent, the five steps, Questions for the doctor.
+- The ticket's text comes from one shared builder, `packages/patient-core/ticket-view.ts`, used by the phone and the web.
+- Legacy routes keep redirecting through the existing MOVED list. Fixture gallery at `/pw/gallery/visit-v2`. Book v2 is not used for the doctor flow.
+
+### Added — Patient app v2 Visit mode on the phone, behind appV2Mobile (Step 4) — 16 Nov 2026
+
+- With `appV2Mobile` on, the phone shows:
+  - Home's next-visit card (the v2 ticket and stage strip);
+  - the v2 Visits list: moved-visit offers first, upcoming visits with code and payment chip, past visits;
+  - the v2 day of the visit: ticket, quick actions, the five steps, Questions for the doctor;
+  - Book's pay choice, paying after the booking exists through `pt-pay-intent`.
+- Booking, moving, cancelling and confirming are unchanged; the current screens serve with the flag off.
+- Times show in hospital time (Kampala).
+- The moved-visit card is neutral, not amber, because the design system keeps amber for clinical state.
+
+### Added — Patient app v2 component kits, phone and web (Step 3) — 16 Nov 2026
+
+- One set of v2 components on both platforms, from one token source and one shared core: the ticket (navy half,
+  pink day number, a masked tear line, light stub; sideways on the web, vertical on phones), the payment line,
+  pay choice, prompt wait, receipt and refund tracker, the five visit stages and the Called banner, Today's hero
+  card, the plan as a day with dose rows, the readings card with its 10-day chart, the membership card that turns
+  over, and plan cards. Payment states use the accent, never clinical colours. Kit pages: `/pw/gallery/v2` and the
+  phone's `/dev/v2`; screenshots in `docs/patient-app/screens/step3/`. The danger hero is the only new red, on both
+  red allowlists for clinical-safety review. Words are shared from `content/patient-app` (drafts).
+
 ### Added — The new-admin guide — 16 Nov 2026
 
 - A guide for a new hospital admin, across the whole admin workspace ([ADR 0522](docs/adr/0522-new-admin-guide.md)):

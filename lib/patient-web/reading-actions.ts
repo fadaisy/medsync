@@ -5,9 +5,11 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { logger } from "@/lib/logger";
+import { careModeOn } from "@/lib/patient-web/flags";
 import { readingToRow, rowToReading } from "@/lib/patient-web/readings";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { listRecentReadings } from "@/lib/patient/self-tracking";
+import { callEdge } from "@/lib/supabase/edge";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -41,7 +43,12 @@ export async function saveReadingAction(input: unknown, feel: unknown): Promise<
 
   const scope = await requirePatientScope();
   const supabase = await createClient();
+  // Care mode v2 (Step 9): the row carries a client key, and the same key goes to `pt-care-reading`, which finds
+  // this row and tells the care team when it is a danger reading (S19). One row either way (S18).
+  const care = careModeOn();
+  const clientKey = care ? crypto.randomUUID() : null;
   const { error } = await supabase.from("personal_health_logs").insert({
+    ...(clientKey ? { id: clientKey, client_key: clientKey } : {}),
     patient_user_id: scope.userId,
     kind: row.kind,
     recorded_at: new Date().toISOString(),
@@ -53,6 +60,18 @@ export async function saveReadingAction(input: unknown, feel: unknown): Promise<
   if (error) {
     logger.warn("patient_web.reading.save_failed", { reason: error.message });
     return { ok: false, error: "Couldn't save that. Try again later." };
+  }
+  if (clientKey) {
+    const d = parsed.data;
+    const recordedAt = new Date().toISOString();
+    const body =
+      d.kind === "bp"
+        ? { kind: "bp", clientKey, top: d.top, bottom: d.bottom, recordedAt }
+        : d.kind === "sugar"
+          ? { kind: "sugar", clientKey, value: d.value, context: d.context, recordedAt }
+          : { kind: d.kind, clientKey, value: d.value, recordedAt };
+    const told = await callEdge("pt-care-reading", body, "patient-web.care.reading");
+    if (!told.ok) logger.warn("patient_web.reading.team_not_told", { reason: told.error });
   }
   revalidatePath("/patient", "layout");
   revalidatePath("/pw/patient", "layout");

@@ -1,6 +1,7 @@
 import type { PatientReasonCode } from "@/supabase/functions/_shared/sessions-sql";
 import type { Metadata } from "next";
 
+import { REASONS } from "@/app/patient/book/_lib/booking";
 import { PageHeader } from "@/components/tide/shell";
 import { DAY_COPY as D } from "@/content/patient/book";
 import {
@@ -12,11 +13,13 @@ import {
 import { patientFlag } from "@/lib/patient-web/flags";
 import { countUnseenNotifications } from "@/lib/patient-web/notifications";
 import { fromSlot } from "@/lib/patient-web/opaque";
+import { myMobile } from "@/lib/patient-web/visit-v2";
 import { fetchHousehold } from "@/lib/patient/household";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
 import { HospitalPicker } from "../_components/hospital-picker";
 import { adultAreas, catalogueMode } from "../_lib/catalogue";
+import { BookV2 } from "./_components/book-v2";
 import { DayFailed, DayForm, ReasonFirst } from "./_components/day-form";
 
 export const metadata: Metadata = { title: "Ask for a day" };
@@ -104,6 +107,34 @@ export default async function DayPage({
     : null;
   const waitlistLine =
     !doctor && days.days.length === 0 ? await waitlistLineFor(days.hospitalId, reason) : null;
+
+  // Patient app v2 (W1), behind appV2Web: the whole booking on one page.
+  if (patientFlag("appV2Web") && !doctor) {
+    const mobile = await myMobile().catch(() => null);
+    return (
+      <>
+        {header}
+        <BookV2
+          hospitalId={days.hospitalId}
+          hospitalName={days.hospitalName}
+          emergencyLine={
+            scope.emergencyEntrancePhone
+              ? `Emergency? Call ${scope.emergencyEntrancePhone} or go to the emergency entrance now.`
+              : "Emergency? Go to the emergency entrance now, or press Help."
+          }
+          who={[
+            { id: null, label: scope.fullName?.trim() || "Me" },
+            ...household.map((m) => ({ id: m.provisionalPatientId, label: m.memberLabel })),
+          ]}
+          reason={reason}
+          reasonLabel={REASONS.find((r) => r.value === reason)?.title ?? reason}
+          days={days.days}
+          savedMsisdn={mobile}
+          submissionId={id(p.s)}
+        />
+      </>
+    );
+  }
 
   return (
     <DayForm

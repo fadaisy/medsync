@@ -29,6 +29,8 @@ import { fetchWaitlist } from "@/lib/notifications";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
+import { VisitsV2Route } from "@/features/v2/routes";
+import { flag } from "@/lib/flags";
 
 /**
  * This week (board TWeek/DWeek, PRD F-08).
@@ -50,7 +52,12 @@ const reasonTitle = (row: AppointmentRow) =>
   APPOINTMENT_REASONS.find((r) => r.value === row.reason)?.title ?? row.departmentName;
 const placeWord = (row: AppointmentRow) => STATUS_LABEL[row.status] ?? "";
 
+/** Patient app v2 (Step 4): the v2 Visits list when `appV2Mobile` is on; this screen otherwise. */
 export default function VisitsScreen() {
+  return flag("appV2Mobile") ? <VisitsV2Route /> : <LegacyVisitsScreen />;
+}
+
+function LegacyVisitsScreen() {
   const t = useTide();
   const router = useRouter();
   const now = useNow();

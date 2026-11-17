@@ -28,6 +28,8 @@ const RED_ALLOWED = new Set([
   "components/tide/primitives.tsx",
   "components/tide/field.tsx",
   "components/tide/screen.tsx",
+  // Patient app v2: only the danger hero on Today is red (MR5). Added 16 Nov 2026, for clinical-safety review.
+  "components/tide/v2-hero.tsx",
 ]);
 
 function files(dir: string): string[] {

@@ -34,6 +34,7 @@ const RED_ALLOWED = [
   "components/tide/care-sugar-diary.tsx", // a danger reading's diary cell, with its word
   "app/pw/emergency/_components/help-view.tsx", // the SOS band and End emergency
   "app/pw/emergency/lines/page.tsx", // the call button and the no-number panel
+  "components/tide/v2-care.tsx", // patient app v2: Today's danger hero only (MR5); clinical-safety review 16 Nov 2026
 ];
 /** Files that may paint amber or green: StatusPill and Note (L4). Areas add the check band and the charts. */
 const SIGNAL_ALLOWED = [
@@ -41,6 +42,8 @@ const SIGNAL_ALLOWED = [
   "components/tide/reading-check.tsx",
   "components/tide/care-sugar-diary.tsx",
   "components/tide/care-week-chart.tsx",
+  "components/tide/v2-reading-card.tsx", // patient app v2: in target or above target, with its word
+  "components/tide/v2-check-tag.tsx", // patient app v2 §5.8: a check "Overdue" in amber, with its word
 ];
 
 describe("patient web guards", () => {

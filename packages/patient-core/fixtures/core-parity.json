@@ -1,0 +1,210 @@
+{
+  "_note": "S8 parity fixture: the phone (Jest) and the web (Vitest) must both produce `expected` from `cases`. Regenerate with npx tsx scripts/patient-app/gen-core-parity.ts after a reviewed change.",
+  "cases": [
+    {
+      "fn": "heroFor",
+      "args": [
+        {
+          "danger": null,
+          "teamAsks": null,
+          "dueNow": {
+            "kind": "dose",
+            "key": "m",
+            "label": "Metformin",
+            "dueAt": "08:00"
+          },
+          "visitToday": {
+            "appointmentId": "a",
+            "window": "09:00"
+          },
+          "nextItem": null,
+          "nothingUntil": null
+        }
+      ]
+    },
+    {
+      "fn": "heroFor",
+      "args": [
+        {
+          "danger": {
+            "kind": "low_sugar",
+            "at": "07:20"
+          },
+          "teamAsks": {
+            "id": "x",
+            "from": "Nurse",
+            "at": "07:00"
+          },
+          "dueNow": null,
+          "visitToday": null,
+          "nextItem": null,
+          "nothingUntil": null
+        }
+      ]
+    },
+    {
+      "fn": "heroFor",
+      "args": [
+        {
+          "danger": null,
+          "teamAsks": null,
+          "dueNow": null,
+          "visitToday": null,
+          "nextItem": null,
+          "nothingUntil": "Tomorrow 08:00"
+        }
+      ]
+    },
+    {
+      "fn": "weekChange",
+      "args": ["sugar", "fasting", 8.4, 7.8]
+    },
+    {
+      "fn": "weekChange",
+      "args": ["bp", "random", 128, 146]
+    },
+    {
+      "fn": "weekChange",
+      "args": ["weight", "random", 82.4, 81.6, 78]
+    },
+    {
+      "fn": "inTargetCount",
+      "args": ["sugar", "supper", [5.1, 6.2, null, 7.9, 4.4, 3.9, 6.8, null, 7.1, 6]]
+    },
+    {
+      "fn": "inTargetCount",
+      "args": ["bp", "random", [128, 142, 151, null, 136, 118, 139, 140, 88, 131]]
+    },
+    {
+      "fn": "plausible",
+      "args": [
+        {
+          "kind": "bp",
+          "top": 80,
+          "bottom": 120
+        }
+      ]
+    },
+    {
+      "fn": "plausible",
+      "args": [
+        {
+          "kind": "sugar",
+          "value": 3.2
+        }
+      ]
+    },
+    {
+      "fn": "stageOf",
+      "args": ["confirmed", null]
+    },
+    {
+      "fn": "stageOf",
+      "args": ["arrived", "line"]
+    },
+    {
+      "fn": "stageOf",
+      "args": ["arrived", "called"]
+    },
+    {
+      "fn": "paymentChip",
+      "args": [
+        {
+          "status": "paid",
+          "totalUgx": 30000
+        },
+        "counter"
+      ]
+    },
+    {
+      "fn": "ticketPayLine",
+      "args": [
+        {
+          "status": "open",
+          "totalUgx": 30000,
+          "paidUgx": 0,
+          "refundedUgx": 0
+        },
+        null
+      ]
+    },
+    {
+      "fn": "refundEligibility",
+      "args": [
+        {
+          "paidUgx": 30000,
+          "refundedUgx": 0,
+          "visitStartsAt": "2026-11-24T08:00:00Z",
+          "now": "2026-11-22T08:00:00Z",
+          "cutoffHours": 24,
+          "cancelledBy": "patient"
+        }
+      ]
+    }
+  ],
+  "expected": [
+    3,
+    1,
+    6,
+    {
+      "delta": -0.6,
+      "direction": "toward",
+      "text": "↓ 0.6 in a week",
+      "tone": "good"
+    },
+    {
+      "delta": 18,
+      "direction": "away",
+      "text": "↑ 18 in a week",
+      "tone": "caution"
+    },
+    {
+      "delta": -0.8,
+      "direction": "toward",
+      "text": "↓ 0.8 in a week",
+      "tone": "good"
+    },
+    {
+      "inTarget": 6,
+      "days": 10,
+      "text": "6 of 10 in target"
+    },
+    {
+      "inTarget": 6,
+      "days": 10,
+      "text": "6 of 10 in target"
+    },
+    {
+      "ok": false,
+      "why": "The top number is usually bigger. Check the order."
+    },
+    {
+      "ok": true
+    },
+    {
+      "index": 0,
+      "label": "Booked",
+      "called": false
+    },
+    {
+      "index": 2,
+      "label": "Waiting for the doctor",
+      "called": false
+    },
+    {
+      "index": 3,
+      "label": "Called",
+      "called": true
+    },
+    "paid_counter",
+    {
+      "kind": "to_pay",
+      "amountUgx": 30000
+    },
+    {
+      "eligible": true,
+      "amountUgx": 30000,
+      "automatic": false
+    }
+  ]
+}

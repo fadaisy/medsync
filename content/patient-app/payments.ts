@@ -3,7 +3,7 @@
  * Payment states are never red (MR5). Amounts come only from the engine's fee resolution; nothing here holds a
  * number. The CSO signs; Claude never edits the status.
  */
-import type { SignedCopy } from "@/content/signed-copy";
+import type { SignedCopy } from "../signed-copy";
 
 export const PAYMENTS_COPY_STATUS: SignedCopy = {
   status: "draft",
@@ -49,6 +49,8 @@ export const PAYMENTS_COPY = {
     payMomo: "Pay with MoMo",
     cashOffice: "I'll pay at the cash office",
     where: "The cash office is {where}.",
+    cashNote: "Pay at the cash office before you leave. Show your code there.",
+    network: "Your network",
   },
   topUp: {
     title: "Top-up · specialist",
@@ -61,6 +63,7 @@ export const PAYMENTS_COPY = {
     keep: "Keep my visit",
     steps: ["Booking cancelled", "Refund approved", "Back on your {network}"],
     smsNote: "We text you when it lands.",
+    ask: "Ask for your refund",
   },
   receipt: {
     title: "Receipt",
@@ -71,6 +74,12 @@ export const PAYMENTS_COPY = {
     reference: "Reference",
     paidBy: "Paid by {payer} for {patient}",
     efris: "EFRIS number",
+  },
+  payer: {
+    you: "You",
+    youLower: "you",
+    household: "A household member",
+    member: "your household member",
   },
   announce: {
     waiting: "Approve on your phone",

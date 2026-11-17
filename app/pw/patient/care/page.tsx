@@ -21,6 +21,7 @@ import {
 
 import { Ring } from "@/components/tide/care-ring";
 import {
+  buttonClass,
   ICON,
   IconDisc,
   Pill,
@@ -30,15 +31,19 @@ import {
   TextLink,
 } from "@/components/tide/kit";
 import { PageHeader } from "@/components/tide/shell";
+import { CARE_V2_COPY } from "@/content/patient-app/care";
 import { CARE_COPY } from "@/content/patient/care";
 import { PATIENT_WEB_COPY } from "@/content/patient/web";
 import { loadLabNames } from "@/lib/patient-web/care-labs";
 import { loadCareMedicines } from "@/lib/patient-web/care-medicines";
 import { loadLog, today } from "@/lib/patient-web/day";
+import { careModeOn } from "@/lib/patient-web/flags";
 import { countUnseenNotifications } from "@/lib/patient-web/notifications";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { cn } from "@/lib/utils";
 import { RetryButton } from "../_components/home-bits";
+import { kampalaClock, loadToday } from "./_v2/data";
+import { TodayClient } from "./_v2/today";
 
 export const metadata: Metadata = { title: "Care" };
 export const dynamic = "force-dynamic";
@@ -56,6 +61,28 @@ const ROW =
 export default async function CareHub() {
   const scope = await requirePatientScope();
   const now = new Date();
+  // Care mode v2 (Step 9), behind `careModeOn()` (off until Gate CG): Today from the ladder.
+  if (careModeOn()) {
+    const t = await loadToday(scope.userId, now);
+    if (t)
+      return (
+        <>
+          <PageHeader title={CARE_V2_COPY.hero.title} subtitle={longDate(now)} />
+          <TodayClient
+            hero={t.hero}
+            slots={t.slots}
+            nowLabel={kampalaClock(now)}
+            snippets={t.snippets}
+            planVersionId={t.care.planVersionId}
+          />
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/patient/care/my-care" className={buttonClass("outline", "m")}>
+              {CARE_V2_COPY.myCare.title}
+            </Link>
+          </div>
+        </>
+      );
+  }
   const unseen = await countUnseenNotifications(scope.userId).catch(() => 0);
   return (
     <>

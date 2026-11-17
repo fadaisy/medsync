@@ -140,7 +140,13 @@ export function bootLane(): Promise<Lane> {
 
 /* ─── Acting as someone ─────────────────────────────────────────── */
 export type ActorRole = "medsync_clinical_reader" | "authenticated" | "anon";
-export type Actor = { userId: string | null; role: ActorRole; hospitalId?: string | null };
+export type Actor = {
+  userId: string | null;
+  role: ActorRole;
+  hospitalId?: string | null;
+  /** The token's assurance level; "aal2" passes the 0288 MFA gate for staff. Absent: no `aal` claim. */
+  aal?: "aal1" | "aal2";
+};
 
 /**
  * Run `fn` as `actor` inside a transaction that is always rolled back.
@@ -162,7 +168,15 @@ export async function actAs<T>(
       await tx.query(
         `SELECT set_config('request.jwt.claim.sub', $1, true), set_config('request.jwt.claim.role', $2, true),
                 set_config('request.jwt.claims', $3, true)`,
-        [actor.userId, actor.role, JSON.stringify({ sub: actor.userId, role: actor.role })],
+        [
+          actor.userId,
+          actor.role,
+          JSON.stringify({
+            sub: actor.userId,
+            role: actor.role,
+            ...(actor.aal ? { aal: actor.aal } : {}),
+          }),
+        ],
       );
     }
     await tx.exec(`SET LOCAL ROLE ${actor.role}`);

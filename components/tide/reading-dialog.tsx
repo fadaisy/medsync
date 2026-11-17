@@ -4,6 +4,7 @@ import type { SavedReading, StartValues } from "@/lib/patient-web/readings";
 import type { ReadingInput, ReadingKind, SugarContext } from "@patient-core/readings";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { dangerFor } from "@patient-core/danger-flow";
 import { readingValueText, SUGAR_CONTEXT_WORDS, THRESHOLDS_NOTE } from "@patient-core/readings";
 import {
   ActivityIcon,
@@ -35,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { Chip, ChipRow, Dialog, NumberField, Toast } from "./controls";
 import { Button, ICON } from "./kit";
 import { CheckBand, ChestPainRow, DangerInterrupt } from "./reading-check";
+import { DangerFlowWeb } from "./v2-care-web";
 
 /**
  * Log a reading (phone reading-sheet.tsx and care/reading.tsx, F-05/F-15), one form for the full page and the
@@ -67,6 +69,7 @@ export function ReadingForm({
   sayIt = false,
   onSaved,
   onLeave,
+  careFlow = false,
 }: {
   initialKind?: ReadingKind;
   /** The patient's own readings, newest first; null while loading. */
@@ -77,6 +80,8 @@ export function ReadingForm({
   onSaved?: (line: string) => void;
   /** Before leaving for Help or the danger interrupt (the dialog closes). */
   onLeave?: () => void;
+  /** Care mode v2 (Step 9, `careModeOn()`): a danger reading opens the step-by-step flow (S23). */
+  careFlow?: boolean;
 }) {
   const router = useRouter();
   const [kind, setKind] = useState<ReadingKind>(initialKind);
@@ -158,12 +163,18 @@ export function ReadingForm({
     }
   };
 
-  if (danger)
+  if (danger) {
+    const kind = careFlow ? dangerFor(danger) : null;
     return (
       <div data-pw-light="">
-        <DangerInterrupt input={danger} />
+        {kind ? (
+          <DangerFlowWeb kind={kind} saveReading={(input) => saveReadingAction(input, [])} />
+        ) : (
+          <DangerInterrupt input={danger} />
+        )}
       </div>
     );
+  }
 
   return (
     <div className="flex flex-col gap-5">

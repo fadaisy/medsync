@@ -2,7 +2,7 @@
  * Patient app v2 · the ticket, the day of the visit and Questions for the doctor (§5.3, §5.5). Drafts for
  * GATE A. Stages only, never a number or wait (MR4). The CSO signs; Claude never edits the status.
  */
-import type { SignedCopy } from "@/content/signed-copy";
+import type { SignedCopy } from "../signed-copy";
 
 export const VISIT_COPY_STATUS: SignedCopy = {
   status: "draft",

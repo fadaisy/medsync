@@ -16,7 +16,14 @@ export type Flag =
   | "mobileMapPin"
   | "mobilePhoneOtp"
   /** Care-team chat: hidden until there is a clinician inbox to answer it (ADR 0342). */
-  | "mobileChat";
+  | "mobileChat"
+  /** Patient app v2 on the phone (Visit mode first); old screens stay until Step 12 removes them. */
+  | "appV2Mobile"
+  /**
+   * Care mode, v2 (gate A5, signed 16 Nov 2026: replaces `mobileClinicalData`). Off in production until Gate CG
+   * is signed: like `mobileClinicalData`, the environment alone cannot turn it on.
+   */
+  | "careMode";
 
 /** Gate CG governance artifact: not signed (17 Oct 2026). */
 export const GATE_CG_SIGNED = false;
@@ -29,6 +36,6 @@ const fromEnv = new Set(
 );
 
 export function flag(name: Flag): boolean {
-  if (name === "mobileClinicalData") return GATE_CG_SIGNED && fromEnv.has(name);
+  if (name === "mobileClinicalData" || name === "careMode") return GATE_CG_SIGNED && fromEnv.has(name);
   return fromEnv.has(name);
 }

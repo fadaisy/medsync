@@ -3,7 +3,7 @@ import type { StartValues } from "@/data/readings";
 import type { ReadingInput, ReadingKind, ReadingLevel, SugarContext } from "@/lib/readings";
 import type { Tide } from "@/theme/tide";
 import { useState } from "react";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Text, TextInput, View } from "react-native";
 
 import { Button, Chip, ChipRow, Icon, Pill, Press, Screen, SegmentTiles } from "@/components/tide";
@@ -71,7 +71,11 @@ export default function ReadingScreen() {
   const t = useTide();
   const router = useRouter();
   const now = useNow();
-  const [kind, setKind] = useState<ReadingKind>("bp");
+  // "+ Log" on a reading card opens this set to its measure (patient app v2 §5.7).
+  const asked = useLocalSearchParams<{ kind?: string }>().kind;
+  const [kind, setKind] = useState<ReadingKind>(
+    asked === "sugar" || asked === "weight" || asked === "pulse" ? asked : "bp",
+  );
   const { readings } = useReadings();
   // What the patient changed; anything untouched shows their last reading.
   const [edited, setEdited] = useState<Partial<StartValues>>({});

@@ -117,6 +117,25 @@ export interface Tide {
   };
   /** The score line across a drawn tablet. */
   tabletLine: string;
+  /** The visit ticket (patient app v2 §5.3): navy main half, pink day number, light stub, the tear line. */
+  ticket: {
+    navy: string;
+    onNavy: string;
+    day: string;
+    stub: string;
+    onStub: string;
+    tear: string;
+  };
+  /** Membership card materials by tier (§5.9, M10); decorative, never a clinical state. */
+  tier: {
+    basic: string;
+    onBasic: string;
+    plusFamily: string;
+    plusCare: string;
+    familyCare: string;
+    onTier: string;
+    gold: string;
+  };
   /** The mood faces: fixed illustrations, the same in both themes. */
   mood: {
     good: string;
@@ -184,6 +203,23 @@ export const tideLight: Tide = {
     drawing: "inset 0px -3px 0px rgba(0, 0, 0, 0.12), 0px 6px 12px -6px rgba(0, 0, 0, 0.35)",
   },
   tabletLine: "rgba(0, 0, 0, 0.15)",
+  ticket: {
+    navy: "#1b2540",
+    onNavy: "#ffffff",
+    day: "#f5d0fe",
+    stub: "#ffffff",
+    onStub: "#1b2540",
+    tear: "#c5cbd8",
+  },
+  tier: {
+    basic: "#e4e7ee",
+    onBasic: "#1b2540",
+    plusFamily: "#86198f",
+    plusCare: "#0f766e",
+    familyCare: "#111827",
+    onTier: "#ffffff",
+    gold: "#d4a72c",
+  },
   mood: {
     good: "#99f6e4",
     okay: "#38bdf8",
@@ -250,6 +286,23 @@ export const tideDark: Tide = {
     drawing: "inset 0px -3px 0px rgba(0, 0, 0, 0.12), 0px 6px 12px -6px rgba(0, 0, 0, 0.35)",
   },
   tabletLine: "rgba(0, 0, 0, 0.15)",
+  ticket: {
+    navy: "#2a3858",
+    onNavy: "#ffffff",
+    day: "#f5d0fe",
+    stub: "#e8ecf3",
+    onStub: "#1b2540",
+    tear: "#3a4566",
+  },
+  tier: {
+    basic: "#e4e7ee",
+    onBasic: "#1b2540",
+    plusFamily: "#86198f",
+    plusCare: "#0f766e",
+    familyCare: "#111827",
+    onTier: "#ffffff",
+    gold: "#d4a72c",
+  },
   mood: {
     good: "#99f6e4",
     okay: "#38bdf8",

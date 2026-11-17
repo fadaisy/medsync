@@ -151,11 +151,16 @@ export function useHealthLog(): {
  * Save one row. It shows at once; a save the database refused is taken back
  * out, and a queued one stays (it is on this phone, and will send).
  */
-export async function addLog(entry: NewLog, at: Date = new Date()): Promise<SaveResult> {
+export async function addLog(
+  entry: NewLog,
+  at: Date = new Date(),
+  /** Care mode (0301): this id is also the row's client key, so the care team's copy is the same row (S18). */
+  opts: { clientKey?: string } = {},
+): Promise<SaveResult> {
   const userId = await currentUserId().catch(() => null);
   if (!userId) return "failed";
   const row: Row = {
-    id: newId(),
+    id: opts.clientKey ?? newId(),
     patient_user_id: userId,
     kind: entry.kind,
     recorded_at: at.toISOString(),
@@ -164,6 +169,7 @@ export async function addLog(entry: NewLog, at: Date = new Date()): Promise<Save
     unit: entry.unit ?? null,
     note: entry.note ?? null,
   };
+  if (opts.clientKey) row.client_key = opts.clientKey;
   const view = fromDb(row);
   store.set((s) => ({ ...s, rows: mergeRows([view], s.rows) }));
   const result = await insertOrQueue("personal_health_logs", row);

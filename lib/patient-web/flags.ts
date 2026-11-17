@@ -8,3 +8,14 @@ export function patientFlag(name: string, env = process.env.PATIENT_FLAGS): bool
     .map((s) => s.trim())
     .includes(name);
 }
+
+/** Gate CG governance artifact: not signed (16 Nov 2026). The phone holds the same constant. */
+export const GATE_CG_SIGNED = false;
+
+/**
+ * Care mode, v2 on the web (gate A5): only where Gate CG is signed AND `careMode` is in `PATIENT_FLAGS`.
+ * Flipping `GATE_CG_SIGNED` is a reviewed code change that names the signed artifact, not a setting (MR11).
+ */
+export function careModeOn(env = process.env.PATIENT_FLAGS): boolean {
+  return GATE_CG_SIGNED && patientFlag("careMode", env) && patientFlag("appV2Web", env);
+}

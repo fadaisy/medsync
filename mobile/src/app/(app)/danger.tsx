@@ -7,6 +7,9 @@ import { Band, Button, Card, Note, Pill, Ring, Screen, StatusPill } from "@/comp
 import { hhmm } from "@/data/medicines";
 import { RECHECK_MINUTES } from "@/features/safety/config";
 import { readingFromParams } from "@/features/safety/danger";
+import { DangerFlowBody } from "@/features/v2/my-care-routes";
+import { flag } from "@/lib/flags";
+import { dangerFor } from "@patient-core/danger-flow";
 import { checkReading, UNITS } from "@/lib/readings";
 import { useNow } from "@/lib/use-now";
 import { ForcedScheme, useTide } from "@/theme/theme";
@@ -25,9 +28,17 @@ export default function DangerScreen() {
   // Only a dangerous reading belongs here. Anything else that asks for help
   // (chest pain with no number, a stale link) goes to Help, which always helps.
   if (checkReading(readingFromParams(params)).level !== "danger") return <Redirect href="/help" />;
+  // Care mode v2 (Step 8): the step-by-step flow from @patient-core/danger-flow.
+  const kind = flag("appV2Mobile") && flag("careMode") ? dangerFor(readingFromParams(params)) : null;
   return (
     <ForcedScheme scheme="light">
-      <DangerBody />
+      {kind ? (
+        <Screen stagger={false} helpSource="danger" back={{}}>
+          <DangerFlowBody kind={kind} />
+        </Screen>
+      ) : (
+        <DangerBody />
+      )}
     </ForcedScheme>
   );
 }

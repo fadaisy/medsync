@@ -15,6 +15,8 @@ import { dayHeadline, lastSevenDays, shortDate, timelineFill } from "@/features/
 import { useNow } from "@/lib/use-now";
 import { EASE_OUT, fade, OVERSHOOT, ringFillMs } from "@/motion/presets";
 import { savedLine } from "@/offline/outbox";
+import { flag } from "@/lib/flags";
+import { MedicinesV2Route } from "@/features/v2/care-routes";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -65,7 +67,13 @@ const STATUS_WORDS: Record<DoseStatus, string> = {
  * prescribed" only: no dose amount anywhere (law L5). There is no supply
  * data, so no refill bars. The list is the patient's: no clinician sees it.
  */
+/** Medicines, v2 (Step 7), behind `appV2Mobile` and `careMode`; the current screen otherwise. */
 export default function MedicinesScreen() {
+  if (flag("appV2Mobile") && flag("careMode")) return <MedicinesV2Route />;
+  return <MedicinesScreenV1 />;
+}
+
+function MedicinesScreenV1() {
   const t = useTide();
   const reduced = useReducedMotion();
   const now = useNow();
