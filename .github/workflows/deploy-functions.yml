@@ -1,0 +1,69 @@
+# Deploy Edge Functions by hand, from a phone or tablet (owner only).
+#
+# Nothing here runs on push. The owner opens Actions → "Deploy Edge Functions" →
+# Run workflow, picks the branch (Use workflow from), types the function names
+# separated by spaces, and runs it. The branch picked is the code that deploys.
+#
+# Needs two repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_ACCESS_TOKEN  a personal access token from supabase.com (Account → Access Tokens)
+#   SUPABASE_PROJECT_REF   the project id in the dashboard address (supabase.com/dashboard/project/<ref>)
+# The token lives only in GitHub. Function secrets (MEDICAL_ID_TOKEN_SECRET, …) are set in the
+# Supabase dashboard, not here.
+
+name: Deploy Edge Functions
+
+on:
+  workflow_dispatch:
+    inputs:
+      functions:
+        description: "Function names, separated by spaces (e.g. pt-plus pt-medical-id-token)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-edge-functions
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the names
+        env:
+          FUNCTIONS: ${{ inputs.functions }}
+        run: |
+          set -euo pipefail
+          count=0
+          for f in $FUNCTIONS; do
+            if ! [[ "$f" =~ ^[a-z0-9][a-z0-9-]*$ ]] || [ ! -f "supabase/functions/$f/index.ts" ]; then
+              echo "::error::'$f' is not a function on this branch (supabase/functions/$f/index.ts not found)"
+              exit 1
+            fi
+            count=$((count + 1))
+          done
+          [ "$count" -gt 0 ] || { echo "::error::no function names given"; exit 1; }
+          echo "Deploying $count from $GITHUB_REF_NAME @ ${GITHUB_SHA::7}: $FUNCTIONS"
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy
+        env:
+          FUNCTIONS: ${{ inputs.functions }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$PROJECT_REF" ] || { echo "::error::set SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF in the repository secrets"; exit 1; }
+          # One function at a time, so the log says which one failed.
+          for f in $FUNCTIONS; do
+            echo "::group::$f"
+            supabase functions deploy "$f" --project-ref "$PROJECT_REF" --use-api
+            echo "::endgroup::"
+          done
