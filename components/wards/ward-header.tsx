@@ -22,6 +22,7 @@ export interface WardTabLink {
 export function WardHeader({
   crumbs,
   title,
+  tag,
   mode,
   buildHref,
   liveHref,
@@ -33,6 +34,8 @@ export function WardHeader({
 }: {
   crumbs: { label: string; href?: string }[];
   title: string;
+  /** A square tag beside the title: where the plan stands (Published, Draft, Never published). */
+  tag?: ReactNode;
   mode: "build" | "live";
   /** Null when the viewer can't open the other mode (a nurse has no Build). */
   buildHref: string | null;
@@ -53,7 +56,7 @@ export function WardHeader({
             <ol className="flex flex-wrap items-center gap-1">
               {crumbs.map((c, i) => (
                 <li key={c.label} className="inline-flex items-center gap-1">
-                  {i > 0 ? <span aria-hidden>/</span> : null}
+                  {i > 0 ? <span aria-hidden>›</span> : null}
                   {c.href ? (
                     <Link href={c.href} onClick={go(c.href)} className="hover:text-foreground">
                       {c.label}
@@ -65,7 +68,14 @@ export function WardHeader({
               ))}
             </ol>
           </nav>
-          <h1 className="font-display text-display-s text-foreground">{title}</h1>
+          {tag ? (
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="font-display text-display-s text-foreground">{title}</h1>
+              {tag}
+            </div>
+          ) : (
+            <h1 className="font-display text-display-s text-foreground">{title}</h1>
+          )}
         </div>
         {/* Both modes, or none: a lone segment switches nowhere (a nurse only has Live). */}
         {buildHref && (liveHref || liveWaits) ? (

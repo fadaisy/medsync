@@ -1,5 +1,5 @@
 /**
- * pt-plus — Tether Plus for the signed-in patient (patient app v2 §5.9; ADR 0520).
+ * pt-plus — Tether Plus for the signed-in patient (patient app v2 §5.9; ADR 0523).
  * Input, one of:
  *   { action: "trial", tier }                                          the 30-day trial, once, no card (0300).
  *   { action: "pay", tier, period, network, msisdn, idempotencyKey }   a period through the one engine (0303).

@@ -1,0 +1,255 @@
+/* Departments (ADR 0520 phase 2): what the desk's own classes do not already cover. Desk tokens only; states carry words. */
+
+/* the counts strip: four even tiles, two on a tablet, one on a phone (cs.module.css stacks them at 720px) */
+.stats.stats {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.stat {
+  font: inherit;
+}
+
+/* department cards */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 12px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.card.on {
+  border-color: var(--acc);
+  background: var(--tint);
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tile {
+  background: var(--c1);
+}
+.facts {
+  font-size: 13px;
+  color: var(--ink2);
+}
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.foot small {
+  font-size: 12px;
+  color: var(--ink3);
+}
+.grow {
+  flex: 1;
+}
+
+/* a neutral square tag (workflow words: never red, amber or green) */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--sunk);
+  color: var(--ink2);
+  white-space: nowrap;
+}
+
+/* the header row: the title, the view switch and the add button wrap on a phone */
+.head {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* the detail panel's linked rows */
+.rlist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ritem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  text-decoration: none;
+}
+.ritem:hover {
+  border-color: var(--line2);
+}
+.ritem b {
+  font-size: 14px;
+  font-weight: 600;
+}
+.ritem small {
+  font-size: 12px;
+  color: var(--ink3);
+}
+
+/* a row of controls that wraps */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.row > :global(*) {
+  min-width: 0;
+}
+.narrowIn {
+  flex: 0 1 140px !important;
+}
+.select {
+  flex-basis: auto !important;
+  height: 44px !important;
+  font-size: 15px !important;
+}
+
+/* a quiet confirm box inside the panel */
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line2);
+  background: var(--bg);
+}
+.confirm b {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* lists of short lines (history, holidays) */
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--ink2);
+}
+.lines b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* a padded card body */
+.pad {
+  padding: 14px 16px;
+}
+
+/* the opening-hours rows */
+.hrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--line);
+}
+.hrow > b {
+  width: 110px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.time {
+  flex: 0 0 132px !important;
+  height: 40px !important;
+  font-size: 15px !important;
+}
+
+/* the holiday grid */
+.hgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 4px 24px;
+}
+.past {
+  color: var(--ink3);
+}
+
+/* the catalogue in Add departments */
+.catalogue {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  gap: 14px 22px;
+  align-items: start;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wrapSeg {
+  flex-wrap: wrap;
+  height: auto;
+  border-radius: 20px;
+}
+
+/* The panel's three tabs: one row of equal parts that never wraps into a second pill line. */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  width: 100%;
+}
+.tabs > button {
+  padding: 0 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+/* A quiet text button in a section's column sits under its text, not centred across the panel. */
+.start {
+  align-self: flex-start;
+}
+
+@media (max-width: 600px) {
+  .hrow > b {
+    width: 100%;
+  }
+}
+
+/* a row's words wrap instead of being cut: values and reasons are read in full */
+.wrapText.wrapText b,
+.wrapText.wrapText small {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .tdWrap.tdWrap {
+    flex-wrap: wrap;
+  }
+}

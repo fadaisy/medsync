@@ -24,18 +24,22 @@ import { initials } from "@/lib/reception/desk/model";
 import cs from "./cs.module.css";
 
 /** Class names from this module and the desk module (both apply when both define one). */
+/**
+ * Names that mean something else in the reception desk's stylesheet: `md` is the canvas's medium dialog
+ * (`su-m md`) but the desk calendar's 34px day cell, which squashed every medium dialog to one line. The desk
+ * calendar uses its own helper, so here these map to this workspace's class only.
+ */
+const CS_ONLY = new Set(["md"]);
+
 export const k = (...n: (string | false | null | undefined)[]) =>
   n
     .filter(Boolean)
-    .map((x) => [cs[x as string], desk[x as string]].filter(Boolean).join(" "))
+    .map((x) =>
+      [cs[x as string], CS_ONLY.has(x as string) ? undefined : desk[x as string]]
+        .filter(Boolean)
+        .join(" "),
+    )
     .join(" ");
-
-/** A link to another hospital-admin page in the rail's "More" group (ADR 0514). */
-export interface MoreLink {
-  href: string;
-  label: string;
-  icon: string;
-}
 
 export type View = "ready" | "clinics" | "week" | "closures" | "people" | "devices" | "history";
 export const VIEWS: readonly View[] = [
@@ -47,6 +51,17 @@ export const VIEWS: readonly View[] = [
   "devices",
   "history",
 ];
+
+/** Each view's rail icon, shared by the workspace and the admin frame (ADR 0520). */
+export const VIEW_ICONS: Record<View, string> = {
+  ready: "tick",
+  clinics: "calendar",
+  week: "clock",
+  closures: "sun",
+  people: "person",
+  devices: "nav",
+  history: "swap",
+};
 
 export type Modal =
   | { k: "ses"; clinicId: string; id?: string; weekday?: Weekday }
@@ -164,6 +179,7 @@ export function Seg<T extends string | number>({
   label,
   sm = true,
   className,
+  tour,
 }: {
   opts: readonly (readonly [T, string])[];
   value: T | null;
@@ -171,9 +187,16 @@ export function Seg<T extends string | number>({
   label?: string;
   sm?: boolean;
   className?: string;
+  /** The admin guide's target key (`data-tour`, ADR 0522). */
+  tour?: string;
 }) {
   return (
-    <div className={`${k("seg", sm && "sm")} ${className ?? ""}`} role="group" aria-label={label}>
+    <div
+      className={`${k("seg", sm && "sm")} ${className ?? ""}`}
+      role="group"
+      aria-label={label}
+      data-tour={tour}
+    >
       {opts.map(([v, l]) => (
         <button
           key={String(v)}
@@ -236,15 +259,18 @@ export function Field({
   hint,
   children,
   as = "div",
+  tour,
 }: {
   label: ReactNode;
   hint?: ReactNode;
   children: ReactNode;
   as?: "div" | "label";
+  /** The admin guide's target key (`data-tour`, ADR 0522). */
+  tour?: string;
 }) {
   const T = as;
   return (
-    <T className={k("su-f")}>
+    <T className={k("su-f")} data-tour={tour}>
       <span>
         {label}
         {hint != null ? <small>{hint}</small> : null}

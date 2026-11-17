@@ -53,7 +53,8 @@ export async function hubPaletteEntries(): Promise<
         group: "Clinics",
         label: c.name,
         hint: c.status === "live" ? "Live" : "Planned",
-        href: `${base}/clinics?open=${c.id}`,
+        // Clinics live in Clinics & schedule (ADR 0508); the hub has no clinics page.
+        href: "/hospital-admin/clinics?view=clinics",
       })),
     ...tests.map((t) => {
       const o = offerings.find((x) => x.kind === "lab" && x.code === t.code);

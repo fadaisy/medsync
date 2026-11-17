@@ -29,6 +29,7 @@ import {
 import { Grid3x3Icon, Redo2Icon, Undo2Icon, XIcon } from "lucide-react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { Tag } from "@/components/medsync/tag";
 import { ViewSwitcher } from "@/components/medsync/view-switcher";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -43,6 +44,7 @@ import {
 import { CELL, planAspect, PlanView } from "@/components/wards/plan/plan-view";
 import { PlanZoomControls, PlanZoomFrame, usePlanZoom } from "@/components/wards/plan/plan-zoom";
 import { WardHeader } from "@/components/wards/ward-header";
+import { WARDS } from "@/content/hospital-admin/wards";
 import { cn } from "@/lib/utils";
 import { layoutChecks } from "@/lib/wards/checks";
 import {
@@ -133,6 +135,8 @@ export interface EditorActions {
 export interface EditorLinks {
   hub: string;
   wards: string;
+  /** The breadcrumb before the ward's name; the default is Hospital admin › Departments & services › Wards. */
+  crumbs?: { label: string; href?: string }[];
   layout: (wardId: string) => string;
   board: (wardId: string) => string;
   newWard: string;
@@ -262,12 +266,15 @@ export function WardEditor({
   actions,
   links,
   initial,
+  fit = "screen",
 }: {
   data: LayoutEditorData;
   actions: EditorActions;
   links: EditorLinks;
   /** Where the editor opens (the styleguide fixtures use it; the page doesn't). */
   initial?: { selected?: ItemRef | null; view?: "plan" | "items"; lens?: Lens; tool?: Tool };
+  /** `frame`: fill the admin frame's page (phase 2 of ADR 0520) instead of the screen under a 3rem top bar. */
+  fit?: "screen" | "frame";
 }) {
   const router = useRouter();
   const wardId = data.ward.id;
@@ -683,6 +690,7 @@ export function WardEditor({
 
   /* ── publish ── */
   const [publishOpen, setPublishOpen] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const outcome = useMemo(
@@ -781,6 +789,17 @@ export function WardEditor({
     current: t.id === wardId,
   }));
   const inService = doc?.beds.filter((b) => b.status === "in") ?? [];
+  // The publishing bar (phase 2 of ADR 0520): where the plan stands, and what the checks say.
+  const B = WARDS.builder;
+  const isDraft = hasDraft || unsaved;
+  const published = !!data.published || save.kind === "published";
+  const stopping = checks.filter((c) => !c.ok && c.blocking).length;
+  const worth = checks.filter((c) => !c.ok && !c.blocking).length;
+  const checkNote = stopping
+    ? B.checks.stop(stopping)
+    : worth
+      ? B.checks.worth(worth)
+      : B.checks.clean;
   const stat = (n: string, label: string) => (
     <span className="text-caption text-muted-foreground inline-flex items-baseline gap-1.5 font-normal">
       <span className="text-foreground font-mono text-[14px] font-medium tabular-nums">{n}</span>
@@ -790,17 +809,23 @@ export function WardEditor({
 
   return (
     <div
-      className="flex h-[calc(100svh-3rem)] min-h-[640px] flex-col outline-none"
+      className={cn(
+        "flex flex-col outline-none",
+        fit === "frame" ? "h-full min-h-[560px]" : "h-[calc(100svh-3rem)] min-h-[640px]",
+      )}
       onKeyDown={onRootKey}
     >
       <WardHeader
         crumbs={[
-          { label: "Hospital admin", href: "/hospital-admin" },
-          { label: "Departments & services", href: links.hub },
-          { label: "Wards", href: links.wards },
+          ...(links.crumbs ?? [
+            { label: "Hospital admin", href: "/hospital-admin" },
+            { label: "Departments & services", href: links.hub },
+            { label: "Wards", href: links.wards },
+          ]),
           { label: data.ward.name },
         ]}
         title="Ward layout"
+        tag={<Tag>{published ? (isDraft ? B.tag.draft : B.tag.published) : B.tag.never}</Tag>}
         mode="build"
         buildHref={links.layout(wardId)}
         liveHref={data.published ? links.board(wardId) : null}
@@ -811,19 +836,48 @@ export function WardEditor({
         right={
           doc ? (
             <>
-              <span
-                className={cn(
-                  "text-caption font-normal",
-                  save.kind === "error" ? "text-status-caution-fg-aa" : "text-ink-600",
-                )}
-                role="status"
-                aria-live="polite"
-              >
-                {saveNote}
+              <span className="flex flex-col items-start text-left sm:items-end sm:text-right">
+                <span className="text-caption text-foreground font-medium">{checkNote}</span>
+                <span
+                  className={cn(
+                    "text-caption font-normal",
+                    save.kind === "error" ? "text-status-caution-fg-aa" : "text-ink-600",
+                  )}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {saveNote}
+                </span>
               </span>
+              {hasDraft && !conflicted ? (
+                discarding ? (
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="text-caption text-foreground max-w-60 font-normal">
+                      {B.discardAsk}
+                    </span>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setDiscarding(false);
+                        void discard();
+                      }}
+                    >
+                      {B.discardYes}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setDiscarding(false)}>
+                      {B.discardNo}
+                    </Button>
+                  </span>
+                ) : (
+                  <Button variant="ghost" onClick={() => setDiscarding(true)}>
+                    {B.discard}
+                  </Button>
+                )
+              ) : null}
               {conflicted ? (
                 <Button variant="secondary" onClick={() => window.location.reload()}>
-                  Reload
+                  {B.reload}
                 </Button>
               ) : (
                 <Button
@@ -831,11 +885,16 @@ export function WardEditor({
                   onClick={() => void flush()}
                   disabled={!unsaved || save.kind === "saving"}
                 >
-                  Save draft
+                  {B.save}
                 </Button>
               )}
-              <Button onClick={() => void openPublish()} disabled={conflicted}>
-                Publish layout
+              <Button
+                onClick={() => void openPublish()}
+                disabled={conflicted}
+                data-tour="wt-w-publish"
+                title={stopping ? B.checks.stop(stopping) : undefined}
+              >
+                {B.publish}
               </Button>
             </>
           ) : null
@@ -846,6 +905,7 @@ export function WardEditor({
         <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto xl:grid-cols-[200px_minmax(0,1fr)_264px] xl:overflow-hidden 2xl:grid-cols-[216px_minmax(0,1fr)_288px]">
           <aside
             aria-label="Palette"
+            data-tour="wt-w-pal"
             className="border-border bg-card order-3 overflow-y-auto border-t p-3 pb-24 xl:order-1 xl:border-t-0 xl:border-r"
           >
             <Palette
@@ -930,6 +990,7 @@ export function WardEditor({
                 <div
                   ref={planRef}
                   tabIndex={0}
+                  data-tour="wt-w-plan"
                   onKeyDown={onPlanKey}
                   aria-label={`Floor plan of ${data.ward.name}, ${doc.beds.length} ${doc.beds.length === 1 ? "bed" : "beds"}. Arrow keys nudge the selection; R rotates; Delete removes; Enter places the item chosen in the palette.`}
                   className="focus-visible:outline-ring flex min-h-[280px] flex-1 flex-col rounded-md outline-offset-2 focus-visible:outline-2"
@@ -1001,6 +1062,7 @@ export function WardEditor({
 
           <aside
             aria-label="Inspector"
+            data-tour="wt-w-insp"
             className="border-border bg-card order-2 overflow-y-auto border-t p-3 xl:order-3 xl:border-t-0 xl:border-l xl:pb-24"
           >
             {selection.length > 1 ? (
@@ -1140,6 +1202,7 @@ function StartPanel({
     <div className="bg-ink-100 flex flex-1 items-start justify-center overflow-y-auto p-6">
       <section
         aria-labelledby="start-title"
+        data-tour="wt-w-start"
         className="bg-card shadow-card flex w-full max-w-2xl flex-col gap-5 rounded-lg p-6"
       >
         <div className="flex flex-col gap-1">

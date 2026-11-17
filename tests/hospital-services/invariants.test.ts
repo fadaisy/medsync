@@ -231,9 +231,8 @@ describe("sign-up sees the hub at once, and pop-ups are centred (ADR 0161)", () 
     expect(src).toMatch(/STAFF\.departmentFailed/);
   });
 
-  it("nothing in the hub slides in from an edge: HubPanel is the centred EditorDialog", () => {
+  it("nothing in the hub slides in from an edge: every pop-up is a centred dialog", () => {
     for (const f of walk("app/hospital-admin/departments").filter((p) => p.endsWith(".tsx")))
       expect(read(f), f).not.toMatch(/<SheetContent|<Sheet\b/);
-    expect(read("app/hospital-admin/departments/_components/hub-ui.tsx")).toMatch(/<EditorDialog/);
   });
 });

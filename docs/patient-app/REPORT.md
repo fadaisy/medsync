@@ -61,7 +61,7 @@ Not measured in this session: phone time to interactive, cold start and added JS
 
 - **Apply migrations** in this branch's checkout: `cd <worktree of feat/patient-app-v2> && npm run db:migrate` — 0299, 0300, 0301, 0302, 0303, 0304 (all GATED).
 - **Environment:** `MEDICAL_ID_TOKEN_SECRET` (32+ characters) for the QR; for the sandbox, `PAY_SANDBOX_ALLOWED=1` and `PAY_SANDBOX_SECRET`. Real money stays off (`mobilePayments`, `MOBILE_PAYMENTS`).
-- **Money:** the provider (D-PA-01) and each hospital's merchant agreement; **Tether's own merchant agreement for Plus** (ADR 0520); D-PA-07 (paid, then didn't come) is still yours.
+- **Money:** the provider (D-PA-01) and each hospital's merchant agreement; **Tether's own merchant agreement for Plus** (ADR 0523); D-PA-07 (paid, then didn't come) is still yours.
 - **CSO:** the danger-flow words (drafts), including the 15-minute sugar recheck from the prompt (the old phone screen used 5); Gate CG, which keeps Care mode off on both platforms until signed (`GATE_CG_SIGNED`).
 - **Strings:** every new string is a draft; no `*_COPY_STATUS` was changed.
 - **Pilot:** turn on `appV2Mobile` and `appV2Web` for the pilot hospital for 5 days; then sign the parity reports, decide the gaps, and remove old screens (keeping redirects).

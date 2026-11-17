@@ -126,6 +126,7 @@ export function BedBoard({
   links,
   initialSelected = null,
   live: liveOn = true,
+  fit = "screen",
 }: {
   data: BoardData;
   hospitalId: string;
@@ -135,6 +136,8 @@ export function BedBoard({
   initialSelected?: string | null;
   /** Subscribe to the live topic (off in the styleguide fixture). */
   live?: boolean;
+  /** `frame`: fill the admin frame's page (phase 2 of ADR 0520) instead of the screen under a 3rem top bar. */
+  fit?: "screen" | "frame";
 }) {
   const router = useRouter();
   const zoom = usePlanZoom();
@@ -180,7 +183,12 @@ export function BedBoard({
   }));
 
   return (
-    <div className="flex h-[calc(100svh-3rem)] min-h-[640px] flex-col">
+    <div
+      className={cn(
+        "flex flex-col",
+        fit === "frame" ? "h-full min-h-[560px]" : "h-[calc(100svh-3rem)] min-h-[640px]",
+      )}
+    >
       <WardHeader
         crumbs={[...links.crumbs, { label: data.ward.name }]}
         title="Bed board"

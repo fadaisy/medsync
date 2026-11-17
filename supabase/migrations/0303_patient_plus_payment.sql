@@ -1,5 +1,5 @@
 -- GATED — applied by the owner (`npm run db:migrate`), never auto-run.
--- 0303: paying for Plus through the one engine (patient app v2 §5.9, Step 10; ADR 0520). Plus is Tether's own
+-- 0303: paying for Plus through the one engine (patient app v2 §5.9, Step 10; ADR 0523). Plus is Tether's own
 -- product, so its bill has no hospital: Tether is the merchant (the open item in payments-setup: Tether's own
 -- merchant agreement). Until that agreement is signed nothing real moves: the sandbox adapter only, and
 -- `mobilePayments` off. Everything else is 0299's engine unchanged: one intent per key, exactly-once callbacks,

@@ -1,0 +1,154 @@
+/* Wards and beds (phase 2 of ADR 0520): the desk's own classes, plus the ward cards and their live plans. Every bed
+   state is written beside its picture; the bar only repeats the words, and red never appears. */
+.stats {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.still {
+  cursor: default;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+}
+.card:hover {
+  border-color: var(--line2);
+}
+.card.on {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 1px var(--acc);
+}
+.open {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.head > :nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.ab {
+  background: var(--c1);
+  flex: none;
+}
+.thumb {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--bg);
+  overflow: hidden;
+  pointer-events: none;
+}
+.thumb {
+  height: 150px;
+}
+.thumb > svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* The bar: what is not free, left to right; the track behind is free. */
+.bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--sunk);
+}
+.bar i {
+  display: block;
+  height: 100%;
+}
+.occupied {
+  background: var(--teal-700);
+}
+.arriving {
+  background: color-mix(in srgb, var(--teal-700) 45%, transparent);
+}
+.cleaning {
+  background: var(--sky-icon);
+}
+.reserved {
+  background: var(--line2);
+}
+.out {
+  background: repeating-linear-gradient(135deg, var(--ink3) 0 2px, var(--sunk) 2px 4px);
+}
+.counts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--ink2);
+}
+.counts > b {
+  font-size: 14px;
+  color: var(--ink);
+}
+.counts > span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+.counts > span b {
+  color: var(--ink);
+}
+.empty {
+  display: block;
+  padding: 18px 14px;
+  border-radius: 12px;
+  border: 1.5px dashed var(--line2);
+  font-size: 13px;
+  color: var(--ink2);
+  text-align: center;
+}
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+
+.panelPlan {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  padding: 10px;
+  max-height: 320px;
+  overflow: auto;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

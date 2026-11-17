@@ -78,13 +78,19 @@ export function WeekView({ ctx }: { ctx: Ctx }) {
             <span className={k("adate")}>{CS.week.sub}</span>
           </div>
           <span className={k("grow")} />
-          <button type="button" className={k("btn", "sm")} onClick={() => ctx.modal({ k: "bulk" })}>
+          <button
+            type="button"
+            className={k("btn", "sm")}
+            onClick={() => ctx.modal({ k: "bulk" })}
+            data-tour="wt-bulk"
+          >
             {CS.week.many}
           </button>
           <button
             type="button"
             className={k("btn", "sm")}
             onClick={() => ctx.modal({ k: "print" })}
+            data-tour="wt-print"
           >
             {CS.week.print}
           </button>
@@ -205,7 +211,12 @@ export function WeekView({ ctx }: { ctx: Ctx }) {
           </div>
         ) : null}
 
-        <div className={k("su-card", "su-wk")} role="table" aria-label={CS.week.gridAria}>
+        <div
+          className={k("su-card", "su-wk")}
+          role="table"
+          aria-label={CS.week.gridAria}
+          data-tour="wt-week-grid"
+        >
           <div className={k("su-wr", "su-wh")} role="row">
             <span className={k("su-wn")} role="columnheader">
               {CS.week.clinic}

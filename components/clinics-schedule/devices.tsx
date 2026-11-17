@@ -112,7 +112,12 @@ export function DevicesView({ ctx }: { ctx: Ctx }) {
             <span className={k("adate")}>{fill(CS.devices.sub, { n: all.length, o: on })}</span>
           </div>
           <span className={k("grow")} />
-          <button type="button" className={k("btn", "sm")} onClick={() => ctx.modal({ k: "dev" })}>
+          <button
+            type="button"
+            className={k("btn", "sm")}
+            onClick={() => ctx.modal({ k: "dev" })}
+            data-tour="wt-add-device"
+          >
             {CS.devices.add}
           </button>
         </div>

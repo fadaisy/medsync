@@ -120,13 +120,18 @@ export function ClosuresView({ ctx }: { ctx: Ctx }) {
             <span className={k("adate")}>{CS.closures.sub}</span>
           </div>
           <span className={k("grow")} />
-          <button type="button" className={k("btn", "sm")} onClick={() => ctx.modal({ k: "cx" })}>
+          <button
+            type="button"
+            className={k("btn", "sm")}
+            onClick={() => ctx.modal({ k: "cx" })}
+            data-tour="wt-add-cx"
+          >
             {CS.closures.add}
           </button>
         </div>
 
         <div className={k("su-cxg")}>
-          <div className={k("su-card", "su-cal")}>
+          <div className={k("su-card", "su-cal")} data-tour="wt-cal">
             <div className={k("su-calh")}>
               <button
                 type="button"
@@ -206,7 +211,7 @@ export function ClosuresView({ ctx }: { ctx: Ctx }) {
             </div>
           </div>
 
-          <div className={k("su-card", "su-xl")}>
+          <div className={k("su-card", "su-xl")} data-tour="wt-xl">
             <div className={k("su-ch")}>
               <b>{CS.closures.coming}</b>
               <small>{CS.closures.comingNote}</small>
@@ -251,7 +256,7 @@ export function ClosuresView({ ctx }: { ctx: Ctx }) {
           </div>
         </div>
 
-        <div className={k("su-card", "su-hol")}>
+        <div className={k("su-card", "su-hol")} data-tour="wt-hol">
           <div className={k("su-ch")}>
             <b>{CS.closures.holTitle}</b>
             <small>

@@ -1,0 +1,338 @@
+/* Emergency and support (ADR 0520 phase 2): what the desk's own classes do not cover. Desk tokens only; never red.
+   Receiving emergencies is ink on the surface; not receiving is a heavier ink border with the words. */
+
+.head {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* the receiving-status banner */
+.hero {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.hero b {
+  font-size: 18px;
+  font-weight: 600;
+}
+.hero.off {
+  border: 2px solid var(--ink);
+}
+.heroIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--sunk);
+  color: var(--ink);
+}
+.grow {
+  flex: 1;
+}
+
+/* routing beside the Help preview; one column on a tablet */
+.em {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+/* a neutral square tag: workflow words, never red, amber or green */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--sunk);
+  color: var(--ink2);
+  white-space: nowrap;
+}
+
+/* row actions wrap under the words on a phone */
+.acts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  flex-wrap: wrap;
+}
+
+/* what the public sees */
+.help {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.phone {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 26px;
+  border: 6px solid var(--ink);
+  background: var(--surface);
+  max-width: 360px;
+}
+.phone > b {
+  font-size: 16px;
+  font-weight: 600;
+}
+.phone small {
+  color: var(--ink3);
+  font-size: 12px;
+}
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+.kv span {
+  flex: none;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.kv b {
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* what the hospital can take in */
+.plain.plain {
+  padding: 6px 0 0;
+  background: none;
+}
+.sup {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 12px;
+}
+.pad {
+  padding: 14px 16px;
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cardHead b {
+  font-size: 15px;
+  font-weight: 600;
+}
+.line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+/* the change dialog: the control beside Now → Proposed and the reason */
+.chg {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(240px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.cmp {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+.cmp > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.cmp b {
+  font-size: 14px;
+  line-height: 19px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.arrow {
+  font-size: 18px;
+  color: var(--ink3);
+}
+.wrapSeg {
+  flex-wrap: wrap;
+  height: auto;
+}
+.ta {
+  height: auto !important;
+  min-height: 96px;
+  padding: 10px 14px !important;
+  font-size: 15px !important;
+  resize: vertical;
+}
+.field {
+  /* Basis auto: in a column it keeps its height; in a row it still grows (`.in` is flex: 1). */
+  flex-basis: auto !important;
+  height: 44px !important;
+  font-size: 15px !important;
+}
+.num {
+  width: 88px;
+  flex: none !important;
+  text-align: center;
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* the pin dialog */
+.pinw {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.map {
+  position: relative;
+  z-index: 0;
+  height: 380px;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+}
+.pin {
+  fill: var(--acc);
+  stroke: var(--surface);
+}
+
+@media (max-width: 860px) {
+  .em,
+  .chg,
+  .pinw {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .map {
+    height: 300px;
+  }
+}
+@media (max-width: 600px) {
+  .acts {
+    width: 100%;
+  }
+}
+
+/* a row's words wrap instead of being cut: values and reasons are read in full */
+.wrapText.wrapText b,
+.wrapText.wrapText small {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .tdWrap.tdWrap {
+    flex-wrap: wrap;
+  }
+}
+
+/* finding the hospital on a map */
+.find {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.hits {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hit {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  text-align: left;
+  cursor: pointer;
+}
+.hit:hover {
+  background: var(--bg);
+}
+.mapBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mapSm {
+  height: 180px;
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.locCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+}
+.locHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.locCoords {
+  font-size: 12px;
+  color: var(--ink3);
+  font-variant-numeric: tabular-nums;
+}
+.layerSeg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  background: var(--sunk);
+}
+.layerSeg > button {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink2);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.layerSeg > button.layerOn {
+  background: var(--surface);
+  color: var(--ink);
+}

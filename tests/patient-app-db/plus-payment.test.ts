@@ -1,5 +1,5 @@
 /**
- * Paying for Plus through the one engine (migration 0303; patient app v2 §5.9, Step 10; ADR 0520). PGlite lane
+ * Paying for Plus through the one engine (migration 0303; patient app v2 §5.9, Step 10; ADR 0523). PGlite lane
  * only. Tether is the merchant: the bill has no hospital, Tether's receipts number on their own, and a paid bill
  * starts the period it bought. Exactly once under duplicate callbacks (S14); a trial still never charges (S25).
  */

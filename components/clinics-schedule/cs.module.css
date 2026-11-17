@@ -1112,6 +1112,15 @@ button.su-hi:hover {
   color: var(--cautfg);
   font-weight: 700;
 }
+/* `.in` grows along a row; in a field's column that squashed it to one line of text (ADR 0520). */
+.su-f > .in {
+  flex: none;
+}
+/* The same in a section's column: an input placed straight in `.su-sec` kept `flex: 1` and collapsed to a sliver. */
+.su-sec > .in,
+.det > .in {
+  flex: none;
+}
 .su-ta {
   height: auto !important;
   padding: 10px 14px;

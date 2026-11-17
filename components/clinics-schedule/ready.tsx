@@ -202,7 +202,12 @@ export function ReadyView({ ctx }: { ctx: Ctx }) {
             <span className={k("adate")}>{fill(CS.ready.sub, { live: live.length, total })}</span>
           </div>
           <span className={k("grow")} />
-          <button type="button" className={k("btn", "sm")} onClick={() => ctx.modal({ k: "tpl" })}>
+          <button
+            type="button"
+            className={k("btn", "sm")}
+            onClick={() => ctx.modal({ k: "tpl" })}
+            data-tour="wt-tpl"
+          >
             {CS.ready.template}
           </button>
           {ready.length ? (
@@ -210,6 +215,7 @@ export function ReadyView({ ctx }: { ctx: Ctx }) {
               type="button"
               className={k("btn", "k")}
               onClick={() => ctx.modal({ k: "openAll" })}
+              data-tour="wt-openall"
             >
               {ready.length === 1 ? CS.ready.openOne : fill(CS.ready.openAll, { n: ready.length })}
             </button>
@@ -222,7 +228,7 @@ export function ReadyView({ ctx }: { ctx: Ctx }) {
               <b>{CS.ready.pipeTitle}</b>
               <small>{CS.ready.pipeSub}</small>
             </div>
-            <div className={k("su-stages")}>
+            <div className={k("su-stages")} data-tour="wt-stages">
               {stages.map(([s, list, subT]) => (
                 <button
                   key={s}
@@ -268,7 +274,7 @@ export function ReadyView({ ctx }: { ctx: Ctx }) {
             </div>
           </div>
 
-          <div className={k("su-card", "su-todo")}>
+          <div className={k("su-card", "su-todo")} data-tour="wt-launch-todo">
             <div className={k("su-ch")}>
               <b>{CS.ready.doNext}</b>
               {todo.length > 5 ? (
@@ -295,7 +301,12 @@ export function ReadyView({ ctx }: { ctx: Ctx }) {
 
         <div className={k("su-grid")}>
           <div className={k("su-card")}>
-            <div className={k("ttabs")} role="tablist" aria-label={CS.ready.pipeTitle}>
+            <div
+              className={k("ttabs")}
+              role="tablist"
+              aria-label={CS.ready.pipeTitle}
+              data-tour="wt-ltabs"
+            >
               {(["all", "setup", "ready", "live", "kids"] as Tab[]).map((t) => (
                 <button
                   key={t}
@@ -363,7 +374,7 @@ function ReadyRow({ ctx, c }: { ctx: Ctx; c: Clinic }) {
   const fd = firstDay(ctx, c.id);
   const miss = r.checks.filter((x) => !x.ok);
   return (
-    <div className={k("su-rr")} role="listitem">
+    <div className={k("su-rr")} role="listitem" data-tour="wt-lrow">
       <button type="button" className={k("su-ln")} onClick={() => ctx.go("clinics", c.id)}>
         <span>
           <i style={{ background: c.colour }} />

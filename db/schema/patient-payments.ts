@@ -30,7 +30,7 @@ export const hospitalPaymentAccounts = pgTable("hospital_payment_accounts", {
 
 export const bills = pgTable("bills", {
   id: uuid("id").primaryKey().defaultRandom(),
-  // 0303: no hospital for a membership bill (Tether is the merchant, ADR 0520).
+  // 0303: no hospital for a membership bill (Tether is the merchant, ADR 0523).
   hospitalId: uuid("hospital_id"),
   appointmentId: uuid("appointment_id"),
   patientUserId: uuid("patient_user_id"),

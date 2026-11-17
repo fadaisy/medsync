@@ -1,0 +1,247 @@
+/**
+ * People (ADR 0520 phase 2): the admin page at /hospital-admin/staff with To review, Invitations, Directory and
+ * Admins, in the Tether desk look. Every string the page shows lives here. Draft until the CSO signs; Claude never
+ * edits the status.
+ */
+import type { SignedCopy } from "@/content/signed-copy";
+
+export const PEOPLE_COPY_STATUS: SignedCopy = {
+  status: "draft",
+  signedBy: null,
+  signedOn: null,
+};
+
+export const PEOPLE = {
+  title: "People",
+  metaTitle: "People · Hospital admin",
+  tabs: {
+    review: "To review",
+    invites: "Invitations",
+    directory: "Directory",
+    admins: "Admins",
+  },
+  team: "Team in Clinics & schedule",
+  invite: "+ Invite people",
+  close: "Close",
+  cancel: "Cancel",
+  reasonPh: "At least 8 characters · kept with your name and the time",
+  short: "Write at least 8 characters.",
+  failed: "Could not save. Try again.",
+
+  /** How long someone has waited, in words. `stale` is the neutral tag from 7 days (ADR 0520: never a colour). */
+  age: {
+    today: "Asked today",
+    one: "Asked yesterday",
+    days: "Asked {n} days ago",
+    stale: "Waiting {n} days",
+  },
+
+  review: {
+    count: "{n} asking to join",
+    cardTitle: "Asked to join",
+    cardSub: "They picked this hospital when they signed up. Check their papers before approving.",
+    empty: "Nobody is waiting. New people appear here when they ask to join.",
+    note: "Doctors who already work here and run sessions are under Team in Clinics & schedule. This list is only people asking to join.",
+    open: "Review",
+    infoTag: "Waiting for their reply",
+    infoBox: "You asked them for more. They have not replied yet.",
+    yourNote: "What you asked: “{note}”",
+    onFile: "On file",
+    rows: {
+      role: "Role asked for",
+      cadre: "Cadre",
+      grade: "Grade",
+      department: "Department",
+      specialty: "Sub-specialty",
+      employment: "Employment",
+      email: "Email",
+      path: "Path",
+      council: "Council",
+      registration: "Registration number",
+      expires: "Registration expires",
+      nin: "National ID",
+      staffNumber: "Staff number",
+      authorising: "Authorising officer",
+    },
+    clinical: "Clinical",
+    nonClinical: "Non-clinical",
+    ninOnFile: "On file (encrypted)",
+    ninMissing: "Not given",
+    none: "Not given",
+    attest:
+      "Non-clinical: your approval is the employer's word that they work here. There is no council to check. Confirm they are a current employee in this role before approving.",
+    document: "Document",
+    licence: "Council licence",
+    letter: "Appointment letter",
+    openDoc: "Open the document",
+    opening: "Opening…",
+    noLetter: "No appointment letter. It is optional; ask for one if you cannot place this person.",
+    decision: "Your decision",
+    steps: { approve: "Approve", info: "Ask for more", reject: "Decline" },
+    step: {
+      approve: {
+        label: "Why are you approving?",
+        hint: "For example: licence checked against the council register; matches the role asked for.",
+        go: "Approve",
+      },
+      info: {
+        label: "What do you need from them?",
+        hint: "They see this on their status page. For example: please upload a clearer copy of your council registration.",
+        go: "Send the request",
+      },
+      reject: {
+        label: "Why are you declining?",
+        hint: "For example: the registration number does not match a current council record.",
+        go: "Decline",
+      },
+    },
+    working: "Saving…",
+    done: {
+      approve: "Approved. They can sign in to this hospital now.",
+      info: "Request sent.",
+      reject: "Declined.",
+    },
+  },
+
+  invites: {
+    count: "{n} invitations",
+    cardTitle: "Invitations",
+    cardSub: "Each link is shown once, when you send it",
+    empty: "No invitations yet.",
+    sent: "Sent {date}",
+    until: "link works until {date}",
+    accepted: "Accepted {date}",
+    revokedOn: "Revoked {date}",
+    expiredOn: "Ran out {date}",
+    bulk: "Sent with others",
+    status: {
+      pending: "Sent",
+      accepted: "Accepted",
+      revoked: "Revoked",
+      expired: "Ran out",
+    },
+    revoke: "Revoke",
+    newTitle: "New links · shown only now",
+    newSub: "Copy each link and send it to the person. The link cannot be shown again.",
+    copy: "Copy link",
+    copied: "Copied",
+    dialog: {
+      title: "Invite people",
+      lead: "You get a sign-up link for each person to send them",
+      emails: "Emails",
+      emailsHint: "one per line, up to 100",
+      emailsPh: "name@example.org",
+      why: "Why are you inviting them?",
+      note: "They pick their role when they sign up, and you check it under To review.",
+      go: "Send invitations",
+      working: "Sending…",
+    },
+    sentSay: "{n} invitations ready. Copy each link below.",
+    revokeDialog: {
+      title: "Revoke this invitation?",
+      lead: "{email} · the link stops working",
+      why: "Why are you revoking it?",
+      go: "Revoke",
+      working: "Revoking…",
+    },
+    revokedSay: "Invitation revoked.",
+  },
+
+  directory: {
+    count: "{n} on the staff list",
+    search: "Find a person, role or council number",
+    filters: { all: "All", active: "Active", suspended: "Suspended", deactivated: "Closed" },
+    allDepartments: "All departments",
+    department: "Department",
+    cardTitle: "Staff",
+    cardSub: "Everyone approved at this hospital",
+    empty: "Nobody on the list yet. Approved people appear here.",
+    noMatch: "Nobody matches.",
+    open: "Open",
+    status: {
+      active: "Active",
+      approved: "Active",
+      suspended: "Suspended",
+      deactivated: "Closed",
+    } as Record<string, string>,
+    rows: {
+      role: "Role",
+      cadre: "Cadre",
+      department: "Department",
+      employment: "Employment",
+      email: "Email",
+      council: "Council",
+      registration: "Registration number",
+    },
+    none: "Not given",
+    statusLine: {
+      active: "They can sign in and work in their role at this hospital.",
+      suspended:
+        "Sign-in to this hospital is blocked. Other hospitals where they work are not affected.",
+      deactivated:
+        "Their account at this hospital is closed. The record stays; they cannot sign in again unless you reopen it.",
+    },
+    actionsCap: "Change",
+    acts: {
+      assign_role: "Change role",
+      reset_mfa: "Reset authenticator",
+      suspend: "Suspend",
+      deactivate: "Close account",
+      reactivate: "Reopen",
+    },
+    step: {
+      assign_role: {
+        label: "Why are you changing it?",
+        hint: "For example: moved to the medical ward from 1 December.",
+        go: "Change role",
+        warn: "",
+      },
+      reset_mfa: {
+        label: "Why are you resetting it?",
+        hint: "For example: lost their phone; identity checked by a call.",
+        go: "Reset authenticator",
+        warn: "This removes every authenticator on their account. They set up a new one at their next sign-in, at every hospital where they work.",
+      },
+      suspend: {
+        label: "Why are you suspending them?",
+        hint: "For example: access paused while a complaint is looked into.",
+        go: "Suspend",
+        warn: "Sign-in to this hospital is blocked at once. Other hospitals are not affected.",
+      },
+      deactivate: {
+        label: "Why are you closing the account?",
+        hint: "For example: resigned on 1 November; no further access.",
+        go: "Close account",
+        warn: "This closes their account at this hospital. You can reopen it later, with a reason.",
+      },
+      reactivate: {
+        label: "Why are you reopening it?",
+        hint: "For example: the complaint is closed; access restored.",
+        go: "Reopen",
+        warn: "",
+      },
+    },
+    newDepartment: "Department",
+    newRole: "Role",
+    unchanged: "Pick a new role or department first.",
+    working: "Saving…",
+    done: "Saved.",
+  },
+
+  admins: {
+    lead: "Who runs the admin side of this hospital",
+    cardTitle: "Admins",
+    cardSub: "Everyone who holds the hospital admin role here",
+    empty: "No admins found.",
+    designation: {
+      primary: "Primary admin",
+      backup: "Backup admin",
+      none: "Admin · primary or backup not recorded",
+    },
+    since: "Since {date}",
+    you: "You",
+    note: "Primary and backup are set when the hospital joins. Changing them is not available here yet.",
+    staffNote:
+      "Roles, suspensions and authenticator resets for people already on the staff list open from their name under Directory.",
+  },
+} as const;

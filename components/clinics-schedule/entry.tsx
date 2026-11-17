@@ -2,8 +2,9 @@
 
 /** The two ways in: the live page (server actions) and the styleguide fixture (memory only). */
 import type { CsPort } from "./port";
-import type { MoreLink, View } from "./shared";
+import type { View } from "./shared";
 import type { CsData } from "@/lib/clinics-schedule/fixture";
+import type { AdminNavGroup } from "@/lib/hospital-admin/admin-nav";
 
 import {
   addDevice,
@@ -37,23 +38,37 @@ const asView = (v?: string): View =>
 export function LiveClinics({
   data,
   view,
-  more,
+  clinic,
+  tab,
+  groups,
 }: {
   data: CsData;
   view?: string;
-  more?: readonly MoreLink[];
+  /** `?clinic=` and `?tab=`: one clinic's panel, opened on a tab (ADR 0522). */
+  clinic?: string;
+  tab?: string;
+  groups?: readonly AdminNavGroup[];
 }) {
-  return <ClinicsWorkspace data={data} port={livePort} initialView={asView(view)} more={more} />;
+  return (
+    <ClinicsWorkspace
+      data={data}
+      port={livePort}
+      initialView={asView(view)}
+      initialClinic={clinic ?? null}
+      initialTab={tab ?? null}
+      groups={groups}
+    />
+  );
 }
 
 export function FixtureClinics({
   scenario,
   view,
-  more,
+  groups,
 }: {
   scenario: "ready" | "first" | "offline";
   view?: string;
-  more?: readonly MoreLink[];
+  groups?: readonly AdminNavGroup[];
 }) {
   return (
     <ClinicsWorkspace
@@ -61,7 +76,7 @@ export function FixtureClinics({
       port={fixturePort}
       forceOffline={scenario === "offline"}
       initialView={asView(view)}
-      more={more}
+      groups={groups}
     />
   );
 }

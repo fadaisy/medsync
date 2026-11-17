@@ -86,13 +86,18 @@ export function PeopleView({ ctx }: { ctx: Ctx }) {
             </span>
           </div>
           <span className={k("grow")} />
-          <button type="button" className={k("btn", "sm")} onClick={() => ctx.modal({ k: "addP" })}>
+          <button
+            type="button"
+            className={k("btn", "sm")}
+            onClick={() => ctx.modal({ k: "addP" })}
+            data-tour="wt-addp"
+          >
             {CS.people.add}
           </button>
         </div>
 
         {leave.length ? (
-          <div className={k("su-card", "su-lr")}>
+          <div className={k("su-card", "su-lr")} data-tour="wt-lr">
             <div className={k("su-ch")}>
               <b>
                 {CS.people.leave} · {leave.length}

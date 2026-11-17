@@ -14,7 +14,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 - Me (behind `appV2Web` / `appV2Mobile`): the membership card (front, back, turn over), a QR of a short-lived token, the plans from approved prices, the 30-day trial with its reveal, and paying a plan through the engine. What is always free sits beside the plans (MR9).
 - S24: `pt-medical-id-token` issues a signed token that ends after 5 minutes (`_shared/medical-id-token.ts`, tested: expiry, tampering, a foreign key). It returns the QR as a grid, so the phone draws it without a new dependency. The apps refresh it before it ends.
-- `pt-plus`: the trial (no card, nothing charged at the end, S25) and payment through the one engine. Migration 0303 (GATED, not applied): membership bills with Tether as the merchant, Tether's own receipt counter, and the period starts when paid ([ADR 0520](docs/adr/0520-plus-paid-through-the-engine-tether-as-merchant.md)). Sandbox only until Tether's merchant agreement is signed.
+- `pt-plus`: the trial (no card, nothing charged at the end, S25) and payment through the one engine. Migration 0303 (GATED, not applied): membership bills with Tether as the merchant, Tether's own receipt counter, and the period starts when paid ([ADR 0523](docs/adr/0523-plus-paid-through-the-engine-tether-as-merchant.md)). Sandbox only until Tether's merchant agreement is signed.
 - Choosing a plan starts the free month when it is still available, else opens payment. The hidden card face is `inert` (an axe finding).
 - Shared rules in `packages/patient-core/membership.ts`: the tier a person holds now, and plans from approved prices.
 - Fixed: migration 0304 (GATED) adds the 0288 MFA gate to every table 0299–0301 put RLS on (they enabled it in a loop the guard could not see). Hospital staff now need AAL2 to read them; patients are unaffected. The PGlite harness takes an `aal` on its actor.
@@ -86,6 +86,59 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
   over, and plan cards. Payment states use the accent, never clinical colours. Kit pages: `/pw/gallery/v2` and the
   phone's `/dev/v2`; screenshots in `docs/patient-app/screens/step3/`. The danger hero is the only new red, on both
   red allowlists for clinical-safety review. Words are shared from `content/patient-app` (drafts).
+
+### Added — The new-admin guide — 16 Nov 2026
+
+- A guide for a new hospital admin, across the whole admin workspace ([ADR 0522](docs/adr/0522-new-admin-guide.md)):
+  a **welcome** on first sign-in (once per person in this browser), **16 walkthroughs** that go to the real page and
+  put a spotlight and a curved arrow on the real control, and the **Tether guide** (a ? in the sidebar): 26 how-tos
+  in 7 topics with search, each with "Walk me through it", "Watch it done" and "Take me there".
+- **Set up Tether** on Today: seven steps, each Done only when the hospital's own records say so (a live department,
+  an invitation sent, the location and routing set, a clinic taking bookings, a published week, a paired device);
+  a fact that cannot be read stays To do. Hide it, and bring it back from the guide.
+- **Six motion demos** play the real screens without changing anything: they only open pages and point, and the bar
+  says "A demo: nothing is changed".
+- People, Departments, Laboratory and imaging and Requests now follow their URL's tab when it changes (the back
+  button, a walkthrough); Clinics & schedule opens a clinic's panel from `?clinic=&tab=`. No migration, no new Edge
+  Function, no new dependency. Wording is a draft.
+
+### Fixed — Admin dialogs, the Departments panel, and the hospital on a map — 16 Nov 2026
+
+- Medium dialogs in the admin workspace (Emergency and support's Change, Departments, Clinics & schedule) no longer
+  collapse to one line; an input placed in a section's column no longer shrinks to a sliver.
+- The Departments panel's tabs stay on one line and its text buttons line up under their headings.
+- Emergency and support: find the hospital by name, switch between satellite and the street map, see the pin on a
+  small map, and check it in Google Maps' satellite view (a link; no Google key). No floating Emergency over the
+  admin desk, whose top bar carries it.
+
+### Changed — One admin workspace, phase 2 — 16 Nov 2026
+
+- Every hospital-admin page is now drawn in the Tether desk's own components ([ADR 0521](docs/adr/0521-admin-workspace-phase-2.md)).
+  **Today** is the admin's home on both domains and first in the menu: four counts that each open where the work is
+  done, and a Do next list. **Activity** (replacing the Audit placeholder) lists this hospital's audited admin actions
+  only, never one about a patient.
+- **People** (was Staff): To review, Invitations, Directory and Admins, with the person in a side panel and centred
+  dialogs. **Departments**: cards, booking rules per department, Unavailable now and Hours and places in one page.
+  **Emergency and support**: one page, a change dialog with one control per setting, the second-admin flow as before,
+  what the public sees, and a map to pin the hospital's location.
+- **Wards and beds** and **Laboratory and imaging** are set up in full from the admin workspace, also on Tether
+  (superseding ADR 0499 for these two): ward cards with live plans, the ward builder's publishing bar, and the test
+  menu, referrals, hours, imaging and profiles. Hospital profile and Reports are rebuilt with the same actions and
+  figures; SMS spend is shown once.
+- Old addresses forward (Admins, Audit, Booking policy, Availability, Hours, Diagnostics). Remind is deferred: it
+  needs a staff message kind. No migration. Wording is a draft.
+
+### Changed — One admin workspace — 16 Nov 2026
+
+- Every hospital-admin page now opens in the Tether desk with one menu: Clinics & schedule's seven views, then
+  Hospital (Departments, Emergency and support, Staff, Hospital profile; Intake off the Tether domain only) and
+  Follow-up (Requests, Reports) ([ADR 0520](docs/adr/0520-one-admin-workspace.md)). No menu item leads to a
+  placeholder; `/hospital-admin` opens Clinics & schedule.
+- New Requests page: booking requests waiting for a clinician (moved from Reports) and copies of results (moved from
+  the unlisted records-requests page, which forwards there). Mark sent asks how the copy went out and reports a
+  failed or repeated save. Urgent is a neutral tag, no longer red.
+- Fixed: non-clinical staff were missing from the Staff directory; ⌘K's clinic results opened a page that does not
+  exist; a form field could collapse to one line in the desk's dialogs. Wording is a draft.
 
 ### Added — Care mode engine and care programmes priced by team (behind careMode) — 16 Nov 2026
 

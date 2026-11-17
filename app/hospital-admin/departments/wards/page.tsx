@@ -1,3 +1,7 @@
+import type { WardItem, WardPlan } from "./_lib/model";
+import type { Metadata } from "next";
+
+import { WARDS } from "@/content/hospital-admin/wards";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import {
   loadDepartments,
@@ -6,31 +10,61 @@ import {
   loadWards,
   nursingPool,
 } from "@/lib/services/data";
-import { layoutStatusByWard } from "@/lib/wards/data";
+import { loadBedBoard } from "@/lib/wards/board";
+import { layoutStatusByWard, wardTabs } from "@/lib/wards/data";
 import { wardBuilderLiveFor } from "@/lib/wards/feature";
-import { WardsView } from "../_components/wards-view";
+import { WardsView } from "./_components/wards-view";
 
+export const metadata: Metadata = { title: WARDS.title };
 export const dynamic = "force-dynamic";
 
 /**
- * Wards & beds (§5.4). With WARD_BUILDER on, each ward opens its layout and its live bed board
- * (ADRs 0191–0194); occupancy lives on the board, never in this list.
+ * Wards and beds (phase 2 of ADR 0520), in the Tether desk. With WARD_BUILDER on, each ward with a published layout
+ * shows its live plan and its bed states from the bed board (ADR 0194, the engine behind every count here); off,
+ * the list works from the register alone and the builder entry is hidden.
  */
-export default async function WardsPage() {
+export default async function WardsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ open?: string; new?: string }>;
+}) {
   const scope = await requireHospitalAdminScope();
   const h = scope.hospitalId;
   const builder = wardBuilderLiveFor(h);
-  const [wards, departments, pool, places, layouts] = await Promise.all([
+  const [wards, departments, pool, places, layouts, tabs] = await Promise.all([
     loadWards(h),
     loadDepartments(h),
     loadStaffPool(h),
     loadPlaces(h),
     // ADR 0191 §6: the layout tables are read only when the ward builder is on (migration 0090).
     builder ? layoutStatusByWard(h) : Promise.resolve(null),
+    builder ? wardTabs(h) : Promise.resolve([]),
   ]);
+  // The live boards of the wards with a published layout; no patient is read (`patients: "none"`).
+  const boards = layouts
+    ? await Promise.all(
+        wards
+          .filter((w) => !w.archived && layouts[w.id]?.published)
+          .map((w) => loadBedBoard(h, w.id, { patients: "none", tabs })),
+      )
+    : [];
+  const plans = new Map<string, WardPlan>();
+  for (const b of boards)
+    if (b?.doc)
+      plans.set(b.ward.id, {
+        doc: b.doc,
+        states: Object.fromEntries(b.beds.map((x) => [x.key, x.state])),
+      });
+  const items: WardItem[] = wards.map((w) => ({
+    ...w,
+    layout: layouts ? (layouts[w.id] ?? { published: false, draft: false }) : null,
+    plan: plans.get(w.id) ?? null,
+  }));
+  const sp = await searchParams;
   return (
     <WardsView
-      wards={wards}
+      wards={items}
+      builder={builder}
       departments={departments
         .filter((d) => d.parentId === null && !d.archived)
         .map((d) => ({ id: d.id, name: d.name }))}
@@ -43,7 +77,8 @@ export default async function WardsPage() {
         ).values(),
       ]}
       places={places.filter((p) => !p.archived).map((p) => ({ id: p.id, name: p.name }))}
-      layouts={layouts}
+      openId={typeof sp.open === "string" ? sp.open : null}
+      adding={sp.new === "1"}
     />
   );
 }
