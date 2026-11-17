@@ -26,7 +26,7 @@ Prompt: the owner's "Tether patient app v2, phone and web, with booking payments
 
 **Already on main:** the first half (migrations 0299–0301, ADRs 0516–0519) reached main before the PR. ADR 0520 on main is "one admin workspace", so v2's Plus ADR is renumbered to **0523**.
 
-**PR in progress (17 Nov):** merge of origin/main into feat/patient-app-v2 done locally in the cloud. CHANGELOG conflict resolved (both sides kept). ADR 0520 → 0523 renamed, with references updated in the 0303 header comment (0303 is unapplied), pt-plus, the db schema, a test and the docs. Typecheck and lint pass. **If the merge commit is not on origin/feat/patient-app-v2, redo it on the Mac:** `git merge origin/main`, resolve CHANGELOG, rename the ADR, run typecheck/lint/test, push, then open the PR (feat/patient-app-v2 → main; no PR template in the repo).
+**PR #318 open (17 Nov):** https://github.com/justfadhul/medsync/pull/318, feat/patient-app-v2 @ 9b0e88a → main. origin/main is merged in, the CHANGELOG conflict is resolved, and the Plus ADR is renumbered 0520 → 0523. After the merge: typecheck and lint clean; vitest 12,598 pass, once `mobile/` dependencies are installed. Merging is the owner's.
 
 **Flags (all off):** `appV2Mobile`, `appV2Web`, `careMode` (locked in code: `GATE_CG_SIGNED = false`), `mobilePayments` (sandbox only).
 
