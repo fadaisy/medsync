@@ -33,10 +33,15 @@ export function helpViolation(file: string, src: string): string | null {
   const optsOut = /help=["{]["']?none/.test(src);
   if (optsOut && !isHelp) return 'opts out with help="none"; only Help may';
   const swaps = /help=\{helpInPage \? "none"/.test(src);
-  // `WhyComing` draws that button itself (features/visits/why-coming.tsx).
+  // `WhyComing` draws that button itself, in its "Something is wrong" card; `WrongAreas` is that same card
+  // on its own, for Book's one-question-at-a-time page (features/visits/why-coming.tsx).
   if (
     swaps &&
-    !((/variant="danger"/.test(src) && /push\("\/help"\)/.test(src)) || /<WhyComing\b/.test(src))
+    !(
+      (/variant="danger"/.test(src) && /push\("\/help"\)/.test(src)) ||
+      /<WhyComing\b/.test(src) ||
+      /<WrongAreas\b/.test(src)
+    )
   )
     return "hides the header Help without a red Help of its own on the page";
   if (isHelp) return null;
@@ -76,6 +81,17 @@ describe("law L6: Help is reachable on every route", () => {
       helpViolation("(app)/(tabs)/other.tsx", "export default () => <BookView tab />;"),
     ).not.toBeNull();
     expect(helpViolation("(app)/(tabs)/booking.tsx", "export default () => null;")).not.toBeNull();
+  });
+
+  it("the card that lets a page hide its header Help draws a red Help that opens /help", () => {
+    // `WrongAreas` is trusted by name above, so it is held to what that trust assumes.
+    const src = readFileSync(join(APP, "..", "features", "visits", "why-coming.tsx"), "utf8");
+    const card = src.slice(src.indexOf("export function WrongAreas"));
+    const end = card.indexOf("\nexport function ", 1);
+    expect(end === -1 ? card : card.slice(0, end)).toMatch(/<HelpNow \/>/);
+    const helpNow = src.slice(src.indexOf("function HelpNow"));
+    expect(helpNow).toMatch(/variant="danger"/);
+    expect(helpNow).toMatch(/push\("\/help"\)/);
   });
 
   it("fails a route without Help", () => {
