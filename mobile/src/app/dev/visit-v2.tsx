@@ -18,7 +18,7 @@ import { stageOf } from "@patient-core/visit-stages";
 
 import { Screen } from "@/components/tide";
 import { PayChoice, PromptStatus } from "@/components/tide/v2";
-import { AvatarCount, VISIT_PLACES, VisitNav } from "@/components/tide/v2-shell";
+import { AvatarCount, VISIT_PLACES, VisitNav, visitNavBottom } from "@/components/tide/v2-shell";
 import { ticketFor } from "@/data/visit-v2";
 import { HomeV2View } from "@/features/v2/home";
 import { VisitDay } from "@/features/v2/visit-day";
@@ -177,7 +177,12 @@ function HomeShell() {
       </Screen>
       <View
         pointerEvents="box-none"
-        style={{ position: "absolute", left: 16, right: 16, bottom: 14 + insets.bottom }}
+        style={{
+          position: "absolute",
+          left: 16,
+          right: 16,
+          bottom: visitNavBottom(insets.bottom),
+        }}
       >
         <VisitNav
           width={width - 32}

@@ -3,7 +3,13 @@ import { stageOf } from "@patient-core/visit-stages";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { AvatarCount, VISIT_PLACES, VisitNav } from "@/components/tide/v2-shell";
+import {
+  AvatarCount,
+  VISIT_NAV_GLASS,
+  VISIT_PLACES,
+  VisitNav,
+  visitNavBottom,
+} from "@/components/tide/v2-shell";
 import { HomeV2View } from "@/features/v2/home";
 import { ThemeProvider } from "@/theme/theme";
 
@@ -151,6 +157,35 @@ describe("the v2 shell (feature matrix 1.1, 1.3)", () => {
     expect(onNavigate).toHaveBeenCalledWith("book");
     await fireEvent.press(screen.getByLabelText(/^Add:/));
     expect(onPlus).toHaveBeenCalledTimes(1);
+  });
+
+  it("the nav sits just above the home indicator, and off the edge where there is none", () => {
+    // 4 pt over the indicator's 34 pt; never closer than 12 pt to the edge of the glass.
+    expect(visitNavBottom(34)).toBe(38);
+    expect(visitNavBottom(0)).toBe(12);
+  });
+
+  it("the pill is glass only where the system has it, and solid where the glass module is missing", () => {
+    // jest-expo's mock reports the glass as available, so the test above drew the glass pill.
+    expect(VISIT_NAV_GLASS).toBe(true);
+    const glassWhen = (isLiquidGlassAvailable: () => boolean) => {
+      let mod!: typeof import("@/components/tide/v2-shell");
+      jest.isolateModules(() => {
+        jest.doMock("expo-glass-effect", () => ({
+          GlassView: "GlassView",
+          isLiquidGlassAvailable,
+        }));
+        mod = jest.requireActual("@/components/tide/v2-shell");
+      });
+      jest.dontMock("expo-glass-effect");
+      return mod.VISIT_NAV_GLASS;
+    };
+    expect(glassWhen(() => false)).toBe(false);
+    expect(
+      glassWhen(() => {
+        throw new Error("Cannot find native module 'ExpoGlassEffect'");
+      }),
+    ).toBe(false);
   });
 
   it("the avatar carries the unseen count in its name and opens Notifications", async () => {

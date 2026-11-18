@@ -3,7 +3,7 @@ import { Tabs, useRouter } from "expo-router";
 import { useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { VisitNav } from "@/components/tide/v2-shell";
+import { VisitNav, visitNavBottom } from "@/components/tide/v2-shell";
 
 /**
  * Visit mode's four places, Home, Book, Visits and Me, in `VisitNav` (patient app v2, feature matrix 1.1; the
@@ -38,7 +38,12 @@ export default function TabsLayout() {
       tabBar={({ state, navigateToTab }) => (
         <View
           pointerEvents="box-none"
-          style={{ position: "absolute", left: 16, right: 16, bottom: 14 + insets.bottom }}
+          style={{
+            position: "absolute",
+            left: 16,
+            right: 16,
+            bottom: visitNavBottom(insets.bottom),
+          }}
         >
           <VisitNav
             width={width - 32}

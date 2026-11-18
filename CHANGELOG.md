@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — The phone's nav is frosted glass and sits lower — 18 Nov 2026
+
+Asked for by the owner on seeing v2 in the iOS Simulator. No new dependency (`expo-glass-effect` was already installed), no new strings, no flag.
+
+- The Visit-mode pill (`components/tide/v2-shell.tsx`) is Apple's glass where the system has it (iOS 26 and later), with the raised surface laid in at about 35 % so the page's words stay soft behind the places' labels. The glass follows the app's own light or dark theme. Everywhere else (Android, older iOS, the web, a runtime with no glass module) the pill keeps its solid surface, border and shadow.
+- Under the glass the page scrolls on beneath the nav: the fade that melted content into the page colour before the bar (`components/tide/screen.tsx`) is drawn only for the solid pill.
+- The nav sits 4 pt above the home indicator instead of 14 pt, and 12 pt from the edge on a phone with none (`visitNavBottom`), in the tabs layout and the `/dev/visit-v2` gallery.
+- Seen in the iOS Simulator (iPhone 18 Pro, iOS 27.2, Expo Go), light and dark, on Home and Me. Not seen on a real phone or on Android.
+
 ### Changed — Patient app v2 is the phone's default; shell, Home and Tether brand — 18 Nov 2026
 
 The owner chose "v2 by default, old as fallback" for the phone ([ADR 0524](docs/adr/0524-patient-app-v2-is-the-phone-default.md)); the cutover had been planned for after the 5-day pilot. The `appV2Mobile` switch is removed. Nothing reaches patients until a new phone build is released. Seen in a browser at phone width on fixtures, not on a device. The v2 wording is still draft, not signed by the CSO.

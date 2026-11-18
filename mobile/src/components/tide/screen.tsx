@@ -13,6 +13,7 @@ import { KeyboardFrame, useKeyboardAware } from "@/components/tide/keyboard";
 import { Press } from "@/components/tide/press";
 import { DemoRibbon } from "@/components/tide/primitives";
 import { NAV_H } from "@/components/tide/tide-nav";
+import { VISIT_NAV_GAP, VISIT_NAV_GLASS } from "@/components/tide/v2-shell";
 import { track } from "@/lib/analytics";
 import { motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
@@ -23,8 +24,8 @@ export const NAV_CLEARANCE = 130;
 
 /** How tall the soft fade under the header is. */
 const EDGE_FADE = 28;
-/** The floating nav's gap above the home indicator (the tabs layout's `bottom: 14 + inset`). */
-const NAV_BOTTOM = 14;
+/** The floating nav's gap above the home indicator (the tabs layout's `visitNavBottom`). */
+const NAV_BOTTOM = VISIT_NAV_GAP;
 
 /**
  * The page colour with no opacity, for the end of the fade. A plain
@@ -365,9 +366,10 @@ export function Screen({
             >
               <LinearGradient colors={[bg, clearOf(bg)]} style={{ flex: 1 }} />
             </Animated.View>
-            {underNav ? (
+            {underNav && !VISIT_NAV_GLASS ? (
               /* The same soft edge behind the floating nav: content melts into the page colour
-                 before it reaches the bar, instead of showing round its corners. */
+                 before it reaches the bar, instead of showing round its corners. Not under the glass
+                 nav: there the page scrolls on beneath it, which is what the glass is for. */
               <LinearGradient
                 pointerEvents="none"
                 colors={[clearOf(bg), bg, bg]}
