@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — The phone's Home, Book, Visits and Me, redrawn from the owner's approved prototype — 18 Nov 2026
+
+Built from the prototype the owner approved on the design canvas ("Tether Home prototype"). No migration, no flag, no new dependency. The copy files' status is untouched; the new strings are drafts for the CSO like the rest.
+
+- **Home** (`features/v2/home.tsx`, `home-route.tsx`): the greeting is the page's one large title. One visit card holds every state: the two ways to book when nothing is booked, the day when something is, and on the day the code to show at the desk with the stage as words and one bar, never a number (MR4). "Your care" is one group with four doors (Readings, Medicines, Results, Wellness) and the free results line. The people you book for are chips. The membership card is on Me and no longer repeated on Home. "See a doctor" stays on Home: the phone has it nowhere else.
+- **The plus** (`components/tide/v2-shell.tsx`, `app/(app)/add.tsx`): glass on Home, where the visit card holds the page's one lagoon button, and lagoon elsewhere. Its menu is one column of actions rising out of the plus, each a word beside its disc; the plus becomes the close button in the same place. "Tell my team" shows only while chat is switched on.
+- **Book** (`app/(app)/book/index.tsx`): one question at a time, with a rail of the answers (Who, Why, How) that goes back to any of them. Tapping an answer moves on. The two ways to come are equal cards. Every reason, its wording, the symptom areas and the sentence that no hour is promised are unchanged. `WhyComing` is split into `WrongAreas` and `PlannedReasons`; Ask for a day still uses `WhyComing`.
+- **Visits** (`features/v2/visits-list.tsx`): one list for everyone, with a filter by person when more than one has a visit; what needs an answer first; one card per upcoming visit; past visits in one list with the full day ("Wed 18 Nov"). The Week calendar is unchanged.
+- **Me** (`app/(app)/(tabs)/me.tsx`, `features/v2/me-membership.tsx`, new `app/(app)/plans.tsx`): who you are at the top, the membership card, and one line that opens the plans on their own page. The settings are regrouped (My health, People I care for, Privacy and sharing, Notifications, This phone, My details), without icon squares. The offline health card stays whole, under My health. The plan's end date reads "Thu 17 Dec".
+- **Law L6:** the Help crawl knows the extracted "Something is wrong" card (`WrongAreas`) by name and has a new test that holds it to drawing the red Help that opens `/help`.
+- **New draft strings for the CSO:** "Readings" and "Medicines" (Home's doors, `content/patient-app/home.ts`). Everything else reuses signed-or-draft copy already in the files.
+- **Not carried over from the prototype, and why:** "Same as last time" on Book (the phone holds no last reason to offer); one card with two sides on Me (the membership card and the offline health card carry different things for a medic, so merging them is a clinical-safety decision); the Monthly or Yearly switch on the plans (the phone pays monthly only); the visit page growing out of its card (the visit page is its own pushed screen); "I'm here" on Home (arrival is recorded at the desk).
+- Seen in the iOS Simulator (iPhone 18 Pro, Expo Go, a real test account): Home, the plus menu, Book through all three steps, Visits and Me in the dark scheme; Home and Me in the light scheme. Found and fixed there: the glass plus took no taps until the control was moved inside its glass, and the new plans page was outside the consent gate until it was listed in the stack. Not seen on a real phone or on Android, and Book and Visits were not seen in the light scheme.
+
 ### Changed — The phone's nav is frosted glass and sits lower — 18 Nov 2026
 
 Asked for by the owner on seeing v2 in the iOS Simulator. No new dependency (`expo-glass-effect` was already installed), no new strings, no flag.

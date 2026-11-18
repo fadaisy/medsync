@@ -38,6 +38,7 @@ import { mapsUrl } from "@/features/visits/logic";
 import { fetchPatientProfile } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { acceptRebooking, fetchRebookingOffer } from "@/lib/notifications";
+import { dayKeyOf, shortDayOf } from "@patient-core/visits-calendar";
 import { useTide } from "@/theme/theme";
 import { tSpace } from "@/theme/tide";
 
@@ -50,6 +51,7 @@ function rowOf(v: AppointmentRow, pay: VisitPay | undefined, me: string): VisitR
     id: v.id,
     day: String(d.getUTCDate()),
     dayLabel: DAY_LABEL[d.getUTCDay()]!,
+    date: shortDayOf(dayKeyOf(v.startsAtIso)),
     clinic: v.departmentName,
     who: v.forMember ?? "You",
     window: t.window,
@@ -83,7 +85,7 @@ async function fetchVisits(): Promise<VisitsState> {
     offers.push({
       id: v.id,
       title: `${v.departmentName} moved`,
-      line: `The clinic cancelled this day. Next open day: ${new Date(o.startsAtIso).toDateString()}`,
+      line: `The clinic cancelled this day. Next open day: ${shortDayOf(dayKeyOf(o.startsAtIso))}.`,
     });
   }
   return {

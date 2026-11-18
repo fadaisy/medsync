@@ -23,6 +23,8 @@ export interface VisitRowV2 {
   id: string;
   day: string;
   dayLabel: string;
+  /** The day in full, "Wed 18 Nov": a past visit needs its month. */
+  date?: string;
   clinic: string;
   who: string;
   window: string;
@@ -151,7 +153,7 @@ export function VisitsList({
                 key={v.id}
                 haptic={false}
                 onPress={() => onOpen(v.id)}
-                accessibilityLabel={`${v.dayLabel} ${v.day}, ${v.clinic}, ${v.who}`}
+                accessibilityLabel={`${v.date ?? `${v.dayLabel} ${v.day}`}, ${v.clinic}, ${v.who}`}
                 style={{
                   minHeight: 60,
                   paddingHorizontal: tSpace[4],
@@ -168,7 +170,7 @@ export function VisitsList({
                     {v.clinic}
                   </Text>
                   <Text style={[tType.bodyS, { color: t.ink2 }]}>
-                    {v.dayLabel} {v.day} · {v.who}
+                    {v.date ?? `${v.dayLabel} ${v.day}`} · {v.who}
                   </Text>
                 </View>
                 <Icon name="forward" size={18} color={t.ink3} />

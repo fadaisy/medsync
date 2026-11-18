@@ -7,7 +7,8 @@
 import type { MedicalId } from "@/components/tide/v2";
 import type { MembershipRow, Plan, PlusTier, PriceRow, Tier } from "@patient-core/membership";
 import type { Network, PromptView } from "@patient-core/payments";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { Text, View } from "react-native";
 import Svg, { Rect } from "react-native-svg";
 import { HOME_V2_COPY } from "@content/patient-app/home";
@@ -15,15 +16,16 @@ import { MEMBERSHIP_COPY } from "@content/patient-app/membership";
 import { feeText } from "@patient-core/fees";
 import { memberNumber, plansFrom, tierNow } from "@patient-core/membership";
 import { maskMsisdn, NETWORK_NAME } from "@patient-core/payments";
+import { shortDayOf } from "@patient-core/visits-calendar";
 
-import { Button, Chip } from "@/components/tide";
+import { Button, Chip, Icon, Press } from "@/components/tide";
 import { MembershipCard, PromptStatus, TierCard } from "@/components/tide/v2";
 import { loadMembership, medicalIdToken, payPlus, startTrial } from "@/data/membership-v2";
 import { myMobile } from "@/data/visit-v2";
 import { requestId } from "@/lib/edge";
 import { flag } from "@/lib/flags";
 import { useTide } from "@/theme/theme";
-import { tSpace, tType } from "@/theme/tide";
+import { tRadius, tSpace, tType } from "@/theme/tide";
 
 const M = MEMBERSHIP_COPY;
 const TIER_WORDS: Record<PlusTier, string> = {
@@ -31,6 +33,13 @@ const TIER_WORDS: Record<PlusTier, string> = {
   plus_care: M.tiers.plusCare,
   family_care: M.tiers.familyCare,
 };
+
+/**
+ * Which part of the section a screen shows (redraw of 18 Nov 2026). Me shows `card`: the one card and a line
+ * that opens the plans. The plans page shows `plans`: the plans, the trial and paying, with no card. `all` is
+ * the whole section on one page, as the dev gallery and the tests draw it.
+ */
+export type MembershipPart = "all" | "card" | "plans";
 
 export function QrGrid({ modules }: { modules: string[] }) {
   const t = useTide();
@@ -53,6 +62,9 @@ export function MeMembershipV2(p: {
   name: string;
   memberNo: string;
   id: Omit<MedicalId, "qr">;
+  part?: MembershipPart;
+  /** `card` only: opens the plans page. */
+  onSeePlans?: () => void;
   plans: Plan[];
   msisdn: string | null;
   /** Said when a plan is chosen and there is no way to pay from the app (`mobilePayments` off, or no number). */
@@ -73,8 +85,11 @@ export function MeMembershipV2(p: {
   const [key] = useState(() => requestId());
   const qrToken = p.qrToken;
   const trialOpen = !p.trialUsed && p.tier === "basic";
+  const part = p.part ?? "all";
 
   useEffect(() => {
+    // The plans page draws no card, so it asks for no Medical ID token.
+    if (part === "plans") return;
     let live = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const load = async () => {
@@ -89,7 +104,7 @@ export function MeMembershipV2(p: {
       live = false;
       clearTimeout(timer);
     };
-  }, [qrToken]);
+  }, [qrToken, part]);
 
   if (revealed)
     return (
@@ -104,14 +119,52 @@ export function MeMembershipV2(p: {
     );
 
   const plan = p.plans.find((x) => x.tier === paying);
+  const tierName = p.tier === "basic" ? M.tiers.basic : TIER_WORDS[p.tier];
+  const ends =
+    p.endsLabel && p.tier !== "basic"
+      ? (p.trial ? M.plans.trialEnds : M.plans.paidUntil).replace("{date}", p.endsLabel)
+      : null;
+  const card = (
+    <MembershipCard tier={p.tier} name={p.name} memberNo={p.memberNo} id={{ ...p.id, qr: <QrGrid modules={qr} /> }} />
+  );
+
+  if (part === "card") {
+    // One line under the card: the plan held, and the way to the plans.
+    const line = [tierName, ends ?? (trialOpen ? M.plans.trial : null)].filter(Boolean).join(" · ");
+    return (
+      <View style={{ gap: tSpace[3] }}>
+        {card}
+        <Press
+          onPress={p.onSeePlans}
+          haptic={false}
+          accessibilityRole="link"
+          accessibilityLabel={`${M.plans.current}. ${line}`}
+          style={{
+            minHeight: 60,
+            paddingHorizontal: tSpace[4],
+            paddingVertical: tSpace[2.5],
+            borderRadius: tRadius.cardLg,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: tSpace[3],
+            backgroundColor: t.surface,
+            boxShadow: t.shadow.card,
+          }}
+        >
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>{M.plans.current}</Text>
+            <Text style={[tType.bodyS, { color: t.ink2 }]}>{line}</Text>
+          </View>
+          <Icon name="forward" size={18} color={t.ink3} />
+        </Press>
+      </View>
+    );
+  }
+
   return (
     <View style={{ gap: tSpace[5] }}>
-      <MembershipCard tier={p.tier} name={p.name} memberNo={p.memberNo} id={{ ...p.id, qr: <QrGrid modules={qr} /> }} />
-      {p.endsLabel && p.tier !== "basic" ? (
-        <Text style={[tType.bodyS, { color: t.ink2, textAlign: "center" }]}>
-          {(p.trial ? M.plans.trialEnds : M.plans.paidUntil).replace("{date}", p.endsLabel)}
-        </Text>
-      ) : null}
+      {part === "all" ? card : null}
+      {ends ? <Text style={[tType.bodyS, { color: t.ink2, textAlign: "center" }]}>{ends}</Text> : null}
       <Text style={[tType.bodyS, { color: t.ink2 }]}>{M.plans.alwaysFree}</Text>
       {error ? (
         <Text accessibilityRole="alert" style={[tType.bodyS, { color: t.ink2 }]}>
@@ -174,16 +227,29 @@ export function MeMembershipV2(p: {
 }
 
 /** Loads the patient's membership and prices, and binds the section to `pt-plus` and the token. */
-export function MeMembershipRoute(p: { name: string; code: string | null; id: Omit<MedicalId, "qr"> }) {
+export function MeMembershipRoute(p: {
+  name: string;
+  code: string | null;
+  id: Omit<MedicalId, "qr">;
+  part?: MembershipPart;
+  onSeePlans?: () => void;
+}) {
   const [data, setData] = useState<{ row: MembershipRow | null; prices: PriceRow[]; msisdn: string | null } | null>(null);
   const [nonce, setNonce] = useState(0);
-  useEffect(() => {
-    let live = true;
-    void Promise.all([loadMembership(), myMobile().catch(() => null)]).then(([m, msisdn]) => live && setData({ ...m, msisdn }));
-    return () => {
-      live = false;
-    };
-  }, [nonce]);
+  // On focus as well as on a change here: a plan chosen on the plans page shows on the card on the way back.
+  useFocusEffect(
+    useCallback(() => {
+      let live = true;
+      void Promise.all([loadMembership(), myMobile().catch(() => null)]).then(
+        ([m, msisdn]) => live && setData({ ...m, msisdn }),
+        () => {},
+      );
+      return () => {
+        live = false;
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- `nonce` re-runs the read after a trial or a payment
+    }, [nonce]),
+  );
   if (!data) return null;
   const now = new Date();
   const held = tierNow(data.row, now);
@@ -191,11 +257,14 @@ export function MeMembershipRoute(p: { name: string; code: string | null; id: Om
     <MeMembershipV2
       tier={held.tier}
       trial={held.trial}
-      endsLabel={held.endsIso ? new Date(new Date(held.endsIso).getTime() + 3 * 3600_000).toISOString().slice(0, 10) : null}
+      // Kampala's day (UTC+3), said the way every other date in the app is: "Thu 17 Dec".
+      endsLabel={held.endsIso ? shortDayOf(new Date(new Date(held.endsIso).getTime() + 3 * 3600_000).toISOString().slice(0, 10)) : null}
       trialUsed={data.row?.trialUsed ?? false}
       name={p.name}
       memberNo={memberNumber(p.code)}
       id={p.id}
+      part={p.part}
+      onSeePlans={p.onSeePlans}
       plans={plansFrom(data.prices, now.toISOString().slice(0, 10))}
       // Paying from the app only where it is switched on; the free month needs no payment.
       msisdn={flag("mobilePayments") ? data.msisdn : null}
@@ -211,6 +280,18 @@ export function MeMembershipRoute(p: { name: string; code: string | null; id: Om
         if (r.ok && r.view === "paid") setNonce((n) => n + 1);
         return r;
       }}
+    />
+  );
+}
+
+/** The plans on their own page (`/plans`): the plans, the trial and paying, with no card to load. */
+export function MePlansRoute() {
+  return (
+    <MeMembershipRoute
+      part="plans"
+      name=""
+      code={null}
+      id={{ emergencyContact: "", bloodGroup: null, allergies: [], conditions: [], hospitalLine: "" }}
     />
   );
 }

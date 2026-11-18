@@ -34,6 +34,7 @@ export const VISIT_NAV_H = 64;
 const INSET = 6;
 const PLUS = 56;
 const GAP = 10;
+const PLUS_LABEL = "Add: log a reading, a medicine, or tell your team";
 
 /**
  * True where the system has Apple's glass material (iOS 26 and later). There the pill is frosted glass and
@@ -211,56 +212,60 @@ export function VisitNav({
           {places}
         </View>
       )}
-      <Press
-        onPress={onPlus}
-        accessibilityLabel="Add: log a reading, a medicine, or tell your team"
-        style={
-          plusQuiet
-            ? {
-                width: PLUS,
-                height: PLUS,
+      {plusQuiet && glass ? (
+        // As in the pill: the glass is the ground and the control sits inside it. A glass view laid inside
+        // the control instead takes the touch and the plus goes dead (seen in the simulator, 18 Nov 2026).
+        <GlassView
+          glassEffectStyle="regular"
+          colorScheme={t.scheme}
+          tintColor={withAlpha(t.surfaceRaised, FROST_ALPHA)}
+          style={{ width: PLUS, height: PLUS, borderRadius: PLUS / 2 }}
+        >
+          {veil ? (
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
                 borderRadius: PLUS / 2,
-                alignItems: "center",
-                justifyContent: "center",
-                ...(glass
-                  ? {}
-                  : {
-                      backgroundColor: t.surfaceRaised,
-                      borderWidth: 1,
-                      borderColor: t.line,
-                      boxShadow: t.shadow.float,
-                    }),
-              }
-            : {
-                width: PLUS,
-                height: PLUS,
-                borderRadius: PLUS / 2,
-                backgroundColor: t.accent,
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: t.shadow.accent,
-              }
-        }
-      >
-        {plusQuiet && glass ? (
-          <GlassView
-            pointerEvents="none"
-            glassEffectStyle="regular"
-            colorScheme={t.scheme}
-            tintColor={withAlpha(t.surfaceRaised, FROST_ALPHA)}
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-              borderRadius: PLUS / 2,
-              backgroundColor: veil,
-            }}
-          />
-        ) : null}
-        <Icon name="plus" size={26} color={plusQuiet ? t.ink : t.onAccent} strokeWidth={2.4} />
-      </Press>
+                backgroundColor: veil,
+              }}
+            />
+          ) : null}
+          <Press
+            onPress={onPlus}
+            accessibilityLabel={PLUS_LABEL}
+            style={{ width: PLUS, height: PLUS, alignItems: "center", justifyContent: "center" }}
+          >
+            <Icon name="plus" size={26} color={t.ink} strokeWidth={2.4} />
+          </Press>
+        </GlassView>
+      ) : (
+        <Press
+          onPress={onPlus}
+          accessibilityLabel={PLUS_LABEL}
+          style={{
+            width: PLUS,
+            height: PLUS,
+            borderRadius: PLUS / 2,
+            alignItems: "center",
+            justifyContent: "center",
+            ...(plusQuiet
+              ? {
+                  backgroundColor: t.surfaceRaised,
+                  borderWidth: 1,
+                  borderColor: t.line,
+                  boxShadow: t.shadow.float,
+                }
+              : { backgroundColor: t.accent, boxShadow: t.shadow.accent }),
+          }}
+        >
+          <Icon name="plus" size={26} color={plusQuiet ? t.ink : t.onAccent} strokeWidth={2.4} />
+        </Press>
+      )}
     </View>
   );
 }
