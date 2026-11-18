@@ -15,7 +15,7 @@ export const PATIENT_WEB_COPY = {
   /** The plus in the rail and the pill (§4.1). */
   addLabel: "Add: log a reading, a medicine, or book a visit",
   /** Any server call that never reached MedSync (§5.2). */
-  offline: "Couldn't reach MedSync. Check your connection and try again.",
+  offline: "Couldn't reach Tether. Check your connection and try again.",
   /** A flag that is off (W2, Gate CS). */
   notAvailable: "This is not available yet.",
   unsignedCatalogue: "Unsigned clinical content: draft, for review only.",
@@ -25,7 +25,7 @@ export const PATIENT_WEB_COPY = {
 
   /** §3: steps on the web. */
   stepsFromPhone: "From your phone",
-  stepsNeedPhone: "Steps come from the MedSync phone app.",
+  stepsNeedPhone: "Steps come from the Tether phone app.",
 
   /** §3: live location share in a browser. */
   keepOpenToShare: "Keep this page open to keep sharing.",

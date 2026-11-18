@@ -85,6 +85,15 @@ export default async function MePage() {
             name={name ?? C.holderUnknown}
             memberNo={memberNumber(id?.code ?? null)}
             id={{
+              ageSex:
+                [ageWords(id?.dob ?? null, now), sexLetter(id?.sex ?? null)]
+                  .filter(Boolean)
+                  .join(" · ") || null,
+              nextOfKin: nok === null ? null : nok ? C.nokOnFile(facility) : C.nokNone,
+              ifFound:
+                emergencyPhone && facility
+                  ? C.ifFoundCall(facility, emergencyPhone)
+                  : C.ifFoundReturn(facility),
               emergencyContact: emergencyPhone ?? "—",
               bloodGroup: null,
               allergies: lines.allergies === "None listed" ? [] : [lines.allergies],
@@ -147,6 +156,7 @@ export default async function MePage() {
         }))}
         smsOn={smsOn}
         version={pkg.version}
+        v2={v2}
       />
     </>
   );

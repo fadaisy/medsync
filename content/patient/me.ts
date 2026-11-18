@@ -25,7 +25,7 @@ export const ME_COPY = {
     holder: "Card holder",
     age: "Age",
     emergency: "In an emergency",
-    number: "MedSync number",
+    number: "Tether number",
     allergies: "Allergies",
     conditions: "Conditions",
     hidden: "Hidden by the card holder",
@@ -108,7 +108,7 @@ export const ME_COPY = {
   themeWords: { system: "Same as this device", light: "Light", dark: "Dark" },
   themeOptions: { system: "System", light: "Light", dark: "Dark" },
   signOut: "Sign out",
-  version: (v: string) => `MedSync ${v}`,
+  version: (v: string) => `Tether ${v}`,
 
   // mobile/src/app/(app)/history.tsx and features/history/editor.tsx
   historyIntro: {

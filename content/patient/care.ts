@@ -331,7 +331,7 @@ export const CARE_COPY = {
       continue: "Continue",
       noRead: "Couldn't read the label. Try again with the panel filling the photo, or type it.",
       signInAgain: "Sign in again.",
-      offline: "Couldn't reach MedSync. Check your connection, or type it.",
+      offline: "Couldn't reach Tether. Check your connection, or type it.",
     },
   },
 

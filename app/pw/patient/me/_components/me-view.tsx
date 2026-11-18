@@ -27,9 +27,11 @@ import { useTheme } from "next-themes";
 import { Segments } from "@/components/tide/controls";
 import { Avatar, Button, ICON } from "@/components/tide/kit";
 import { MeHealthCard } from "@/components/tide/me-health-card";
+import { MEMBERSHIP_COPY } from "@/content/patient-app/membership";
 import { ME_COPY as C } from "@/content/patient/me";
 import { PATIENT_WEB_COPY as W } from "@/content/patient/web";
 import { setSmsConsentAction } from "@/lib/patient-web/me-actions";
+import { cn } from "@/lib/utils";
 import { Group, Row, Switch } from "./rows";
 
 export interface MeViewProps {
@@ -50,6 +52,8 @@ export interface MeViewProps {
   /** Null until the SMS consent text is seeded: the row hides, as on the old settings page. */
   smsOn: boolean | null;
   version: string;
+  /** Patient app v2 (behind appV2Web): the membership card above carries the card; the brand is Tether (M15). */
+  v2?: boolean;
 }
 
 type Theme = "system" | "light" | "dark";
@@ -81,7 +85,7 @@ export function MeView(p: MeViewProps) {
   return (
     <div className="grid items-start gap-7 max-[760px]:gap-5 min-[1101px]:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
       <div className="flex min-w-0 flex-col gap-5">
-        <div className="flex flex-col gap-2.5">
+        <div className={cn("flex flex-col gap-2.5", p.v2 && "hidden")}>
           <MeHealthCard data={{ ...p.card, conditions: show ? p.cardConditions : null }} />
           <p className="text-pw-ink-3 flex max-w-[460px] items-center justify-between gap-2 px-1 text-[13px] font-medium">
             <span className="inline-flex items-center gap-1.5">
@@ -280,7 +284,9 @@ export function MeView(p: MeViewProps) {
             {C.signOut}
           </Button>
         </form>
-        <p className="text-pw-ink-3 text-center text-[13px] font-medium">{C.version(p.version)}</p>
+        <p className="text-pw-ink-3 text-center text-[13px] font-medium">
+          {p.v2 ? MEMBERSHIP_COPY.appVersion.replace("{version}", p.version) : C.version(p.version)}
+        </p>
       </div>
     </div>
   );

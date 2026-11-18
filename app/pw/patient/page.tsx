@@ -3,6 +3,10 @@ import Link from "next/link";
 import { cache, Suspense } from "react";
 import { lastDays, moodsFor, readingsFrom } from "@patient-core/log";
 import { weekCounts } from "@patient-core/medicines";
+import { memberNumber, tierNow } from "@patient-core/membership";
+import { ticketView } from "@patient-core/ticket-view";
+import { stageOf } from "@patient-core/visit-stages";
+import { nextVisit } from "@patient-core/visits-calendar";
 import {
   ActivityIcon,
   ChevronRightIcon,
@@ -21,12 +25,20 @@ import {
   TextLink,
 } from "@/components/tide/kit";
 import { PageHeader } from "@/components/tide/shell";
+import { HomeV2 } from "@/components/tide/v2-home-web";
+import { MEMBERSHIP_COPY } from "@/content/patient-app/membership";
 import { HOME_COPY as C } from "@/content/patient/home";
+import { loadLabNames } from "@/lib/patient-web/care-labs";
 import { loadLog, loadMedicines, today } from "@/lib/patient-web/day";
 import { loadDoctors } from "@/lib/patient-web/doctors";
 import { patientFlag } from "@/lib/patient-web/flags";
+import { loadCardIdentity } from "@/lib/patient-web/me-data";
+import { loadMembership } from "@/lib/patient-web/membership-v2";
 import { countUnseenNotifications } from "@/lib/patient-web/notifications";
+import { loadPayStatus } from "@/lib/patient-web/visit-v2";
+import { loadWeek } from "@/lib/patient-web/visits-data";
 import { fetchAppointments, formatWhen } from "@/lib/patient/appointments";
+import { fetchHousehold } from "@/lib/patient/household";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { DayCascade } from "./_components/day-cascade";
@@ -47,11 +59,67 @@ const medicines = cache((userId: string) => loadMedicines(userId));
  * cascade and See a doctor; at > 1100 px the next visit, the Log a reading tiles and the week's medicines
  * sit beside them (the split grid, ~1.55 : 1), below that one column in the phone's order.
  */
+const TIER_NAMES = {
+  basic: MEMBERSHIP_COPY.tiers.basic,
+  plus_family: MEMBERSHIP_COPY.tiers.plusFamily,
+  plus_care: MEMBERSHIP_COPY.tiers.plusCare,
+  family_care: MEMBERSHIP_COPY.tiers.familyCare,
+} as const;
+
+/** The patient's own code for the card number; null before it exists. */
+async function patientCode(userId: string): Promise<string | null> {
+  return (await loadCardIdentity(userId).catch(() => null))?.code ?? null;
+}
+
 export default async function PatientHome() {
   const scope = await requirePatientScope();
   const name = scope.fullName?.trim();
   const first = name ? (name.split(/\s+/)[0] ?? C.there) : C.there;
   const unseen = await countUnseenNotifications(scope.userId).catch(() => 0);
+
+  // Patient app v2 (board 16), behind appV2Web: the visit as the ticket, booking, results, household, the card.
+  if (patientFlag("appV2Web")) {
+    const now = new Date();
+    const [week, labs, household, membership] = await Promise.all([
+      loadWeek(scope.userId, scope.primaryHospitalId, now).catch(() => null),
+      loadLabNames(scope.userId, scope.primaryHospitalId).catch(() => ({ state: "off" as const })),
+      fetchHousehold(scope.userId).catch(() => []),
+      loadMembership().catch(() => null),
+    ]);
+    const next = week ? nextVisit(week.upcoming) : null;
+    const pay = next ? await loadPayStatus([next.id]).catch(() => new Map()) : new Map();
+    const held = tierNow(membership?.row ?? null, now);
+    const dayKey = (iso: string) =>
+      new Date(new Date(iso).getTime() + 3 * 3600_000).toISOString().slice(0, 10);
+    return (
+      <>
+        <PageHeader greeting title={`${C.hello} ${first}`} unseen={unseen} />
+        <HomeV2
+          visit={
+            next
+              ? {
+                  ticket: ticketView(next, pay.get(next.id), name ?? "You"),
+                  stage: stageOf(next.status, null),
+                  today: dayKey(next.startsAtIso) === dayKey(now.toISOString()),
+                  href: `/patient/visits/${next.id}`,
+                }
+              : null
+          }
+          results={
+            labs.state === "ready"
+              ? { state: "ready", ready: labs.ready.length, waiting: labs.notReady.length }
+              : { state: "off" }
+          }
+          household={household.map((m) => ({ id: m.bookingAgentId, label: m.memberLabel }))}
+          card={{
+            tierName: TIER_NAMES[held.tier],
+            memberNo: memberNumber(await patientCode(scope.userId)),
+            plus: held.tier !== "basic",
+          }}
+        />
+      </>
+    );
+  }
 
   return (
     <>

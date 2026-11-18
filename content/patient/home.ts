@@ -76,7 +76,7 @@ export const HOME_COPY = {
   seeDoctor: "See a doctor",
   doctorsLoading: "Loading the doctors",
   doctorsFailed: "Couldn't load the doctors. Check your connection.",
-  doctorsNone: "No doctor takes bookings on MedSync yet.",
+  doctorsNone: "No doctor takes bookings on Tether yet.",
   doctorsNoHospital: "Choose your hospital to see its doctors.",
   chooseHospital: "Choose a hospital",
   doctorFilters: "Filter the doctors",

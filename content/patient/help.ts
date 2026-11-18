@@ -154,11 +154,11 @@ export const HELP_COPY = {
     stop: "Stop sharing",
     stopShort: "Stop",
     stopLabel: "Stop sharing your location",
-    message: (until: string, link: string) => `See where I am on MedSync${until}: ${link}`,
+    message: (until: string, link: string) => `See where I am on Tether${until}: ${link}`,
     bannerTitle: (clock: string) => `Sharing your location · ends ${clock}`,
     off: "Location sharing is not switched on yet.",
     failed: "Couldn't start sharing. Try again.",
-    stopFailed: "Couldn't reach MedSync to stop sharing. Check your connection and try again.",
+    stopFailed: "Couldn't reach Tether to stop sharing. Check your connection and try again.",
     /** web: the browser's own words for "Location is off for MedSync…". */
     denied: "Location is off for this page. Allow it in your browser's settings to share.",
     /** web: a browser with no location at all. */

@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Patient app v2 web finish, first pass: shell, Home, Me, Tether brand — 17 Nov 2026
+
+- Shell (M3, M4), behind `appV2Web`: a sticky frosted top bar at ≥ 761 px (Tether mark and hospital, the mode's places, theme toggle, red Help, avatar with name) and the pill at the foot at ≤ 760 px. Visit mode: Home, Book, Visits, Me; Care mode (only where `careModeOn()`): Today, Plan, My care, Me. Page headers drop their own Help and avatar where the top bar carries them.
+- Home (board 16): today's or the next visit as the ticket with the stage strip, Book a clinic, free results, the household and the small membership card.
+- Me: one card. The v2 card's back now carries what the old health card showed (age and sex, next of kin, "if found"), and the old card is hidden under the flag.
+- Brand (M15): "Tether" in the patient web strings (drafts), the version line and the tab title ("Me · Tether") on v2 pages; the data-processing consent text is unchanged. Guard: `tests/patient-web/brand-tether.test.ts`.
+- Galleries use the v2 shell; new `/pw/gallery/home-v2`.
+
 ### Added — Patient app v2 parity reports and report (Step 12, draft) — 16 Nov 2026
 
 - `docs/patient-app/parity-phone.md`, `parity-web.md`: every feature-matrix row marked v2, Kept or Gap; nothing lost (old screens serve; flags off). Drafts for signature.

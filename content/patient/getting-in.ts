@@ -79,7 +79,7 @@ export const GETTING_IN_COPY = {
   noticeHide: "Hide the full notice",
   required: "Required to create your account",
   welcome: (name: string) => `Welcome, ${name}`,
-  ready: "Your account is ready. Your MedSync number is given at your first visit.",
+  ready: "Your account is ready. Your Tether number is given at your first visit.",
   nextDetails: "Next, a few details",
   nextDetailsSub: "About 2 minutes · all optional",
   later: ["Photo", "Title", "Preferred language", "Usual hospital", "National ID", "Next of kin"],

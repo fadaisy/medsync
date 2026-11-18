@@ -1,4 +1,5 @@
 import { PageHeader, PatientShell } from "@/components/tide/shell";
+import { GALLERY_SHELL } from "../v2-shell";
 import { VisitV2Fixtures } from "./fixtures";
 
 /**
@@ -20,7 +21,7 @@ export default async function VisitV2Gallery({
           ? "Visits"
           : "Your visit";
   return (
-    <PatientShell>
+    <PatientShell v2={GALLERY_SHELL}>
       <PageHeader overline="Kit · v2" area="visits" title={title} demo />
       <VisitV2Fixtures screen={screen} />
     </PatientShell>
