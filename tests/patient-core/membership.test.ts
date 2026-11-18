@@ -47,6 +47,10 @@ describe("membership (§5.9)", () => {
   });
   it("member numbers are grouped", () => {
     expect(memberNumber("k7m42qx9z")).toBe("K7M 42Q X9Z");
+    // The whole ID, in its own groups: two members of the same year never read alike.
+    expect(memberNumber("MS-2026-00035")).toBe("MS 2026 00035");
+    expect(memberNumber("MS-2026-00036")).not.toBe(memberNumber("MS-2026-00035"));
+    expect(memberNumber("k7m42qx9zab")).toBe("K7M 42Q X9Z AB");
     expect(memberNumber(null)).toBe("—");
   });
 });
