@@ -674,6 +674,8 @@ function Inside({ dept, data }: { dept: DepartmentRow; data: DepartmentsData }) 
     (w) => w.departmentId && ids.includes(w.departmentId) && !w.archived,
   );
   const staff = ids.reduce((s, id) => s + (data.counts.staff[id] ?? 0), 0);
+  const onTether = (departmentId: string) =>
+    data.departments.find((x) => x.id === departmentId)?.live ?? dept.live;
 
   return (
     <>
@@ -681,14 +683,22 @@ function Inside({ dept, data }: { dept: DepartmentRow; data: DepartmentsData }) 
         <span className={k("cap")}>{D.clinicsCap}</span>
         {clinics.length ? (
           <div className={d.rlist}>
-            {clinics.map((c) => (
-              <Link key={c.id} href="/hospital-admin/clinics?view=clinics" className={d.ritem}>
-                <b>{c.name}</b>
-                <small>
-                  {c.status === "live" ? D.clinicLive : D.clinicPlanned} · {D.openClinic}
-                </small>
-              </Link>
-            ))}
+            {clinics.map((c) =>
+              // Clinics & schedule lists a clinic only while its department is live on Tether (ADR 0525).
+              onTether(c.departmentId) ? (
+                <Link key={c.id} href="/hospital-admin/clinics?view=clinics" className={d.ritem}>
+                  <b>{c.name}</b>
+                  <small>
+                    {c.status === "live" ? D.clinicLive : D.clinicPlanned} · {D.openClinic}
+                  </small>
+                </Link>
+              ) : (
+                <div key={c.id} className={d.ritem}>
+                  <b>{c.name}</b>
+                  <small>{D.clinicOff}</small>
+                </div>
+              ),
+            )}
           </div>
         ) : (
           <p className={k("su-note")}>{D.noClinics}</p>

@@ -19,7 +19,7 @@ import {
   sessionsOf,
   templateEdits,
 } from "@/lib/clinics-schedule/model";
-import { dateTxt, DeskDialog, feeTxt, hm, Icon, k, nextOn, Txt } from "./shared";
+import { dateTxt, DeskDialog, feeTxt, hm, Icon, k, nextOn, OffTetherNote, Txt } from "./shared";
 
 export interface Todo {
   key: string;
@@ -221,6 +221,7 @@ export function ReadyView({ ctx }: { ctx: Ctx }) {
             </button>
           ) : null}
         </div>
+        <OffTetherNote ctx={ctx} />
 
         <div className={k("su-hero")}>
           <div className={k("su-card", "su-pipe")}>

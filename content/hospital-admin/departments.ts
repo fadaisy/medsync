@@ -138,6 +138,7 @@ export const DEPTS = {
     noClinics: "No clinics yet.",
     clinicLive: "Live",
     clinicPlanned: "Planned",
+    clinicOff: "Off Tether with its department, so not shown in Clinics",
     wardsCap: "Wards",
     wardBeds: "{n} beds",
     wardClosed: "{n} beds · temporarily closed",

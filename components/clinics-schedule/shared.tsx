@@ -18,6 +18,7 @@ import { useState } from "react";
 
 import desk from "@/components/reception/desk.module.css";
 import { CS } from "@/content/clinics-schedule/copy";
+import { OFF_TETHER } from "@/content/clinics-schedule/off-tether";
 import { fill } from "@/content/lab-workspace-v2";
 import { clinicFee } from "@/lib/clinics-schedule/model";
 import { initials } from "@/lib/reception/desk/model";
@@ -85,8 +86,10 @@ export type Modal =
 
 export interface Ctx {
   d: CsData;
-  /** published + scheduled + drafts: what admins see. */
+  /** published + scheduled + drafts, without the clinics of departments that are off Tether: what admins see. */
   view: Snapshot;
+  /** Clinics left out of `view` because their department is off Tether (Departments owns that switch). */
+  hidden: Clinic[];
   published: Snapshot;
   drafts: Change[];
   commit: (summary: string, edits: Edit[], toast?: string) => void;
@@ -347,5 +350,27 @@ export function Txt({
         rest.onKeyDown?.(e);
       }}
     />
+  );
+}
+
+/** Says which clinics are not listed because their department is off Tether, and where to change that. */
+export function OffTetherNote({ ctx }: { ctx: Ctx }) {
+  const { hidden, d } = ctx;
+  if (!hidden.length) return null;
+  const deptIds = [...new Set(hidden.map((c) => c.departmentId))];
+  const depts = deptIds
+    .map((id) => d.departments[id]?.name ?? "")
+    .filter(Boolean)
+    .join(", ");
+  return (
+    <p className={k("su-note", "su-gpad")} role="status" data-off-tether={hidden.length}>
+      {hidden.length === 1
+        ? fill(OFF_TETHER.one, { name: hidden[0]!.name, depts })
+        : fill(OFF_TETHER.many, { n: hidden.length, depts })}{" "}
+      {OFF_TETHER.fix}{" "}
+      <a href={`/hospital-admin/departments${deptIds.length === 1 ? `?open=${deptIds[0]}` : ""}`}>
+        {OFF_TETHER.open}
+      </a>
+    </p>
   );
 }
