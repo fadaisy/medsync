@@ -77,34 +77,39 @@ export function BookView({ tab = false }: { tab?: boolean }) {
     on: boolean,
     onPress: () => void,
     place = false,
-  ) => (
-    <Press
-      key={label}
-      onPress={onPress}
-      accessibilityState={{ selected: on }}
-      accessibilityLabel={label}
-      style={{
-        minHeight: 48,
-        paddingLeft: 6,
-        paddingRight: tSpace[3.5],
-        borderRadius: tRadius.pill,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: tSpace[2],
-        backgroundColor: on ? t.primary : t.surface,
-        borderWidth: on ? 0 : 1,
-        borderColor: t.lineStrong,
-      }}
-    >
-      <Avatar
-        initials={initials}
-        size={36}
-        bg={place ? t.place.tint : t.info.tint}
-        fg={place ? t.place.text : t.info.text}
-      />
-      <Text style={[tType.labelS, { color: on ? t.onPrimary : t.ink }]}>{label}</Text>
-    </Press>
-  );
+  ) => {
+    // The chosen chip is the primary, near-white in the dark scheme: the tinted avatar washes out on it,
+    // so there the initials take the primary's own ink.
+    const onLight = on && t.scheme === "dark";
+    return (
+      <Press
+        key={label}
+        onPress={onPress}
+        accessibilityState={{ selected: on }}
+        accessibilityLabel={label}
+        style={{
+          minHeight: 48,
+          paddingLeft: 6,
+          paddingRight: tSpace[3.5],
+          borderRadius: tRadius.pill,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: tSpace[2],
+          backgroundColor: on ? t.primary : t.surface,
+          borderWidth: on ? 0 : 1,
+          borderColor: t.lineStrong,
+        }}
+      >
+        <Avatar
+          initials={initials}
+          size={36}
+          bg={onLight ? `${t.onPrimary}1F` : place ? t.place.tint : t.info.tint}
+          fg={onLight ? t.onPrimary : place ? t.place.text : t.info.text}
+        />
+        <Text style={[tType.labelS, { color: on ? t.onPrimary : t.ink }]}>{label}</Text>
+      </Press>
+    );
+  };
 
   return (
     <Screen

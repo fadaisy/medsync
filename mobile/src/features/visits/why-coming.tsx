@@ -4,7 +4,7 @@ import { t as sayCatalog, visibleCategories } from "@shared/symptom-catalog/clas
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
 
-import { Button, Card, Icon, IconDisc, Press } from "@/components/tide";
+import { Button, Card, Icon, IconDisc, Note, Press } from "@/components/tide";
 import { PLANNED_GROUPS } from "@/features/visits/book-reasons";
 import { StepTitle } from "@/features/visits/parts";
 import { useCatalogMode } from "@/lib/symptoms";
@@ -42,6 +42,24 @@ export function WhyComing({
   const catalog = useCatalogMode();
   const catalogOn = !!catalog && catalog !== "off";
   const areas = visibleCategories(CATALOG, "adult");
+  // The chosen door is filled with the primary, which is navy in the light scheme and near-white in the
+  // dark one. The band's light inks only read on the navy, so the dark scheme takes the primary's own ink.
+  const sel =
+    t.scheme === "dark"
+      ? {
+          sub: t.onPrimary,
+          icon: t.onPrimary,
+          disc: `${t.onPrimary}1F`,
+          tick: t.accent,
+          onTick: t.onAccent,
+        }
+      : {
+          sub: t.onBand2,
+          icon: t.onBandAccent,
+          disc: t.bandGlass,
+          tick: t.onBandAccent,
+          onTick: t.primary,
+        };
 
   return (
     <View style={{ gap: tSpace[2.5] }}>
@@ -88,8 +106,8 @@ export function WhyComing({
                 <IconDisc
                   name={icon}
                   size={44}
-                  color={on ? t.onBandAccent : t.ink}
-                  bg={on ? t.bandGlass : t.surface3}
+                  color={on ? sel.icon : t.ink}
+                  bg={on ? sel.disc : t.surface3}
                 />
                 {on ? (
                   <View
@@ -99,10 +117,10 @@ export function WhyComing({
                       borderRadius: 11,
                       alignItems: "center",
                       justifyContent: "center",
-                      backgroundColor: t.onBandAccent,
+                      backgroundColor: sel.tick,
                     }}
                   >
-                    <Icon name="check" size={13} color={t.primary} strokeWidth={3} />
+                    <Icon name="check" size={13} color={sel.onTick} strokeWidth={3} />
                   </View>
                 ) : null}
               </View>
@@ -118,7 +136,7 @@ export function WhyComing({
                 <Text
                   style={[
                     tType.caption,
-                    { fontFamily: tFont.medium, color: on ? t.onBand2 : t.ink2 },
+                    { fontFamily: tFont.medium, color: on ? sel.sub : t.ink2 },
                   ]}
                 >
                   {sub}
@@ -131,46 +149,53 @@ export function WhyComing({
 
       {door === "wrong" ? (
         <Card padding={tSpace[4]} style={{ gap: tSpace[3] }}>
-          <>
-            <View style={{ gap: 2 }}>
-              <Text style={[tType.label, { fontSize: 16, color: t.ink }]}>
-                Where do you feel it?
-              </Text>
-              <Text style={[tType.bodyS, { color: t.ink2 }]}>
-                Pick an area. We ask a few questions, then suggest the right door.
-              </Text>
-            </View>
-            {catalogOn ? (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>
-                {areas.map((c) => (
-                  <Press
-                    key={c.key}
-                    onPress={() => onSymptoms(c.key)}
-                    accessibilityLabel={sayCatalog(CATALOG, c.labelKey)}
-                    style={{
-                      flexBasis: "48%",
-                      flexGrow: 1,
-                      minHeight: 48,
-                      paddingHorizontal: tSpace[3],
-                      paddingVertical: tSpace[2],
-                      borderRadius: tRadius.field,
-                      justifyContent: "center",
-                      backgroundColor: t.surface2,
-                    }}
-                  >
-                    <Text style={[tType.labelS, { color: t.ink }]}>
-                      {sayCatalog(CATALOG, c.labelKey)}
-                    </Text>
-                  </Press>
-                ))}
+          {catalog === "off" ? (
+            // The questions are switched off (or not signed): say so here, in the checker's own words,
+            // instead of promising questions and sending the patient to a screen that only says this.
+            <Note tone="plain">
+              This is not available yet. You can still book a visit or come to the hospital today.
+            </Note>
+          ) : (
+            <>
+              <View style={{ gap: 2 }}>
+                <Text style={[tType.label, { fontSize: 16, color: t.ink }]}>
+                  Where do you feel it?
+                </Text>
+                <Text style={[tType.bodyS, { color: t.ink2 }]}>
+                  Pick an area. We ask a few questions, then suggest the right door.
+                </Text>
               </View>
-            ) : null}
-            <Button
-              label={catalogOn ? "Something else" : "Tell us what is wrong"}
-              variant="soft"
-              onPress={() => onSymptoms(null)}
-            />
-          </>
+              {catalogOn ? (
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>
+                  {areas.map((c) => (
+                    <Press
+                      key={c.key}
+                      onPress={() => onSymptoms(c.key)}
+                      accessibilityLabel={sayCatalog(CATALOG, c.labelKey)}
+                      style={{
+                        flexBasis: "48%",
+                        flexGrow: 1,
+                        minHeight: 48,
+                        paddingHorizontal: tSpace[3],
+                        paddingVertical: tSpace[2],
+                        borderRadius: tRadius.field,
+                        justifyContent: "center",
+                        backgroundColor: t.surface2,
+                      }}
+                    >
+                      <Text style={[tType.labelS, { color: t.ink }]}>
+                        {sayCatalog(CATALOG, c.labelKey)}
+                      </Text>
+                    </Press>
+                  ))}
+                </View>
+              ) : null}
+              {/* Nothing to press until the answer is known: a button here used to open a dead end. */}
+              {catalogOn ? (
+                <Button label="Something else" variant="soft" onPress={() => onSymptoms(null)} />
+              ) : null}
+            </>
+          )}
           <View
             style={{
               flexDirection: "row",
@@ -224,7 +249,8 @@ export function WhyComing({
                     <IconDisc
                       name={r.icon}
                       size={36}
-                      color={on ? t.onBandAccent : t.ink}
+                      // On the primary disc, as on the chosen door above: the teal only reads on navy.
+                      color={on ? (t.scheme === "dark" ? t.onPrimary : t.onBandAccent) : t.ink}
                       bg={on ? t.primary : t.surface3}
                     />
                     <View style={{ flex: 1, gap: 2 }}>

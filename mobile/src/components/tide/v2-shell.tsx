@@ -51,13 +51,20 @@ function glassAvailable(): boolean {
 export const VISIT_NAV_GLASS = glassAvailable();
 
 /**
- * The frost: the raised surface at about 35 %, laid into the glass. Clear glass lets the page's words show
- * sharp behind the places' labels; the tint keeps them soft enough that the labels stay the thing you read.
- * Much stronger and the pill reads as a solid white shape with no edge on a white card.
+ * The frost: the raised surface laid into the glass. Clear glass lets the page's words show sharp behind the
+ * places' labels; the tint keeps them soft enough that the labels stay the thing you read.
+ *
+ * About 35 %: much stronger and the pill reads as a solid white shape with no edge on a white card.
+ *
+ * The dark scheme needs more than the tint. The system's glass turns pale over a photo or a white card, to
+ * stay readable for its own dark labels, and no tint stops it (seen at 35 %, 70 % and 90 %). Our labels are
+ * light there, so a veil of the raised surface, about 80 %, lies inside the glass under them: the edge and
+ * the soft show-through stay, and the labels keep their contrast over anything.
  */
 const FROST_ALPHA = "59";
-function frostOf(surface: string): string | undefined {
-  return /^#[0-9a-f]{6}$/i.test(surface) ? `${surface}${FROST_ALPHA}` : undefined;
+const DARK_VEIL_ALPHA = "CC";
+function withAlpha(surface: string, alpha: string): string | undefined {
+  return /^#[0-9a-f]{6}$/i.test(surface) ? `${surface}${alpha}` : undefined;
 }
 
 /** The nav's gap above the home indicator; 12 pt from the edge on a phone with no indicator. */
@@ -89,8 +96,11 @@ export function VisitNav({
   const tabW = (pillW - INSET * 2) / VISIT_PLACES.length;
   const index = VISIT_PLACES.findIndex((p) => p.key === current);
   const glass = VISIT_NAV_GLASS;
-  // Over glass the page shows through, so the resting places take the stronger ink in both schemes.
-  const off = glass || t.scheme === "dark" ? t.ink2 : t.ink3;
+  const dark = t.scheme === "dark";
+  // Over glass the page shows through, so the resting places take a stronger ink: the full ink in the dark
+  // scheme, where the pill can still sit over a photo.
+  const off = glass ? (dark ? t.ink : t.ink2) : dark ? t.ink2 : t.ink3;
+  const veil = glass && dark ? withAlpha(t.surfaceRaised, DARK_VEIL_ALPHA) : undefined;
   // The solid pill has a 1 pt border; the glass has its own edge.
   const edge = glass ? 0 : 1;
   const pill: ViewStyle = {
@@ -160,9 +170,23 @@ export function VisitNav({
           glassEffectStyle="regular"
           // The app has its own theme, so the glass follows it, not the system's.
           colorScheme={t.scheme}
-          tintColor={frostOf(t.surfaceRaised)}
+          tintColor={withAlpha(t.surfaceRaised, FROST_ALPHA)}
           style={pill}
         >
+          {veil ? (
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                borderRadius: VISIT_NAV_H / 2,
+                backgroundColor: veil,
+              }}
+            />
+          ) : null}
           {places}
         </GlassView>
       ) : (

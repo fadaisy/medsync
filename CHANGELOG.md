@@ -12,7 +12,17 @@ Asked for by the owner on seeing v2 in the iOS Simulator. No new dependency (`ex
 - The Visit-mode pill (`components/tide/v2-shell.tsx`) is Apple's glass where the system has it (iOS 26 and later), with the raised surface laid in at about 35 % so the page's words stay soft behind the places' labels. The glass follows the app's own light or dark theme. Everywhere else (Android, older iOS, the web, a runtime with no glass module) the pill keeps its solid surface, border and shadow.
 - Under the glass the page scrolls on beneath the nav: the fade that melted content into the page colour before the bar (`components/tide/screen.tsx`) is drawn only for the solid pill.
 - The nav sits 4 pt above the home indicator instead of 14 pt, and 12 pt from the edge on a phone with none (`visitNavBottom`), in the tabs layout and the `/dev/visit-v2` gallery.
+- In the dark scheme a veil of the raised surface (about 80 %) lies inside the glass, and the resting places take the full ink: the system's glass turns pale over a photo or a white card whatever its tint, which took the light labels with it.
 - Seen in the iOS Simulator (iPhone 18 Pro, iOS 27.2, Expo Go), light and dark, on Home and Me. Not seen on a real phone or on Android.
+
+### Fixed — Book a visit in the dark scheme, and the "Something is wrong" dead end — 18 Nov 2026
+
+Found by the owner in the iOS Simulator. No new strings.
+
+- "Why are you coming?" (`features/visits/why-coming.tsx`): the chosen door is filled with the primary, which is near-white in the dark scheme, but its description, icon and tick used the navy band's light inks, so the description vanished. In the dark scheme they now take the primary's own ink. The same for the icon of the chosen reason under Planned care.
+- The chosen "Who is this visit for?" chip (`book/index.tsx`): the initials washed out on the near-white chip in the dark scheme; they take the primary's ink there.
+- With the symptom questions off (the flag, or Gate CS not signed), "Something is wrong" promised "Pick an area. We ask a few questions…" and a "Tell us what is wrong" button that opened a screen saying only "This is not available yet." The card now says that sentence in place, with the red Help beside it, and offers no button. Nothing changes where the questions are on.
+- Not changed: the "Something is wrong" screen stays light in the dark scheme (law L11).
 
 ### Changed — Patient app v2 is the phone's default; shell, Home and Tether brand — 18 Nov 2026
 
