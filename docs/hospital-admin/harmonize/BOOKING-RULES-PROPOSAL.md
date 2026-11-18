@@ -1,6 +1,7 @@
 # Booking rules asked twice: what is wrong and what to do
 
-18 Nov 2026. A proposal for the owner. Nothing here is built. The other half of the same report (a department
+18 Nov 2026. A proposal for the owner. **Decided the same day: option A, admin screens only (ADR 0526).** The
+patient-facing parts of A, the unused clinic switches and reminders are still open. The other half of the same report (a department
 taken off Tether still showed under Clinics) is fixed on this branch; see ADR 0525.
 
 ## What the admin meets today
