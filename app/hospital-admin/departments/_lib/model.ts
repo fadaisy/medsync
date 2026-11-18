@@ -37,6 +37,67 @@ export const UNSET_RULES: BookingRules = {
   notes: null,
 };
 
+/** One published weekly session of a clinic (`session_templates`), as Clinics & schedule's week plan holds it. */
+export interface SessionLite {
+  clinicId: string;
+  /** ISO weekday, 1 = Monday. */
+  weekday: number;
+  start: number;
+  end: number;
+  slot: number;
+}
+/** A clinic's week, in the shape of the department's rules so one summary line serves both. */
+export interface ClinicWeek {
+  clinicId: string;
+  name: string;
+  rules: BookingRules;
+}
+
+/**
+ * ADR 0526: days, hours and slot length are set once, on the clinic's week plan. The current clinics of a
+ * department (its own id and its units') that have a week plan, each with the days it runs, its earliest start,
+ * latest end and shortest slot. Empty = no clinic holds them, so the department's own rules are the only place.
+ */
+export function clinicWeeks(
+  departmentIds: readonly string[],
+  clinics: readonly ClinicLite[],
+  sessions: readonly SessionLite[],
+): ClinicWeek[] {
+  return clinics
+    .filter((c) => departmentIds.includes(c.departmentId) && c.status !== "archived")
+    .flatMap((c): ClinicWeek[] => {
+      const xs = sessions.filter((x) => x.clinicId === c.id);
+      if (!xs.length) return [];
+      return [
+        {
+          clinicId: c.id,
+          name: c.name,
+          rules: {
+            ...UNSET_RULES,
+            days: [...new Set(xs.map((x) => x.weekday))].sort((a, b) => a - b),
+            start: Math.min(...xs.map((x) => x.start)),
+            end: Math.max(...xs.map((x) => x.end)),
+            slot: Math.min(...xs.map((x) => x.slot)),
+          },
+        },
+      ];
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+type Window = Pick<BookingRules, "days" | "start" | "end">;
+const ANY_TIME: Window = { days: [1, 2, 3, 4, 5, 6, 7], start: 0, end: 1440 };
+
+/** A stored department window that is tighter than "any day, any hour". */
+export const isNarrowed = (r: Window) => r.days.length < 7 || r.start > 0 || r.end < 1440;
+
+/**
+ * The days and hours to store for a department. Where its clinics hold them, the department stores "any day, any
+ * hour", never a second copy that could disagree with the week plan.
+ */
+export const windowToSave = (v: Window, clinicLed: boolean): Window =>
+  clinicLed ? { ...ANY_TIME } : { days: v.days, start: v.start, end: v.end };
+
 export const DAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 /** 480 → "08:00". */
@@ -151,6 +212,8 @@ export interface DepartmentsData {
   goLive: boolean;
   pharmacyDemo: boolean;
   rules: Record<string, BookingRules>;
+  /** Every current clinic's published weekly sessions: where days, hours and slot length are set (ADR 0526). */
+  sessions: SessionLite[];
   firstRun: FirstRun;
   problems: OpenProblem[];
   closedWards: ClosedWard[];

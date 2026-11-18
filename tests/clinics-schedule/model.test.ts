@@ -15,6 +15,7 @@ import {
   feeFor,
   impactOf,
   nearestFree,
+  onTether,
   peopleFilter,
   personWeek,
   publishBlockers,
@@ -94,6 +95,27 @@ describe("readiness (S7, X1)", () => {
   it("a department that is not live blocks the clinic", () => {
     const r = readiness(S, "c-opd", () => false);
     expect(r.blockers.map((b) => b.k)).toContain("dept");
+  });
+});
+
+describe("off Tether (X1: Departments owns it, Clinics follows)", () => {
+  const entOff = (id: string) => id !== S.clinics["c-ent"]!.departmentId;
+  it("a clinic whose department is off Tether is not listed, nor are its sessions", () => {
+    const { view, hidden } = onTether(S, entOff);
+    expect(view.clinics["c-ent"]).toBeUndefined();
+    expect(Object.values(view.sessions).some((x) => x.clinicId === "c-ent")).toBe(false);
+    expect(hidden.map((c) => c.id)).toContain("c-ent");
+    // every hidden clinic is in that department, and nothing else went missing
+    expect(Object.keys(view.clinics).length + hidden.length).toBe(Object.keys(S.clinics).length);
+    expect(hidden.every((c) => !entOff(c.departmentId))).toBe(true);
+  });
+  it("with every department live nothing is hidden, and the records are never touched", () => {
+    const before = JSON.stringify(S);
+    const { view, hidden } = onTether(S, () => true);
+    expect(hidden).toEqual([]);
+    expect(Object.keys(view.clinics)).toEqual(Object.keys(S.clinics));
+    onTether(S, entOff);
+    expect(JSON.stringify(S)).toBe(before);
   });
 });
 

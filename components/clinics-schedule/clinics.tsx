@@ -6,6 +6,7 @@ import type { Band, Clinic, Person, Status, Weekday } from "@/lib/clinics-schedu
 import { useState } from "react";
 
 import { CS } from "@/content/clinics-schedule/copy";
+import { OFF_TETHER } from "@/content/clinics-schedule/off-tether";
 import { CLINIC_PALETTE } from "@/content/clinics-schedule/palette";
 import { fill } from "@/content/lab-workspace-v2";
 import {
@@ -30,6 +31,7 @@ import {
   hit,
   Icon,
   k,
+  OffTetherNote,
   Pav,
   placeName,
   Seg,
@@ -125,7 +127,9 @@ export function ClinicsView({ ctx }: { ctx: Ctx }) {
     .sort()
     .map((g) => ({ g, rows: shown.filter((c) => keyOf(c) === g) }));
 
+  const anyLive = Object.values(d.departments).some((x) => x.live);
   const add = () => {
+    if (!anyLive) return ctx.say(OFF_TETHER.noLive);
     const id = ctx.newId();
     const used = new Set(Object.values(view.clinics).map((c) => c.colour));
     const dept =
@@ -181,10 +185,18 @@ export function ClinicsView({ ctx }: { ctx: Ctx }) {
             </span>
           </div>
           <span className={k("grow")} />
-          <button type="button" className={k("btn", "sm")} onClick={add} data-tour="wt-add-clinic">
+          <button
+            type="button"
+            className={k("btn", "sm")}
+            onClick={add}
+            disabled={!anyLive}
+            title={anyLive ? undefined : OFF_TETHER.noLive}
+            data-tour="wt-add-clinic"
+          >
             {CS.clinics.add}
           </button>
         </div>
+        <OffTetherNote ctx={ctx} />
         <div className={k("su-ctb", narrow && "narrow")}>
           <div className={k("su-cfs")} role="group" aria-label={CS.clinics.title}>
             {(["all", "setup", "ready", "live"] as Filter[]).map((f) => (
@@ -575,15 +587,18 @@ function Basics({ ctx, c, set }: { ctx: Ctx; c: Clinic; set: Set }) {
       </Field>
       <Field label={CS.ed.dept} tour="wt-clinic-dept">
         <ChipRow label={CS.ed.dept}>
-          {Object.entries(d.departments).map(([id, x]) => (
-            <Chip
-              key={id}
-              on={c.departmentId === id}
-              onClick={() => set(CS.ed.dept, { departmentId: id })}
-            >
-              {x.name}
-            </Chip>
-          ))}
+          {/* A clinic moved to a department that is off Tether would leave this list: offer live ones only. */}
+          {Object.entries(d.departments)
+            .filter(([id, x]) => x.live || id === c.departmentId)
+            .map(([id, x]) => (
+              <Chip
+                key={id}
+                on={c.departmentId === id}
+                onClick={() => set(CS.ed.dept, { departmentId: id })}
+              >
+                {x.name}
+              </Chip>
+            ))}
         </ChipRow>
       </Field>
       <Field label={CS.ed.where} hint={CS.ed.whereH} tour="wt-clinic-rooms">

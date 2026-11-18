@@ -583,6 +583,36 @@ export function readiness(
   return { checks, blockers, status };
 }
 
+/* ─── off Tether (X1) ─────────────────────────────────────────────── */
+
+/**
+ * Departments owns "Live on Tether"; Clinics & schedule follows it. A clinic whose department is off Tether is not
+ * listed here, nor are its sessions or extra sessions: the records stay as they are (nothing is archived or
+ * unpublished), so setting the department live again brings the clinic back exactly as it was. `hidden` names them,
+ * so the screen can say what is not shown and where to change it. Pure; `s` is not touched.
+ */
+export function onTether(
+  s: Snapshot,
+  deptLive: (departmentId: string) => boolean,
+): { view: Snapshot; hidden: Clinic[] } {
+  const hidden = Object.values(s.clinics)
+    .filter((c) => !deptLive(c.departmentId))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  if (!hidden.length) return { view: s, hidden };
+  const off = new Set(hidden.map((c) => c.id));
+  const keep = <T>(rows: Record<string, T>, ok: (row: T) => boolean) =>
+    Object.fromEntries(Object.entries(rows).filter(([, row]) => ok(row)));
+  return {
+    view: {
+      ...s,
+      clinics: keep(s.clinics, (c) => !off.has(c.id)),
+      sessions: keep(s.sessions, (x) => !off.has(x.clinicId)),
+      exceptions: keep(s.exceptions, (e) => !(e.extra && off.has(e.extra.clinicId))),
+    },
+    hidden,
+  };
+}
+
 /* ─── impact (P5, D-CS-18) ───────────────────────────────────────── */
 
 /** Booked people per session, from the booking engine's read model (upcoming clinic_sessions.booked_count). */

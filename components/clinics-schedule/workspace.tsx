@@ -22,6 +22,7 @@ import {
   clashes,
   clashPairs,
   impactOf,
+  onTether,
   publishBlockers,
   readiness,
   undoFrom,
@@ -145,6 +146,9 @@ export function ClinicsWorkspace({
   const snap = useMemo(() => applyChanges(published, queued), [published, queued]);
   const deptLive = (id: string) => data.departments[id]?.live ?? true;
   const rd = (id: string) => readiness(snap, id, deptLive);
+  // Departments owns "Live on Tether": a clinic whose department is off is not listed anywhere in this workspace.
+  // `snap` stays whole for publishing and saving; only what is shown is narrowed.
+  const { view: shown, hidden } = onTether(snap, deptLive);
 
   const say = (text: string, undo?: () => void) => setToast({ text, undo });
 
@@ -272,7 +276,8 @@ export function ClinicsWorkspace({
 
   const ctx: Ctx = {
     d: { ...data, user, versions, job },
-    view: snap,
+    view: shown,
+    hidden,
     published,
     drafts,
     commit,
@@ -322,7 +327,7 @@ export function ClinicsWorkspace({
   });
 
   /* ─── sidebar numbers ─── */
-  const all = Object.values(snap.clinics);
+  const all = Object.values(shown.clinics);
   const st = all.map((c) => rd(c.id).status);
   const nLive = st.filter((s) => s === "live").length;
   const nReady = st.filter((s) => s === "ready").length;
