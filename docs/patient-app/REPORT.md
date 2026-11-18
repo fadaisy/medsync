@@ -2,6 +2,8 @@
 
 **Status: draft for the owner and the CSO.** Branch `feat/patient-app-v2`; nothing merged, deployed or applied. The v2 flags are off and the old screens and routes are all still in place: the cutover (flags on for the pilot hospital for 5 days, then removing old screens while keeping deep links and redirects) is the owner's, after the pilot.
 
+**Update, 18 Nov 2026:** on the phone v2 is now the default and the `appV2Mobile` switch is removed (ADR 0524, the owner's choice); the old screens stay only where v2 has no version. The rest of this report is as written on 16 Nov.
+
 ## 1. What was built
 
 | Step | What                                                                                                           | Commit           |

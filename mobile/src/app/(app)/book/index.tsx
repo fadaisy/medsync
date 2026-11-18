@@ -7,6 +7,7 @@ import { Text, View } from "react-native";
 
 import { Avatar, Icon, Press, Screen } from "@/components/tide";
 import { loadBookGlance } from "@/data/visits";
+import { HeaderAvatar } from "@/features/v2/header-avatar";
 import { HospitalPicker } from "@/features/visits/hospital-picker";
 import { shortDayOf } from "@/features/visits/logic";
 import { HONEST, StepTitle } from "@/features/visits/parts";
@@ -32,6 +33,14 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  */
 
 export default function BookScreen() {
+  return <BookView />;
+}
+
+/**
+ * `tab`: patient app v2 shows this same screen as the Book place under the nav
+ * (`(tabs)/booking.tsx`): no Back, the avatar in the header, and room for the nav. Nothing else differs.
+ */
+export function BookView({ tab = false }: { tab?: boolean }) {
   const t = useTide();
   const router = useRouter();
   const { session } = useSession();
@@ -99,10 +108,12 @@ export default function BookScreen() {
 
   return (
     <Screen
-      back={{ label: "Back" }}
-      overline="Visits"
+      back={tab ? undefined : { label: "Back" }}
+      overline={tab ? undefined : "Visits"}
       overlineColor={t.area.visits}
       title="Book a visit"
+      underNav={tab}
+      headerRight={tab ? <HeaderAvatar /> : undefined}
       // The "Something is wrong" card draws its own red Help, so the header one steps aside (law L6 still holds).
       help={helpInPage ? "none" : "round"}
       helpSource="book"

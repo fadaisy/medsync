@@ -1,6 +1,6 @@
 ---
 name: patient-app-v2-handoff
-description: 17 Nov 2026 cloud-to-Mac handoff of the booking-pilot nested session and the patient app v2 build (Steps 0–12, widgets deferred); branches, signatures, owner items, next steps
+description: 17 Nov 2026 cloud-to-Mac handoff of the booking-pilot nested session and the patient app v2 build (Steps 0–12, widgets deferred); branches, signatures, owner items, next steps; plus the phone finish pass 1 of 18 Nov 2026
 metadata:
   type: project
 ---
@@ -28,7 +28,7 @@ Prompt: the owner's "Tether patient app v2, phone and web, with booking payments
 
 **PR #318 open (17 Nov):** https://github.com/justfadhul/medsync/pull/318, feat/patient-app-v2 @ 9b0e88a → main. origin/main is merged in, the CHANGELOG conflict is resolved, and the Plus ADR is renumbered 0520 → 0523. After the merge: typecheck and lint clean; vitest 12,598 pass, once `mobile/` dependencies are installed. Merging is the owner's.
 
-**Flags (all off):** `appV2Mobile`, `appV2Web`, `careMode` (locked in code: `GATE_CG_SIGNED = false`), `mobilePayments` (sandbox only).
+**Flags (all off; `appV2Mobile` was removed on 18 Nov, see section 3):** `appV2Web`, `careMode` (locked in code: `GATE_CG_SIGNED = false`), `mobilePayments` (sandbox only).
 
 **Signed by the owner/CSO in chat, 16 Nov:**
 
@@ -57,7 +57,7 @@ Prompt: the owner's "Tether patient app v2, phone and web, with booking payments
    - sign the BP "rest 5 min" step;
    - then Gate CG.
 7. Sign the draft strings in `content/patient-app/`. Never edit a `*_COPY_STATUS`.
-8. Pilot: `appV2Mobile`/`appV2Web` on for one hospital for 5 days, then remove the old screens (legacy app/patient redirects are already in MOVED).
+8. Pilot: `appV2Web` on for one hospital for 5 days, then remove the old web screens (legacy app/patient redirects are already in MOVED). The phone is v2 by default since 18 Nov (section 3).
 9. Measure budgets (2 GB Android, iPhone, production web build): not measured in the cloud.
 10. Widgets later: App Group, APNs Live Activity key, EAS dev build.
 
@@ -69,6 +69,19 @@ Prompt: the owner's "Tether patient app v2, phone and web, with booking payments
 - web ticket says "You" (no name data);
 - the doctor's-times booking stays on the old screen;
 - Plan goals wait for a targets format.
+
+## 3. Phone finish, pass 1, and v2 as the phone's default (Mac, 18 Nov 2026)
+
+The owner opened the phone app with `appV2Mobile` on and said it "is still showing the old UI": the flag only swapped a few screens inside the old shell. Pass 1 (branch `claude/patient-app-v2-phone-finish-2a8f7a`, PR against main) gives the phone what the web got in PR #322. During the work the owner chose **"v2 by default, old as fallback"**, phone only (**ADR 0524**): the `appV2Mobile` switch is removed.
+
+- **Built:** the Visit-mode tab bar (Home, Book, Visits, Me; the plus beside it), the avatar with the unseen count, a v2 Home with a state for no visit booked, and Tether as the name everywhere a patient reads. Files: `mobile/src/components/tide/v2-shell.tsx`, `features/v2/home.tsx`, `home-route.tsx`, `header-avatar.tsx`, `lib/brand.ts`, `(tabs)/booking.tsx`. Parity rows 1.1 (part), 1.3, 1.11, 3.1.
+- **Old screens kept as fallback, reached from v2:** confirm, move and cancel a visit (`/visits/[id]?manage=1`, from the v2 visit page); the week calendar ("Week" on Visits); the Care screen and Wellness (rows on Home while Care mode is locked); "See a doctor" (on Home); the offline health card and settings on Me.
+- **Removed:** the old "your day" Home, the simulated pay-now step when asking for a day, the MedSync wordmark. `TideNav` (the old bar) is still in the kit, used only by the dev gallery.
+- **Unchanged:** `careMode` and `GATE_CG_SIGNED = false`; `mobilePayments` (off: v2 then offers no Mobile Money and says to pay at the hospital); the web; the consent text.
+- **Gallery:** `/dev/visit-v2?screen=home` is the whole shell on fixtures (`&visit=none|loading|failed|next`, `&scheme=dark`).
+- **Left out:** the hospitals list (6.3), the v2 settings list (6.4), Care mode's places, the frosted material, folding the old health card into the v2 card on Me, the native splash, app name and icon.
+- **For the owner before a release build:** the CSO's sign-off on the draft v2 wording, which is now the default (`content/patient-app/`, including `HOME_V2_COPY.phone`); a look on a real phone; the Help crawl test names `(tabs)/booking.tsx` (a clinical-safety review item).
+- **Not seen on a device:** checked with `expo start --web` at phone width only (no Xcode on this Mac). `prettier --check` on `mobile/src` already fails on main for older files; no file touched here fails. The root pre-commit typecheck needs `NODE_OPTIONS=--max-old-space-size=8192` on this 8 GB Mac.
 
 **Not from this work:** 38 PGlite EMR-lane failures already on main (14 Drizzle parity, rls-probes, pharmacy, others).
 

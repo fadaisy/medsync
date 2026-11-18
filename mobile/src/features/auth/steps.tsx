@@ -36,6 +36,7 @@ import {
   STEP_NAMES,
   VILLAGE_MAX,
 } from "@/features/auth/rules";
+import { BRAND } from "@/lib/brand";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -713,7 +714,7 @@ export function DoneStep({ firstName }: { firstName: string }) {
           Welcome, {firstName}
         </Text>
         <Text style={[tType.bodyM, { color: t.ink2, textAlign: "center" }]}>
-          Your account is ready. Your MedSync number is given at your first visit.
+          Your account is ready. Your {BRAND} number is given at your first visit.
         </Text>
       </View>
       <Card>

@@ -117,7 +117,7 @@ describe("location share: start and stop", () => {
 
   it("keeps the share when the stop cannot reach the database, then stops on retry", async () => {
     mockUpdateResult.mockReturnValue({ error: { message: "Failed to fetch" } });
-    expect(await stopShare()).toMatch(/Couldn't reach MedSync/);
+    expect(await stopShare()).toMatch(/Couldn't reach Tether/);
     expect(mockRemove).not.toHaveBeenCalled();
     mockUpdateResult.mockReturnValue({ error: null });
     expect(await stopShare()).toBeNull();

@@ -70,7 +70,7 @@ export function HospitalPicker({ onChosen }: { onChosen: () => void }) {
       ) : list === null ? (
         <ActivityIndicator color={t.ink} accessibilityLabel="Loading the hospitals" />
       ) : list.length === 0 ? (
-        <Note tone="plain">No hospital is on MedSync yet.</Note>
+        <Note tone="plain">No hospital is on Tether yet.</Note>
       ) : (
         list.map((h) => (
           <Press

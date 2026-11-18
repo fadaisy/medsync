@@ -72,13 +72,24 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 type Mode = "idle" | "move" | "cancel";
 type Outcome = { ok: true } | { ok: false; error: string };
 
-/** Patient app v2 (Step 4): the v2 day of the visit when `appV2Mobile` is on; this screen otherwise. */
+/**
+ * A visit (patient app v2, the phone's default since ADR 0524): the v2 day of the visit. `?manage=1` opens the
+ * current screen below, which v2 has no version of yet: "I'm here" and "I'm coming", Move it and Cancel
+ * (feature matrix 3.10, kept). The v2 page links to it.
+ */
 export default function VisitScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  return flag("appV2Mobile") && id ? <VisitDayV2Route id={id} /> : <LegacyVisitScreen />;
+  const router = useRouter();
+  const { id, manage } = useLocalSearchParams<{ id: string; manage?: string }>();
+  if (manage || !id) return <ManageVisitScreen />;
+  return (
+    <VisitDayV2Route
+      id={id}
+      onManage={() => router.push({ pathname: "/visits/[id]", params: { id, manage: "1" } })}
+    />
+  );
 }
 
-function LegacyVisitScreen() {
+function ManageVisitScreen() {
   const t = useTide();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -458,7 +469,7 @@ function LegacyVisitScreen() {
         <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
           {visit.bookingCode
             ? `Show code ${visit.bookingCode} at the desk when you arrive.`
-            : "Show your MedSync number at the desk when you arrive."}
+            : "Show your Tether number at the desk when you arrive."}
         </Text>
         {/* The plain street map to the hospital, when its admin has set where it is. */}
         {visit.hospitalPin ? (
@@ -508,7 +519,7 @@ function LegacyVisitScreen() {
             accessibilityLabel="Finding the days the clinic has open"
           />
         ) : options.length === 0 ? (
-          <Note tone="plain">No other day is open with this clinician on MedSync yet.</Note>
+          <Note tone="plain">No other day is open with this clinician on Tether yet.</Note>
         ) : (
           <>
             <BookingCalendar

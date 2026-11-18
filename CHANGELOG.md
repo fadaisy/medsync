@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Patient app v2 is the phone's default; shell, Home and Tether brand — 18 Nov 2026
+
+The owner chose "v2 by default, old as fallback" for the phone ([ADR 0524](docs/adr/0524-patient-app-v2-is-the-phone-default.md)); the cutover had been planned for after the 5-day pilot. The `appV2Mobile` switch is removed. Nothing reaches patients until a new phone build is released. Seen in a browser at phone width on fixtures, not on a device. The v2 wording is still draft, not signed by the CSO.
+
+- Shell (feature matrix 1.1): Visit mode's places, Home, Book, Visits and Me, in one pill with a sliding marker (`components/tide/v2-shell.tsx`). Book is a place (`(tabs)/booking`, the same Book screen); the plus stays, beside the pill. Care mode's own places are not built.
+- Header (1.3, M4): the unseen count moves from the bell to the avatar, which opens Notifications, on Home, Book, Visits and Me.
+- Home (3.1): the web's sections and words: the next visit as the ticket (stage strip on the day), a designed state when no visit is booked, the two ways to book, "See a doctor", the small card, results (tests ordered, no values) and the people you book for.
+- Brand (1.11, M15): "Tether" on the splash, sign-in and in every sentence a patient reads. Unchanged: the data-processing consent text, the native splash, app name and icon.
+- Kept as fallback, reachable from v2: confirming, moving and cancelling a visit ("Confirm, move or cancel" on the v2 visit page); the week calendar ("Week" on Visits); the Care screen and Wellness (rows on Home, while Care mode is locked); the offline health card and the settings on Me.
+- Removed, replaced by v2: the old "your day" Home, the simulated pay-now step when asking for a day, the MedSync wordmark.
+- Care mode is unchanged and locked (`careMode`, `GATE_CG_SIGNED = false`). `mobilePayments` is unchanged and off: without it v2 offers no Mobile Money, and says to pay at the hospital.
+- New draft strings in `content/patient-app/home.ts` (`phone`). The Help crawl (law L6) names the Book tab, whose Help is Book's own. New guard: `mobile/src/lib/flags.test.ts`.
+- Not built: the hospitals list (6.3), the v2 settings list (6.4), the frosted material.
+
 ### Changed — Patient app v2 web finish, first pass: shell, Home, Me, Tether brand — 17 Nov 2026
 
 - Shell (M3, M4), behind `appV2Web`: a sticky frosted top bar at ≥ 761 px (Tether mark and hospital, the mode's places, theme toggle, red Help, avatar with name) and the pill at the foot at ≤ 760 px. Visit mode: Home, Book, Visits, Me; Care mode (only where `careModeOn()`): Today, Plan, My care, Me. Page headers drop their own Help and avatar where the top bar carries them.

@@ -1,5 +1,5 @@
 /**
- * Me, v2 on the phone (patient app v2 §5.9, M10, M11; Step 10), behind `appV2Mobile`: the membership card with a
+ * Me, v2 on the phone (patient app v2 §5.9, M10, M11; Step 10): the membership card with a
  * QR of a short-lived token (S24, refreshed before it ends), the plans from approved prices, the 30-day trial
  * with its reveal (no card, nothing charged when it ends, S25), and paying a plan through the engine. What is
  * always free is said beside the plans (MR9, S26). No new dependency: the server sends the QR as a grid.
@@ -10,6 +10,7 @@ import type { Network, PromptView } from "@patient-core/payments";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import Svg, { Rect } from "react-native-svg";
+import { HOME_V2_COPY } from "@content/patient-app/home";
 import { MEMBERSHIP_COPY } from "@content/patient-app/membership";
 import { feeText } from "@patient-core/fees";
 import { memberNumber, plansFrom, tierNow } from "@patient-core/membership";
@@ -20,6 +21,7 @@ import { MembershipCard, PromptStatus, TierCard } from "@/components/tide/v2";
 import { loadMembership, medicalIdToken, payPlus, startTrial } from "@/data/membership-v2";
 import { myMobile } from "@/data/visit-v2";
 import { requestId } from "@/lib/edge";
+import { flag } from "@/lib/flags";
 import { useTide } from "@/theme/theme";
 import { tSpace, tType } from "@/theme/tide";
 
@@ -53,6 +55,8 @@ export function MeMembershipV2(p: {
   id: Omit<MedicalId, "qr">;
   plans: Plan[];
   msisdn: string | null;
+  /** Said when a plan is chosen and there is no way to pay from the app (`mobilePayments` off, or no number). */
+  payOff?: string;
   qrToken: () => Promise<{ ok: true; modules: string[]; expiresAt: string } | { ok: false }>;
   startTrial: (tier: PlusTier) => Promise<{ ok: true } | { ok: false; error: string }>;
   pay: (i: { tier: PlusTier; period: "monthly" | "yearly"; network: Network; msisdn: string; idempotencyKey: string }) => Promise<
@@ -130,7 +134,8 @@ export function MeMembershipV2(p: {
               const r = await p.startTrial(x.tier);
               if (r.ok) setRevealed(x.tier);
               else setError(r.error);
-            } else setPaying(x.tier);
+            } else if (!p.msisdn) setError(p.payOff ?? null);
+            else setPaying(x.tier);
           }}
         />
       ))}
@@ -192,7 +197,9 @@ export function MeMembershipRoute(p: { name: string; code: string | null; id: Om
       memberNo={memberNumber(p.code)}
       id={p.id}
       plans={plansFrom(data.prices, now.toISOString().slice(0, 10))}
-      msisdn={data.msisdn}
+      // Paying from the app only where it is switched on; the free month needs no payment.
+      msisdn={flag("mobilePayments") ? data.msisdn : null}
+      payOff={HOME_V2_COPY.phone.payOff}
       qrToken={medicalIdToken}
       startTrial={async (tier) => {
         const r = await startTrial(tier);

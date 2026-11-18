@@ -1,5 +1,5 @@
 /**
- * Care mode on the phone, part 1 (patient app v2 §5.6 to §5.7; Step 7), behind `appV2Mobile` and `careMode`
+ * Care mode on the phone, part 1 (patient app v2 §5.6 to §5.7; Step 7), behind `careMode`
  * (off in production until Gate CG, MR11). Today: one hero from the ladder (S17), the plan as a day bar and
  * tickable rows (ticks queue offline, S18), the reading snippets (+ Log opens Add a reading for that measure),
  * and the week of medicines. The Plan page: the day as a vertical list and the week. Medicines: each dose with

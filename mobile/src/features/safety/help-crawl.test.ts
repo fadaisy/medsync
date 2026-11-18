@@ -44,6 +44,9 @@ export function helpViolation(file: string, src: string): string | null {
   // screens Help opens, and the signed-out sheet.
   if (file === "emergency.tsx" || file.startsWith("(app)/emergency/")) return null;
   if (/<HelpButton\b/.test(src)) return null;
+  // Patient app v2: the Book tab is Book's own screen shown under the nav (`<BookView tab />`), so its Help is
+  // the one checked on `(app)/book/index.tsx`. Named here, like the emergency family; not matched loosely.
+  if (file === "(app)/(tabs)/booking.tsx" && /<BookView\b/.test(src)) return null;
   // Screens not yet rebuilt in Tide: their red disc opens Help, unless sent elsewhere.
   if (/<EmergencyButton\s*\/>/.test(src)) return null;
   const tideScreen =
@@ -62,6 +65,17 @@ describe("law L6: Help is reachable on every route", () => {
 
   it.each(files)("%s shows Help", (file) => {
     expect(helpViolation(file, readFileSync(join(APP, file), "utf8"))).toBeNull();
+  });
+
+  it("the Book tab shows Book's own screen, which shows Help", () => {
+    const book = readFileSync(join(APP, "(app)/book/index.tsx"), "utf8");
+    expect(book).toMatch(/export function BookView\b/);
+    expect(helpViolation("(app)/book/index.tsx", book)).toBeNull();
+    // Only that file, and only while it renders Book's view.
+    expect(
+      helpViolation("(app)/(tabs)/other.tsx", "export default () => <BookView tab />;"),
+    ).not.toBeNull();
+    expect(helpViolation("(app)/(tabs)/booking.tsx", "export default () => null;")).not.toBeNull();
   });
 
   it("fails a route without Help", () => {

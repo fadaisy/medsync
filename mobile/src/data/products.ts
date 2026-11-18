@@ -107,7 +107,7 @@ export async function labelFromPhoto(): Promise<LabelResult> {
     const { name, kcal, carbs, protein, fat, fibre, servingG } = body;
     return { ok: true, values: { name, kcal, carbs, protein, fat, fibre, servingG } };
   } catch {
-    return { ok: false, message: "Couldn't reach MedSync. Check your connection, or type it." };
+    return { ok: false, message: "Couldn't reach Tether. Check your connection, or type it." };
   }
 }
 

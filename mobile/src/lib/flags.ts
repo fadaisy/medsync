@@ -17,8 +17,6 @@ export type Flag =
   | "mobilePhoneOtp"
   /** Care-team chat: hidden until there is a clinician inbox to answer it (ADR 0342). */
   | "mobileChat"
-  /** Patient app v2 on the phone (Visit mode first); old screens stay until Step 12 removes them. */
-  | "appV2Mobile"
   /**
    * Care mode, v2 (gate A5, signed 16 Nov 2026: replaces `mobileClinicalData`). Off in production until Gate CG
    * is signed: like `mobileClinicalData`, the environment alone cannot turn it on.

@@ -31,6 +31,11 @@ const PATHS = {
   homeDoor: "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8",
   calendar:
     "M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
+  // Patient app v2 nav, the web's own glyphs: Book and Visits.
+  calendarPlus:
+    "M16 19h6 M16 2v4 M19 16v6 M21 12.598V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8.5 M3 10h18 M8 2v4",
+  calendarDays:
+    "M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z M8 14h.01 M12 14h.01 M16 14h.01 M8 18h.01 M12 18h.01 M16 18h.01",
   heart:
     "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z",
   user: "M12 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10z M20 21a8 8 0 0 0-16 0",

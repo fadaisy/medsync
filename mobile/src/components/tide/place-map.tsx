@@ -231,7 +231,7 @@ export async function findMe(): Promise<{ lat: number; lng: number } | { problem
     if (perm.status !== "granted")
       return {
         problem:
-          "Location is off for MedSync, so we can't find you. Move the map to your place instead.",
+          "Location is off for Tether, so we can't find you. Move the map to your place instead.",
       };
     const fix = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
     return { lat: fix.coords.latitude, lng: fix.coords.longitude };

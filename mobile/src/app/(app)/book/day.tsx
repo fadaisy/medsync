@@ -5,6 +5,7 @@ import type { Door } from "@/features/visits/why-coming";
 import type { AppointmentReason } from "@/lib/booking";
 import type { Network, PromptView } from "@patient-core/payments";
 import { useEffect, useState } from "react";
+import { PAYMENTS_COPY } from "@content/patient-app/payments";
 import { defaultPayChoice, maskMsisdn } from "@patient-core/payments";
 import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -107,13 +108,14 @@ export default function BookDayScreen() {
   const [slotId, setSlotId] = useState<string | null>(null);
   const [whoId, setWhoId] = useState<string | null>(null);
   const [pay, setPay] = useState<"momo" | "later">("momo");
-  // Patient app v2 (appV2Mobile): the network, the number, and what the prompt said after booking.
-  const v2 = flag("appV2Mobile");
+  // Patient app v2: the network, the number, and what the prompt said after booking. Mobile Money only where
+  // paying from the app is switched on (`mobilePayments`); otherwise the visit is paid at the hospital.
+  const payOn = flag("mobilePayments");
   const [network, setNetwork] = useState<Network>("mtn");
   const [mobile, setMobile] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<PromptView | null>(null);
   useEffect(() => {
-    if (!v2) return;
+    if (!payOn) return;
     let live = true;
     void myMobile().then((m) => {
       if (!live) return;
@@ -123,7 +125,7 @@ export default function BookDayScreen() {
     return () => {
       live = false;
     };
-  }, [v2]);
+  }, [payOn]);
   const [note, setNote] = useState("");
   const [symptoms, setSymptoms] = useState<NoteSelection>(EMPTY_NOTE);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -307,11 +309,13 @@ export default function BookDayScreen() {
     ? clockOf(slotSession.slot.startsAtIso)
     : (chosenPart ?? "").toLowerCase();
   const dayWords = day ? `${weekdayOf(day.key)} ${dayNumberOf(day.key)} ${when}` : "";
+  // Paying now only where it can happen: switched on, a fee, Mobile Money chosen and a number to prompt.
+  const payingNow = payOn && fee !== null && fee > 0 && pay === "momo" && mobile !== null;
   const send = !session
     ? doctorName
       ? "Choose a time"
       : "Choose a day"
-    : fee && pay === "momo"
+    : payingNow
       ? `Pay ${feeText(fee)} · ${dayWords}`
       : `Ask for ${dayWords}`;
 
@@ -331,7 +335,7 @@ export default function BookDayScreen() {
       note,
       forProvisionalId: params.member ?? null,
       patient,
-      payNow: !v2 && pay === "momo",
+      payNow: false,
       idempotencyKey: k,
       now: new Date(),
       symptoms: bookingSymptoms(symptoms, CATALOG),
@@ -348,7 +352,8 @@ export default function BookDayScreen() {
     setKey(null);
     setTicketId(res.ticket.id);
     // v2: paying comes after the booking exists and never changes it (PA2). A failure reads "Nothing was taken".
-    if (v2 && fee && pay === "momo" && mobile) {
+    if (payOn && fee && pay === "momo" && mobile) {
+      // (the same condition as `payingNow`, restated so `mobile` is narrowed)
       setPrompt("approve_on_phone");
       const paid = await payVisit({ appointmentId: res.ticket.id, network, msisdn: mobile });
       setPrompt(paid.ok ? paid.view : "nothing_taken");
@@ -377,8 +382,8 @@ export default function BookDayScreen() {
             </Text>
             <Text style={[tType.bodyM, { color: t.ink2, textAlign: "center" }]}>
               {doctorName
-                ? `${doctorName} has no open time on MedSync yet. Try another doctor, or come back later.`
-                : "No clinic day for this kind of visit is open on MedSync yet. Come back later."}
+                ? `${doctorName} has no open time on Tether yet. Try another doctor, or come back later.`
+                : "No clinic day for this kind of visit is open on Tether yet. Come back later."}
             </Text>
           </View>
         </Card>
@@ -573,7 +578,7 @@ export default function BookDayScreen() {
         />
       </View>
 
-      {v2 && session && fee ? (
+      {session && fee && payOn ? (
         <PayChoice
           value={pay === "momo" && mobile ? "momo" : "hospital"}
           onChange={(v) => setPay(v === "momo" ? "momo" : "later")}
@@ -582,41 +587,10 @@ export default function BookDayScreen() {
           onChangeNumber={() => setNetwork((n) => (n === "mtn" ? "airtel" : "mtn"))}
         />
       ) : null}
-      {!v2 && session && fee ? (
-        <View style={{ gap: tSpace[2] }}>
-          {fee ? (
-            <View style={{ flexDirection: "row", gap: tSpace[2] }}>
-              {(
-                [
-                  ["momo", "Pay now · Mobile Money", "Your day is held once paid"],
-                  ["later", "Pay later", "Here before the day, or at the desk"],
-                ] as const
-              ).map(([k, title, line]) => (
-                <Press
-                  key={k}
-                  onPress={() => setPay(k)}
-                  accessibilityState={{ selected: pay === k }}
-                  accessibilityLabel={`${title}. ${line}`}
-                  style={{
-                    flex: 1,
-                    padding: tSpace[3],
-                    borderRadius: tRadius.field,
-                    gap: 2,
-                    ...pickStyle(t, pay === k),
-                  }}
-                >
-                  <Text style={[tType.labelS, { fontSize: 13, color: t.ink }]}>{title}</Text>
-                  <Text style={[tType.micro, { color: t.ink2 }]}>{line}</Text>
-                </Press>
-              ))}
-            </View>
-          ) : null}
-          {fee && pay === "momo" && !flag("mobilePayments") ? (
-            <Note tone="plain" icon="smartphone">
-              Demo payment: no money moves, and your ticket says so.
-            </Note>
-          ) : null}
-        </View>
+      {session && fee && !payOn ? (
+        <Note tone="plain" icon="wallet">
+          {`${PAYMENTS_COPY.choice.hospital}. ${PAYMENTS_COPY.choice.hospitalNote}`}
+        </Note>
       ) : null}
 
       {error ? <FieldError>{error}</FieldError> : null}

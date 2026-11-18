@@ -41,9 +41,9 @@ const n = (v: number) => v.toLocaleString("en-US");
  * patient who has logged nothing. The care-team card shows only while chat
  * is on (`mobileChat`); until then it offers "Book a visit".
  */
-/** Care mode, v2 (Step 7): Today from the ladder, behind `appV2Mobile` and `careMode` (off until Gate CG). */
+/** Care mode, v2 (Step 7): Today from the ladder, behind `careMode` (off until Gate CG). */
 export default function CareTab() {
-  if (flag("appV2Mobile") && flag("careMode")) return <CareTodayTabV2 />;
+  if (flag("careMode")) return <CareTodayTabV2 />;
   return <CareTabV1 />;
 }
 

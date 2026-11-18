@@ -119,7 +119,7 @@ export async function callEdge<T = unknown>(
       }
       return {
         ok: false,
-        error: detail || `MedSync couldn't complete that (${res.status}).`,
+        error: detail || `Tether couldn't complete that (${res.status}).`,
         code,
         status: res.status,
       };
@@ -142,7 +142,7 @@ export async function callEdge<T = unknown>(
     // name is not something a patient can act on.
     return {
       ok: false,
-      error: "Couldn't reach MedSync. Check your connection and try again.",
+      error: "Couldn't reach Tether. Check your connection and try again.",
       code: "offline",
     };
   }

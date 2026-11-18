@@ -22,7 +22,7 @@ export function BarcodeScan({ onCode }: { onCode: (code: string) => void }) {
     return (
       <View style={{ gap: tSpace[3] }}>
         <Note tone="info" icon="camera">
-          MedSync needs the camera to read the barcode on the pack. Nothing else is recorded.
+          Tether needs the camera to read the barcode on the pack. Nothing else is recorded.
         </Note>
         <Button label="Allow the camera" onPress={() => void requestPermission()} />
       </View>

@@ -7,7 +7,7 @@ import { flag } from "@/lib/flags";
 
 /** The v2 Plan page (Step 7). Only in Care mode, v2: otherwise back to Care. */
 export default function CarePlan() {
-  if (!flag("appV2Mobile") || !flag("careMode")) return <Redirect href="/care" />;
+  if (!flag("careMode")) return <Redirect href="/care" />;
   return (
     <Screen title={CARE_V2_COPY.plan.title} back={{}}>
       <CarePlanBody />

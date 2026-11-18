@@ -67,9 +67,9 @@ const STATUS_WORDS: Record<DoseStatus, string> = {
  * prescribed" only: no dose amount anywhere (law L5). There is no supply
  * data, so no refill bars. The list is the patient's: no clinician sees it.
  */
-/** Medicines, v2 (Step 7), behind `appV2Mobile` and `careMode`; the current screen otherwise. */
+/** Medicines, v2 (Step 7), behind `careMode`; the current screen otherwise. */
 export default function MedicinesScreen() {
-  if (flag("appV2Mobile") && flag("careMode")) return <MedicinesV2Route />;
+  if (flag("careMode")) return <MedicinesV2Route />;
   return <MedicinesScreenV1 />;
 }
 

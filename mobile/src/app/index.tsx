@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { HOME_V2_COPY } from "@content/patient-app/home";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Text, useWindowDimensions, View } from "react-native";
@@ -8,14 +9,15 @@ import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { Button, Icon, Press, Screen } from "@/components/tide";
 import { useSplashSequence } from "@/hooks/use-splash-sequence";
 import { track } from "@/lib/analytics";
+import { BRAND } from "@/lib/brand";
 import { useSession } from "@/lib/session";
 import { motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
-const WORD = "MedSync";
-/** Letters before this index are white, the rest lagoon: "Med" + "Sync". */
-const SPLIT = 3;
+/** Patient app v2 (feature matrix 1.11, M15): the Tether wordmark, in one colour as on the web. */
+const WORD = BRAND;
+const TAGLINE = HOME_V2_COPY.phone.tagline;
 /** Where the wordmark sits, as a share of the screen height (the board's 340 of 844). */
 const WORDMARK_AT = 0.4;
 
@@ -76,7 +78,7 @@ export default function SplashScreen() {
         }}
         accessible
         accessibilityRole="header"
-        accessibilityLabel={`${WORD}. Your care, in sync.`}
+        accessibilityLabel={`${WORD}. ${TAGLINE}`}
       >
         {/* Light glyphs on navy in both themes; mounted after Screen's own, so it wins. */}
         <StatusBar style="light" />
@@ -85,11 +87,11 @@ export default function SplashScreen() {
             <Animated.View key={i} style={motion.splashLetter(i, reduced)}>
               <Text
                 style={{
-                  fontFamily: tFont.extrabold,
+                  fontFamily: tFont.bold,
                   fontSize: 56,
                   lineHeight: 64,
-                  letterSpacing: -2,
-                  color: i < SPLIT ? t.onBand : t.accent,
+                  letterSpacing: -1.68,
+                  color: t.onBand,
                 }}
               >
                 {ch}
@@ -98,7 +100,7 @@ export default function SplashScreen() {
           ))}
         </View>
         <Animated.View style={motion.rise(1050, reduced)}>
-          <Text style={[tType.bodyM, { fontSize: 17, color: t.onBand2 }]}>Your care, in sync.</Text>
+          <Text style={[tType.bodyM, { fontSize: 17, color: t.onBand2 }]}>{TAGLINE}</Text>
         </Animated.View>
       </View>
 

@@ -38,8 +38,8 @@ const ORIGIN = process.env.EXPO_PUBLIC_WEB_ORIGIN;
 const BASE = ORIGIN ? `${ORIGIN.replace(/\/$/, "")}/api/mobile/visit-summaries` : null;
 
 export const RECORDS_OFF = "Records are not switched on in this build.";
-const OFFLINE = "Couldn't reach MedSync. Showing what was saved on this phone.";
-const OFFLINE_EMPTY = "Couldn't reach MedSync. Check your connection and try again.";
+const OFFLINE = "Couldn't reach Tether. Showing what was saved on this phone.";
+const OFFLINE_EMPTY = "Couldn't reach Tether. Check your connection and try again.";
 const FAILED = "Couldn't load your visit records. Try again.";
 
 export type RecordsStatus = "loading" | "ready" | "error" | "off";
@@ -167,7 +167,7 @@ export async function addToMyMedicines(
       if (words !== "Already in your medicines.") return { ok: false, message: words };
     }
   } catch {
-    return { ok: false, message: "Couldn't reach MedSync. Try again when you are online." };
+    return { ok: false, message: "Couldn't reach Tether. Try again when you are online." };
   }
   store.set((s) => ({
     ...s,

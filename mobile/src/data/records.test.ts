@@ -97,7 +97,7 @@ describe("loadRecords", () => {
     expect(second.peekRecords()).toMatchObject({
       status: "ready",
       fromPhone: true,
-      message: "Couldn't reach MedSync. Showing what was saved on this phone.",
+      message: "Couldn't reach Tether. Showing what was saved on this phone.",
       items: [{ id: "s1" }],
     });
   });

@@ -1,5 +1,5 @@
 /**
- * Care mode on the phone, part 2 (patient app v2 §5.8; Step 8), behind `appV2Mobile` and `careMode`.
+ * Care mode on the phone, part 2 (patient app v2 §5.8; Step 8), behind `careMode`.
  * My care: the team (a name only with consent, S20; roles always; the first contact tagged; what each does
  * next) and the checks this year (Overdue with Book it, Due, Done; words with every state). Messages: the
  * thread, the team's hours, "Not for emergencies" with Help, quick prompts and a composer; a check-in is a

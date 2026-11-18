@@ -336,7 +336,7 @@ function TicketFront({
           <Text
             style={{ fontFamily: tFont.extrabold, fontSize: 18, letterSpacing: -0.4, color: t.ink }}
           >
-            MedSync
+            Tether
           </Text>
         </View>
         <Text style={[tType.labelS, { color: t.ink2 }]}>

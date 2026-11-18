@@ -1,5 +1,5 @@
 /**
- * Care mode routes on the phone, v2 (Step 7), behind `appV2Mobile` and `careMode`. Each loads the patient's own
+ * Care mode routes on the phone, v2 (Step 7), behind `careMode`. Each loads the patient's own
  * rows (`@/data/care-v2`, the readings log), runs the shared rules (`@patient-core/care-plan`, the ladder) and
  * renders the props-driven screens in `care-today.tsx`. A tick shows at once and is sent, or kept on this phone
  * until it can be (S18).

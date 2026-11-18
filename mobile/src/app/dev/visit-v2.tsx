@@ -1,20 +1,30 @@
 /**
  * `/dev/visit-v2?screen=home|visits|day&scheme=light|dark`: patient app v2 Visit mode on the phone (Step 4) on
  * fixtures, for screenshots. Development builds only. Invented names (prompt Appendix A); no patient data.
+ *
+ * `screen=home` is the whole v2 shell (finish pass 1): the header with the avatar count, Home and the nav.
+ * `&visit=none|loading|failed|next` picks Home's visit state (today's visit by default); `&place=book|visits|me`
+ * moves the nav's marker.
  */
 import type { VisitQuestion } from "@/data/visit-v2";
 import type { AppointmentRow } from "@/lib/booking";
+import type { VisitPlace } from "@/components/tide/v2-shell";
+import type { HomeVisit } from "@/features/v2/home";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
+import { Text, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { stageOf } from "@patient-core/visit-stages";
 
 import { Screen } from "@/components/tide";
 import { PayChoice, PromptStatus } from "@/components/tide/v2";
+import { AvatarCount, VISIT_PLACES, VisitNav } from "@/components/tide/v2-shell";
 import { ticketFor } from "@/data/visit-v2";
-import { HomeVisitCardV2 } from "@/features/v2/routes";
+import { HomeV2View } from "@/features/v2/home";
 import { VisitDay } from "@/features/v2/visit-day";
 import { VisitsList } from "@/features/v2/visits-list";
-import { useTheme } from "@/theme/theme";
+import { useTheme, useTide } from "@/theme/theme";
+import { tSpace, tType } from "@/theme/tide";
 
 const ESTHER = {
   id: "fx-1",
@@ -54,12 +64,7 @@ export default function DevVisitV2() {
   ]);
   const [pay, setPay] = useState<"momo" | "hospital">("momo");
 
-  if (screen === "home")
-    return (
-      <Screen title="Good morning, Esther" subtitle="Monday 16 November">
-        <HomeVisitCardV2 visit={ESTHER} pay={PAID} me="Esther N." />
-      </Screen>
-    );
+  if (screen === "home") return <HomeShell />;
   if (screen === "visits")
     return (
       <Screen title="Visits">
@@ -104,5 +109,83 @@ export default function DevVisitV2() {
         onEditNote={() => undefined}
       />
     </Screen>
+  );
+}
+
+/** The v2 shell on fixtures: the header with the avatar count, Home, and the Visit-mode nav. */
+function HomeShell() {
+  const t = useTide();
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const params = useLocalSearchParams<{ visit?: string; place?: string }>();
+  const start = VISIT_PLACES.find((p) => p.key === params.place)?.key ?? "home";
+  const [place, setPlace] = useState<VisitPlace>(start);
+  const ticket = ticketFor(ESTHER, PAID, "Esther N.");
+  const visit: HomeVisit =
+    params.visit === "none" || params.visit === "loading" || params.visit === "failed"
+      ? { state: params.visit }
+      : {
+          state: "ready",
+          ticket,
+          stage: stageOf("arrived", "line"),
+          today: params.visit !== "next",
+        };
+  const empty = params.visit === "none";
+  return (
+    <View style={{ flex: 1 }}>
+      <Screen
+        underNav
+        help="pill"
+        helpSource="dev"
+        demo
+        contentStyle={{ paddingTop: tSpace[5] }}
+        header={
+          <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3] }}>
+            <AvatarCount initials="EN" count={empty ? 0 : 2} />
+            <View>
+              <Text style={[tType.bodyS, { color: t.ink2 }]}>Good morning</Text>
+              <Text style={[tType.heading, { fontSize: 18, color: t.ink }]}>Esther</Text>
+            </View>
+          </View>
+        }
+      >
+        <HomeV2View
+          visit={visit}
+          results={
+            empty
+              ? { state: "off" }
+              : {
+                  state: "ordered",
+                  tests: 2,
+                  note: "Results will be shared after your clinician reviews them.",
+                }
+          }
+          household={empty ? [] : [{ id: "h1", label: "Mother" }]}
+          card={{ tierName: "Basic", memberNo: "TTH 0042 2290", plus: false }}
+          careLink
+          onOpenVisit={() => undefined}
+          onRetryVisit={() => undefined}
+          onBookToday={() => undefined}
+          onBookDay={() => undefined}
+          onOpenCard={() => undefined}
+          onResults={() => undefined}
+          onBookFor={() => undefined}
+          onAddSomeone={() => undefined}
+          onCare={() => undefined}
+          onWellness={() => undefined}
+        />
+      </Screen>
+      <View
+        pointerEvents="box-none"
+        style={{ position: "absolute", left: 16, right: 16, bottom: 14 + insets.bottom }}
+      >
+        <VisitNav
+          width={width - 32}
+          current={place}
+          onNavigate={setPlace}
+          onPlus={() => undefined}
+        />
+      </View>
+    </View>
   );
 }
