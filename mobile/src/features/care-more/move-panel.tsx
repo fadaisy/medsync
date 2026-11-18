@@ -132,11 +132,11 @@ export function MovePanel({ now, onToast }: { now: Date; onToast: (text: string)
             {`${act.minutesToday} active min${kcalToday ? ` · about ${kcalToday} kcal` : ""}`}
           </Text>
           {steps.status === "on" && steps.live ? (
-            <Text style={[tType.micro, { color: t.onBand2 }]}>Counting while MedSync is open</Text>
+            <Text style={[tType.micro, { color: t.onBand2 }]}>Counting while Tether is open</Text>
           ) : steps.status === "off" ? (
             <Text style={[tType.micro, { color: t.onBand2 }]}>
               {steps.why === "no_permission"
-                ? "Allow Motion & Fitness for MedSync to count steps"
+                ? "Allow Motion & Fitness for Tether to count steps"
                 : "This phone has no step counter"}
             </Text>
           ) : null}

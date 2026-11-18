@@ -49,7 +49,7 @@ export function ActiveShareBanner() {
             {`Sharing your location · ends ${clockWords(endsAt)}`}
           </Text>
           <Text style={[tType.caption, { color: t.onBand2 }]}>
-            {`${leftWords(endsAt, now)} · updates only while MedSync is open`}
+            {`${leftWords(endsAt, now)} · updates only while Tether is open`}
           </Text>
         </View>
       </View>

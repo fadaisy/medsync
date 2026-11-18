@@ -46,7 +46,7 @@ export function ScanView() {
     return (
       <View style={{ gap: tSpace[3] }}>
         <Note tone="info" icon="camera">
-          MedSync needs the camera to read the QR code on your health card. Nothing else is
+          Tether needs the camera to read the QR code on your health card. Nothing else is
           recorded.
         </Note>
         <Button

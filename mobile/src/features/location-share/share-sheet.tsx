@@ -25,7 +25,7 @@ const LENGTHS: { key: ShareLength; label: string }[] = [
 /** Send the family link with the phone's own share menu (WhatsApp, SMS…). No name in the message. */
 export function sendShareLink(link: string, endsAt: Date | null) {
   const until = endsAt ? ` until ${clockWords(endsAt)}` : "";
-  void Share.share({ message: `See where I am on MedSync${until}: ${link}` }).catch(() => {});
+  void Share.share({ message: `See where I am on Tether${until}: ${link}` }).catch(() => {});
 }
 
 /**

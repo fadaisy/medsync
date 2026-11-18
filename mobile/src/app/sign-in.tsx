@@ -16,9 +16,11 @@ import {
   TextField,
   TextLink,
 } from "@/components/tide";
+import { TetherWordmark } from "@/components/tide/v2-shell";
 import { sendPhoneCode, signInWithPassword, verifyPhoneCode } from "@/data/signup";
 import { e164, isEmail } from "@/features/auth/rules";
 import { ScanView } from "@/features/auth/scan-view";
+import { BRAND } from "@/lib/brand";
 import { flag } from "@/lib/flags";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
@@ -70,16 +72,8 @@ export default function SignInScreen() {
             gap: tSpace[2.5],
           }}
         >
-          <Text
-            style={{
-              fontFamily: tFont.extrabold,
-              fontSize: 22,
-              letterSpacing: -0.4,
-              color: t.onBand,
-            }}
-          >
-            Med<Text style={{ color: t.accent }}>Sync</Text>
-          </Text>
+          {/* Patient app v2 (feature matrix 1.11, M15): the Tether wordmark, as on the web. */}
+          <TetherWordmark size={22} color={t.onBand} />
           <Text
             accessibilityRole="header"
             style={[tType.display, { marginTop: tSpace[2], color: t.onBand }]}
@@ -149,7 +143,7 @@ export default function SignInScreen() {
 
           <View style={{ flexGrow: 1, minHeight: tSpace[4] }} />
           <Text style={[tType.bodyM, { textAlign: "center", color: t.ink2 }]}>
-            New to MedSync?{" "}
+            New to {BRAND}?{" "}
             <Text
               accessibilityRole="link"
               onPress={() => router.push("/sign-up")}
@@ -250,7 +244,7 @@ function PasswordForm() {
         {forgot ? (
           <Text style={[tType.bodyS, { color: t.ink2 }]}>
             Resetting a password from the app is not switched on yet. Ask at your hospital&apos;s
-            desk, or reset it on the MedSync website.
+            desk, or reset it on the {BRAND} website.
           </Text>
         ) : null}
       </View>
@@ -334,7 +328,7 @@ function PhoneCodeForm() {
         />
       </View>
       <Note tone="info" icon="shield">
-        MedSync staff will never ask you for this code.
+        {BRAND} staff will never ask you for this code.
       </Note>
     </View>
   );

@@ -70,7 +70,7 @@ export async function readingFromPhoto(kind: PhotoKind): Promise<PhotoResult> {
   } catch {
     return {
       ok: false,
-      message: "Couldn't reach MedSync. Check your connection, or type the numbers.",
+      message: "Couldn't reach Tether. Check your connection, or type the numbers.",
     };
   }
 }

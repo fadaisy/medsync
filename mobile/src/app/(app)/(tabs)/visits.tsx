@@ -5,8 +5,19 @@ import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Text, View } from "react-native";
+import { HOME_V2_COPY } from "@content/patient-app/home";
 
-import { Button, Card, DateTile, Icon, Note, Press, Screen, SkeletonCard } from "@/components/tide";
+import {
+  Button,
+  Card,
+  DateTile,
+  Icon,
+  Note,
+  Press,
+  Screen,
+  Segments,
+  SkeletonCard,
+} from "@/components/tide";
 import { useMedicines } from "@/data/medicines";
 import { loadWeek } from "@/data/visits";
 import {
@@ -29,8 +40,8 @@ import { fetchWaitlist } from "@/lib/notifications";
 import { useNow } from "@/lib/use-now";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
+import { HeaderAvatar } from "@/features/v2/header-avatar";
 import { VisitsV2Route } from "@/features/v2/routes";
-import { flag } from "@/lib/flags";
 
 /**
  * This week (board TWeek/DWeek, PRD F-08).
@@ -52,12 +63,27 @@ const reasonTitle = (row: AppointmentRow) =>
   APPOINTMENT_REASONS.find((r) => r.value === row.reason)?.title ?? row.departmentName;
 const placeWord = (row: AppointmentRow) => STATUS_LABEL[row.status] ?? "";
 
-/** Patient app v2 (Step 4): the v2 Visits list when `appV2Mobile` is on; this screen otherwise. */
+/**
+ * Visits (patient app v2, the phone's default since ADR 0524): the v2 list first. "Week" keeps the current
+ * calendar, which v2 has no version of yet on the phone (feature matrix 7.10): the week, the days a clinic is
+ * open, and booking on a day.
+ */
 export default function VisitsScreen() {
-  return flag("appV2Mobile") ? <VisitsV2Route /> : <LegacyVisitsScreen />;
+  const [view, setView] = useState<"list" | "week">("list");
+  const top = (
+    <Segments
+      options={[
+        { key: "list", label: HOME_V2_COPY.phone.visits.list },
+        { key: "week", label: HOME_V2_COPY.phone.visits.week },
+      ]}
+      value={view}
+      onChange={setView}
+    />
+  );
+  return view === "week" ? <WeekVisitsScreen top={top} /> : <VisitsV2Route top={top} />;
 }
 
-function LegacyVisitsScreen() {
+function WeekVisitsScreen({ top }: { top: ReactNode }) {
   const t = useTide();
   const router = useRouter();
   const now = useNow();
@@ -148,7 +174,7 @@ function LegacyVisitsScreen() {
   return (
     <Screen
       underNav
-      bell
+      headerRight={<HeaderAvatar />}
       helpSource="visits"
       header={
         <NextPill
@@ -158,6 +184,7 @@ function LegacyVisitsScreen() {
         />
       }
     >
+      {top}
       {failed ? (
         <View style={{ gap: tSpace[2] }}>
           <Note tone="plain">{"Couldn't load your visits. Check your connection."}</Note>

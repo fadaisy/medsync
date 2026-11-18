@@ -278,7 +278,7 @@ export function HealthCard({ data }: { data: HealthCardData }) {
             MEDSYNC NUMBER
           </Text>
           <Text
-            accessibilityLabel={`MedSync number ${data.number}`}
+            accessibilityLabel={`Tether number ${data.number}`}
             adjustsFontSizeToFit
             numberOfLines={1}
             style={

@@ -37,7 +37,7 @@ const URL = ORIGIN ? `${ORIGIN.replace(/\/$/, "")}/api/mobile/profile` : null;
 export const detailsFromAppOn = URL !== null;
 export const DETAILS_OFF =
   "These details can't be saved from the app in this build. Your photo and hospital still work.";
-const OFFLINE = "Couldn't reach MedSync. Check your connection and try again.";
+const OFFLINE = "Couldn't reach Tether. Check your connection and try again.";
 const FAILED = "Couldn't load your details. Try again.";
 
 export type Section = "title" | "language" | "id" | "nok";

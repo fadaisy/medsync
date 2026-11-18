@@ -1,5 +1,5 @@
 /**
- * Patient app v2 Visit mode routes on the phone (Step 4), behind `appV2Mobile`. Each loads real data with the
+ * Patient app v2 Visit mode routes on the phone (Step 4). Each loads real data with the
  * existing loaders (`@/data/visits`, `@/lib/booking`) plus `@/data/visit-v2`, and renders the props-driven v2
  * screen. Booking behaviour, moving, cancelling and confirming are the booking slice's own (S9).
  */
@@ -11,8 +11,9 @@ import { ActivityIndicator, Linking, Platform, Share, View } from "react-native"
 import { useRouter } from "expo-router";
 import { stageOf } from "@patient-core/visit-stages";
 
+import { HOME_V2_COPY } from "@content/patient-app/home";
+
 import { Button, Screen } from "@/components/tide";
-import { StageStrip, TicketV2 } from "@/components/tide/v2";
 import { kampalaStamp, visitMoney } from "@patient-core/visit-money";
 import {
   addQuestion,
@@ -27,6 +28,7 @@ import {
   payVisit,
   ticketFor,
 } from "@/data/visit-v2";
+import { HeaderAvatar } from "@/features/v2/header-avatar";
 import { VisitMoneySection } from "@/features/v2/visit-money";
 import { supabase } from "@/lib/supabase";
 import { loadVisit, loadWeek } from "@/data/visits";
@@ -34,6 +36,7 @@ import { VisitDay } from "@/features/v2/visit-day";
 import { VisitsList } from "@/features/v2/visits-list";
 import { mapsUrl } from "@/features/visits/logic";
 import { fetchPatientProfile } from "@/lib/booking";
+import { flag } from "@/lib/flags";
 import { acceptRebooking, fetchRebookingOffer } from "@/lib/notifications";
 import { useTide } from "@/theme/theme";
 import { tSpace } from "@/theme/tide";
@@ -91,7 +94,7 @@ async function fetchVisits(): Promise<VisitsState> {
   };
 }
 
-export function VisitsV2Route() {
+export function VisitsV2Route({ top }: { top?: React.ReactNode }) {
   const router = useRouter();
   const [state, setState] = useState<VisitsState | null>(null);
   useEffect(() => {
@@ -102,7 +105,9 @@ export function VisitsV2Route() {
     };
   }, []);
   return (
-    <Screen title="Visits">
+    // A place under the nav (finish pass 1): room for the bar, the avatar count, and no entrance.
+    <Screen title="Visits" underNav helpSource="visits" headerRight={<HeaderAvatar />}>
+      {top}
       {state ? (
         <VisitsList
           {...state}
@@ -124,7 +129,7 @@ export function VisitsV2Route() {
   );
 }
 
-export function VisitDayV2Route({ id }: { id: string }) {
+export function VisitDayV2Route({ id, onManage }: { id: string; onManage: () => void }) {
   const [visit, setVisit] = useState<AppointmentRow | null>(null);
   const [pay, setPay] = useState<VisitPay | undefined>(undefined);
   const [me, setMe] = useState("You");
@@ -150,10 +155,10 @@ export function VisitDayV2Route({ id }: { id: string }) {
       await refreshQuestions();
     })();
   }, [id, refreshQuestions, refreshMoney]);
-  if (!visit) return <Screen title="Your visit"><Loading /></Screen>;
+  if (!visit) return <Screen title="Your visit" back={{}}><Loading /></Screen>;
   const ticket = ticketFor(visit, pay, me);
   return (
-    <Screen title="Your visit">
+    <Screen title="Your visit" back={{}}>
       <VisitDay
         ticket={ticket}
         stage={stageOf(visit.status, null)}
@@ -179,6 +184,8 @@ export function VisitDayV2Route({ id }: { id: string }) {
       {money ? (
         <MoneyFor visit={visit} money={money} onChanged={() => void refreshMoney(visit)} />
       ) : null}
+      {/* "I'm coming", Move it and Cancel are the current screen's (3.10, kept): v2 has no version yet. */}
+      <Button label={HOME_V2_COPY.phone.manageVisit} variant="outline" icon="calendar" onPress={onManage} />
     </Screen>
   );
 }
@@ -205,7 +212,8 @@ function MoneyFor({
   return (
     <VisitMoneySection
       money={m}
-      msisdn={money.msisdn}
+      // Paying from the app only where it is switched on; otherwise the cash office is the way (P.onTheDay).
+      msisdn={flag("mobilePayments") ? money.msisdn : null}
       cutoffLabel={m.cancelRule ? kampalaStamp(m.cancelRule.cutoffIso) : null}
       payBill={async (i) => {
         const r = await payVisit({
@@ -224,41 +232,4 @@ function MoneyFor({
       }}
     />
   );
-}
-
-/** Home's visit card (§5.2, phone board 1): today's or the next visit as the ticket, with the stage strip. */
-export function HomeVisitCardV2({ visit, pay, me }: { visit: AppointmentRow; pay: VisitPay | undefined; me: string }) {
-  return (
-    <View style={{ gap: tSpace[3] }}>
-      <TicketV2 {...ticketFor(visit, pay, me)} />
-      <StageStrip view={stageOf(visit.status, null)} />
-    </View>
-  );
-}
-
-
-/** Home's top card in Visit mode: the next visit (today's first), loaded with the existing loaders. */
-export function HomeNextVisitV2({ me }: { me: string }) {
-  const router = useRouter();
-  const [state, setState] = useState<{ visit: AppointmentRow; pay: VisitPay | undefined } | null>(null);
-  useEffect(() => {
-    void (async () => {
-      const week = await loadWeek(new Date()).catch(() => null);
-      const next = week?.upcoming.find((v) => v.status !== "cancelled");
-      if (!next) return;
-      setState({ visit: next, pay: (await loadPayStatus([next.id])).get(next.id) });
-    })();
-  }, []);
-  if (!state) return null;
-  return (
-    <View accessibilityHint="Opens your visit">
-      <HomeVisitCardV2 visit={state.visit} pay={state.pay} me={me} />
-      <View style={{ height: tSpace[2] }} />
-      <OpenVisit onPress={() => router.push(`/visits/${state.visit.id}`)} />
-    </View>
-  );
-}
-
-function OpenVisit({ onPress }: { onPress: () => void }) {
-  return <Button label="See your visit" onPress={onPress} variant="soft" size="md" />;
 }

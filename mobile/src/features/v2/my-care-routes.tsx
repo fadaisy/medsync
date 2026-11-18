@@ -1,5 +1,5 @@
 /**
- * Care mode routes, part 2 (Step 8), behind `appV2Mobile` and `careMode`: My care, Messages, Wellness and the
+ * Care mode routes, part 2 (Step 8), behind `careMode`: My care, Messages, Wellness and the
  * v2 danger flow. They load the patient's own rows and hand them to the props-driven screens in `my-care.tsx`.
  */
 import type { CareMessage, MyCareData } from "@/data/my-care";

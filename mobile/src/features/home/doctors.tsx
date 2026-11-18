@@ -48,7 +48,7 @@ export function Doctors() {
         <TextLink label="Try again" onPress={() => void loadDoctors()} />
       </View>
     ) : doctors.length === 0 ? (
-      <Note tone="plain">No doctor takes bookings on MedSync yet.</Note>
+      <Note tone="plain">No doctor takes bookings on Tether yet.</Note>
     ) : (
       <>
         {filters.length > 0 ? (

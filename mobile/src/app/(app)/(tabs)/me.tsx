@@ -23,16 +23,17 @@ import { useMedicines } from "@/data/medicines";
 import { placesSummary, usePlaces } from "@/data/places";
 import { detailsFromAppOn, loadDetails } from "@/data/profile-details";
 import { cardLines } from "@/features/history/logic";
+import { HeaderAvatar } from "@/features/v2/header-avatar";
+import { MeMembershipRoute } from "@/features/v2/me-membership";
 import {
   AVATAR_PICKER_OPTIONS,
   fetchHousehold,
   fetchMyAvatarUrl,
   uploadAvatar,
 } from "@/lib/booking";
+import { BRAND } from "@/lib/brand";
 import { SMS_CONSENT_COPY } from "@/lib/consent-copy";
 import { fetchSmsConsent, setSmsConsent } from "@/lib/notifications";
-import { MeMembershipRoute } from "@/features/v2/me-membership";
-import { flag } from "@/lib/flags";
 import { pushPermission, registerPushToken } from "@/lib/push";
 import { useSession } from "@/lib/session";
 import { useNow } from "@/lib/use-now";
@@ -156,20 +157,25 @@ export default function MeTab() {
   const facilityName = id.facility ?? "any hospital";
 
   return (
-    <Screen title="Me" underNav helpSource="me" gap={tSpace[2.5]}>
-      {flag("appV2Mobile") ? (
-        <MeMembershipRoute
-          name={id.name ?? "Name not recorded"}
-          code={id.code}
-          id={{
-            emergencyContact: nokOnFile ? "Next of kin on file" : "—",
-            bloodGroup: null,
-            allergies: card.allergies === "None listed" ? [] : [card.allergies],
-            conditions: card.conditions === "None listed" ? [] : [card.conditions],
-            hospitalLine: id.facility ?? "—",
-          }}
-        />
-      ) : null}
+    <Screen
+      title="Me"
+      underNav
+      helpSource="me"
+      gap={tSpace[2.5]}
+      // Patient app v2 (1.3): the avatar carries the unseen count on every place.
+      headerRight={<HeaderAvatar />}
+    >
+      <MeMembershipRoute
+        name={id.name ?? "Name not recorded"}
+        code={id.code}
+        id={{
+          emergencyContact: nokOnFile ? "Next of kin on file" : "—",
+          bloodGroup: null,
+          allergies: card.allergies === "None listed" ? [] : [card.allergies],
+          conditions: card.conditions === "None listed" ? [] : [card.conditions],
+          hospitalLine: id.facility ?? "—",
+        }}
+      />
       <HealthCard
         data={{
           holder: id.name ?? "Name not recorded",
@@ -398,7 +404,7 @@ export default function MeTab() {
               push === "granted"
                 ? "Your confirmations, reminders and offers arrive here first."
                 : push === "denied"
-                  ? "MedSync is not allowed to notify you. Turn it on in your phone's Settings."
+                  ? `${BRAND} is not allowed to notify you. Turn it on in your phone's Settings.`
                   : "Allow notifications so your reminders and offers reach this phone."
             }
             right={
@@ -492,7 +498,7 @@ export default function MeTab() {
       <Text
         style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3, textAlign: "center" }]}
       >
-        {`MedSync ${Constants.expoConfig?.version ?? ""}`.trim()}
+        {`${BRAND} ${Constants.expoConfig?.version ?? ""}`.trim()}
       </Text>
     </Screen>
   );

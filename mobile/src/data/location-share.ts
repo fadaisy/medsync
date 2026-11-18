@@ -32,7 +32,7 @@ export const SHARE_CONSENT = {
 
 export const SHARE_OFF = "Location sharing is not switched on yet.";
 export const SHARE_OPEN_ONLY =
-  "It only updates while MedSync is open on this phone. Keep the app open while you travel.";
+  "It only updates while Tether is open on this phone. Keep the app open while you travel.";
 export const SHARE_NO_LINK =
   "This build cannot make the link yet, but your position is still being recorded for the share.";
 
@@ -151,7 +151,7 @@ export async function startShare(purpose: SharePurpose, length: ShareLength): Pr
     if (!perm.granted)
       return {
         ok: false,
-        error: "Location is off for MedSync. Allow it in your phone's settings to share.",
+        error: "Location is off for Tether. Allow it in your phone's settings to share.",
       };
     const userId = await currentUserId();
     if (!userId) return { ok: false, error: "Sign in to share your location." };
@@ -204,7 +204,7 @@ export async function stopShare(): Promise<string | null> {
     error = { message: "offline" };
   }
   if (error && !isMissingTable(error))
-    return "Couldn't reach MedSync to stop sharing. Check your connection and try again.";
+    return "Couldn't reach Tether to stop sharing. Check your connection and try again.";
   quiet();
   store.set(null);
   remember(null);

@@ -29,7 +29,7 @@ export default function DangerScreen() {
   // (chest pain with no number, a stale link) goes to Help, which always helps.
   if (checkReading(readingFromParams(params)).level !== "danger") return <Redirect href="/help" />;
   // Care mode v2 (Step 8): the step-by-step flow from @patient-core/danger-flow.
-  const kind = flag("appV2Mobile") && flag("careMode") ? dangerFor(readingFromParams(params)) : null;
+  const kind = flag("careMode") ? dangerFor(readingFromParams(params)) : null;
   return (
     <ForcedScheme scheme="light">
       {kind ? (

@@ -18,7 +18,7 @@ export const signupFromAppOn = SIGNUP_URL !== null;
 
 export type AuthOutcome = { ok: true } | { ok: false; message: string };
 
-const OFFLINE = "Couldn't reach MedSync. Check your connection and try again.";
+const OFFLINE = "Couldn't reach Tether. Check your connection and try again.";
 
 /* ─── Sign in ────────────────────────────────────────────────────────── */
 

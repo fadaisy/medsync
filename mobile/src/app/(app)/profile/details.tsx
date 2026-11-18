@@ -527,7 +527,7 @@ function HospitalSection() {
         list === null ? (
           <ActivityIndicator color={t.ink2} accessibilityLabel="Loading the hospitals" />
         ) : list.length === 0 ? (
-          <Note tone="plain">No hospital is on MedSync yet.</Note>
+          <Note tone="plain">No hospital is on Tether yet.</Note>
         ) : (
           list.map((h) => (
             <Press
