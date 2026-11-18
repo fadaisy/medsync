@@ -7,7 +7,8 @@ import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Image, Linking, Switch, Text, View } from "react-native";
 
-import { Avatar, Button, HealthCard, Icon, Press, Screen, TextLink } from "@/components/tide";
+import { Avatar, Button, Icon, Press, Screen, TextLink } from "@/components/tide";
+import { TetherCard } from "@/components/tide/tether-card";
 import { useHistory } from "@/data/history";
 import {
   ageWords,
@@ -41,8 +42,9 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * Me (board TMe/DMe, §8.6, F-20; regrouped 18 Nov 2026 from the owner's approved prototype): who this is,
- * the one membership card with a line that opens the plans (`/plans`), my health with the offline health
- * card, the people I book for, privacy, notifications, this phone's settings and my details.
+ * the one card (membership on the front, the Medical ID on the back, drawn from the phone's cache so it
+ * shows offline) with a line that opens the plans (`/plans`), my health, the people I book for, privacy,
+ * notifications, this phone's settings and my details.
  *
  * All real: name (auth metadata), patient code, home facility, sex and age
  * (cached for the offline card); the conditions, allergies and family history
@@ -197,7 +199,11 @@ export default function MeTab() {
         <Icon name="forward" size={18} color={t.ink3} />
       </Press>
 
-      {/* The one card at the top, and one line that opens the plans (`/plans`). */}
+      {/*
+        The one card: the membership card and the offline health card, folded into one with two sides. It
+        draws from what the phone holds, so it shows with no signal; the plan and the code join it when they
+        load. Under it, one line that opens the plans (`/plans`).
+      */}
       <MeMembershipRoute
         part="card"
         onSeePlans={() => router.push("/plans")}
@@ -210,6 +216,31 @@ export default function MeTab() {
           conditions: card.conditions === "None listed" ? [] : [card.conditions],
           hospitalLine: id.facility ?? "—",
         }}
+        renderCard={({ tier, qr }) => (
+          <TetherCard
+            tier={tier}
+            qr={qr}
+            data={{
+              holder,
+              number: cardNumber(id.code),
+              facility: id.facility,
+              age: ageWords(id.dob, now),
+              sex,
+              conditions: prefs.showConditionsOnCard ? card.conditions : null,
+              allergies: card.allergies,
+              nextOfKin:
+                nokOnFile === null
+                  ? null
+                  : nokOnFile
+                    ? `On file${id.facility ? ` at ${id.facility}` : ""}`
+                    : "None given",
+              ifFound:
+                id.emergencyPhone && id.facility
+                  ? `If found, call ${id.facility} on ${id.emergencyPhone}`
+                  : `If found, please return it to ${facilityName}`,
+            }}
+          />
+        )}
       />
 
       <Label text="My health" />
@@ -254,48 +285,6 @@ export default function MeTab() {
           onPress={() => router.push("/records")}
         />
       </Group>
-
-      {/*
-        The health card that works with no signal: what a stranger or a medic reads if the phone is found.
-        It stays whole, under My health; the card at the top is the one that carries the plan and the code.
-      */}
-      <HealthCard
-        data={{
-          holder,
-          number: cardNumber(id.code),
-          facility: id.facility,
-          age: ageWords(id.dob, now),
-          conditions: prefs.showConditionsOnCard ? card.conditions : null,
-          allergies: card.allergies,
-          nextOfKin:
-            nokOnFile === null
-              ? null
-              : nokOnFile
-                ? `On file${id.facility ? ` at ${id.facility}` : ""}`
-                : "None given",
-          ifFound:
-            id.emergencyPhone && id.facility
-              ? `If found, call ${id.facility} on ${id.emergencyPhone}`
-              : `If found, please return it to ${facilityName}`,
-        }}
-      />
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          paddingHorizontal: tSpace[1],
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
-          <Icon name="replay" size={13} color={t.ink3} />
-          <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
-            Tap the card to turn it over · works offline
-          </Text>
-        </View>
-        {sex ? (
-          <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>{sex}</Text>
-        ) : null}
-      </View>
 
       <Label text="People I care for" />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>

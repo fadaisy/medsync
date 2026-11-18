@@ -41,12 +41,12 @@ const TIER_WORDS: Record<PlusTier, string> = {
  */
 export type MembershipPart = "all" | "card" | "plans";
 
-export function QrGrid({ modules }: { modules: string[] }) {
+export function QrGrid({ modules, size = 104 }: { modules: string[]; size?: number }) {
   const t = useTide();
   const n = modules.length;
   if (!n) return null;
   return (
-    <Svg viewBox={`-2 -2 ${n + 4} ${n + 4}`} width={104} height={104} accessibilityLabel={M.card.back.qrNote} style={{ backgroundColor: "white" }}>
+    <Svg viewBox={`-2 -2 ${n + 4} ${n + 4}`} width={size} height={size} accessibilityLabel={M.card.back.qrNote} style={{ backgroundColor: "white" }}>
       {modules.flatMap((row, r) =>
         [...row].map((c, x) => (c === "1" ? <Rect key={`${r}-${x}`} x={x} y={r} width={1} height={1} fill={t.ticket.navy} /> : null)),
       )}
@@ -65,6 +65,11 @@ export function MeMembershipV2(p: {
   part?: MembershipPart;
   /** `card` only: opens the plans page. */
   onSeePlans?: () => void;
+  /**
+   * `card` only: Me's one card, drawn by the screen from what the phone holds, given the plan and the code
+   * this section loads. Without it the section draws the kit's own membership card.
+   */
+  renderCard?: (x: { tier: Tier | null; qr: React.ReactNode | null }) => React.ReactNode;
   plans: Plan[];
   msisdn: string | null;
   /** Said when a plan is chosen and there is no way to pay from the app (`mobilePayments` off, or no number). */
@@ -133,7 +138,9 @@ export function MeMembershipV2(p: {
     const line = [tierName, ends ?? (trialOpen ? M.plans.trial : null)].filter(Boolean).join(" · ");
     return (
       <View style={{ gap: tSpace[3] }}>
-        {card}
+        {p.renderCard
+          ? p.renderCard({ tier: p.tier, qr: qr.length ? <QrGrid modules={qr} size={68} /> : null })
+          : card}
         <Press
           onPress={p.onSeePlans}
           haptic={false}
@@ -233,6 +240,7 @@ export function MeMembershipRoute(p: {
   id: Omit<MedicalId, "qr">;
   part?: MembershipPart;
   onSeePlans?: () => void;
+  renderCard?: (x: { tier: Tier | null; qr: React.ReactNode | null }) => React.ReactNode;
 }) {
   const [data, setData] = useState<{ row: MembershipRow | null; prices: PriceRow[]; msisdn: string | null } | null>(null);
   const [nonce, setNonce] = useState(0);
@@ -250,7 +258,8 @@ export function MeMembershipRoute(p: {
       // eslint-disable-next-line react-hooks/exhaustive-deps -- `nonce` re-runs the read after a trial or a payment
     }, [nonce]),
   );
-  if (!data) return null;
+  // Me's card shows before the plan is known, and with no connection at all: the plan and the code join it.
+  if (!data) return p.part === "card" && p.renderCard ? <>{p.renderCard({ tier: null, qr: null })}</> : null;
   const now = new Date();
   const held = tierNow(data.row, now);
   return (
@@ -265,6 +274,7 @@ export function MeMembershipRoute(p: {
       id={p.id}
       part={p.part}
       onSeePlans={p.onSeePlans}
+      renderCard={p.renderCard}
       plans={plansFrom(data.prices, now.toISOString().slice(0, 10))}
       // Paying from the app only where it is switched on; the free month needs no payment.
       msisdn={flag("mobilePayments") ? data.msisdn : null}
