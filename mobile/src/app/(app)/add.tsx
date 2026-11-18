@@ -1,30 +1,37 @@
 import type { IconName } from "@/components/tide";
+import type { Anim } from "@/motion/presets";
 import { useRef, useState } from "react";
 import { useRouter } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, HelpButton, Icon, IconDisc, Press, Toast } from "@/components/tide";
-import { medicinesRepo, SLOT_WORDS, useMedicines } from "@/data/medicines";
+import { HelpButton, Icon, Press, Toast } from "@/components/tide";
+import { visitNavBottom } from "@/components/tide/v2-shell";
+import { SLOT_WORDS, useMedicines } from "@/data/medicines";
 import { lastTimeLine, useReadings } from "@/data/readings";
 import { MedicineSheet } from "@/features/home/medicine-sheet";
 import { ReadingSheet } from "@/features/home/reading-sheet";
 import { flag } from "@/lib/flags";
 import { useNow } from "@/lib/use-now";
-import { motion } from "@/motion/presets";
-import { savedLine } from "@/offline/outbox";
+import { EASE_OUT, motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
-import { tRadius, tSpace, tType } from "@/theme/tide";
+import { tSpace, tType } from "@/theme/tide";
 
 type SheetKind = "reading" | "medicine" | null;
 
+/** The plus and the menu's discs are the same size as the plus in the nav, so the menu grows out of it. */
+const DISC = 56;
+/** How far apart the actions sit, disc to disc. */
+const STEP = DISC + 14;
+
 /**
- * The Plus (F-05): what is due right now, then three bubbles that fan out of
- * the plus. A reading and a dose are logged in place on a sheet, so the
- * common case is two taps. "Tell my team" opens the chat only while chat is
- * switched on (`mobileChat`); until a clinician inbox exists it is "Book a
- * visit" instead.
+ * The Plus (F-05; redrawn 18 Nov 2026 from the owner's approved prototype): the page stays where it is under a
+ * veil, and the actions rise out of the plus in one column, each a word beside its disc, nearest first. The
+ * plus turns into the close button in the same place, so the way out is under the same thumb.
+ *
+ * A reading and a dose are logged in place on a sheet, so the common case is two taps. "Tell my team" is here
+ * only while chat is switched on (`mobileChat`): until a clinician inbox exists it would lead nowhere.
  */
 export default function AddScreen() {
   const t = useTide();
@@ -48,57 +55,86 @@ export default function AddScreen() {
   const close = () => (router.canGoBack() ? router.back() : router.replace("/"));
   const due = dueNow[0];
 
-  const bubbles: {
+  // Top of the column first; the last one sits nearest the plus.
+  const actions: {
     key: string;
     label: string;
+    note?: string;
     icon: IconName;
     color: string;
-    dx: number;
-    dy: number;
     onPress: () => void;
   }[] = [
     {
-      key: "reading",
-      label: "Log a reading",
-      icon: "activity",
-      color: t.area.readings,
-      dx: 96,
-      dy: 56,
-      onPress: () => setSheet("reading"),
+      key: "book",
+      label: "Book a visit",
+      icon: "calendarPlus",
+      color: t.area.visits,
+      onPress: () => router.replace("/book"),
     },
+    ...(chat
+      ? [
+          {
+            key: "team",
+            label: "Tell my team",
+            icon: "message" as const,
+            color: t.area.team,
+            onPress: () => router.replace("/care/chat"),
+          },
+        ]
+      : []),
     {
       key: "medicine",
       label: "I took a medicine",
+      // What is due right now, in words: the sheet it opens logs it.
+      note: due ? `${SLOT_WORDS[due.slot]} medicine is due · ${due.time}` : undefined,
       icon: "pill",
       color: t.area.medicines,
-      dx: 0,
-      dy: 104,
       onPress: () => setSheet("medicine"),
     },
-    chat
-      ? {
-          key: "team",
-          label: "Tell my team",
-          icon: "message",
-          color: t.area.team,
-          dx: -96,
-          dy: 56,
-          onPress: () => router.push("/care/chat"),
-        }
-      : {
-          key: "book",
-          label: "Book a visit",
-          icon: "calendar",
-          color: t.area.team,
-          dx: -96,
-          dy: 56,
-          onPress: () => router.push("/book"),
-        },
+    {
+      key: "reading",
+      label: "Log a reading",
+      note: last ? `Last: ${lastTimeLine(readings, last.input.kind, now)}` : undefined,
+      icon: "activity",
+      color: t.area.readings,
+      onPress: () => setSheet("reading"),
+    },
   ];
 
+  const bottom = visitNavBottom(insets.bottom) + 4;
+  // The plus turns a quarter of the way to a cross as the menu opens.
+  const turn: Anim | null = reduced
+    ? null
+    : {
+        animationName: {
+          from: { transform: [{ rotate: "0deg" }] },
+          to: { transform: [{ rotate: "45deg" }] },
+        },
+        animationDuration: 250,
+        animationTimingFunction: EASE_OUT,
+        animationFillMode: "both",
+      };
+
   return (
-    <Animated.View style={[{ flex: 1, backgroundColor: t.bg }, motion.scrimIn(reduced)]}>
+    <View style={{ flex: 1 }}>
+      {/* The veil: the page shows faintly through, so it is plain the menu sits over where you were. */}
+      <Animated.View
+        style={[
+          { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 },
+          motion.scrimIn(reduced),
+        ]}
+      >
+        <View style={{ flex: 1, backgroundColor: t.bg, opacity: 0.92 }} />
+      </Animated.View>
+      <Pressable
+        onPress={close}
+        accessibilityRole="button"
+        accessibilityLabel="Close the menu"
+        style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
+      />
+
       <View
+        pointerEvents="box-none"
         style={{
           paddingTop: insets.top + 6,
           paddingHorizontal: tSpace[5],
@@ -110,157 +146,93 @@ export default function AddScreen() {
       >
         <HelpButton source="add" />
       </View>
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: tSpace[5], gap: tSpace[4], paddingBottom: 300 }}
-      >
-        <Text accessibilityRole="header" style={[tType.display, { color: t.ink }]}>
-          What would you like to do?
-        </Text>
-
-        <View style={{ gap: tSpace[2] }}>
-          <Text style={[tType.overline, { color: t.ink3 }]}>Right now</Text>
-          {due ? (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: tSpace[3],
-                padding: tSpace[3.5],
-                borderRadius: tRadius.cardLg,
-                backgroundColor: t.accentTint,
-                borderWidth: 2,
-                borderColor: t.accent,
-              }}
-            >
-              <IconDisc name="pill" size={40} color={t.area.medicines} bg={t.surface} />
-              <View style={{ flex: 1 }}>
-                <Text style={[tType.label, { color: t.ink }]}>
-                  {SLOT_WORDS[due.slot]} medicine is due
-                </Text>
-                <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>
-                  {due.medicine} · {due.time}
-                </Text>
-              </View>
-              <Button
-                size="sm"
-                label="I took it"
-                onPress={async () => say(savedLine(await medicinesRepo.take(due.id, now), "Saved"))}
-              />
-            </View>
-          ) : null}
-          <Press
-            onPress={() => setSheet("reading")}
-            accessibilityLabel="Log a reading"
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: tSpace[3],
-              padding: tSpace[3.5],
-              borderRadius: tRadius.cardLg,
-              backgroundColor: t.surface,
-              boxShadow: t.shadow.card,
-            }}
-          >
-            <IconDisc name="activity" size={40} color={t.area.readings} bg={t.surface2} />
-            <View style={{ flex: 1 }}>
-              <Text style={[tType.label, { color: t.ink }]}>Log a reading</Text>
-              <Text style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}>
-                {last
-                  ? `Last: ${lastTimeLine(readings, last.input.kind, now)}`
-                  : "Pressure, sugar, weight or pulse"}
-              </Text>
-            </View>
-            <Icon name="forward" size={20} color={t.ink3} />
-          </Press>
-          <View
-            accessible
-            accessibilityLabel="Speaking to the app is coming later"
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: tSpace[3],
-              padding: tSpace[3.5],
-              borderRadius: tRadius.cardLg,
-              backgroundColor: t.surface2,
-            }}
-          >
-            <Icon name="mic" size={20} color={t.ink3} />
-            <Text style={[tType.bodyM, { color: t.ink3, flex: 1 }]}>
-              Or just say it, in English or Luganda · coming later
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
 
       <View
         pointerEvents="box-none"
+        accessibilityRole="menu"
+        accessibilityLabel="What would you like to do?"
         style={{
           position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: insets.bottom + 18,
-          alignItems: "center",
+          right: 16,
+          bottom: bottom + DISC + 14,
+          alignItems: "flex-end",
+          gap: 14,
         }}
       >
-        <View style={{ width: 320, height: 190 }} pointerEvents="box-none">
-          {bubbles.map((b, i) => (
+        {actions.map((a, i) => {
+          // 0 is the action nearest the plus: it has the least far to rise and goes first.
+          const fromPlus = actions.length - 1 - i;
+          return (
             <Animated.View
-              key={b.key}
-              style={[
-                {
-                  position: "absolute",
-                  left: 160 - 55 - b.dx,
-                  top: 104 - b.dy,
-                  width: 110,
-                  alignItems: "center",
-                  gap: tSpace[1.5],
-                },
-                motion.fanRise(i, b.dx, b.dy, reduced),
-              ]}
+              key={a.key}
+              style={motion.fanRise(fromPlus, 0, STEP * (fromPlus + 1), reduced)}
             >
               <Press
-                onPress={b.onPress}
-                accessibilityLabel={b.label}
+                onPress={a.onPress}
+                accessibilityRole="menuitem"
+                accessibilityLabel={a.note ? `${a.label}. ${a.note}` : a.label}
                 style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 32,
-                  backgroundColor: t.surface,
+                  minHeight: DISC,
+                  flexDirection: "row",
                   alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: t.shadow.float,
+                  gap: tSpace[3],
                 }}
               >
-                <Icon name={b.icon} size={26} color={b.color} />
+                <View style={{ alignItems: "flex-end", maxWidth: 240 }}>
+                  <Text style={[tType.label, { fontSize: 17, lineHeight: 22, color: t.ink }]}>
+                    {a.label}
+                  </Text>
+                  {a.note ? (
+                    <Text numberOfLines={1} style={[tType.bodyS, { color: t.ink2 }]}>
+                      {a.note}
+                    </Text>
+                  ) : null}
+                </View>
+                <View
+                  style={{
+                    width: DISC,
+                    height: DISC,
+                    borderRadius: DISC / 2,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: t.surfaceRaised,
+                    boxShadow: t.shadow.float,
+                  }}
+                >
+                  <Icon name={a.icon} size={24} color={a.color} />
+                </View>
               </Press>
-              <Text style={[tType.caption, { fontSize: 13, color: t.ink, textAlign: "center" }]}>
-                {b.label}
-              </Text>
             </Animated.View>
-          ))}
-        </View>
-        <Animated.View style={motion.plusIn(reduced)}>
-          <Press
-            onPress={close}
-            accessibilityLabel="Close"
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
-              backgroundColor: t.primary,
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: t.shadow.float,
-            }}
-          >
-            <Icon name="close" size={26} color={t.onPrimary} strokeWidth={2.4} />
-          </Press>
-        </Animated.View>
+          );
+        })}
+      </View>
+
+      <View style={{ position: "absolute", right: 16, bottom }}>
+        <Press
+          onPress={close}
+          accessibilityLabel="Close"
+          style={{
+            width: DISC,
+            height: DISC,
+            borderRadius: DISC / 2,
+            backgroundColor: t.primary,
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: t.shadow.float,
+          }}
+        >
+          <Animated.View style={[{ transform: [{ rotate: "45deg" }] }, turn]}>
+            <Icon name="plus" size={26} color={t.onPrimary} strokeWidth={2.4} />
+          </Animated.View>
+        </Press>
       </View>
 
       <ReadingSheet visible={sheet === "reading"} onClose={() => setSheet(null)} onSaved={say} />
       <MedicineSheet visible={sheet === "medicine"} onClose={() => setSheet(null)} onToast={say} />
-      {toast ? <Toast text={toast} bottom={insets.bottom + 220} /> : null}
-    </Animated.View>
+      {/* Above the whole column, so the saved line never covers an action. */}
+      {toast ? (
+        <Toast text={toast} bottom={bottom + DISC + 14 + actions.length * STEP + 8} />
+      ) : null}
+    </View>
   );
 }

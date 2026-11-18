@@ -161,17 +161,17 @@ function HomeShell() {
                 }
           }
           household={empty ? [] : [{ id: "h1", label: "Mother" }]}
-          card={{ tierName: "Basic", memberNo: "TTH 0042 2290", plus: false }}
           careLink
           onOpenVisit={() => undefined}
           onRetryVisit={() => undefined}
           onBookToday={() => undefined}
           onBookDay={() => undefined}
-          onOpenCard={() => undefined}
           onResults={() => undefined}
           onBookFor={() => undefined}
           onAddSomeone={() => undefined}
           onCare={() => undefined}
+          onReadings={() => undefined}
+          onMedicines={() => undefined}
           onWellness={() => undefined}
         />
       </Screen>

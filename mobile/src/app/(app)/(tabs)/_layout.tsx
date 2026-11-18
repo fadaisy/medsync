@@ -48,6 +48,8 @@ export default function TabsLayout() {
           <VisitNav
             width={width - 32}
             current={PLACE_FOR[state.routes[state.index]?.name ?? "index"] ?? null}
+            // Home's visit card holds the page's one lagoon button, so the plus goes quiet there.
+            plusQuiet={state.routes[state.index]?.name === "index"}
             onNavigate={(place) => {
               const route = state.routes.find((r) => r.name === ROUTE_FOR[place]);
               if (route) navigateToTab(route.key);

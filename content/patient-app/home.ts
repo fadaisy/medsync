@@ -64,6 +64,9 @@ export const HOME_V2_COPY = {
       title: "Your care",
       note: "Your medicines, readings, movement and mood.",
       open: "Open your care",
+      /** Home's four doors under "Your care" (redraw of 18 Nov 2026). Results and Wellness use their own titles. */
+      readings: "Readings",
+      medicines: "Medicines",
     },
   },
 } as const;

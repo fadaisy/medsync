@@ -83,12 +83,18 @@ export function VisitNav({
   onNavigate,
   onPlus,
   width,
+  plusQuiet = false,
 }: {
   /** Null while a screen outside the four places is in front (the old Care hub). */
   current: VisitPlace | null;
   onNavigate: (place: VisitPlace) => void;
   onPlus: () => void;
   width: number;
+  /**
+   * One lagoon action per screen: where the page has its own (Home's visit card), the plus drops the lagoon
+   * fill and takes the pill's material, glass or the solid raised surface.
+   */
+  plusQuiet?: boolean;
 }) {
   const t = useTide();
   const reduced = useReducedMotion();
@@ -208,17 +214,52 @@ export function VisitNav({
       <Press
         onPress={onPlus}
         accessibilityLabel="Add: log a reading, a medicine, or tell your team"
-        style={{
-          width: PLUS,
-          height: PLUS,
-          borderRadius: PLUS / 2,
-          backgroundColor: t.accent,
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: t.shadow.accent,
-        }}
+        style={
+          plusQuiet
+            ? {
+                width: PLUS,
+                height: PLUS,
+                borderRadius: PLUS / 2,
+                alignItems: "center",
+                justifyContent: "center",
+                ...(glass
+                  ? {}
+                  : {
+                      backgroundColor: t.surfaceRaised,
+                      borderWidth: 1,
+                      borderColor: t.line,
+                      boxShadow: t.shadow.float,
+                    }),
+              }
+            : {
+                width: PLUS,
+                height: PLUS,
+                borderRadius: PLUS / 2,
+                backgroundColor: t.accent,
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: t.shadow.accent,
+              }
+        }
       >
-        <Icon name="plus" size={26} color={t.onAccent} strokeWidth={2.4} />
+        {plusQuiet && glass ? (
+          <GlassView
+            pointerEvents="none"
+            glassEffectStyle="regular"
+            colorScheme={t.scheme}
+            tintColor={withAlpha(t.surfaceRaised, FROST_ALPHA)}
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              borderRadius: PLUS / 2,
+              backgroundColor: veil,
+            }}
+          />
+        ) : null}
+        <Icon name="plus" size={26} color={plusQuiet ? t.ink : t.onAccent} strokeWidth={2.4} />
       </Press>
     </View>
   );

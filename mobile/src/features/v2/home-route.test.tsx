@@ -105,14 +105,16 @@ describe("the Home route, v2", () => {
     expect(screen.getByText("Esther")).toBeTruthy();
     expect(screen.getByLabelText("Notifications, 2 new")).toBeTruthy();
     await waitFor(() => expect(screen.getByText("K7M 42Q")).toBeTruthy());
-    // Another day's visit: "Your next visit", the patient's own name on the ticket, no stage strip.
+    // The greeting is the page's one large title.
+    expect(screen.getByText(/^Good (morning|afternoon|evening)$/)).toBeTruthy();
+    // Another day's visit: "Your next visit", the day, the patient's own name on the card, no stage.
     expect(screen.getByText("Your next visit")).toBeTruthy();
-    expect(screen.getByText("Esther Nakato")).toBeTruthy();
-    expect(screen.getByText("Book for Mother")).toBeTruthy();
-    // No membership row is Basic, with the patient's own number.
-    await waitFor(() => expect(screen.getByText("Basic")).toBeTruthy());
-    expect(screen.getByText("TTH 004 222 90")).toBeTruthy();
-    // Care mode is locked, so the way to the old Care screen is there.
+    expect(screen.getByText("Friday 20 November")).toBeTruthy();
+    expect(screen.getByText(/Esther Nakato/)).toBeTruthy();
+    expect(screen.getByLabelText("Book for Mother")).toBeTruthy();
+    // The membership card is on Me, not on Home.
+    expect(screen.queryByText("Basic")).toBeNull();
+    // Care mode is locked, so the ways to the current care screens are there.
     expect(screen.getByText("Your care")).toBeTruthy();
     expect(screen.getByText("Wellness")).toBeTruthy();
   });

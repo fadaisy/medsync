@@ -1,6 +1,6 @@
 /**
  * Home, v2 on the phone (feature matrix 1.3 and 3.1): the header with the avatar count and the Visit mode
- * Home, on the patient's own rows through the existing loaders. The route file (`(tabs)/index.tsx`) puts the
+ * Home, on the patient's own rows through the existing loaders. The membership card is on Me, not here. The route file (`(tabs)/index.tsx`) puts the
  * two in the `Screen`. What the old Home did for the whole app stays: the details step straight after
  * sign-up, starting the outbox, the location-share banner, "See a doctor".
  *
@@ -10,11 +10,8 @@
  */
 import type { HomeVisit } from "@/features/v2/home";
 import type { HouseholdMember } from "@/lib/booking";
-import type { MembershipRow } from "@patient-core/membership";
 import { useCallback, useEffect, useState } from "react";
 import { HOME_V2_COPY as H } from "@content/patient-app/home";
-import { MEMBERSHIP_COPY as M } from "@content/patient-app/membership";
-import { memberNumber, tierNow } from "@patient-core/membership";
 import { stageOf } from "@patient-core/visit-stages";
 import { nextVisit } from "@patient-core/visits-calendar";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -22,8 +19,7 @@ import { Text, View } from "react-native";
 
 import { AvatarCount } from "@/components/tide/v2-shell";
 import { useLabsSummary } from "@/data/labs";
-import { metaName, useCardIdentity } from "@/data/me";
-import { loadMembership } from "@/data/membership-v2";
+import { metaName } from "@/data/me";
 import { takeFreshSignup } from "@/data/signup";
 import { loadPayStatus, ticketFor } from "@/data/visit-v2";
 import { loadWeek } from "@/data/visits";
@@ -39,13 +35,6 @@ import { useNow } from "@/lib/use-now";
 import { startOutbox } from "@/offline/outbox";
 import { useTide } from "@/theme/theme";
 import { tSpace, tType } from "@/theme/tide";
-
-const TIER_NAMES = {
-  basic: M.tiers.basic,
-  plus_family: M.tiers.plusFamily,
-  plus_care: M.tiers.plusCare,
-  family_care: M.tiers.familyCare,
-} as const;
 
 /** Kampala's calendar day (UTC+3, no daylight saving), as the ticket reads it. */
 const kampalaDay = (d: Date) => new Date(d.getTime() + 3 * 3600_000).toISOString().slice(0, 10);
@@ -73,40 +62,35 @@ async function fetchVisit(me: string): Promise<Visit> {
   };
 }
 
-/** Home's header: the avatar with the unseen count, the greeting and the first name. */
+/** The greeting for right now: Home's one large title. */
+export function useGreeting(): string {
+  return greetingFor(useNow());
+}
+
+/** Home's header: the avatar with the unseen count, and the first name. The greeting is the page's title. */
 export function HomeV2Header() {
   const t = useTide();
-  const now = useNow();
   const me = useHeaderIdentity();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[3] }}>
       <AvatarCount initials={me.initials} photoUrl={me.photoUrl} count={me.unseen} />
-      <View style={{ flexShrink: 1 }}>
-        {me.first ? <Text style={[tType.bodyS, { color: t.ink2 }]}>{greetingFor(now)}</Text> : null}
-        <Text
-          accessibilityRole="header"
-          numberOfLines={1}
-          style={[tType.heading, { fontSize: 18, color: t.ink }]}
-        >
-          {me.first ?? greetingFor(now)}
+      {me.first ? (
+        <Text numberOfLines={1} style={[tType.label, { flexShrink: 1, color: t.ink }]}>
+          {me.first}
         </Text>
-      </View>
+      ) : null}
     </View>
   );
 }
 
 export function HomeV2Body() {
   const router = useRouter();
-  const now = useNow();
   const { session } = useSession();
   const name = metaName(session?.user.user_metadata);
-  const id = useCardIdentity(session?.user.id ?? null, name);
   const labs = useLabsSummary();
   const shareShown = useShareBannerShown();
   const [visit, setVisit] = useState<Visit>({ state: "loading" });
   const [household, setHousehold] = useState<HouseholdMember[]>([]);
-  // `undefined` while loading; `null` is a real answer (no membership row: Basic).
-  const [membership, setMembership] = useState<MembershipRow | null | undefined>(undefined);
   const patient = name ?? "You";
 
   // Straight after sign-up, once: the details the welcome screen promised.
@@ -133,14 +117,9 @@ export function HomeV2Body() {
     useCallback(() => {
       void loadVisit();
       void fetchHousehold().then(setHousehold, () => {});
-      void loadMembership().then(
-        (m) => setMembership(m.row),
-        () => setMembership((was) => was ?? null),
-      );
     }, [loadVisit]),
   );
 
-  const held = membership === undefined ? null : tierNow(membership, now);
   const visitId = visit.state === "ready" ? visit.id : undefined;
 
   return (
@@ -154,18 +133,9 @@ export function HomeV2Body() {
             : { state: "off" }
         }
         household={household.map((m) => ({ id: m.id, label: m.label }))}
-        card={
-          held
-            ? {
-                tierName: TIER_NAMES[held.tier],
-                memberNo: memberNumber(id.code),
-                plus: held.tier !== "basic",
-              }
-            : null
-        }
         // "See a doctor": the current list, which opens the doctor's own times (3.5, kept).
         doctors={<Doctors />}
-        // Care mode has its own places once it is unlocked; until then the Care screen and Wellness serve.
+        // Care mode has its own places once it is unlocked; until then Home opens the current care screens.
         careLink={!flag("careMode")}
         onOpenVisit={() => {
           if (visitId) router.push(`/visits/${visitId}`);
@@ -176,7 +146,6 @@ export function HomeV2Body() {
         }}
         onBookToday={() => router.push("/book/today")}
         onBookDay={() => router.push("/book/day")}
-        onOpenCard={() => router.push("/me")}
         onResults={() => router.push("/care/labs")}
         onBookFor={(memberId) => {
           const m = household.find((x) => x.id === memberId);
@@ -188,6 +157,8 @@ export function HomeV2Body() {
         }}
         onAddSomeone={() => router.push("/household")}
         onCare={() => router.push("/care")}
+        onReadings={() => router.push("/care/trends")}
+        onMedicines={() => router.push("/care/medicines")}
         onWellness={() => router.push("/wellness")}
       />
     </View>
