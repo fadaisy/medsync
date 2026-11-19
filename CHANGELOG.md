@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Several hospitals at clinical staff sign-up (ADR 0530) — 19 Nov 2026
+
+A doctor who works at more than one hospital can list them all at sign-up. Each hospital gets its own request, and its own admin approves or rejects it; one hospital's approval grants nothing at another. No migration, no flag, no Edge Function change: the database and the approval path already worked per hospital.
+
+- **Form:** under "Where you work", "Add another hospital" (up to four more), each with its department, employment and, if it differs, the post held there; remove one; a hospital is never offered or accepted twice (`app/signup/clinical/_components/form.tsx`, `WorkFields` takes a `prefix`).
+- **Saving:** `submitClinicalSignup` inserts one `staff_affiliations` row per hospital in one statement (`lib/onboarding/workplaces.ts`, `clinicalSchema.moreWorkplaces`).
+- **Pending page:** every hospital with its own state, reason or admin's note; the headline follows the furthest-on request (`leadAffiliation`).
+- **Profile:** `/doctor/profile` shows "Your hospitals", each with its state, and "Add a hospital" (a centred dialog) sends one more pending request in the same post to that hospital's admin (`requestHospitalAction`, `joinRefusal`). Leaving a hospital is still done by its admin.
+- **Department list:** chosen from a searchable list of the picked hospital's live departments, like the hospital, instead of the system menu.
+- **Not in this change:** choosing which hospital you are working in after sign-in. A doctor approved at two still lands in the most recently approved one.
+- **Tests:** `tests/onboarding-v2/workplaces.test.ts`. Not yet seen in a browser.
+
 ### Changed — One account per tab (ADR 0529, amends ADR 0280) — 19 Nov 2026
 
 Signing in as another role in a second tab no longer moves the first tab to that account. Each tab keeps the account it signed in with, and both sessions stay until signed out.

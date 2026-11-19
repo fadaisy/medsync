@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
+import { asc, eq } from "drizzle-orm";
 
 import { PhotoForm } from "@/components/forms";
+import { Tag } from "@/components/medsync/tag";
+import { db } from "@/db";
+import { staffAffiliations } from "@/db/schema/clinician-profiles";
+import { hospitalDepartments } from "@/db/schema/hospital-departments";
+import { hospitals } from "@/db/schema/hospitals";
 import { signedAvatarUrl } from "@/lib/avatars";
 import { requireDoctorScope } from "@/lib/doctor/scope";
+import { describeState } from "@/lib/lifecycle";
+import { listHospitals } from "@/lib/reference-data";
+import { AddHospital } from "./_components/add-hospital";
 import { updateDoctorPhotoAction } from "./actions";
 
 export const metadata: Metadata = { title: "Your profile · Doctor · MedSync" };
@@ -16,7 +25,27 @@ export const dynamic = "force-dynamic";
  */
 export default async function DoctorProfilePage() {
   const scope = await requireDoctorScope();
-  const photoUrl = await signedAvatarUrl(scope.avatarPath);
+  const [photoUrl, mine, all] = await Promise.all([
+    signedAvatarUrl(scope.avatarPath),
+    db
+      .select({
+        id: staffAffiliations.id,
+        hospitalId: staffAffiliations.hospitalId,
+        hospitalName: hospitals.name,
+        departmentName: hospitalDepartments.name,
+        state: staffAffiliations.state,
+      })
+      .from(staffAffiliations)
+      .innerJoin(hospitals, eq(hospitals.id, staffAffiliations.hospitalId))
+      .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, staffAffiliations.departmentId))
+      .where(eq(staffAffiliations.userId, scope.userId))
+      .orderBy(asc(hospitals.name)),
+    listHospitals(),
+  ]);
+  // Closed requests may be asked again (joinRefusal); every other hospital is not offered.
+  const held = mine
+    .filter((a) => !["rejected", "deactivated"].includes(a.state))
+    .map((a) => a.hospitalId);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 lg:px-6 lg:py-9">
@@ -62,6 +91,31 @@ export default async function DoctorProfilePage() {
         <p className="text-muted-foreground text-body-s leading-relaxed">
           These come from your approved affiliation. Ask your hospital admin to change them.
         </p>
+      </section>
+
+      <section
+        aria-labelledby="hospitals-head"
+        className="bg-card border-border shadow-card flex flex-col gap-3 rounded-lg border p-6"
+      >
+        <h2 id="hospitals-head" className="text-foreground text-heading-s">
+          Your hospitals
+        </h2>
+        <ul className="divide-border flex flex-col divide-y">
+          {mine.map((a) => (
+            <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+              <div className="min-w-0">
+                <p className="text-body-m text-foreground font-medium">{a.hospitalName}</p>
+                <p className="text-body-s text-muted-foreground">{a.departmentName}</p>
+              </div>
+              <Tag>{describeState(a.state as Parameters<typeof describeState>[0])}</Tag>
+            </li>
+          ))}
+        </ul>
+        <p className="text-muted-foreground text-body-s leading-relaxed">
+          Each hospital&rsquo;s admin approves you there on their own. To stop working at a
+          hospital, ask its admin.
+        </p>
+        <AddHospital hospitals={all.map((h) => ({ id: h.id, name: h.name }))} exclude={held} />
       </section>
     </div>
   );

@@ -21,6 +21,7 @@ import { onTetherHost } from "@/lib/landing/tether-host";
 import { describeState } from "@/lib/lifecycle";
 import { formatDate } from "@/lib/onboarding/notice";
 import { COUNCILS, PROFILE_GRADES } from "@/lib/onboarding/profession";
+import { leadAffiliation } from "@/lib/onboarding/workplaces";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { GradeForm, LicenceNow, PhotoForm } from "./lazy";
@@ -43,7 +44,8 @@ export async function ClinicalPendingView() {
   const user = sessionData.session?.user;
   if (!user) redirect("/sign-in?redirect=/onboarding/clinical-pending");
 
-  const [aff] = await db
+  // Every hospital the person asked to join (ADR 0530); each is reviewed on its own.
+  const affs = await db
     .select({
       state: staffAffiliations.state,
       rejectionReason: staffAffiliations.rejectionReason,
@@ -67,9 +69,10 @@ export async function ClinicalPendingView() {
     .leftJoin(councils, eq(councils.id, cadres.councilId))
     .leftJoin(cadreGrades, eq(cadreGrades.id, staffAffiliations.cadreGradeId))
     .where(eq(staffAffiliations.userId, user.id))
-    .orderBy(desc(staffAffiliations.createdAt))
-    .limit(1);
+    .orderBy(desc(staffAffiliations.createdAt), hospitals.name);
+  const aff = leadAffiliation(affs);
   if (!aff) redirect("/");
+  const several = affs.length > 1;
 
   const [[me], [profile]] = await Promise.all([
     db
@@ -128,10 +131,6 @@ export async function ClinicalPendingView() {
         : PENDING.nonClinical.body(aff.hospitalName)
     }`
   );
-  const employment =
-    (STAFF_COMMON.employmentOptions as Record<string, string>)[aff.employmentType] ??
-    aff.employmentType;
-
   return (
     <div className="bg-background min-h-svh">
       {/* The header carries Emergency (Q17), so the floating pill steps aside. */}
@@ -173,6 +172,9 @@ export async function ClinicalPendingView() {
           <p className="text-body-l text-muted-foreground max-w-[56ch] text-pretty">{body}</p>
           {isUnderReview ? (
             <p className="text-body-m text-muted-foreground">{PENDING.checkBack}</p>
+          ) : null}
+          {several ? (
+            <p className="text-body-m text-muted-foreground">{STAFF_PENDING.several}</p>
           ) : null}
         </div>
 
@@ -254,24 +256,53 @@ export async function ClinicalPendingView() {
           </Card>
         ) : null}
 
-        <Card id="on-file" title={STAFF_PENDING.onFile.title}>
-          <dl className="text-body-s grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-[9rem_1fr] sm:gap-y-2">
-            {(
-              [
-                [STAFF_PENDING.onFile.hospital, aff.hospitalName],
-                [STAFF_PENDING.onFile.department, aff.departmentName],
-                [STAFF_PENDING.onFile.role, aff.roleName],
-                [STAFF_PENDING.onFile.employment, employment],
-                [STAFF_PENDING.onFile.submitted, formatDate(aff.createdAt.toISOString())],
-                [STAFF_PENDING.onFile.status, describeState(aff.state as LifecycleState)],
-              ] as const
-            ).map(([k, v]) => (
-              <div key={k} className="contents">
-                <dt className="text-muted-foreground mt-2 sm:mt-0">{k}</dt>
-                <dd className="text-foreground">{v}</dd>
-              </div>
-            ))}
-          </dl>
+        <Card
+          id="on-file"
+          title={several ? STAFF_PENDING.onFile.titleSeveral : STAFF_PENDING.onFile.title}
+        >
+          {affs.map((a, i) => (
+            <dl
+              key={`${a.hospitalName}-${a.departmentName}`}
+              className={cn(
+                "text-body-s grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-[9rem_1fr] sm:gap-y-2",
+                i > 0 && "border-border border-t pt-4",
+              )}
+            >
+              {(
+                [
+                  [STAFF_PENDING.onFile.hospital, a.hospitalName],
+                  [STAFF_PENDING.onFile.department, a.departmentName],
+                  [STAFF_PENDING.onFile.role, a.roleName],
+                  [
+                    STAFF_PENDING.onFile.employment,
+                    (STAFF_COMMON.employmentOptions as Record<string, string>)[a.employmentType] ??
+                      a.employmentType,
+                  ],
+                  [STAFF_PENDING.onFile.submitted, formatDate(a.createdAt.toISOString())],
+                  [STAFF_PENDING.onFile.status, describeState(a.state as LifecycleState)],
+                  // With several hospitals the headline speaks for one; each row carries its own.
+                  ...(several && a.state === "rejected"
+                    ? [[STAFF_PENDING.onFile.reason, a.rejectionReason ?? STAFF_PENDING.noReason]]
+                    : []),
+                  ...(several && a !== aff && a.state === "pending_approval" && a.reviewNote
+                    ? [[STAFF_PENDING.onFile.note, a.reviewNote]]
+                    : []),
+                ] as [string, string][]
+              ).map(([k, v]) => (
+                <div key={k} className="contents">
+                  <dt className="text-muted-foreground mt-2 sm:mt-0">{k}</dt>
+                  <dd
+                    className={cn(
+                      "text-foreground",
+                      several && k === STAFF_PENDING.onFile.hospital && "text-body-m font-medium",
+                    )}
+                  >
+                    {v}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ))}
         </Card>
       </main>
     </div>

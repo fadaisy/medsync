@@ -141,6 +141,13 @@ export const CLINICAL = {
   licenceLater:
     "Practising licence: add it after you submit. Your admin can't approve you until it's here.",
   notOnMedSync: "My hospital isn't on MedSync",
+  moreHospitals:
+    "Work at more than one hospital? Add each one. Each hospital's admin reviews your request on its own.",
+  addHospital: "Add another hospital",
+  hospitalNumber: (n: number) => `Hospital ${n}`,
+  removeHospital: "Remove",
+  postThere: "Your post there",
+  postSame: "Same as above",
   submit: "Submit for approval",
   pending: "Submitting…",
   after: "Your hospital admin reviews this, then you set up two-step sign-in.",

@@ -16,6 +16,7 @@ import {
   UNDER_18,
 } from "./fields";
 import { professionById, PROFESSIONS } from "./profession";
+import { MAX_EXTRA_WORKPLACES } from "./workplaces";
 
 /**
  * Onboarding v2 schemas — one per form, shared by the page (validate on blur and on submit) and
@@ -172,12 +173,39 @@ export const clinicalSchema = z
     hospitalId: pickUuid("Choose your hospital from the list."),
     departmentId: pickUuid("Choose your department."),
     employmentType: z.enum(EMPLOYMENT, "Choose your employment type."),
+    /** More hospitals after the first (ADR 0530). Checked below, so the form shows one message. */
+    moreWorkplaces: z.optional(
+      z.array(
+        z.object({
+          hospitalId: z.string(),
+          departmentId: z.string(),
+          employmentType: z.string(),
+          profession: z.optional(z.string()),
+        }),
+      ),
+    ),
     ...consentFields,
   })
   .check(
     z.superRefine((v, ctx) => {
       const issue = (path: string, message: string) =>
         ctx.addIssue({ code: "custom", path: [path], message });
+      const more = v.moreWorkplaces ?? [];
+      const council = professionById(v.profession ?? "")?.council;
+      const post = (id?: string) => !id || professionById(id)?.council === council;
+      const seen = [v.hospitalId, ...more.map((w) => w.hospitalId)].filter(Boolean);
+      if (more.length > MAX_EXTRA_WORKPLACES)
+        issue("moreWorkplaces", `You can add up to ${MAX_EXTRA_WORKPLACES} more hospitals here.`);
+      else if (more.some((w) => !UUID.test(w.hospitalId)))
+        issue("moreWorkplaces", "Choose a hospital for each one you added, or remove it.");
+      else if (new Set(seen).size !== seen.length)
+        issue("moreWorkplaces", "You've listed a hospital twice. Remove one.");
+      else if (more.some((w) => !UUID.test(w.departmentId)))
+        issue("moreWorkplaces", "Choose a department at each hospital you added.");
+      else if (more.some((w) => !(EMPLOYMENT as readonly string[]).includes(w.employmentType)))
+        issue("moreWorkplaces", "Choose your employment type at each hospital you added.");
+      else if (!more.every((w) => post(w.profession)))
+        issue("moreWorkplaces", "Choose your post at each hospital from the list.");
       if (professionById(v.profession ?? "")?.needsSpecialty && !v.specialty)
         issue("specialty", "Choose your specialty.");
       if (v.specialty && v.specialty !== "unlisted" && !UUID.test(v.specialty))

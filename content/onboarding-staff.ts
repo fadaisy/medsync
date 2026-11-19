@@ -41,8 +41,13 @@ export const STAFF_PENDING = {
       "Add an authenticator app (such as Google Authenticator or Authy) so every action you take can be tied back to you.",
     cta: "Set up two-step sign-in",
   },
+  several:
+    "You asked to join more than one hospital. Each hospital's admin decides on its own, so one may answer before another.",
   onFile: {
     title: "What you sent",
+    titleSeveral: "Your hospitals",
+    reason: "Reason given",
+    note: "Admin's note",
     hospital: "Hospital",
     department: "Department",
     role: "Role",
