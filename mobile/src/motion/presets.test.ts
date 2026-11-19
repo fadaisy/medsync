@@ -20,6 +20,12 @@ const all = (reduced: boolean): [string, Anim][] => [
   ["bob", motion.bob(3000, 0, reduced)],
   ["skeletonPulse", motion.skeletonPulse(reduced)],
   ["bellRing", motion.bellRing(reduced)],
+  ["wordRise", motion.wordRise(2, reduced)],
+  ["threadDraw", motion.threadDraw(390, { left: 110, width: 58 }, reduced)],
+  ["appear", motion.appear(1100, reduced)],
+  ["lineDraw", motion.lineDraw(100, reduced)],
+  ["discIn", motion.discIn(400, reduced)],
+  ["glint", motion.glint(195, reduced)],
 ];
 
 /** Law L13: with "reduce motion" on, every preset is an opacity change or nothing. */
@@ -38,11 +44,16 @@ describe("reduced motion", () => {
     expect(motion.bob(3000, 0, true).animationName).toBe("none");
     expect(motion.skeletonPulse(true).animationName).toBe("none");
     expect(motion.bellRing(true).animationName).toBe("none");
+    expect(motion.glint(195, true).animationName).toBe("none");
+    expect(motion.threadDraw(390, { left: 110, width: 58 }, true).animationName).toBe("none");
   });
 
   it("transitions do not move", () => {
     expect(transition.press(true).transitionDuration).toBe(0);
     expect(transition.cardFlip(true).transitionProperty).toBe("opacity");
+    expect(transition.swap(true).transitionProperty).toBe("opacity");
+    expect(transition.fade(150, true).transitionProperty).toBe("opacity");
+    expect(transition.grow(true).transitionDuration).toBe(0);
   });
 
   it("full motion moves", () => {

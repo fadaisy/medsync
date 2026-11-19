@@ -218,6 +218,94 @@ export const motion = {
     };
   },
 
+  /** One letter of the wordmark rising out of the splash's line; the row it sits in clips it until it is up. */
+  wordRise(index: number, reduced: boolean): Anim {
+    if (reduced) return fade();
+    return {
+      animationName: {
+        from: { transform: [{ translateY: 62 }] },
+        to: { transform: [{ translateY: 0 }] },
+      },
+      animationDuration: 500,
+      animationDelay: 160 + index * 60,
+      animationTimingFunction: EASE_OUT,
+      animationFillMode: "both",
+    };
+  },
+
+  /**
+   * The splash's one line. It draws across the screen from the left, holds, then draws in from both ends to
+   * rest under the wordmark as the loading line (`to`: where that line starts and how long it is, in points;
+   * `screen`: how wide the drawn line is). Nothing under reduce motion: the loading line is simply there.
+   */
+  threadDraw(screen: number, to: { left: number; width: number }, reduced: boolean): Anim {
+    if (reduced) return STILL;
+    return {
+      animationName: {
+        "0%": { transform: [{ translateX: 0 }, { scaleX: 0 }] },
+        "46%": { transform: [{ translateX: 0 }, { scaleX: 1 }] },
+        "60%": { transform: [{ translateX: 0 }, { scaleX: 1 }] },
+        "100%": { transform: [{ translateX: to.left }, { scaleX: to.width / screen }] },
+      },
+      animationDuration: 1400,
+      animationTimingFunction: EASE_OUT,
+      animationFillMode: "both",
+    };
+  },
+
+  /** Shows after a wait, with no movement: the splash's words and the track under the wordmark. */
+  appear(delay: number, reduced: boolean): Anim {
+    if (reduced) return fade();
+    return { ...fade(delay), animationDuration: 400 };
+  },
+
+  /** A line drawing out from its left end: the finish line reaching its tick. */
+  lineDraw(delay: number, reduced: boolean): Anim {
+    if (reduced) return fade();
+    return {
+      animationName: {
+        from: { transform: [{ scaleX: 0 }] },
+        to: { transform: [{ scaleX: 1 }] },
+      },
+      animationDuration: 400,
+      animationDelay: delay,
+      animationTimingFunction: EASE_OUT,
+      animationFillMode: "both",
+    };
+  },
+
+  /** The tick's disc arriving where the finish line ends. */
+  discIn(delay: number, reduced: boolean): Anim {
+    if (reduced) return fade();
+    return {
+      animationName: {
+        from: { opacity: 0, transform: [{ scale: 0.9 }] },
+        to: { opacity: 1, transform: [{ scale: 1 }] },
+      },
+      animationDuration: 250,
+      animationDelay: delay,
+      animationTimingFunction: EASE_OUT,
+      animationFillMode: "both",
+    };
+  },
+
+  /**
+   * The mark that runs along a waiting line ("Creating your account"); `span` is the line's length. The one
+   * other loop that means "still working". Still under reduce motion.
+   */
+  glint(span: number, reduced: boolean): Anim {
+    if (reduced) return STILL;
+    return {
+      animationName: {
+        from: { transform: [{ translateX: -0.4 * span }] },
+        to: { transform: [{ translateX: span }] },
+      },
+      animationDuration: 1600,
+      animationIterationCount: "infinite",
+      animationTimingFunction: "ease-in-out",
+    };
+  },
+
   /** Rise into place after a delay (the splash's lower half, the sign-in words). */
   rise(delay: number, reduced: boolean): Anim {
     if (reduced) return fade(delay);
@@ -323,6 +411,30 @@ export const transition = {
       transitionProperty: reduced ? "opacity" : "transform",
       transitionDuration: reduced ? FADE_MS : 800,
       transitionTimingFunction: cubicBezier(0.34, 1.3, 0.64, 1),
+    };
+  },
+  /** A layer that swaps with its neighbour: it fades, and slides a little the way you are going. */
+  swap(reduced: boolean): Trans {
+    return {
+      transitionProperty: reduced ? "opacity" : ["opacity", "transform"],
+      transitionDuration: reduced ? FADE_MS : 400,
+      transitionTimingFunction: EASE_OUT,
+    };
+  },
+  /** Something leaving or arriving by opacity alone. */
+  fade(ms: number, reduced: boolean): Trans {
+    return {
+      transitionProperty: "opacity",
+      transitionDuration: reduced ? FADE_MS : ms,
+      transitionTimingFunction: "ease-out",
+    };
+  },
+  /** A bar's filled part moving on to its next length. */
+  grow(reduced: boolean): Trans {
+    return {
+      transitionProperty: "width",
+      transitionDuration: reduced ? 0 : 400,
+      transitionTimingFunction: EASE_OUT,
     };
   },
   /** Colour and fill changes on chips, segments and tiles. */
