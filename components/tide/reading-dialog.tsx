@@ -70,6 +70,7 @@ export function ReadingForm({
   onSaved,
   onLeave,
   careFlow = false,
+  onHelpInPage,
 }: {
   initialKind?: ReadingKind;
   /** The patient's own readings, newest first; null while loading. */
@@ -82,6 +83,8 @@ export function ReadingForm({
   onLeave?: () => void;
   /** Care mode v2 (Step 9, `careModeOn()`): a danger reading opens the step-by-step flow (S23). */
   careFlow?: boolean;
+  /** The danger step on screen draws its own red Help as its main action: hide the header Help (ADR 0528). */
+  onHelpInPage?: (inPage: boolean) => void;
 }) {
   const router = useRouter();
   const [kind, setKind] = useState<ReadingKind>(initialKind);
@@ -168,9 +171,13 @@ export function ReadingForm({
     return (
       <div data-pw-light="">
         {kind ? (
-          <DangerFlowWeb kind={kind} saveReading={(input) => saveReadingAction(input, [])} />
+          <DangerFlowWeb
+            kind={kind}
+            saveReading={(input) => saveReadingAction(input, [])}
+            onHelpInPage={onHelpInPage}
+          />
         ) : (
-          <DangerInterrupt input={danger} />
+          <DangerInterrupt input={danger} onHelpInPage={onHelpInPage} />
         )}
       </div>
     );
@@ -360,6 +367,11 @@ export function ReadingDialog({
 }) {
   const [recent, setRecent] = useState<SavedReading[] | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [helpInPage, setHelpInPage] = useState(false);
+  const change = (o: boolean) => {
+    if (!o) setHelpInPage(false);
+    onOpenChange(o);
+  };
   useEffect(() => {
     if (!open) return;
     let live = true;
@@ -372,16 +384,17 @@ export function ReadingDialog({
   }, [open]);
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange} title={C.title} withHelp>
+      <Dialog open={open} onOpenChange={change} title={C.title} withHelp={!helpInPage}>
         {/* Remount per opening so the form starts fresh from the latest readings. */}
         {open ? (
           <ReadingForm
             key={recent ? "ready" : "loading"}
             initialKind={initialKind}
             recent={recent}
-            onLeave={() => onOpenChange(false)}
+            onLeave={() => change(false)}
+            onHelpInPage={setHelpInPage}
             onSaved={(line) => {
-              onOpenChange(false);
+              change(false);
               setToast(line);
             }}
           />

@@ -42,7 +42,7 @@ import { fetchHousehold } from "@/lib/patient/household";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { DayCascade } from "./_components/day-cascade";
-import { DoctorsView } from "./_components/doctors";
+import { DoctorsView, QuietRow } from "./_components/doctors";
 import { HomeSegments, RetryButton } from "./_components/home-bits";
 import { MoodCard } from "./_components/mood-card";
 import { buildDay } from "./_lib/cascade";
@@ -111,6 +111,7 @@ export default async function PatientHome() {
               : { state: "off" }
           }
           household={household.map((m) => ({ id: m.bookingAgentId, label: m.memberLabel }))}
+          doctors={<SeeADoctor hospitalId={scope.primaryHospitalId} />}
           card={{
             tierName: TIER_NAMES[held.tier],
             memberNo: memberNumber(await patientCode(scope.userId)),
@@ -135,29 +136,7 @@ export default async function PatientHome() {
           <Suspense fallback={<DayLoading />}>
             <Day userId={scope.userId} chat={patientFlag("mobileChat")} />
           </Suspense>
-          <section aria-labelledby="see-doctor" className="flex min-w-0 flex-col gap-3">
-            <SectionHead
-              id="see-doctor"
-              title={C.seeDoctor}
-              action={<TextLink href="/patient/book">{C.seeAll}</TextLink>}
-            />
-            <Suspense
-              fallback={
-                <p role="status" className="text-pw-ink-2 text-[15px]">
-                  {C.doctorsLoading}
-                </p>
-              }
-            >
-              {scope.primaryHospitalId ? (
-                <Doctors hospitalId={scope.primaryHospitalId} />
-              ) : (
-                <div className="rounded-pw-row bg-pw-surface-2 flex flex-wrap items-center justify-between gap-3 p-4">
-                  <p className="text-pw-ink-2 text-[15px]">{C.doctorsNoHospital}</p>
-                  <TextLink href="/patient/hospitals">{C.chooseHospital}</TextLink>
-                </div>
-              )}
-            </Suspense>
-          </section>
+          <SeeADoctor hospitalId={scope.primaryHospitalId} />
         </div>
         <div className="flex min-w-0 flex-col gap-7 max-[760px]:gap-5">
           <Suspense fallback={<Skeleton className="h-32" />}>
@@ -223,18 +202,18 @@ async function Day({ userId, chat }: { userId: string; chat: boolean }) {
   );
 }
 
+/** "See a doctor" (the phone's Home): the previews, or one quiet row while loading, on failure or with none. */
+function SeeADoctor({ hospitalId }: { hospitalId: string | null }) {
+  if (!hospitalId) return <QuietRow line={C.doctorsNoHospital} href="/patient/hospitals" />;
+  return (
+    <Suspense fallback={<QuietRow line={C.doctorsLoading} />}>
+      <Doctors hospitalId={hospitalId} />
+    </Suspense>
+  );
+}
+
 async function Doctors({ hospitalId }: { hospitalId: string }) {
-  const doctors = await loadDoctors(hospitalId).catch(() => null);
-  if (!doctors)
-    return (
-      <div className="flex flex-col items-start gap-2">
-        <p className="rounded-pw-row bg-pw-surface-2 text-pw-ink-2 p-4 text-[15px]">
-          {C.doctorsFailed}
-        </p>
-        <RetryButton />
-      </div>
-    );
-  return <DoctorsView doctors={doctors} />;
+  return <DoctorsView doctors={await loadDoctors(hospitalId).catch(() => null)} />;
 }
 
 /** The next live visit, with no position and no clock numeral (ADR 0084 §6, §10). */

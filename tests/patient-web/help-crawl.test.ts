@@ -30,6 +30,17 @@ function filesIn(dir: string): string[] {
 }
 const HELP = /<PageHeader\b|<HelpButton\b/;
 
+/**
+ * Named cases (ADR 0528): the file hides the header Help only through `onHelpInPage`, which the danger steps
+ * set while their red Help is the main action (proved in help-in-page.test.ts).
+ */
+const IN_PAGE_HELP: Record<string, RegExp[]> = {
+  "app/pw/patient/care/readings/_components/readings-body.tsx": [
+    /hideHelp=\{helpInPage\}/,
+    /onHelpInPage=\{setHelpInPage\}/,
+  ],
+};
+
 describe("S6 Help on every web page", () => {
   const all = pages(PW);
 
@@ -53,6 +64,11 @@ describe("S6 Help on every web page", () => {
     for (const f of hiders) {
       // The hiding file, or a component it imports, draws the red Help (e.g. the "Something is wrong" card).
       const src0 = readFileSync(f, "utf8");
+      const named = IN_PAGE_HELP[relative(ROOT, f)];
+      if (named) {
+        for (const re of named) expect(re.test(src0), `${relative(ROOT, f)} ${re}`).toBe(true);
+        continue;
+      }
       const imported = [...src0.matchAll(/from "(\.{1,2}\/[^"]+)"/g)]
         .map((m) => resolve(dirname(f), m[1]!))
         .flatMap((b) => [`${b}.tsx`, `${b}.ts`, join(b, "index.tsx")])

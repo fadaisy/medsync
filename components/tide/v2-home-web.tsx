@@ -1,5 +1,6 @@
 import type { TicketView } from "@patient-core/ticket-view";
 import type { StageView } from "@patient-core/visit-stages";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   ArrowRightIcon,
@@ -21,6 +22,8 @@ export interface HomeV2Props {
   results: { state: "ready"; ready: number; waiting: number } | { state: "off" };
   household: { id: string; label: string }[];
   card: { tierName: string; memberNo: string; plus: boolean };
+  /** "See a doctor", where the phone's Home has it: after the rest of the main column. */
+  doctors?: ReactNode;
 }
 
 const CARD = "rounded-pw-card bg-pw-surface shadow-pw-card flex flex-col gap-3 p-5";
@@ -82,6 +85,7 @@ export function HomeV2(p: HomeV2Props) {
             ))}
           </div>
         </section>
+        {p.doctors}
       </div>
 
       <aside className="flex flex-col gap-6">
