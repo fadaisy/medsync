@@ -7,9 +7,10 @@
  * `&place=book|visits|me` moves the nav's marker.
  *
  * `&care=none|trends|first|due|team|danger` draws Home's top card as Care mode would (home-top.tsx), on the
- * fixtures below; `&metric=sugar|weight|low` changes the trend card's measure (blood pressure by default).
- * `first` is a patient with no reading at all ("Start logging readings"); `low` is a sugar week ending on a
- * reading the app's check calls "Too low", in the critical tone. Left out, Home is as it is with `careMode`
+ * fixtures below; `&metric=sugar|weight|low|lowbp` changes the trend card's measure (blood pressure by
+ * default). `first` is a patient with no reading at all ("Start logging readings"); `low` is a sugar week ending
+ * on a reading the app's check calls "Too low", in the critical tone; `lowbp` is the same for blood pressure
+ * (thresholds 0.3.0, pending CSO). Left out, Home is as it is with `careMode`
  * off. This calls the pure view: it does not switch the flag on.
  */
 import type { VisitQuestion } from "@/data/visit-v2";
@@ -92,6 +93,14 @@ const TRENDS: Record<string, HomeTrend> = {
     ctx: "fasting",
     unit: "mmol/L",
     days: week([6.9, 6.4, null, 6.1, 5.6, null, 3.4]),
+    weekAgo: null,
+  },
+  /** A blood pressure week ending on a sample reading the app's own check calls "Too low". */
+  lowbp: {
+    metric: "bp",
+    ctx: "fasting",
+    unit: "mmHg",
+    days: week([118, 112, null, 104, 96, null, 76], [74, 70, null, 66, 60, null, 50]),
     weekAgo: null,
   },
 };

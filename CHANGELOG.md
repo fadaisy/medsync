@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Blood pressure "Too low": a top number below 80 is a danger (thresholds 0.3.0, pending CSO) — 19 Nov 2026
+
+Researched by Claude at the CSO's request; **not signed**. Every screen that shows it still says "Limits pending CSO sign-off."
+
+- **The rule** (`packages/clinical-rules/patient-thresholds.v0.json` 0.3.0, new key `bp.dangerLowTopBelow: 80`; `checkReading`): a top number under 80 that is not a typing slip is level `danger`, "Too low", headline "Your blood pressure is too low.", signs "Dizzy or about to faint", "Confused", "Fast breathing" (reused wording). No bottom-number rule: no source gives one. The bands "Low" (below 90/50) and the typing check (below 50/30) are unchanged; between 50 and 80 on top, "Low" becomes "Too low". Sources: WHO severe malaria criteria and Uganda Clinical Guidelines 2016 (adult shock below 80), weighed against NEWS2 and WHO Basic Emergency Care.
+- **Where it shows:** the reading page and the Home sheet ("Save and get help"), the danger card, the trends and Home's trend card ("Too low" in the critical tone, through `judge`), on the phone and the web, since both share `checkReading`. `/dev/visit-v2?screen=home&care=trends&metric=lowbp` draws a sample week ending on it.
+- **The server does not know it yet.** Its rule (`supabase/functions/_shared/reading-danger.ts`) and its copy of the thresholds are untouched, so `dangerFor` gives no kind: no care-mode flow starts and no team alert is raised; the danger card shows instead. `tests/patient-app/danger-parity.test.ts` fails until the owner updates the server copy and `dangerOf` (`care_alerts.kind` already allows `low_bp`).
+
 ### Changed — Six small changes signed by the CSO on 19 Nov 2026 (phone) — 19 Nov 2026
 
 The owner, who is also the Clinical Safety Officer, signed these on 19 Nov 2026. No migration, no flag change, no new threshold or rule; `careMode` stays off and locked until Gate CG.

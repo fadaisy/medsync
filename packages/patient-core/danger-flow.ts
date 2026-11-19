@@ -34,7 +34,13 @@ const THRESHOLDS = {
   pulse: { dangerBelow: rules.pulse.dangerBelow, dangerAbove: rules.pulse.dangerAbove },
 };
 
-/** The danger a reading is in, from the one rules file; the same answer the server alerts on. */
+/**
+ * The danger a reading is in, from the one rules file; the same answer the server alerts on.
+ *
+ * Not every danger has a kind here. A blood pressure that is too low (thresholds 0.3.0, pending CSO) is a
+ * danger by `checkReading`, but the server's rule does not know it yet, so this returns null for it: the
+ * app shows the danger card with its signs, no step-by-step flow starts, and no alert is raised.
+ */
 export function dangerFor(input: DangerInput): DangerKind | null {
   return dangerOf(input, THRESHOLDS);
 }

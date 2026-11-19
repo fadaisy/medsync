@@ -1,3 +1,5 @@
+import rules from "@clinical-rules/patient-thresholds.v0.json";
+import { dangerFor } from "@patient-core/danger-flow";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { Linking, StyleSheet, Text } from "react-native";
@@ -150,6 +152,17 @@ describe("danger params", () => {
       value: 3.1,
       context: "random",
     });
+  });
+  it("a blood pressure that is too low opens the danger card, with no care flow and no alert kind", () => {
+    // Thresholds 0.3.0, pending CSO: the server's rule has no such band yet, so `dangerFor` gives no kind and
+    // the danger screen shows its own card (signs, Help, recheck) even with Care mode on.
+    const top = rules.bp.dangerLowTopBelow - 4;
+    const input = readingFromParams({
+      kind: "bp",
+      value: readingValueText({ kind: "bp", top, bottom: 50 }),
+    });
+    expect(checkReading(input)).toMatchObject({ level: "danger", text: "Too low" });
+    expect(dangerFor(input)).toBeNull();
   });
   it("reads pulse and treats junk as empty", () => {
     expect(readingFromParams({ kind: "pulse", value: "140" })).toEqual({

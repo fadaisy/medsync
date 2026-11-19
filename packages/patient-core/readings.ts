@@ -22,7 +22,10 @@ export type ReadingInput =
   | { kind: "weight"; value: number | null }
   | { kind: "pulse"; value: number | null };
 
-/** `empty` grey, `ok` green, `watch` amber (above target, low, or check the number), `danger` red. */
+/**
+ * `empty` grey, `ok` green, `watch` amber (above target, low, or check the number), `danger` red
+ * (very high, or too low: sugar, and blood pressure by its top number).
+ */
 export type ReadingLevel = "empty" | "ok" | "watch" | "danger";
 
 export interface ReadingCheck {
@@ -79,6 +82,16 @@ export function checkReading(input: ReadingInput): ReadingCheck {
         };
       if (top < r.implausibleTopBelow || bottom < r.implausibleBottomBelow)
         return { level: "watch", text: "That looks too low. Check the number." };
+      // 0.3.0, pending CSO: a top number under this is a danger on the number alone; the
+      // danger card asks about signs. No bottom-number rule: no source gives one, so a low
+      // bottom number stays "Low" below.
+      if (top < r.dangerLowTopBelow)
+        return {
+          level: "danger",
+          text: "Too low",
+          dangerWord: "Your blood pressure is too low.",
+          signs: ["Dizzy or about to faint", "Confused", "Fast breathing"],
+        };
       if (top < r.lowTopBelow || bottom < r.lowBottomBelow)
         return { level: "watch", text: "Low. Recheck, and tell your team if you feel dizzy." };
       if (top >= r.aboveTopAtLeast || bottom >= r.aboveBottomAtLeast)

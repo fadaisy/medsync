@@ -1,8 +1,8 @@
 {
   "id": "patient-thresholds",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "status": "pending-cso",
-  "note": "Patient-facing reading checks for the Tide app (law L7). Values from the Tide v1 build prompt §8.5. Not signed: every message they drive shows 'pending CSO sign-off'. Change values here only, never in code. 0.2.0: very high BP is top >= 180 or bottom >= 110, chosen by the CSO in chat on 16 Nov 2026 (was 120); the other values stay pending CSO.",
+  "note": "Patient-facing reading checks for the Tide app (law L7). Values from the Tide v1 build prompt §8.5. Not signed: every message they drive shows 'pending CSO sign-off'. Change values here only, never in code. 0.2.0: very high BP is top >= 180 or bottom >= 110, chosen by the CSO in chat on 16 Nov 2026 (was 120); the other values stay pending CSO. 0.3.0: a top number below 80 that is not a typing slip is 'Too low' (danger; new key dangerLowTopBelow, with no bottom-number value because no source gives one), added on 19 Nov 2026 from the WHO severe malaria criteria and the Uganda Clinical Guidelines 2016 (shock in an adult at a systolic below 80 mmHg), weighed against NEWS2 (RCP 2017, a systolic of 90 or below scores 3) and WHO Basic Emergency Care 2018 (normal adult systolic above 90), researched by Claude at the CSO's request, not yet signed.",
   "bp": {
     "unit": "mmHg",
     "dangerTopAtLeast": 180,
@@ -11,6 +11,7 @@
     "aboveBottomAtLeast": 90,
     "lowTopBelow": 90,
     "lowBottomBelow": 50,
+    "dangerLowTopBelow": 80,
     "implausibleTopBelow": 50,
     "implausibleBottomBelow": 30
   },

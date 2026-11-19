@@ -1,6 +1,7 @@
 import type { HomeV2Props, HomeVisit } from "@/features/v2/home";
 import type { HomeTrend } from "@/features/v2/home-top";
 import type { TodayState } from "@patient-core/today-hero";
+import rules from "@clinical-rules/patient-thresholds.v0.json";
 import { CARE_V2_COPY } from "@content/patient-app/care";
 import { targetBand } from "@patient-core/care-trends";
 import { targetMarks } from "@patient-core/reading-cards";
@@ -84,6 +85,8 @@ const SUGAR_OVER = r1(SUGAR.hi + 0.6);
 const SUGAR_LOW = r1(SUGAR.lo - 0.8);
 /** A top number a little under the app's own low line (the bottom of its band), with the bottom number in range. */
 const BP_LOW_TOP = targetBand("bp", "fasting")!.lo - 4;
+/** A top number a little under the rules file's "Too low" line. */
+const BP_TOO_LOW_TOP = rules.bp.dangerLowTopBelow - 4;
 
 const WEEK = ["13", "14", "15", "16", "17", "18", "19"].map((d) => ({
   date: `${d} Nov`,
@@ -225,6 +228,14 @@ describe("a day against its target (dayStatus)", () => {
       kind: "other",
       word: "Low",
       tone: "caution",
+    });
+  });
+
+  it('a blood pressure the check calls too low is "Too low" in the critical tone (thresholds 0.3.0, pending CSO)', () => {
+    expect(dayStatus("bp", "fasting", BP_TOO_LOW_TOP, BOTTOM - 40)).toEqual({
+      kind: "other",
+      word: "Too low",
+      tone: "critical",
     });
   });
 
