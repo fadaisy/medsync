@@ -1,6 +1,15 @@
 import type { PlaceOption } from "@/data/signup";
+import type { SignupDraft, Step } from "@patient-core/getting-in-signup";
+import {
+  checkDob,
+  isEmail,
+  NAME_MAX,
+  passwordOk,
+  STEP_NAMES,
+  VILLAGE_MAX,
+} from "@patient-core/getting-in-signup";
 
-import { formatUgPhone } from "@/components/tide/field";
+import { formatUgPhone, isUgMobile } from "@/components/tide/field";
 
 export type {
   DobCheck,
@@ -60,4 +69,55 @@ export function autoPick(query: string, places: readonly PlaceOption[]): PlaceOp
   const want = query.trim().toLowerCase();
   if (!want) return null;
   return places.find((p) => p.label.toLowerCase().startsWith(want)) ?? null;
+}
+
+/* ─── What a step still needs, and what the review shows ─────────────── */
+
+/**
+ * The fields a step is still waiting for, in the fields' own names: the "Still needed" line above a
+ * Continue that cannot be pressed yet. It asks what `stepValid` asks, clause for clause, so it is empty
+ * exactly when the step is valid and never names a field the button is not waiting for. Display only:
+ * `stepValid` still decides.
+ */
+export function stillNeeded(step: Step, d: SignupDraft, today: Date): string[] {
+  const asks: [boolean, string][] =
+    step === 1
+      ? [
+          [d.firstName.trim().length > 0 && d.firstName.length <= NAME_MAX, "First name"],
+          [d.surname.trim().length > 0 && d.surname.length <= NAME_MAX, "Surname"],
+          [d.sex !== null, "Sex at birth"],
+          [checkDob(d.dobDay, d.dobMonth, d.dobYear, today).ok, "Date of birth"],
+          [isUgMobile(d.phone), "Mobile number"],
+        ]
+      : step === 2
+        ? [
+            [d.place !== null, "District or subcounty"],
+            [d.village.length <= VILLAGE_MAX, "Village or address"],
+          ]
+        : step === 3
+          ? [
+              [isEmail(d.email), "Email"],
+              [passwordOk(d.password), "Password"],
+            ]
+          : [[d.consent, "Your agreement to the notice"]];
+  return asks.filter(([ok]) => !ok).map(([, name]) => name);
+}
+
+export interface ReviewRow {
+  step: 1 | 2 | 3;
+  name: string;
+  /** Empty when the step holds nothing to show (the place, where sign-up from the app is off). */
+  value: string;
+}
+
+/**
+ * "Your details" on the consent step: one line for each finished step, so the patient can check what
+ * they typed before agreeing. The password is never one of them, and nothing here reads it.
+ */
+export function reviewRows(d: SignupDraft): ReviewRow[] {
+  return [
+    { step: 1, name: STEP_NAMES[1], value: `${d.firstName.trim()} ${d.surname.trim()}`.trim() },
+    { step: 2, name: STEP_NAMES[2], value: d.place?.label ?? "" },
+    { step: 3, name: STEP_NAMES[3], value: d.email.trim() },
+  ];
 }
