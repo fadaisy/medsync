@@ -15,7 +15,7 @@ import {
 import { EmrWriteError } from "@/lib/emr/write/context";
 import { CONCEPTS } from "@/lib/facts/catalogue.generated";
 import { saveConfigDraft } from "./catalogue-v2";
-import { planImport, RESEARCH_FILE, sha256 } from "./research-import";
+import { planImport, sha256 } from "./research-import";
 
 /**
  * The research import on the database (Lab Phase 2 §6.5; RI-1..RI-8; ADR 0253). Everything lands as a
@@ -32,8 +32,15 @@ const canonicalUnit = (id: string) =>
   NEW_UNITS.get(id) ??
   null;
 
-export function researchText(root = process.cwd()) {
-  return readFileSync(join(root, RESEARCH_FILE), "utf8");
+// A literal path, so file tracing ships this one file. A path built from a variable made every route that
+// imports this module carry the whole repository, which pushed the deploy past Vercel Hobby's 12 functions.
+const RESEARCH_PATH = join(
+  process.cwd(),
+  "docs/lab/catalogue-research/lab-catalogue-research.v1.json",
+);
+
+export function researchText() {
+  return readFileSync(RESEARCH_PATH, "utf8");
 }
 
 export async function importResearch(tx: EmrTx, actor: Actor, now: Date, text = researchText()) {
