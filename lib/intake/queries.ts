@@ -7,6 +7,7 @@ import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
 import { entryTypes, patientIntakes, priorityHintRank } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
+import { serviceLines } from "@/db/schema/service-lines";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 
 /**
@@ -224,6 +225,35 @@ export async function listHospitalDepartments(
       ),
     )
     .orderBy(asc(hospitalDepartments.name));
+}
+
+/**
+ * The live departments with their catalogue code, and the clinics the hospital admin set up (current service
+ * lines), for `setUpClinics` (lib/reception/desk/map.ts): what a desk and a clinic line list as clinics.
+ */
+export async function listClinicDepartments(hospitalId: string) {
+  const [depts, lines] = await Promise.all([
+    db
+      .select({
+        id: hospitalDepartments.id,
+        name: hospitalDepartments.name,
+        catalogueCode: hospitalDepartments.catalogueCode,
+      })
+      .from(hospitalDepartments)
+      .where(
+        and(
+          eq(hospitalDepartments.hospitalId, hospitalId),
+          sql`${hospitalDepartments.medsyncLiveAt} IS NOT NULL`,
+          sql`${hospitalDepartments.archivedAt} IS NULL`,
+        ),
+      )
+      .orderBy(asc(hospitalDepartments.name)),
+    db
+      .select({ departmentId: serviceLines.departmentId, name: serviceLines.name })
+      .from(serviceLines)
+      .where(and(eq(serviceLines.hospitalId, hospitalId), isNull(serviceLines.archivedAt))),
+  ]);
+  return { depts, lines };
 }
 
 export async function listActiveHospitals(): Promise<

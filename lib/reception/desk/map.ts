@@ -7,6 +7,24 @@ import type { DeskClinic, DeskRow, DeskSession, PreAlert, Stage } from "./model"
 import { DESK } from "@/content/reception/desk";
 import { hhmm, kampala } from "./model";
 
+/**
+ * The clinics a desk or a clinic line shows: the departments where the hospital admin set up a clinic, not every
+ * live department (a laboratory section or a ward unit is not a clinic). The emergency department stays, because
+ * it receives emergencies with no clinic set up, and so does any department with a person in today's list, so
+ * nobody already in line vanishes. A department with one clinic carries that clinic's name.
+ */
+export function setUpClinics(
+  depts: readonly { id: string; name: string; catalogueCode: string | null }[],
+  lines: readonly { departmentId: string; name: string }[],
+  inUse: ReadonlySet<string>,
+): { id: string; name: string }[] {
+  return depts.flatMap((d) => {
+    const mine = lines.filter((l) => l.departmentId === d.id);
+    if (!mine.length && d.catalogueCode !== "EMERGENCY" && !inUse.has(d.id)) return [];
+    return [{ id: d.id, name: mine.length === 1 ? mine[0]!.name : d.name }];
+  });
+}
+
 const HUES = ["iris", "sky", "grape", "plum", "slate"] as const;
 
 export const clinicOf = (d: { id: string; name: string }, i: number): DeskClinic => ({
