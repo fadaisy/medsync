@@ -414,8 +414,11 @@ export function MyCareWeb(p: {
 export function DangerFlowWeb({
   kind,
   saveReading,
+  onHelpInPage,
 }: {
   kind: "low_sugar" | "very_high_bp" | "low_bp" | "high_sugar" | "pulse";
+  /** Told whether this step's main action is the red "Get help now", so the page hides its header Help (ADR 0528). */
+  onHelpInPage?: (inPage: boolean) => void;
   saveReading: (
     input:
       | { kind: "sugar"; value: number; context: "random" }
@@ -440,6 +443,9 @@ export function DangerFlowWeb({
         ? D.highBp.title
         : D.helpNow;
   const helpStep = s.step === "help" || s.step === "help_now";
+  useEffect(() => {
+    onHelpInPage?.(helpStep);
+  }, [helpStep, onHelpInPage]);
   const line = helpStep
     ? s.flow === "low_sugar"
       ? D.lowSugar.stillLow

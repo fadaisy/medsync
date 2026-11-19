@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — The patient website follows the phone's 19 Nov changes: See a doctor previews, and the header Help rule (ADR 0528) (web) — 19 Nov 2026
+
+No migration, no flag, no new clinical wording.
+
+- **See a doctor** (`app/pw/patient/_components/doctors.tsx`): the phone's small portrait previews on the web Home, and now also on the v2 Home (`HomeV2`'s new `doctors` slot), where the phone has it. Up to four doctors with an open day, soonest first and the patient's own hospital first on the same day; the day on a chip ("Today", filled, or "Thu 19 Nov"); the name, role and where; each asks that doctor for a day; "See all" opens Book. Loading, a failure (tap to try again), no doctor and none open are one quiet row. Gone: the large badges, filter chips, "New" rating, fee line and "Come today". The ordering is one function for both, `doctorPreviews` in `packages/patient-core/doctors.ts`; the phone now imports it. New web string: "No open day in the next two weeks", the phone's own words.
+- **The header Help steps aside only for the page's own red Help** (ADR 0528): the danger interrupt's first step ("Yes, get help now") and, behind `careMode`, the danger flow's "Get help now" steps tell the page (`onHelpInPage`), and the readings page (`ReadingsBody`) and the reading dialog hide their header Help; on the recheck it returns. The interrupt no longer draws a second Help of its own beside its pill. The web Help crawl names the readings page; `tests/patient-web/help-in-page.test.ts` checks each case.
+- **Not carried over:** "N ahead of you" (the web shows no count by D-PW-12, signed 25 Oct 2026; the owner decides), the welcome slides and the app's name (native only), "Start logging readings" and the red "Too low" pill on Home's trend card (the web has no Care-mode Home top card). "Too low" itself already reaches the web through the shared `checkReading`, `judge` and `startFlow`.
+
 ### Changed — Home's "See a doctor" is small portrait previews (phone) — 19 Nov 2026
 
 The redesign the owner approved on the design canvas ("portrait", 18 Nov; ticked in the CSO sign-off pack, section 7), for Home only.

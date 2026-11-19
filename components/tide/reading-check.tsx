@@ -9,7 +9,6 @@ import { READINGS_COPY } from "@/content/patient/readings";
 import { hhmm, recheckMinutes } from "@/lib/patient-web/readings";
 import { cn } from "@/lib/utils";
 import { Button, ButtonLink, Card, ICON, Note, Pill, StatusPill } from "./kit";
-import { HelpButton } from "./shell";
 
 /**
  * The reading's clinical colours, in one file (L3, L4): the live check band, the chest-pain help row and the
@@ -69,8 +68,18 @@ export function ChestPainRow() {
 const D = READINGS_COPY.danger;
 const fill = (s: string, k: string, v: string | number) => s.replace(`{${k}}`, String(v));
 
-/** The dangerous-reading interrupt (phone danger.tsx, F-22). The page wraps it in forced light (L11). */
-export function DangerInterrupt({ input }: { input: ReadingInput }) {
+/**
+ * The dangerous-reading interrupt (phone danger.tsx, F-22). The page wraps it in forced light (L11). Its first
+ * step's main action is the red "Yes, get help now", so it reports `onHelpInPage(true)` and the page hides its
+ * header Help; on the recheck the header Help returns (ADR 0528, amending L6).
+ */
+export function DangerInterrupt({
+  input,
+  onHelpInPage,
+}: {
+  input: ReadingInput;
+  onHelpInPage?: (inPage: boolean) => void;
+}) {
   const check = checkReading(input);
   const minutes = recheckMinutes(input);
   const total = minutes * 60_000;
@@ -88,6 +97,11 @@ export function DangerInterrupt({ input }: { input: ReadingInput }) {
     return () => clearInterval(t);
   }, [endsAt]);
 
+  const helpInPage = endsAt === null;
+  useEffect(() => {
+    onHelpInPage?.(helpInPage);
+  }, [helpInPage, onHelpInPage]);
+
   const left = endsAt === null ? total : Math.max(0, endsAt - now);
   const done = endsAt !== null && left === 0;
   const mmss = `${Math.floor(left / 60_000)}:${String(Math.floor((left % 60_000) / 1000)).padStart(2, "0")}`;
@@ -97,13 +111,10 @@ export function DangerInterrupt({ input }: { input: ReadingInput }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-3">
-        <Pill className="bg-pw-surface text-pw-critical-text">
-          <AlertTriangleIcon className="size-3.5" {...ICON} />
-          <span suppressHydrationWarning>{fill(D.pill, "time", seenAt)}</span>
-        </Pill>
-        <HelpButton />
-      </div>
+      <Pill className="bg-pw-surface text-pw-critical-text self-start">
+        <AlertTriangleIcon className="size-3.5" {...ICON} />
+        <span suppressHydrationWarning>{fill(D.pill, "time", seenAt)}</span>
+      </Pill>
 
       <section role="alert" className="rounded-pw-card bg-pw-critical-tint flex flex-col gap-3 p-6">
         <p className="text-pw-critical-text flex flex-wrap items-baseline gap-2">
