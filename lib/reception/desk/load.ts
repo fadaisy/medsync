@@ -8,7 +8,7 @@ import { db } from "@/db";
 import { clinicSessions } from "@/db/schema/clinic-sessions";
 import { users } from "@/db/schema/users";
 import { fetchIncomingPreArrivals } from "@/lib/emergency/queries";
-import { fetchHospitalIncomingIntakes, listHospitalDepartments } from "@/lib/intake/queries";
+import { fetchHospitalIncomingIntakes, listClinicDepartments } from "@/lib/intake/queries";
 import { fetchDeclaredIntakesToday, fetchExpectedArrivals } from "@/lib/reception/queries";
 import { ETA_BAND_LABEL } from "@/supabase/functions/_shared/pre-arrival";
 import {
@@ -18,6 +18,7 @@ import {
   deskSessions,
   emergencyRow,
   preAlertOf,
+  setUpClinics,
   sexOf,
 } from "./map";
 import { kampala } from "./model";
@@ -30,8 +31,8 @@ const DAY = 86_400_000;
  */
 export async function loadDeskData(scope: ReceptionScope): Promise<DeskData> {
   const now = new Date();
-  const [depts, booked, declared, inside, alerts, sess] = await Promise.all([
-    listHospitalDepartments(scope.hospitalId),
+  const [set, booked, declared, inside, alerts, sess] = await Promise.all([
+    listClinicDepartments(scope.hospitalId),
     fetchExpectedArrivals({
       hospitalId: scope.hospitalId,
       receptionUserId: scope.userId,
@@ -69,7 +70,15 @@ export async function loadDeskData(scope: ReceptionScope): Promise<DeskData> {
       .orderBy(asc(clinicSessions.startsAt)),
   ]);
 
-  const clinics = depts.map(clinicOf);
+  const rows = [
+    ...inside.filter((i) => i.isEmergency).map((i) => emergencyRow(i)),
+    ...booked.flatMap((b) => bookingRow(b) ?? []),
+    ...declared.map(declaredRow),
+  ];
+  // The clinics the admin set up, not every department; a department with someone on today's board is kept.
+  const clinics = setUpClinics(set.depts, set.lines, new Set(rows.map((r) => r.clinic))).map(
+    clinicOf,
+  );
   const me = { id: scope.userId, name: scope.fullName ?? "Reception" };
   return {
     hospitalId: scope.hospitalId,
@@ -82,11 +91,7 @@ export async function loadDeskData(scope: ReceptionScope): Promise<DeskData> {
     clinics,
     mine: clinics.map((c) => c.id),
     sessions: deskSessions(sess),
-    rows: [
-      ...inside.filter((i) => i.isEmergency).map((i) => emergencyRow(i)),
-      ...booked.flatMap((b) => bookingRow(b) ?? []),
-      ...declared.map(declaredRow),
-    ],
+    rows,
     preAlerts: alerts.map((p) => preAlertOf({ ...p, etaLabel: ETA_BAND_LABEL[p.etaBand] })),
     // ponytail: people the desk can book come from today's board; wider search is the find action (Step 7 follow-up).
     directory: booked.flatMap((b) =>

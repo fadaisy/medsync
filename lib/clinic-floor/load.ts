@@ -20,9 +20,9 @@ import { triageRecords } from "@/db/schema/triage";
 import { users } from "@/db/schema/users";
 import { computeAgeYears } from "@/lib/age";
 import { fetchIncomingPreArrivals } from "@/lib/emergency/queries";
-import { listHospitalDepartments } from "@/lib/intake/queries";
+import { listClinicDepartments } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
-import { clinicOf, preAlertOf } from "@/lib/reception/desk/map";
+import { clinicOf, preAlertOf, setUpClinics } from "@/lib/reception/desk/map";
 import { kampala } from "@/lib/reception/desk/model";
 import { createClient } from "@/lib/supabase/server";
 import { runTriage } from "@/lib/triage/engine";
@@ -53,8 +53,8 @@ export async function loadFloorData(
   const dayStart = new Date(Date.parse(`${kampala(now).key}T00:00:00+03:00`));
   const dayEnd = new Date(dayStart.getTime() + DAY);
 
-  const [depts, intakes, events, sess, alerts] = await Promise.all([
-    listHospitalDepartments(scope.hospitalId),
+  const [set, intakes, events, sess, alerts] = await Promise.all([
+    listClinicDepartments(scope.hospitalId),
     db
       .select({
         id: patientIntakes.id,
@@ -117,6 +117,12 @@ export async function loadFloorData(
     fetchIncomingPreArrivals({ facilityId: scope.hospitalId }),
   ]);
 
+  // "Clinics today" is the clinics the admin set up, not every department (a lab section is not a clinic).
+  const depts = setUpClinics(
+    set.depts,
+    set.lines,
+    new Set(intakes.flatMap((i) => (i.dept ? [i.dept] : []))),
+  );
   const ids = intakes.map((i) => i.id);
   const records = ids.length
     ? await db
