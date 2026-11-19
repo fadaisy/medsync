@@ -1,4 +1,4 @@
-# ADR 0525 — The header Help steps aside only while the page draws its own red Help (amends law L6)
+# ADR 0528 — The header Help steps aside only while the page draws its own red Help (amends law L6)
 
 - **Status:** Accepted (owner, who is also the Clinical Safety Officer, in chat, 19 Nov 2026).
 - **Date:** 19 Nov 2026

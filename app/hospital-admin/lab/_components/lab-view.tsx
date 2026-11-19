@@ -1,6 +1,7 @@
 "use client";
 
 import type { MenuRow } from "../_lib/model";
+import type { Prices } from "./shared";
 import type { TestMenuData } from "@/lib/lab/test-menu-read";
 import type { OfferingRow } from "@/lib/services/data";
 import type { Comparison, OpenProblem } from "@/supabase/functions/_shared/services-hub";
@@ -51,6 +52,7 @@ export function LabView({
   imagingComparison,
   presetLabel,
   oneResultPath,
+  prices,
 }: {
   tab: LabTab;
   /** A test to open at once (⌘K's test results). */
@@ -62,6 +64,7 @@ export function LabView({
   imagingComparison: Comparison | null;
   presetLabel: string | null;
   oneResultPath: boolean;
+  prices: Prices;
 }) {
   const router = useRouter();
   const act = useMenuAction();
@@ -179,6 +182,7 @@ export function LabView({
               sel={sel}
               onOpen={(code) => setSel(sel === code ? null : code)}
               act={act}
+              prices={prices}
             />
           ) : (
             <div className={`${k("su-card")} ${v.pad}`}>
@@ -255,6 +259,7 @@ export function LabView({
           row={selRow}
           data={menu}
           act={act}
+          prices={prices}
           onClose={() => setSel(null)}
         />
       ) : null}

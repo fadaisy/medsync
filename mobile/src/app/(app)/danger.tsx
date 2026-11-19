@@ -20,7 +20,7 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * The dangerous-reading interrupt (board TDanger/DDanger, F-22). Forced light
  * (law L11). It keeps the round Help in its header (law L6) except while the
  * page's own main action is the red Help that opens /help, in view without
- * scrolling (ADR 0525): the first step's "Yes, get help now" in the pinned
+ * scrolling (ADR 0528): the first step's "Yes, get help now" in the pinned
  * footer, and in Care mode the flow's "Get help now" steps (`helpInPageFor`).
  * Then the header one steps aside, as on Book's "Something is wrong" card.
  *
@@ -67,7 +67,7 @@ function DangerBody() {
   const [seenAt] = useState(() => hhmm(new Date()));
   const [step, setStep] = useState<"ask" | "recheck">("ask");
   // The first step's main action is the red "Yes, get help now" (pinned footer, opens /help), so the header
-  // Help steps aside (ADR 0525). On the recheck the red Help is a second button under the wait, so it returns.
+  // Help steps aside (ADR 0528). On the recheck the red Help is a second button under the wait, so it returns.
   const helpInPage = step === "ask";
 
   // The recheck wait, really run: `useNow` ticks each second against `endsAt`.

@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { weekCounts } from "@patient-core/medicines";
 
+import { Card, SectionHead } from "@/components/tide/kit";
 import { PageHeader } from "@/components/tide/shell";
+import { PATIENT_PRICES } from "@/content/patient-prices";
 import { CARE_COPY } from "@/content/patient/care";
+import { loadMedicineCosts } from "@/lib/patient-web/care-medicine-costs";
 import { loadCareMedicines, loadGiven } from "@/lib/patient-web/care-medicines";
 import { myMedicines } from "@/lib/patient-web/care-view";
 import { today } from "@/lib/patient-web/day";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { ChargeWords, CostTotal } from "../../_components/cost-bits";
 import { RetryButton } from "../../_components/home-bits";
 import { MedicinesView } from "./_components/medicines-view";
 
@@ -42,6 +46,15 @@ export default async function MedicinesPage({
         </div>
       </>
     );
+  // ADR 0527: what the given medicines cost, only for medicines this page already lists. A failed read shows none.
+  const costs = given
+    ? await loadMedicineCosts(
+        scope.userId,
+        given.groups.flatMap((g) =>
+          g.medicines.map((m) => ({ lineId: m.lineId, name: m.medicine })),
+        ),
+      ).catch(() => null)
+    : null;
   const day = today(data.meds, data.takes, now);
   const week = weekCounts(data.meds, data.takes, now);
   return (
@@ -56,6 +69,32 @@ export default async function MedicinesPage({
         given={given}
         adding={add === "1"}
       />
+      {costs ? (
+        <section
+          aria-labelledby="meds-cost"
+          className="mt-5 flex w-full max-w-[720px] flex-col gap-3"
+        >
+          <SectionHead id="meds-cost" title={PATIENT_PRICES.medicines.cap} />
+          <Card className="p-0">
+            <ul>
+              {costs.lines.map((l) => (
+                <li
+                  key={l.key}
+                  className="border-pw-surface-3 flex items-baseline justify-between gap-3 border-t px-4 py-3 first:border-t-0"
+                >
+                  <span className="text-[17px] font-semibold">{l.name}</span>
+                  <ChargeWords charge={l.charge} />
+                </li>
+              ))}
+            </ul>
+            <CostTotal
+              costs={costs}
+              total={PATIENT_PRICES.medicines.total}
+              partial={PATIENT_PRICES.medicines.partial}
+            />
+          </Card>
+        </section>
+      ) : null}
     </>
   );
 }

@@ -3,6 +3,7 @@
 /** Week plan (P10): every clinic's usual week, the clash alert with one-tap fixes, bulk change, print. */
 import type { Ctx } from "./shared";
 import type { Bulk, Clash, Edit, Session, Weekday } from "@/lib/clinics-schedule/model";
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
@@ -239,7 +240,13 @@ export function WeekView({ ctx }: { ctx: Ctx }) {
           {clinics.map((c) => {
             const r = ctx.rd(c.id);
             return (
-              <div key={c.id} className={k("su-wr")} role="row">
+              <div
+                key={c.id}
+                className={k("su-wr")}
+                role="row"
+                // The clinic's own colour, as an accent on its sessions (identity, never a state).
+                style={c.colour ? ({ "--cc": c.colour } as CSSProperties) : undefined}
+              >
                 <span className={k("su-rh")} role="rowheader">
                   <button
                     type="button"

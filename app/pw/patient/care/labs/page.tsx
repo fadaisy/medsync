@@ -3,9 +3,13 @@ import { FlaskConicalIcon } from "lucide-react";
 
 import { ButtonLink, Card, ICON, Note, SectionHead } from "@/components/tide/kit";
 import { PageHeader } from "@/components/tide/shell";
+import { fill } from "@/content/lab-workspace-v2";
+import { PATIENT_PRICES } from "@/content/patient-prices";
 import { CARE_COPY } from "@/content/patient/care";
+import { loadLabCosts } from "@/lib/patient-web/care-lab-costs";
 import { loadLabNames } from "@/lib/patient-web/care-labs";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { ChargeWords, CostTotal } from "../../_components/cost-bits";
 import { RetryButton } from "../../_components/home-bits";
 
 export const metadata: Metadata = { title: "Lab tests" };
@@ -21,6 +25,16 @@ const C = CARE_COPY.labs;
 export default async function LabsPage() {
   const scope = await requirePatientScope();
   const labs = await loadLabNames(scope.userId, scope.primaryHospitalId).catch(() => null);
+  // ADR 0527: what the waiting tests cost, only for tests this page already lists. A failed read shows no prices.
+  const costs =
+    labs?.state === "ready"
+      ? await loadLabCosts(
+          scope.userId,
+          scope.primaryHospitalId,
+          labs.notReady.map((n) => n.key),
+        ).catch(() => null)
+      : null;
+  const P = PATIENT_PRICES.tests;
   return (
     <>
       <PageHeader
@@ -93,6 +107,40 @@ export default async function LabsPage() {
                       </li>
                     ))}
                   </ul>
+                </Card>
+              </section>
+            ) : null}
+            {costs ? (
+              <section aria-labelledby="labs-cost" className="flex flex-col gap-3">
+                <SectionHead id="labs-cost" title={P.cap} />
+                <Card className="p-0">
+                  <ul>
+                    {costs.lines.map((l) => (
+                      <li
+                        key={l.key}
+                        className="border-pw-surface-3 flex flex-col gap-0.5 border-t px-4 py-3 first:border-t-0"
+                      >
+                        <span className="flex items-baseline justify-between gap-3">
+                          <span className="text-[17px] font-semibold">{l.name}</span>
+                          <ChargeWords charge={l.charge} />
+                        </span>
+                        {l.fasting ? (
+                          <span className="text-pw-ink-2 text-[13px] font-medium">{P.fasting}</span>
+                        ) : null}
+                        {l.readyIn ? (
+                          <span className="text-pw-ink-2 text-[13px] font-medium">
+                            {fill(P.readyIn, { when: l.readyIn })}
+                          </span>
+                        ) : null}
+                        {l.unavailable ? (
+                          <span className="text-pw-ink-2 text-[13px] font-medium">
+                            {P.unavailable}
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                  <CostTotal costs={costs} total={P.total} partial={P.partial} />
                 </Card>
               </section>
             ) : null}

@@ -1,6 +1,6 @@
 "use client";
 
-import type { BookingRules, DepartmentsData } from "../_lib/model";
+import type { BookedAs, BookingRules, ClinicWeek, DepartmentsData } from "../_lib/model";
 import type { DepartmentRow } from "@/lib/services/data";
 import Link from "next/link";
 import { useState } from "react";
@@ -13,13 +13,17 @@ import { LAB_SECTIONS } from "@/supabase/functions/_shared/services-hub";
 import { saveBookingRulesAction } from "../_lib/actions";
 import {
   abbr,
+  bookedAs,
+  clinicWeeks,
   DAY_SHORT,
   fmtDate,
   hm,
   idsOf,
+  isNarrowed,
   plural,
   rulesSummary,
   UNSET_RULES,
+  windowToSave,
 } from "../_lib/model";
 import { useOp } from "../_lib/use-op";
 import { itemHistory } from "../actions";
@@ -47,6 +51,11 @@ export function DepartmentDetail({
 }) {
   const [tab, setTab] = useState<Tab>("overview");
   const ids = idsOf(dept, data.departments);
+  // ADR 0527: only a department that sees patients in clinics has clinic booking rules.
+  const mode = bookedAs(
+    dept,
+    data.clinics.some((c) => ids.includes(c.departmentId) && c.status !== "archived"),
+  );
   const n = (m: Record<string, number>) => ids.reduce((s, id) => s + (m[id] ?? 0), 0);
   const beds = data.wards
     .filter((w) => !w.archived && w.departmentId && ids.includes(w.departmentId))
@@ -73,9 +82,11 @@ export function DepartmentDetail({
       </div>
       <Seg
         opts={[
-          ["overview", D.tabs.overview],
-          ["booking", D.tabs.booking],
-          ["inside", D.tabs.inside],
+          ["overview", D.tabs.overview] as const,
+          ...(mode === "none"
+            ? []
+            : [["booking", mode === "clinic" ? D.tabs.booking : D.tabs.priced] as const]),
+          ["inside", D.tabs.inside] as const,
         ]}
         value={tab}
         onPick={setTab}
@@ -84,9 +95,23 @@ export function DepartmentDetail({
         tour="wt-dp-tabs"
       />
       {tab === "overview" ? (
-        <Overview dept={dept} data={data} assign={assign} onBooking={() => setTab("booking")} />
-      ) : tab === "booking" ? (
-        <BookingRulesTab dept={dept} rules={data.rules[dept.id] ?? null} />
+        <Overview
+          dept={dept}
+          data={data}
+          assign={assign}
+          mode={mode}
+          onBooking={() => setTab("booking")}
+        />
+      ) : tab === "booking" && mode !== "none" ? (
+        mode === "clinic" ? (
+          <BookingRulesTab
+            dept={dept}
+            rules={data.rules[dept.id] ?? null}
+            weeks={clinicWeeks(ids, data.clinics, data.sessions)}
+          />
+        ) : (
+          <PricedByItem mode={mode} />
+        )
       ) : (
         <Inside dept={dept} data={data} />
       )}
@@ -108,11 +133,13 @@ function Overview({
   dept,
   data,
   assign,
+  mode,
   onBooking,
 }: {
   dept: DepartmentRow;
   data: DepartmentsData;
   assign: boolean;
+  mode: BookedAs;
   onBooking: () => void;
 }) {
   const op = useOp();
@@ -332,10 +359,14 @@ function Overview({
 
       <div className={k("su-sec")}>
         <span className={k("cap")}>{D.bookingCap}</span>
-        <p className={k("su-note")}>{rulesSummary(data.rules[dept.id])}</p>
-        <button type="button" className={`${k("btn", "sm", "q")} ${d.start}`} onClick={onBooking}>
-          {D.tabs.booking}
-        </button>
+        <p className={k("su-note")}>
+          {mode === "clinic" ? bookingLine(dept, data) : DEPTS.priced[mode].line}
+        </p>
+        {mode === "none" ? null : (
+          <button type="button" className={`${k("btn", "sm", "q")} ${d.start}`} onClick={onBooking}>
+            {mode === "clinic" ? D.tabs.booking : D.tabs.priced}
+          </button>
+        )}
       </div>
 
       <div className={k("su-sec")}>
@@ -513,7 +544,48 @@ function History({ dept, data }: { dept: DepartmentRow; data: DepartmentsData })
 const withCurrent = (base: readonly number[], cur: number) =>
   [...new Set([...base, cur])].sort((a, b) => a - b);
 
-function BookingRulesTab({ dept, rules }: { dept: DepartmentRow; rules: BookingRules | null }) {
+/** The laboratory and the pharmacy: no clinic rules; what a visit costs and when it is open is set per item. */
+function PricedByItem({ mode }: { mode: "tests" | "medicines" }) {
+  const P = DEPTS.priced[mode];
+  return (
+    <div className={k("su-sec")}>
+      <p className={k("su-note")}>{P.lead}</p>
+      <ul className={d.lines}>
+        {P.points.map((x) => (
+          <li key={x}>{x}</li>
+        ))}
+      </ul>
+      {P.href ? (
+        <Link href={P.href} className={`${k("btn", "sm", "q")} ${d.start}`}>
+          {P.open}
+        </Link>
+      ) : (
+        <p className={k("su-note")}>{P.open}</p>
+      )}
+    </div>
+  );
+}
+
+/** The overview's one line: the clinics' week plans where they hold the rules, else the department's own. */
+function bookingLine(dept: DepartmentRow, data: DepartmentsData): string {
+  const weeks = clinicWeeks(idsOf(dept, data.departments), data.clinics, data.sessions);
+  if (!weeks.length) return rulesSummary(data.rules[dept.id]);
+  return fill(DEPTS.rules.onClinics, {
+    list: weeks.map((w) => `${w.name} (${rulesSummary(w.rules)})`).join("; "),
+  });
+}
+
+function BookingRulesTab({
+  dept,
+  rules,
+  weeks,
+}: {
+  dept: DepartmentRow;
+  rules: BookingRules | null;
+  /** The department's clinics that have a week plan: they hold days, hours and slot length (ADR 0526). */
+  weeks: ClinicWeek[];
+}) {
+  const clinicLed = weeks.length > 0;
   const op = useOp();
   const R = DEPTS.rules;
   const start = rules ?? UNSET_RULES;
@@ -524,8 +596,10 @@ function BookingRulesTab({ dept, rules }: { dept: DepartmentRow; rules: BookingR
     setSaid("");
     setV((x) => ({ ...x, ...patch }));
   };
-  const changed = !rules || JSON.stringify(v) !== JSON.stringify(start);
-  const problem = !v.days.length ? R.noDays : v.end <= v.start ? R.order : null;
+  const stale = clinicLed && !!rules && isNarrowed(rules);
+  const changed = !rules || stale || JSON.stringify(v) !== JSON.stringify(start);
+  const problem = clinicLed ? null : !v.days.length ? R.noDays : v.end <= v.start ? R.order : null;
+  const win = windowToSave(v, clinicLed);
   const mins = (list: readonly number[]) => list.map((m) => [m, fill(R.min, { n: m })] as const);
   const times = (list: readonly number[]) => list.map((m) => [m, hm(m)] as const);
 
@@ -537,9 +611,9 @@ function BookingRulesTab({ dept, rules }: { dept: DepartmentRow; rules: BookingR
           default_slot_minutes: v.slot,
           default_buffer_minutes: v.buffer,
           default_auto_confirm: v.auto,
-          bookable_weekdays: v.days,
-          bookable_start_minutes_local: v.start,
-          bookable_end_minutes_local: v.end,
+          bookable_weekdays: win.days,
+          bookable_start_minutes_local: win.start,
+          bookable_end_minutes_local: win.end,
           reminder_lead_minutes: v.twoReminders ? [1440, 60] : [1440],
           allow_virtual: v.virtual,
           notes: v.notes?.trim() || null,
@@ -553,53 +627,80 @@ function BookingRulesTab({ dept, rules }: { dept: DepartmentRow; rules: BookingR
 
   return (
     <div className={k("su-sec")}>
-      <p className={k("su-note")}>{rules ? R.note : R.unset}</p>
-      <span className={k("cap")}>{R.days}</span>
-      <ChipRow label={R.days}>
-        {DAY_SHORT.map((label, i) => {
-          const day = i + 1;
-          const on = v.days.includes(day);
-          return (
-            <Chip
-              key={label}
-              on={on}
-              onClick={() =>
-                set({
-                  days: on
-                    ? v.days.filter((x) => x !== day)
-                    : [...v.days, day].sort((a, b) => a - b),
-                })
-              }
-            >
-              {label}
-            </Chip>
-          );
-        })}
-      </ChipRow>
-      <span className={k("cap")}>{R.from}</span>
-      <Seg
-        opts={times(withCurrent([360, 420, 480, 540], v.start))}
-        value={v.start}
-        onPick={(m) => set({ start: m })}
-        label={R.from}
-        className={d.wrapSeg}
-      />
-      <span className={k("cap")}>{R.until}</span>
-      <Seg
-        opts={times(withCurrent([780, 960, 1020, 1080, 1200], v.end))}
-        value={v.end}
-        onPick={(m) => set({ end: m })}
-        label={R.until}
-        className={d.wrapSeg}
-      />
-      <span className={k("cap")}>{R.slot}</span>
-      <Seg
-        opts={mins(withCurrent([10, 15, 20, 30], v.slot))}
-        value={v.slot}
-        onPick={(m) => set({ slot: m })}
-        label={R.slot}
-        className={d.wrapSeg}
-      />
+      {clinicLed ? (
+        <>
+          <p className={k("su-note")}>{R.fromClinics}</p>
+          <span className={k("cap")}>{R.clinicsCap}</span>
+          <div className={d.rlist}>
+            {weeks.map((w) => (
+              <Link
+                key={w.clinicId}
+                href={`/hospital-admin/clinics?view=clinics&clinic=${w.clinicId}&tab=sessions`}
+                className={d.ritem}
+              >
+                <b>{w.name}</b>
+                <small>
+                  {rulesSummary(w.rules)} · {R.openClinic}
+                </small>
+              </Link>
+            ))}
+          </div>
+          {stale ? (
+            <p className={k("su-note")}>{fill(R.oldLimit, { summary: rulesSummary(rules) })}</p>
+          ) : null}
+          <span className={k("cap")}>{R.diaryCap}</span>
+        </>
+      ) : (
+        <>
+          <p className={k("su-note")}>{rules ? R.note : R.unset}</p>
+          <span className={k("cap")}>{R.days}</span>
+          <ChipRow label={R.days}>
+            {DAY_SHORT.map((label, i) => {
+              const day = i + 1;
+              const on = v.days.includes(day);
+              return (
+                <Chip
+                  key={label}
+                  on={on}
+                  onClick={() =>
+                    set({
+                      days: on
+                        ? v.days.filter((x) => x !== day)
+                        : [...v.days, day].sort((a, b) => a - b),
+                    })
+                  }
+                >
+                  {label}
+                </Chip>
+              );
+            })}
+          </ChipRow>
+          <span className={k("cap")}>{R.from}</span>
+          <Seg
+            opts={times(withCurrent([360, 420, 480, 540], v.start))}
+            value={v.start}
+            onPick={(m) => set({ start: m })}
+            label={R.from}
+            className={d.wrapSeg}
+          />
+          <span className={k("cap")}>{R.until}</span>
+          <Seg
+            opts={times(withCurrent([780, 960, 1020, 1080, 1200], v.end))}
+            value={v.end}
+            onPick={(m) => set({ end: m })}
+            label={R.until}
+            className={d.wrapSeg}
+          />
+          <span className={k("cap")}>{R.slot}</span>
+          <Seg
+            opts={mins(withCurrent([10, 15, 20, 30], v.slot))}
+            value={v.slot}
+            onPick={(m) => set({ slot: m })}
+            label={R.slot}
+            className={d.wrapSeg}
+          />
+        </>
+      )}
       <span className={k("cap")}>{R.buffer}</span>
       <Seg
         opts={mins(withCurrent([0, 5, 10, 15], v.buffer))}
@@ -674,6 +775,8 @@ function Inside({ dept, data }: { dept: DepartmentRow; data: DepartmentsData }) 
     (w) => w.departmentId && ids.includes(w.departmentId) && !w.archived,
   );
   const staff = ids.reduce((s, id) => s + (data.counts.staff[id] ?? 0), 0);
+  const onTether = (departmentId: string) =>
+    data.departments.find((x) => x.id === departmentId)?.live ?? dept.live;
 
   return (
     <>
@@ -681,14 +784,22 @@ function Inside({ dept, data }: { dept: DepartmentRow; data: DepartmentsData }) 
         <span className={k("cap")}>{D.clinicsCap}</span>
         {clinics.length ? (
           <div className={d.rlist}>
-            {clinics.map((c) => (
-              <Link key={c.id} href="/hospital-admin/clinics?view=clinics" className={d.ritem}>
-                <b>{c.name}</b>
-                <small>
-                  {c.status === "live" ? D.clinicLive : D.clinicPlanned} · {D.openClinic}
-                </small>
-              </Link>
-            ))}
+            {clinics.map((c) =>
+              // Clinics & schedule lists a clinic only while its department is live on Tether (ADR 0525).
+              onTether(c.departmentId) ? (
+                <Link key={c.id} href="/hospital-admin/clinics?view=clinics" className={d.ritem}>
+                  <b>{c.name}</b>
+                  <small>
+                    {c.status === "live" ? D.clinicLive : D.clinicPlanned} · {D.openClinic}
+                  </small>
+                </Link>
+              ) : (
+                <div key={c.id} className={d.ritem}>
+                  <b>{c.name}</b>
+                  <small>{D.clinicOff}</small>
+                </div>
+              ),
+            )}
           </div>
         ) : (
           <p className={k("su-note")}>{D.noClinics}</p>

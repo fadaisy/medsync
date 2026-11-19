@@ -5,12 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
-### Changed — The header Help steps aside only while the page draws its own red Help (ADR 0525, amends law L6) (phone) — 19 Nov 2026
+### Changed — The header Help steps aside only while the page draws its own red Help (ADR 0528, amends law L6) (phone) — 19 Nov 2026
 
 The owner wrote "help shouldn't be on every screen" and asked that the screens which lose it be found by Book's rule. **The rule:** a screen hides the header Help only while the page itself shows a red Help that opens `/help`, in view without scrolling, in that state, as its main action. Nothing loses Help for being calm, a form or a settings page; signed-out screens, the splash and the welcome keep it; otherwise L6 stands.
 
 - **One new case:** the danger interrupt (`mobile/src/app/(app)/danger.tsx`). Its first step ("Yes, get help now", red, pinned footer, opens `/help`) hides the header Help; the recheck step, where the red Help is a second button, keeps it. Behind `careMode` (still locked), the flow's "Get help now" steps do the same (`helpInPageFor` in `features/v2/my-care.tsx`, reported by `DangerFlowBody`).
-- **Every other red button keeps the header Help**, each for a stated reason in ADR 0525's table: the symptom checker's and the reading screens' red buttons open the emergency lines or the danger interrupt, not `/help`; Messages, Activity and the symptom note's red Help are not the page's main action; Home's and Today's danger card has no red Help button.
+- **Every other red button keeps the header Help**, each for a stated reason in ADR 0528's table: the symptom checker's and the reading screens' red buttons open the emergency lines or the danger interrupt, not `/help`; Messages, Activity and the symptom note's red Help are not the page's main action; Home's and Today's danger card has no red Help button.
 - **Tests:** the Help crawl names the case (`IN_PAGE_HELP`), so `danger.tsx` passes only with the switch tied to its red Help; the general check is not loosened. `features/safety/help-in-page.test.tsx` checks each in-page button is red and opens `/help`, and that the header Help returns on the recheck. `docs/mobile-tide/PROMPT-MOBILE-TIDE-V1.md` is the historical build prompt and is left as written.
 
 ### Added — "N ahead of you" on a booked visit, once the patient is at the hospital (phone) — 19 Nov 2026
@@ -104,6 +104,20 @@ Found by the owner in the iOS Simulator. No new strings.
 - The chosen "Who is this visit for?" chip (`book/index.tsx`): the initials washed out on the near-white chip in the dark scheme; they take the primary's ink there.
 - With the symptom questions off (the flag, or Gate CS not signed), "Something is wrong" promised "Pick an area. We ask a few questions…" and a "Tell us what is wrong" button that opened a screen saying only "This is not available yet." The card now says that sentence in place, with the red Help beside it, and offers no button. Nothing changes where the questions are on.
 - Not changed: the "Something is wrong" screen stays light in the dark scheme (law L11).
+
+### Added — Lab and pharmacy are not booked like clinics; lab test prices; costs on the patient website — 18 Nov 2026
+
+On the owner's word ("okay, build") after the discussion of lab and pharmacy bookings ([ADR 0527](docs/adr/0527-lab-and-pharmacy-are-not-booked-like-clinics.md)). Everything new is behind a flag and off by default. Not seen in a browser. Wording is draft.
+
+- Departments: only a department that sees patients in clinics has the Booking rules tab. The laboratory and the pharmacy get "Prices and hours"; other support and office departments get none.
+- Laboratory and imaging: a price per test (above zero or free, from a day; UGX 0 never stored), set by the hospital admin or the laboratory lead. Migration 0305 (GATED), flag `LAB_TEST_PRICES`.
+- Patient website: "What your tests cost" on Lab tests and "What your medicines cost" on Medicines, each with a total and "you pay at the hospital". Flag `PATIENT_PRICES`, off in production until the wording is signed.
+- Clinics & schedule week plan: each clinic's sessions are tinted in its assigned colour.
+
+### Changed — Admin: one source of truth for Live on Tether and for booking rules — 18 Nov 2026
+
+- A clinic whose department is off Tether is no longer listed in Clinics & schedule ([ADR 0525](docs/adr/0525-departments-own-live-on-tether.md)).
+- Days, hours and slot length are set once, on the clinic's week plan; Departments shows them ([ADR 0526](docs/adr/0526-booking-rules-set-once-on-the-clinic.md)).
 
 ### Changed — Patient app v2 is the phone's default; shell, Home and Tether brand — 18 Nov 2026
 

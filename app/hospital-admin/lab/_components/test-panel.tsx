@@ -1,19 +1,21 @@
 "use client";
 
 import type { MenuRow } from "../_lib/model";
-import type { Act } from "./shared";
+import type { Act, Prices } from "./shared";
 import type { Hours, MenuOffering, SectionKey } from "@/lib/lab/test-menu";
 import type { TestMenuData } from "@/lib/lab/test-menu-read";
 import { useState } from "react";
 
-import { Field, k, Seg } from "@/components/clinics-schedule/shared";
+import { Field, k, Seg, Toggle } from "@/components/clinics-schedule/shared";
 import { rowItem } from "@/components/lab/test-menu/test-menu";
 import { newKey } from "@/components/lab/test-menu/use-menu-action";
 import { LAB_ADMIN } from "@/content/hospital-admin/lab";
 import { LAB_TEST_MENU as C } from "@/content/lab-test-menu";
+import { parseUgx } from "@/lib/lab/prices";
 import { minutesWords, sectionName, SECTIONS } from "@/lib/lab/test-menu";
-import { saveOfferingsAction } from "@/lib/lab/test-menu-actions";
+import { saveOfferingsAction, saveTestPriceAction } from "@/lib/lab/test-menu-actions";
 import v from "./lab.module.css";
+import { chargeWords } from "./shared";
 
 /**
  * One test's detail (the prototype's panel, board 16): where it is done, its hours, the lab it goes to, the stated
@@ -24,11 +26,13 @@ export function TestPanel({
   row,
   data,
   act,
+  prices,
   onClose,
 }: {
   row: MenuRow;
   data: TestMenuData;
   act: Act;
+  prices: Prices;
   onClose: () => void;
 }) {
   const D = LAB_ADMIN.detail;
@@ -140,6 +144,10 @@ export function TestPanel({
         </div>
       ) : null}
 
+      {prices && row.o.where !== "not_offered" ? (
+        <PriceSection row={row} data={data} act={act} prices={prices} />
+      ) : null}
+
       <div className={k("su-sec")}>
         <Field as="label" label={C.sectionLabel}>
           <select
@@ -214,5 +222,86 @@ export function TestPanel({
         </p>
       </div>
     </aside>
+  );
+}
+
+/**
+ * The hospital's own price for this test (ADR 0527): above zero or free, from a day, never zero. A new price is a
+ * new row; the old one stays on record. A laboratory visit costs the total of its tests.
+ */
+function PriceSection({
+  row,
+  data,
+  act,
+  prices,
+}: {
+  row: MenuRow;
+  data: TestMenuData;
+  act: Act;
+  prices: NonNullable<Prices>;
+}) {
+  const P = LAB_ADMIN.price;
+  const now = prices.charges[row.t.code];
+  const [amount, setAmount] = useState(now?.kind === "priced" ? String(now.ugx) : "");
+  const [free, setFree] = useState(now?.kind === "free");
+  const [from, setFrom] = useState(prices.today);
+  const ugx = parseUgx(amount);
+  const same =
+    from === prices.today &&
+    (free ? now?.kind === "free" : now?.kind === "priced" && now.ugx === ugx);
+  const ok = from >= prices.today && (free || ugx !== null) && !same;
+  const save = () =>
+    act.run(
+      () =>
+        saveTestPriceAction({
+          surface: data.surface,
+          clientKey: newKey(),
+          code: row.t.code,
+          priceUgx: free ? null : ugx,
+          free,
+          fromDate: from,
+        }),
+      P.saved,
+    );
+  return (
+    <div className={k("su-sec")} data-tour="wt-lab-price">
+      <span className={k("cap")}>{P.cap}</span>
+      <p className={k("su-note")}>
+        {chargeWords(now) ? P.now.replace("{price}", chargeWords(now)!) : P.notSet}
+      </p>
+      <Toggle on={free} flip={() => setFree(!free)} t={P.isFree} />
+      {free ? null : (
+        <Field as="label" label={P.amount} hint={P.amountHint}>
+          <input
+            className={k("in")}
+            inputMode="numeric"
+            value={amount}
+            maxLength={12}
+            onChange={(e) => setAmount(e.target.value.replace(/[^\d,\s]/g, ""))}
+          />
+        </Field>
+      )}
+      <Field as="label" label={P.from} hint={P.fromHint}>
+        <input
+          className={k("in")}
+          type="date"
+          min={prices.today}
+          value={from}
+          onChange={(e) => setFrom(e.target.value)}
+        />
+      </Field>
+      {!free && amount.trim() && ugx === null ? <p className={k("su-note")}>{P.bad}</p> : null}
+      <div className={v.row}>
+        <button
+          type="button"
+          className={k("btn", "sm", "k")}
+          disabled={!ok || act.pending}
+          onClick={save}
+        >
+          {P.save}
+        </button>
+      </div>
+      <p className={k("su-note")}>{P.help}</p>
+    </div>
   );
 }

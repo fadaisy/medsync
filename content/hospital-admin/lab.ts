@@ -89,6 +89,23 @@ export const LAB_ADMIN = {
     save: "Save",
     remove: "Remove from the menu",
   },
+  /** ADR 0527: the hospital's own price per test. Draft wording. */
+  price: {
+    cap: "Price",
+    now: "Now: {price}",
+    notSet: "No price set. Patients are told to ask at the hospital, never shown zero.",
+    free: "Free",
+    amount: "Price in shillings",
+    amountHint: "whole shillings, above zero",
+    isFree: ["This test is free", "Patients are told it is free", "It has a price"],
+    from: "Starts on",
+    fromHint: "today or later; the old price stays on record",
+    save: "Save price",
+    saved: "Price saved",
+    bad: "Enter a price above zero, or mark the test free.",
+    help: "A laboratory visit costs the total of its tests. There is no department fee.",
+    priced: (k: number, of: number) => `${k} of ${of} tests on the menu have a price`,
+  },
   referrals: {
     note: "Where referred samples go. Clinicians see the lab when they order.",
     noLab: (names: string) =>

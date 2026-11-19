@@ -207,7 +207,7 @@ export function WellnessV2(p: { onOpen: (where: "move" | "mood" | "eat") => void
 
 /**
  * The steps whose main action is the red "Get help now", which opens Help and is the first thing under the
- * words. While one shows, the danger screen hides its header Help (ADR 0525, amending law L6).
+ * words. While one shows, the danger screen hides its header Help (ADR 0528, amending law L6).
  */
 export function helpInPageFor(s: FlowStep): boolean {
   return s.step === "help" || s.step === "help_now";

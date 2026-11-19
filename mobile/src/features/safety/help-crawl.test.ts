@@ -5,7 +5,7 @@ import { join, relative } from "path";
  * Law L6, the Help route crawl: every route under `src/app` must show the red
  * Help. A route passes when it renders the Tide `<Screen>` (which draws Help)
  * without `help="none"`, or renders `<HelpButton>` itself. Only Help may opt
- * out, because it is the destination. ADR 0525 amends L6: a page may hide the
+ * out, because it is the destination. ADR 0528 amends L6: a page may hide the
  * header Help only while it draws its own red Help that opens /help, in view,
  * as its main action — Book's "Something is wrong" card and the cases named
  * in `IN_PAGE_HELP`. Layouts and `dev/` are not routes a
@@ -28,7 +28,7 @@ function routes(dir: string): string[] {
 }
 
 /**
- * The pages that hide the header Help by ADR 0525's rule (amending L6, owner 19 Nov 2026), by name, each with
+ * The pages that hide the header Help by ADR 0528's rule (amending L6, owner 19 Nov 2026), by name, each with
  * what must hold for it: the switch is set by the very state that draws the red Help opening /help as the
  * page's main action, in view without scrolling. A swap on one of these files passes only with all of them.
  */
@@ -115,7 +115,7 @@ describe("law L6: Help is reachable on every route", () => {
     expect(helpNow).toMatch(/push\("\/help"\)/);
   });
 
-  it("the danger interrupt hides its header Help only in the states that draw the red Help (ADR 0525)", () => {
+  it("the danger interrupt hides its header Help only in the states that draw the red Help (ADR 0528)", () => {
     const danger = readFileSync(join(APP, "(app)/danger.tsx"), "utf8");
     expect(helpViolation("(app)/danger.tsx", danger)).toBeNull();
     // Each named condition is needed: the same file with the switch set by another state fails.

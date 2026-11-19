@@ -2,7 +2,14 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { rulesSummary, UNSET_RULES } from "@/app/hospital-admin/departments/_lib/model";
+import {
+  bookedAs,
+  clinicWeeks,
+  isNarrowed,
+  rulesSummary,
+  UNSET_RULES,
+  windowToSave,
+} from "@/app/hospital-admin/departments/_lib/model";
 import { fmtPhone, parseCoords, show } from "@/app/hospital-admin/departments/emergency/_lib/model";
 import { DEPARTMENTS_COPY_STATUS } from "@/content/hospital-admin/departments";
 import { EMERGENCY_COPY_STATUS } from "@/content/hospital-admin/emergency";
@@ -120,6 +127,76 @@ describe("Departments in the desk", () => {
   it("summarises booking rules in one line; no rules reads as unrestricted", () => {
     expect(rulesSummary(UNSET_RULES)).toBe("Mon–Fri · 08:00–17:00 · 15 min");
     expect(rulesSummary(null)).toMatch(/any day, any hour/);
+  });
+
+  describe("booking rules are set once (ADR 0526)", () => {
+    const clinics = [
+      { id: "c-ent", name: "ENT clinic", departmentId: "d-ent", unitId: null, status: "live" },
+      { id: "c-eye", name: "Eye clinic", departmentId: "u-eye", unitId: null, status: "planned" },
+      { id: "c-old", name: "Old clinic", departmentId: "d-ent", unitId: null, status: "archived" },
+      { id: "c-den", name: "Dental", departmentId: "d-den", unitId: null, status: "live" },
+    ];
+    const sessions = [
+      { clinicId: "c-ent", weekday: 1, start: 480, end: 780, slot: 15 },
+      { clinicId: "c-ent", weekday: 3, start: 540, end: 720, slot: 20 },
+      { clinicId: "c-ent", weekday: 2, start: 480, end: 780, slot: 15 },
+      { clinicId: "c-eye", weekday: 5, start: 600, end: 840, slot: 30 },
+      { clinicId: "c-old", weekday: 6, start: 480, end: 600, slot: 15 },
+    ];
+
+    it("a department's days, hours and slot length are read from its clinics' week plans", () => {
+      const weeks = clinicWeeks(["d-ent", "u-eye"], clinics, sessions);
+      expect(weeks.map((w) => w.name)).toEqual(["ENT clinic", "Eye clinic"]);
+      expect(rulesSummary(weeks[0]!.rules)).toBe("Mon–Wed · 08:00–13:00 · 15 min");
+      expect(rulesSummary(weeks[1]!.rules)).toBe("Fri · 10:00–14:00 · 30 min");
+    });
+
+    it("a department whose clinics have no week plan yet still sets its own rules", () => {
+      expect(clinicWeeks(["d-den"], clinics, sessions)).toEqual([]);
+    });
+
+    it("saving a clinic-led department never stores a second set of days and hours", () => {
+      const typed = { ...UNSET_RULES, days: [1, 2], start: 540, end: 600 };
+      expect(windowToSave(typed, true)).toEqual({
+        days: [1, 2, 3, 4, 5, 6, 7],
+        start: 0,
+        end: 1440,
+      });
+      expect(windowToSave(typed, false)).toEqual({ days: [1, 2], start: 540, end: 600 });
+      expect(isNarrowed(UNSET_RULES)).toBe(true);
+      expect(isNarrowed({ ...UNSET_RULES, ...windowToSave(typed, true) })).toBe(false);
+    });
+
+    it("the panel asks for days, hours and slot length only when no clinic holds them", () => {
+      const src = read("app/hospital-admin/departments/_components/department-detail.tsx");
+      expect(src).toMatch(/clinicLed \? \(/);
+      expect(src).toMatch(/windowToSave\(v, clinicLed\)/);
+      expect(read("app/hospital-admin/departments/page.tsx")).toContain("loadClinicSessions(h)");
+    });
+  });
+
+  describe("lab and pharmacy are not booked like clinics (ADR 0527)", () => {
+    const dept = (kind: string, catalogueCode: string | null) => ({ kind, catalogueCode });
+    it("a clinical department is booked through clinics", () => {
+      expect(bookedAs(dept("clinical", "ENT"), false)).toBe("clinic");
+    });
+    it("the laboratory is priced by test and the pharmacy by medicine, with no clinic booking rules", () => {
+      expect(bookedAs(dept("diagnostic", "LABORATORY"), false)).toBe("tests");
+      expect(bookedAs(dept("support", "PHARMACY"), false)).toBe("medicines");
+    });
+    it("other support and office departments take no bookings", () => {
+      expect(bookedAs(dept("administrative", "RECORDS_HEALTH_INFO"), false)).toBe("none");
+      expect(bookedAs(dept("support", "MORTUARY"), false)).toBe("none");
+    });
+    it("a department that really runs a clinic keeps its clinic rules, whatever its kind", () => {
+      expect(bookedAs(dept("diagnostic", "RADIOLOGY_IMAGING"), true)).toBe("clinic");
+      expect(bookedAs(dept("support", "NUTRITION_DIETETICS"), true)).toBe("clinic");
+    });
+    it("the panel shows the Booking rules tab only for a department booked through clinics", () => {
+      const src = read("app/hospital-admin/departments/_components/department-detail.tsx");
+      expect(src).toMatch(/mode === "clinic" \?/);
+      expect(src).toContain("<PricedByItem");
+    });
   });
 
   it("the new wording is a draft until the CSO signs", () => {

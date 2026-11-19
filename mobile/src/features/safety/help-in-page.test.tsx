@@ -9,7 +9,7 @@ import { ThemeProvider } from "@/theme/theme";
 import { tideLight } from "@/theme/tide";
 
 /**
- * ADR 0525 (amending law L6, owner 19 Nov 2026): a screen hides the header Help only while the page itself shows
+ * ADR 0528 (amending law L6, owner 19 Nov 2026): a screen hides the header Help only while the page itself shows
  * a red Help that opens /help, in view, as its main action. The danger interrupt is the one new case: its first
  * step, and in Care mode the flow's "Get help now" steps. Each in-page button is red and opens /help.
  */
@@ -56,7 +56,7 @@ const fillsOf = (label: string) => fills(screen.getByLabelText(label) as unknown
 
 jest.setTimeout(30_000);
 
-describe("the danger interrupt (ADR 0525)", () => {
+describe("the danger interrupt (ADR 0528)", () => {
   beforeEach(() => mockPush.mockClear());
 
   it("its first step hides the header Help, and its own red Help opens /help", async () => {
@@ -83,7 +83,7 @@ describe("the danger interrupt (ADR 0525)", () => {
   });
 });
 
-describe("the Care mode danger flow (ADR 0525)", () => {
+describe("the Care mode danger flow (ADR 0528)", () => {
   beforeEach(() => mockPush.mockClear());
 
   it("only the Help steps count as Help on the page", () => {

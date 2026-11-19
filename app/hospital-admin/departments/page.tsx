@@ -32,7 +32,7 @@ import {
   signedPresetFor,
 } from "@/supabase/functions/_shared/services-hub";
 import { DepartmentsDesk } from "./_components/departments-desk";
-import { loadBookingRules } from "./_lib/booking";
+import { loadBookingRules, loadClinicSessions } from "./_lib/booking";
 
 export const metadata: Metadata = { title: DEPTS.title };
 export const dynamic = "force-dynamic";
@@ -62,6 +62,7 @@ export default async function DepartmentsPage({ searchParams }: { searchParams: 
     wards,
     points,
     rules,
+    sessions,
     now,
     events,
     tests,
@@ -78,6 +79,7 @@ export default async function DepartmentsPage({ searchParams }: { searchParams: 
     loadWards(h),
     loadDispensingServes(h),
     loadBookingRules(h),
+    loadClinicSessions(h),
     availabilityNow(h),
     loadAvailabilityEvents(h, 90),
     loadTestCatalogue(),
@@ -189,6 +191,7 @@ export default async function DepartmentsPage({ searchParams }: { searchParams: 
         goLive,
         pharmacyDemo,
         rules,
+        sessions,
         firstRun: {
           preset: preset
             ? {

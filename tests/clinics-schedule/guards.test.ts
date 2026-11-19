@@ -8,6 +8,15 @@ const ui = files(UI).filter((f) => f.endsWith(".tsx"));
 const read = (f: string) => readFileSync(f, "utf8");
 
 describe("guards (Appendix C)", () => {
+  it("every screen draws the on-Tether view: a clinic of a department that is off Tether is listed nowhere", () => {
+    const ws = read(`${UI}/workspace.tsx`);
+    expect(ws).toMatch(/onTether\(snap, deptLive\)/);
+    expect(ws).toMatch(/view: shown,/);
+    expect(ws).not.toMatch(/view: snap,/);
+    // the editor never offers a department that would make the clinic vanish
+    expect(read(`${UI}/clinics.tsx`)).toMatch(/x\.live \|\| id === c\.departmentId/);
+  });
+
   it("no raw colour outside the palette and the colour picker", () => {
     for (const f of [...ui, `${UI}/cs.module.css`]) {
       if (f.endsWith("clinics.tsx")) continue; // the picker draws its own hue and shade gradients
