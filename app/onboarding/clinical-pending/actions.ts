@@ -37,7 +37,7 @@ export async function updateMyPhotoAction(
 
 /**
  * The optional qualification for cadres whose grade doesn't change scope (PROFILE_GRADES: clinical
- * officer, lab technician). Saves cadre_grade_id on the caller's own latest affiliation; "" clears it.
+ * officer, lab technician). Saves cadre_grade_id on the caller's own affiliations in that cadre; "" clears it.
  */
 export async function saveMyGradeAction(
   _prev: DetailsState,
@@ -80,7 +80,8 @@ export async function saveMyGradeAction(
   const { error } = await service
     .from("staff_affiliations")
     .update({ cadre_grade_id: gradeId })
-    .eq("id", aff.id)
+    // Every hospital where they hold this post (ADR 0530): one qualification, not one per hospital.
+    .eq("cadre_id", aff.cadre_id)
     .eq("user_id", uid);
   if (error) {
     logger.error("staff-pending.grade_failed", { reason: error.message });
