@@ -10,12 +10,20 @@
 
 export interface DangerThresholds {
   version: string;
-  bp: { dangerTopAtLeast: number; dangerBottomAtLeast: number };
+  bp: {
+    dangerTopAtLeast: number;
+    dangerBottomAtLeast: number;
+    /** 0.3.0, pending CSO: a top number under this is "Too low", unless it is a typing slip (below). */
+    dangerLowTopBelow: number;
+    implausibleTopBelow: number;
+    implausibleBottomBelow: number;
+  };
   sugar: { dangerLowBelow: number; dangerHighAtLeast: number };
   pulse: { dangerBelow: number; dangerAbove: number };
 }
 
-export type DangerKind = "very_high_bp" | "low_sugar" | "high_sugar" | "pulse";
+/** `low_bp` is already allowed by `care_alerts.kind` (migration 0301). */
+export type DangerKind = "very_high_bp" | "low_bp" | "low_sugar" | "high_sugar" | "pulse";
 
 export type DangerInput =
   | { kind: "bp"; top: number | null; bottom: number | null }
@@ -30,9 +38,12 @@ export function dangerOf(input: DangerInput, t: DangerThresholds): DangerKind | 
   switch (input.kind) {
     case "bp":
       if (!filled(input.top) || !filled(input.bottom)) return null;
-      return input.top >= t.bp.dangerTopAtLeast || input.bottom >= t.bp.dangerBottomAtLeast
-        ? "very_high_bp"
-        : null;
+      if (input.top >= t.bp.dangerTopAtLeast || input.bottom >= t.bp.dangerBottomAtLeast)
+        return "very_high_bp";
+      // Same order as checkReading: a number this low is first taken as a typing slip, not a danger.
+      if (input.top < t.bp.implausibleTopBelow || input.bottom < t.bp.implausibleBottomBelow)
+        return null;
+      return input.top < t.bp.dangerLowTopBelow ? "low_bp" : null;
     case "sugar":
       if (!filled(input.value)) return null;
       if (input.value < t.sugar.dangerLowBelow) return "low_sugar";

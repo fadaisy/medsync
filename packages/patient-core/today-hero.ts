@@ -8,7 +8,7 @@
  */
 
 export interface TodayState {
-  danger: { kind: "low_sugar" | "high_sugar" | "very_high_bp" | "pulse"; at: string } | null;
+  danger: { kind: "low_sugar" | "high_sugar" | "very_high_bp" | "low_bp" | "pulse"; at: string } | null;
   teamAsks: { id: string; from: string; at: string } | null;
   dueNow: { kind: "dose" | "check"; key: string; label: string; dueAt: string } | null;
   visitToday: { appointmentId: string; window: string } | null;

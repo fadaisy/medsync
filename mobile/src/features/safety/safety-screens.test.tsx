@@ -1,5 +1,5 @@
 import rules from "@clinical-rules/patient-thresholds.v0.json";
-import { dangerFor } from "@patient-core/danger-flow";
+import { dangerFor, startFlow } from "@patient-core/danger-flow";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { Linking, StyleSheet, Text } from "react-native";
@@ -153,16 +153,18 @@ describe("danger params", () => {
       context: "random",
     });
   });
-  it("a blood pressure that is too low opens the danger card, with no care flow and no alert kind", () => {
-    // Thresholds 0.3.0, pending CSO: the server's rule has no such band yet, so `dangerFor` gives no kind and
-    // the danger screen shows its own card (signs, Help, recheck) even with Care mode on.
+  it("a blood pressure that is too low is a danger, kind low_bp, which goes to Help now", () => {
+    // Thresholds 0.3.0, pending CSO: the server's rule carries the same band, so the care team is told.
     const top = rules.bp.dangerLowTopBelow - 4;
     const input = readingFromParams({
       kind: "bp",
       value: readingValueText({ kind: "bp", top, bottom: 50 }),
     });
     expect(checkReading(input)).toMatchObject({ level: "danger", text: "Too low" });
-    expect(dangerFor(input)).toBeNull();
+    expect(dangerFor(input)).toBe("low_bp");
+    expect(startFlow("low_bp")).toEqual({ flow: "other", step: "help_now" });
+    // A typing slip is still not a danger, on either side.
+    expect(dangerFor({ kind: "bp", top: rules.bp.implausibleTopBelow - 1, bottom: 50 })).toBeNull();
   });
   it("reads pulse and treats junk as empty", () => {
     expect(readingFromParams({ kind: "pulse", value: "140" })).toEqual({

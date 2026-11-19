@@ -415,7 +415,7 @@ export function DangerFlowWeb({
   kind,
   saveReading,
 }: {
-  kind: "low_sugar" | "very_high_bp" | "high_sugar" | "pulse";
+  kind: "low_sugar" | "very_high_bp" | "low_bp" | "high_sugar" | "pulse";
   saveReading: (
     input:
       | { kind: "sugar"; value: number; context: "random" }
