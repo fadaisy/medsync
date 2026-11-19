@@ -5,10 +5,11 @@
  * until it can be (S18).
  */
 import type { CareData } from "@/data/care-v2";
+import type { HomeCare, TrendMetric } from "@/features/v2/home-top";
 import type { CardReading, DoseTick, PlanSlot } from "@patient-core/care-plan";
-import type { Hero } from "@patient-core/today-hero";
-import { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+import type { Hero, TodayState } from "@patient-core/today-hero";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
 import { CARE_V2_COPY } from "@content/patient-app/care";
 import { careTodayState, kampalaDayKey, medsWeek, planDay, tenDays } from "@patient-core/care-plan";
 import { UNITS } from "@patient-core/readings";
@@ -25,19 +26,41 @@ import { CarePlanV2, CareTodayV2, MedicinesV2 } from "./care-today";
 const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const kampalaClock = (d: Date) => new Date(d.getTime() + 3 * 3600_000).toISOString().slice(11, 16);
 
-/** The patient's care rows plus ticks made on this phone since the last load. */
-function useCare() {
+/** Words for the hero: the team, never a name; the alert's time in Kampala. */
+function heroWords(state: TodayState): TodayState {
+  return {
+    ...state,
+    danger: state.danger ? { ...state.danger, at: kampalaClock(new Date(state.danger.at)) } : null,
+    teamAsks: state.teamAsks ? { ...state.teamAsks, from: CARE_V2_COPY.hero.teamFrom } : null,
+  };
+}
+
+/** The readings a programme follows, in the order its cards are shown. */
+function programmeMetrics(programme: string): TrendMetric[] {
+  return programme === "diabetes" ? ["sugar", "weight"] : programme === "hypertension" ? ["bp", "weight"] : ["sugar", "bp", "weight"];
+}
+
+/**
+ * The patient's care rows plus ticks made on this phone since the last load. `turn` reads them again when it
+ * changes (Home, on focus); `loaded` tells "not read yet" from "not in a care programme".
+ */
+function useCare(turn = 0) {
   const now = useNow();
   const [care, setCare] = useState<CareData | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [local, setLocal] = useState<DoseTick[]>([]);
   const [note, setNote] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
-    void loadCare().then((c) => live && setCare(c));
+    void loadCare().then((c) => {
+      if (!live) return;
+      setCare(c);
+      setLoaded(true);
+    });
     return () => {
       live = false;
     };
-  }, []);
+  }, [turn]);
   const ticks = [...(care?.ticks ?? []), ...local];
   const slots = care ? planDay(care.items, ticks, kampalaDayKey(now), now) : [];
   const week = care
@@ -59,7 +82,7 @@ function useCare() {
     if (r === "failed") setLocal((l) => l.filter((x) => x !== t));
     setNote(r === "queued" ? CARE_V2_COPY.plan.offline : null);
   };
-  return { now, care, ticks, slots, week, tick, note };
+  return { now, care, loaded, ticks, slots, week, tick, note };
 }
 
 export function CareTodayV2Route() {
@@ -68,16 +91,9 @@ export function CareTodayV2Route() {
   const { readings } = useReadings();
   if (!care) return null;
   const state = careTodayState({ items: care.items, ticks, alerts: care.alerts, asks: care.asks, visitToday: null, now });
-  // Words for the hero: the team, never a name; the alert's time in Kampala.
-  const hero: Hero = heroFor({
-    ...state,
-    danger: state.danger ? { ...state.danger, at: kampalaClock(new Date(state.danger.at)) } : null,
-    teamAsks: state.teamAsks ? { ...state.teamAsks, from: CARE_V2_COPY.hero.teamFrom } : null,
-  });
+  const hero: Hero = heroFor(heroWords(state));
   const card = readings as unknown as CardReading[];
-  const metrics: ("sugar" | "bp" | "weight")[] =
-    care.programme === "diabetes" ? ["sugar", "weight"] : care.programme === "hypertension" ? ["bp", "weight"] : ["sugar", "bp", "weight"];
-  const snippets = metrics.map((m) => ({ metric: m, ctx: "fasting" as const, unit: UNITS[m], ...tenDays(card, m, now) }));
+  const snippets = programmeMetrics(care.programme).map((m) => ({ metric: m, ctx: "fasting" as const, unit: UNITS[m], ...tenDays(card, m, now) }));
   return (
     <CareTodayV2
       hero={hero}
@@ -98,6 +114,55 @@ export function CareTodayV2Route() {
       onSeePlan={() => router.push("/care/plan")}
     />
   );
+}
+
+/**
+ * What Home's top card reads in Care mode (home-top.tsx): the same rows, rules and words as Today, so the two
+ * never disagree, and no call Today does not already make. Read again each time Home takes focus, so a reading
+ * that needs action or a dose just ticked shows on the way back. Only mounted while `careMode` is on.
+ *
+ * The trend card is one measure: the first of the programme's that has a reading in the last seven days, or
+ * the programme's first when none has, so the card still offers "Log a reading".
+ */
+export function useHomeCare(): HomeCare {
+  const router = useRouter();
+  const [turn, setTurn] = useState(0);
+  const mounted = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      // The first focus is the mount, which `useCare` has already read for.
+      if (mounted.current) setTurn((n) => n + 1);
+      mounted.current = true;
+    }, []),
+  );
+  const { now, care, loaded, ticks, slots, tick } = useCare(turn);
+  const { readings } = useReadings();
+  if (!loaded) return { state: "loading" };
+  if (!care) return { state: "none" };
+  const today = heroWords(
+    careTodayState({ items: care.items, ticks, alerts: care.alerts, asks: care.asks, visitToday: null, now }),
+  );
+  const card = readings as unknown as CardReading[];
+  const weeks = programmeMetrics(care.programme).map((m) => {
+    const ten = tenDays(card, m, now);
+    return { metric: m, ctx: "fasting" as const, unit: UNITS[m], days: ten.days.slice(-7), weekAgo: ten.weekAgo };
+  });
+  const trend = weeks.find((w) => w.days.some((d) => d.value !== null)) ?? weeks[0] ?? null;
+  return {
+    state: "ready",
+    today,
+    trend,
+    onHeroAction: (hero) => {
+      if (hero.kind === "danger") router.push("/help");
+      if (hero.kind === "team") router.push("/care/messages");
+      if (hero.kind === "due") {
+        const s = slots.find((x) => x.key === hero.due.key);
+        if (s) void tick(s);
+      }
+    },
+    onLog: (m) => router.push({ pathname: "/care/reading", params: { kind: m } }),
+    onSeeAll: () => router.push("/care/trends"),
+  };
 }
 
 /** The Plan page's body; its route file draws the Tide `<Screen>` (and so Help, law L6). */

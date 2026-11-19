@@ -10,9 +10,16 @@
  * `HomeV2View` is props-driven, so the dev gallery renders it on fixtures. No red, amber or green here: nothing on
  * this page is a clinical state (MR5). No queue numbers, and the stage is never a number (MR4). Results are free
  * whatever the plan (MR9).
+ *
+ * In Care mode (`careMode`, locked until Gate CG) the route also passes `care`, and the top card is then chosen
+ * by `homeTop` (home-top.tsx): a reading that needs action, a question from the team, something due, a near
+ * visit, the week's readings, or the visit card. When it is not the visit card, the visit sits in one quiet row
+ * under it (`VisitRow`). Without `care` this page is the visit card, exactly as before. The one red card is the
+ * danger hero, drawn by `HeroCard` in its own allowlisted file; amber and green are only on the trend card.
  */
 import type { IconName } from "@/components/tide";
 import type { TicketV2Props } from "@/components/tide/v2";
+import type { HomeCare } from "@/features/v2/home-top";
 import type { StageView } from "@patient-core/visit-stages";
 import type { ReactNode } from "react";
 import { CARE_V2_COPY as CARE } from "@content/patient-app/care";
@@ -24,6 +31,8 @@ import Animated, { useReducedMotion } from "react-native-reanimated";
 
 import { Avatar, Button, Card, Icon, Press, SectionHead, SkeletonCard } from "@/components/tide";
 import { spokenCode } from "@/components/tide/v2";
+import { HeroCard } from "@/components/tide/v2-hero";
+import { homeTop, HomeTrendCard } from "@/features/v2/home-top";
 import { EASE_OUT } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
@@ -32,7 +41,14 @@ export type HomeVisit =
   | { state: "loading" }
   | { state: "failed" }
   | { state: "none" }
-  | { state: "ready"; ticket: TicketV2Props; stage: StageView; today: boolean };
+  | {
+      state: "ready";
+      ticket: TicketV2Props;
+      stage: StageView;
+      today: boolean;
+      /** The visit is tomorrow: with today, what "near" means for the top card in Care mode. */
+      tomorrow?: boolean;
+    };
 
 /** The phone holds the tests a clinician ordered and no result values yet (ADR 0342 §2). */
 export type HomeResults = { state: "off" } | { state: "ordered"; tests: number; note: string };
@@ -45,6 +61,8 @@ export interface HomeV2Props {
   doctors?: ReactNode;
   /** The ways to the patient's own log while Care mode is locked: readings, medicines and Wellness. */
   careLink: boolean;
+  /** Care mode only: what the top card may show in place of the visit. Left out, Home is the visit card. */
+  care?: HomeCare;
   onOpenVisit: () => void;
   onRetryVisit: () => void;
   onBookToday: () => void;
@@ -61,7 +79,7 @@ export interface HomeV2Props {
 export function HomeV2View(p: HomeV2Props) {
   return (
     <View style={{ gap: tSpace[6] }}>
-      <VisitCard {...p} />
+      {p.care ? <TopCard {...p} care={p.care} /> : <VisitCard {...p} />}
       <CareGroup {...p} />
       <People {...p} />
       {p.doctors}
@@ -73,6 +91,104 @@ export function HomeV2View(p: HomeV2Props) {
 export function visitDayLine(ticket: Pick<TicketV2Props, "day" | "dayLine">): string {
   const [weekday, month] = ticket.dayLine.split(" · ");
   return month ? `${weekday} ${ticket.day} ${month}` : `${ticket.day} ${ticket.dayLine}`;
+}
+
+/* ─── The top card in Care mode ──────────────────────────────────────────────── */
+
+/**
+ * What matters most right now, by `homeTop`. While the care rows load the card waits, so it never shows the
+ * visit and then swaps. Anything that is not the visit card has the visit in a row under it.
+ */
+function TopCard(p: HomeV2Props & { care: HomeCare }) {
+  const c = p.care;
+  if (c.state === "loading")
+    return <SkeletonCard label="Loading your visits" lines={3} height={236} />;
+  if (c.state === "none") return <VisitCard {...p} />;
+  const top = homeTop({ today: c.today, visit: p.visit, trend: c.trend !== null });
+  if (top.kind === "visit") return <VisitCard {...p} />;
+  const trend = c.trend;
+  return (
+    <View style={{ gap: tSpace[4] }}>
+      {top.kind === "trends" ? (
+        trend ? (
+          <HomeTrendCard trend={trend} onLog={() => c.onLog(trend.metric)} onSeeAll={c.onSeeAll} />
+        ) : null
+      ) : (
+        <HeroCard hero={top.hero} onAction={() => c.onHeroAction(top.hero)} />
+      )}
+      <VisitRow {...p} />
+    </View>
+  );
+}
+
+/**
+ * The visit, in one quiet row under a top card that is showing something else: the next visit and its day,
+ * today's visit with its code, a failed load with the way to try again, or "No visit booked" leading to
+ * booking. Never a stage as a number (MR4) and never an hour that is not the ticket's own window.
+ */
+function VisitRow(p: HomeV2Props) {
+  const t = useTide();
+  const v = p.visit;
+  // Still loading: nothing to say yet, and the row arrives with the answer.
+  if (v.state === "loading") return null;
+  const row =
+    v.state === "failed"
+      ? { title: H.phone.visitFailed, line: H.phone.retry, code: null, go: p.onRetryVisit }
+      : v.state === "none"
+        ? { title: H.none, line: H.noneNote, code: null, go: p.onBookDay }
+        : v.today
+          ? {
+              title: H.today,
+              line: v.stage.index === 0 ? V.ticket.showCode : v.stage.label,
+              code: v.ticket.code,
+              go: p.onOpenVisit,
+            }
+          : {
+              title: H.next,
+              line: `${visitDayLine(v.ticket)} · ${v.ticket.clinic}`,
+              code: v.tomorrow ? v.ticket.code : null,
+              go: p.onOpenVisit,
+            };
+  return (
+    <Press
+      testID="home-visit-row"
+      onPress={row.go}
+      accessibilityRole={v.state === "failed" ? "button" : "link"}
+      accessibilityLabel={[row.title, row.line, row.code ? spokenCode(row.code) : null]
+        .filter(Boolean)
+        .join(". ")}
+      style={{
+        minHeight: 68,
+        paddingVertical: tSpace[3],
+        paddingHorizontal: tSpace[3.5],
+        borderRadius: tRadius.cardLg,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: tSpace[3],
+        backgroundColor: t.surface,
+        boxShadow: t.shadow.card,
+      }}
+    >
+      <View
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: t.surface2,
+        }}
+      >
+        <Icon name="calendar" size={20} color={t.area.visits} />
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>{row.title}</Text>
+        <Text style={[tType.bodyS, { color: t.ink2 }]}>{row.line}</Text>
+      </View>
+      {row.code ? <CodePill code={row.code} announce={false} /> : null}
+      <Icon name="forward" size={20} color={t.ink3} />
+    </Press>
+  );
 }
 
 /* ─── The visit card ─────────────────────────────────────────────────────────── */
@@ -178,12 +294,12 @@ function VisitCard(p: HomeV2Props) {
 }
 
 /** The visit code, small, in the card's corner. Read out letter by letter. */
-function CodePill({ code }: { code: string }) {
+function CodePill({ code, announce = true }: { code: string; announce?: boolean }) {
   const t = useTide();
   return (
     <View
-      accessible
-      accessibilityLabel={spokenCode(code)}
+      accessible={announce}
+      accessibilityLabel={announce ? spokenCode(code) : undefined}
       style={{
         height: 28,
         paddingHorizontal: tSpace[3],

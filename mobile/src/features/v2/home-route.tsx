@@ -7,9 +7,15 @@
  * The care parts of the old Home (mood, doses, readings) are not here: the signed matrix moves them to Today
  * (3.1 to 5.1), which is Care mode. While Care mode is locked the page links to the Care screen and to
  * Wellness instead, so nothing the patient logged is out of reach.
+ *
+ * In Care mode (`careMode`, locked until Gate CG) the top card is what matters most right now (home-top.tsx),
+ * on the rows Today already reads (`useHomeCare`). With the flag off none of that is mounted or loaded, and
+ * Home is the visit card as before.
  */
 import type { HomeVisit } from "@/features/v2/home";
+import type { HomeCare } from "@/features/v2/home-top";
 import type { HouseholdMember } from "@/lib/booking";
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { HOME_V2_COPY as H } from "@content/patient-app/home";
 import { stageOf } from "@patient-core/visit-stages";
@@ -25,6 +31,7 @@ import { loadPayStatus, ticketFor } from "@/data/visit-v2";
 import { loadWeek } from "@/data/visits";
 import { Doctors } from "@/features/home/doctors";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
+import { useHomeCare } from "@/features/v2/care-routes";
 import { useHeaderIdentity } from "@/features/v2/header-avatar";
 import { HomeV2View } from "@/features/v2/home";
 import { sinceBoot, track } from "@/lib/analytics";
@@ -53,13 +60,20 @@ async function fetchVisit(me: string): Promise<Visit> {
   const next = nextVisit(week.upcoming);
   if (!next) return { state: "none" };
   const pay = (await loadPayStatus([next.id]).catch(() => null))?.get(next.id);
+  const day = kampalaDay(new Date(next.startsAtIso));
   return {
     state: "ready",
     id: next.id,
     ticket: ticketFor(next, pay, me),
     stage: stageOf(next.status, null),
-    today: kampalaDay(new Date(next.startsAtIso)) === kampalaDay(now),
+    today: day === kampalaDay(now),
+    tomorrow: day === kampalaDay(new Date(now.getTime() + 86_400_000)),
   };
+}
+
+/** Care mode only: reads what the top card needs. Its own component, so nothing loads while the flag is off. */
+function WithHomeCare({ children }: { children: (care: HomeCare) => ReactNode }) {
+  return children(useHomeCare());
 }
 
 /** The greeting for right now: Home's one large title. */
@@ -122,45 +136,50 @@ export function HomeV2Body() {
 
   const visitId = visit.state === "ready" ? visit.id : undefined;
 
+  const view = (care?: HomeCare) => (
+    <HomeV2View
+      visit={visit}
+      care={care}
+      results={
+        labs.status === "ready" && labs.latest
+          ? { state: "ordered", tests: labs.testCount, note: labs.latest.note }
+          : { state: "off" }
+      }
+      household={household.map((m) => ({ id: m.id, label: m.label }))}
+      // "See a doctor": the current list, which opens the doctor's own times (3.5, kept).
+      doctors={<Doctors />}
+      // Care mode has its own places once it is unlocked; until then Home opens the current care screens.
+      careLink={!flag("careMode")}
+      onOpenVisit={() => {
+        if (visitId) router.push(`/visits/${visitId}`);
+      }}
+      onRetryVisit={() => {
+        setVisit({ state: "loading" });
+        void loadVisit();
+      }}
+      onBookToday={() => router.push("/book/today")}
+      onBookDay={() => router.push("/book/day")}
+      onResults={() => router.push("/care/labs")}
+      onBookFor={(memberId) => {
+        const m = household.find((x) => x.id === memberId);
+        if (m)
+          router.push({
+            pathname: "/book/day",
+            params: { member: m.provisionalPatientId, memberName: m.label },
+          });
+      }}
+      onAddSomeone={() => router.push("/household")}
+      onCare={() => router.push("/care")}
+      onReadings={() => router.push("/care/trends")}
+      onMedicines={() => router.push("/care/medicines")}
+      onWellness={() => router.push("/wellness")}
+    />
+  );
+
   return (
     <View style={{ gap: tSpace[6] }}>
       {shareShown ? <ActiveShareBanner /> : null}
-      <HomeV2View
-        visit={visit}
-        results={
-          labs.status === "ready" && labs.latest
-            ? { state: "ordered", tests: labs.testCount, note: labs.latest.note }
-            : { state: "off" }
-        }
-        household={household.map((m) => ({ id: m.id, label: m.label }))}
-        // "See a doctor": the current list, which opens the doctor's own times (3.5, kept).
-        doctors={<Doctors />}
-        // Care mode has its own places once it is unlocked; until then Home opens the current care screens.
-        careLink={!flag("careMode")}
-        onOpenVisit={() => {
-          if (visitId) router.push(`/visits/${visitId}`);
-        }}
-        onRetryVisit={() => {
-          setVisit({ state: "loading" });
-          void loadVisit();
-        }}
-        onBookToday={() => router.push("/book/today")}
-        onBookDay={() => router.push("/book/day")}
-        onResults={() => router.push("/care/labs")}
-        onBookFor={(memberId) => {
-          const m = household.find((x) => x.id === memberId);
-          if (m)
-            router.push({
-              pathname: "/book/day",
-              params: { member: m.provisionalPatientId, memberName: m.label },
-            });
-        }}
-        onAddSomeone={() => router.push("/household")}
-        onCare={() => router.push("/care")}
-        onReadings={() => router.push("/care/trends")}
-        onMedicines={() => router.push("/care/medicines")}
-        onWellness={() => router.push("/wellness")}
-      />
+      {flag("careMode") ? <WithHomeCare>{view}</WithHomeCare> : view()}
     </View>
   );
 }

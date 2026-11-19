@@ -12,6 +12,8 @@ import { ThemeProvider } from "@/theme/theme";
  */
 const mockPush = jest.fn();
 const mockLoadWeek = jest.fn();
+const mockLoadCare = jest.fn();
+const mockUseReadings = jest.fn();
 jest.mock("expo-router", () => {
   const { useEffect } = jest.requireActual("react");
   return {
@@ -54,6 +56,12 @@ jest.mock("@/features/location-share/active-banner", () => ({
 }));
 jest.mock("@/features/home/doctors", () => ({ Doctors: () => null }));
 jest.mock("@/data/visits", () => ({ loadWeek: (now: Date) => mockLoadWeek(now) }));
+// Care mode's loaders, watched: with `careMode` off (the real flag, as shipped) Home must never call them.
+jest.mock("@/data/care-v2", () => ({ loadCare: () => mockLoadCare(), tickDose: jest.fn() }));
+jest.mock("@/data/readings", () => ({
+  ...jest.requireActual("@/data/readings"),
+  useReadings: () => mockUseReadings(),
+}));
 jest.mock("@/data/visit-v2", () => ({
   loadPayStatus: async () => new Map(),
   ticketFor: (_v: unknown, _pay: unknown, patient: string) => ({
@@ -91,6 +99,8 @@ describe("the Home route, v2", () => {
   beforeEach(() => {
     mockPush.mockClear();
     mockLoadWeek.mockReset();
+    mockLoadCare.mockReset();
+    mockUseReadings.mockReset();
   });
 
   it("greets by first name, carries the count on the avatar, and shows the next visit as the ticket", async () => {
@@ -117,6 +127,19 @@ describe("the Home route, v2", () => {
     // Care mode is locked, so the ways to the current care screens are there.
     expect(screen.getByText("Your care")).toBeTruthy();
     expect(screen.getByText("Wellness")).toBeTruthy();
+  });
+
+  it("with Care mode locked it reads no care rows, and the visit card has no row under it", async () => {
+    mockLoadWeek.mockResolvedValue({
+      upcoming: [{ id: "a1", status: "booked", startsAtIso: "2099-01-02T05:00:00.000Z" }],
+      past: [],
+    });
+    await mount();
+    await waitFor(() => expect(screen.getByText("Open your visit")).toBeTruthy());
+    expect(mockLoadCare).not.toHaveBeenCalled();
+    expect(mockUseReadings).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("home-visit-row")).toBeNull();
+    expect(screen.queryByText("Health trends")).toBeNull();
   });
 
   it("with nothing upcoming it shows the empty state", async () => {
