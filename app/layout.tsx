@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Figtree, Geist, Geist_Mono } from "next/font/googl
 
 import { EmergencyPill } from "@/components/emergency/emergency-pill";
 import { OPEN_GRAPH, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site-config";
+import { tabAccountScript } from "@/lib/supabase/tab-account";
 import { Providers, ScrubbedAnalytics } from "./providers";
 
 import "./globals.css";
@@ -111,6 +112,10 @@ export default function RootLayout({
       className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable} ${fontLab.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        {/* One account per tab (ADR 0529): inline and first, so every request Next makes carries it. */}
+        <script dangerouslySetInnerHTML={{ __html: tabAccountScript() }} />
+      </head>
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
         <Providers>
           {children}

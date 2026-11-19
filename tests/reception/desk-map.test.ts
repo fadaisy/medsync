@@ -1,7 +1,8 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { DESK } from "@/content/reception/desk";
-import { bookingRow, deskSessions, sexOf } from "@/lib/reception/desk/map";
+import { bookingRow, deskSessions, setUpClinics, sexOf } from "@/lib/reception/desk/map";
 
 const booking = (over: Partial<Parameters<typeof bookingRow>[0]> = {}) =>
   bookingRow({
@@ -56,5 +57,51 @@ describe("desk map", () => {
     ]);
     expect(out).toHaveLength(1);
     expect(out[0]).toMatchObject({ key: "2026-11-13|d1", sessionId: "s1", st: 8, en: 12 });
+  });
+});
+
+describe("the clinics a desk or clinic line shows are the ones the admin set up", () => {
+  const depts = [
+    { id: "d-ae", name: "Accident and Emergency", catalogueCode: "EMERGENCY" },
+    { id: "d-ent", name: "ENT", catalogueCode: "ENT" },
+    { id: "d-med", name: "Medicine", catalogueCode: "MEDICINE" },
+    { id: "u-chem", name: "Clinical Chemistry", catalogueCode: "CLIN_CHEM" },
+    { id: "u-alvin", name: "ALVIN Ward", catalogueCode: null },
+    { id: "d-den", name: "Dental", catalogueCode: "DENTAL" },
+  ];
+  const lines = [
+    { departmentId: "d-ent", name: "ENT clinic" },
+    { departmentId: "d-med", name: "Diabetes clinic" },
+    { departmentId: "d-med", name: "Hypertension clinic" },
+  ];
+
+  it("a lab section or a ward unit with no clinic is not listed", () => {
+    const shown = setUpClinics(depts, lines, new Set());
+    expect(shown.map((d) => d.id)).toEqual(["d-ae", "d-ent", "d-med"]);
+  });
+
+  it("the emergency department stays: it receives emergencies with no clinic set up", () => {
+    expect(setUpClinics(depts, [], new Set()).map((d) => d.id)).toEqual(["d-ae"]);
+  });
+
+  it("a department with one clinic carries the clinic's name; with several, its own", () => {
+    const shown = setUpClinics(depts, lines, new Set());
+    expect(shown.find((d) => d.id === "d-ent")!.name).toBe("ENT clinic");
+    expect(shown.find((d) => d.id === "d-med")!.name).toBe("Medicine");
+  });
+
+  it("nobody already in line vanishes: a department with a person today is kept", () => {
+    const shown = setUpClinics(depts, lines, new Set(["d-den"]));
+    expect(shown.map((d) => d.id)).toContain("d-den");
+    expect(shown.map((d) => d.id)).not.toContain("u-chem");
+  });
+
+  it("both the clinic line and the reception desk read the list this way", () => {
+    for (const f of ["lib/clinic-floor/load.ts", "lib/reception/desk/load.ts"]) {
+      const src = readFileSync(f, "utf8");
+      expect(src, f).toContain("setUpClinics(");
+      expect(src, f).toContain("listClinicDepartments(scope.hospitalId)");
+      expect(src, f).not.toContain("listHospitalDepartments(");
+    }
   });
 });

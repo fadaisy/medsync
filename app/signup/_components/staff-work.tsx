@@ -16,7 +16,6 @@ import {
 import { ChosenCard, SearchField } from "@/components/onboarding/search-field";
 import { STAFF_COMMON } from "@/content/onboarding";
 import { STAFF } from "@/content/onboarding-staff";
-import { cn } from "@/lib/utils";
 import { departmentsAction } from "../_actions/lookup";
 
 /*
@@ -30,6 +29,8 @@ export interface HospitalOption {
   name: string;
 }
 
+type Department = { id: string; name: string; code: string | null };
+
 export const EMPLOYMENT_OPTIONS = Object.entries(STAFF_COMMON.employmentOptions).map(
   ([value, label]) => ({ value, label }),
 );
@@ -41,6 +42,8 @@ export function WorkFields({
   departmentLabel,
   fixedDepartment,
   afterHospital,
+  prefix = "",
+  exclude,
   children,
 }: {
   hospitals: readonly HospitalOption[];
@@ -48,27 +51,37 @@ export function WorkFields({
   /** A catalogue code (LABORATORY, PHARMACY…): when the hospital has it live, it is chosen and not asked. */
   fixedDepartment?: string;
   afterHospital?: ReactNode;
+  /** For a hospital after the first (ADR 0530): the fields live under e.g. `moreWorkplaces.0.`. */
+  prefix?: string;
+  /** Hospitals already chosen elsewhere on the form: not offered again. */
+  exclude?: readonly string[];
   children?: ReactNode;
 }) {
+  const names = {
+    hospital: `${prefix}hospitalId`,
+    department: `${prefix}departmentId`,
+    employment: `${prefix}employmentType`,
+  };
   const { control, setValue } = useFormContext();
-  const { field: hospital } = useController({ name: "hospitalId", control });
-  const hospitalError = useFieldError("hospitalId");
+  const { field: hospital } = useController({ name: names.hospital, control });
+  const hospitalError = useFieldError(names.hospital);
   const chosen = hospitals.find((h) => h.id === hospital.value) ?? null;
-  const id = fieldId("hospitalId");
+  const id = fieldId(names.hospital);
 
   const search = useCallback(
-    (q: string) => (q ? hospitals.filter((h) => norm(h.name).includes(norm(q))) : [...hospitals]),
-    [hospitals],
+    (q: string) =>
+      hospitals.filter((h) => !exclude?.includes(h.id) && norm(h.name).includes(norm(q))),
+    [hospitals, exclude],
   );
   const pick = (next: string) => {
     hospital.onChange(next);
     hospital.onBlur();
-    setValue("departmentId", "", { shouldValidate: false }); // a department belongs to one hospital
+    setValue(names.department, "", { shouldValidate: false }); // a department belongs to one hospital
   };
 
   return (
     <>
-      <div className="flex min-w-0 flex-col gap-1.5" data-field="hospitalId">
+      <div className="flex min-w-0 flex-col gap-1.5" data-field={names.hospital}>
         <label htmlFor={id} className="text-body-s text-foreground font-medium">
           {STAFF_COMMON.hospital}
         </label>
@@ -90,16 +103,17 @@ export function WorkFields({
             invalid={!!hospitalError}
           />
         )}
-        <FieldError name="hospitalId" />
+        <FieldError name={names.hospital} />
         {afterHospital}
       </div>
       <DepartmentField
+        name={names.department}
         hospitalId={chosen?.id ?? ""}
         label={departmentLabel}
         fixedCode={fixedDepartment}
       />
       <ChoiceField
-        name="employmentType"
+        name={names.employment}
         label={STAFF_COMMON.employment}
         options={EMPLOYMENT_OPTIONS}
       />
@@ -114,19 +128,21 @@ export function WorkFields({
  * (the hospital has no such department yet) the select comes back, so no one is stuck.
  */
 function DepartmentField({
+  name,
   hospitalId,
   label,
   fixedCode,
 }: {
+  name: string;
   hospitalId: string;
   label: string;
   fixedCode?: string;
 }) {
   const { control } = useFormContext();
-  const { field } = useController({ name: "departmentId", control });
+  const { field } = useController({ name, control });
   const [loaded, setLoaded] = useState<{
     for: string;
-    rows: { id: string; name: string; code: string | null }[];
+    rows: Department[];
     failed?: boolean;
   }>({ for: "", rows: [] });
 
@@ -145,7 +161,7 @@ function DepartmentField({
   const ready = !!hospitalId && loaded.for === hospitalId;
   const rows = ready ? loaded.rows : [];
   const fixed = fixedCode ? rows.find((d) => d.code === fixedCode) : undefined;
-  const a11y = useFieldA11y("departmentId", !!fixed);
+  const a11y = useFieldA11y(name, !!fixed);
   const { value, onChange } = field;
   useEffect(() => {
     if (fixed && value !== fixed.id) onChange(fixed.id);
@@ -162,31 +178,46 @@ function DepartmentField({
 
   if (fixed)
     return (
-      <FieldShell name="departmentId" label={label} hint={STAFF.departmentFixed}>
+      <FieldShell name={name} label={label} hint={STAFF.departmentFixed}>
         <input {...a11y} readOnly value={fixed.name} className={inputClass} />
       </FieldShell>
     );
 
+  // The hospital's own departments, searched in place like the hospital (no system menu).
+  const chosen = ready ? rows.find((d) => d.id === value) : undefined;
+  const searchable = ready && rows.length > 0;
   return (
-    <FieldShell name="departmentId" label={label}>
-      <select
-        {...a11y}
-        name="departmentId"
-        value={ready ? (field.value ?? "") : ""}
-        onChange={(e) => field.onChange(e.target.value)}
-        onBlur={field.onBlur}
-        disabled={!ready || rows.length === 0}
-        className={cn(inputClass, "pr-8")}
-      >
-        <option value="" disabled>
-          {placeholder}
-        </option>
-        {rows.map((d) => (
-          <option key={d.id} value={d.id}>
-            {d.name}
-          </option>
-        ))}
-      </select>
+    <FieldShell name={name} label={label}>
+      {chosen ? (
+        <ChosenCard onChange={() => onChange("")}>
+          <p className="text-body-m text-foreground font-medium">{chosen.name}</p>
+        </ChosenCard>
+      ) : searchable ? (
+        <SearchField<Department>
+          id={a11y.id}
+          placeholder={placeholder}
+          search={(q) => rows.filter((d) => norm(d.name).includes(norm(q)))}
+          minChars={0}
+          optionKey={(d) => d.id}
+          optionText={(d) => d.name}
+          renderOption={(d) => <span className="text-body-m text-foreground">{d.name}</span>}
+          onSelect={(d) => {
+            onChange(d.id);
+            field.onBlur();
+          }}
+          describedBy={a11y["aria-describedby"]}
+          invalid={!!a11y["aria-invalid"]}
+        />
+      ) : (
+        <input
+          {...a11y}
+          readOnly
+          disabled
+          value=""
+          placeholder={placeholder}
+          className={inputClass}
+        />
+      )}
     </FieldShell>
   );
 }

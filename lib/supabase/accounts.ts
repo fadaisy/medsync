@@ -40,3 +40,29 @@ export const ACTIVE_ACCOUNT_COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === "production",
   maxAge: 400 * 24 * 60 * 60,
 } as const;
+
+/**
+ * One account per tab (ADR 0529). Each tab's own requests name its account in `x-ms-account`
+ * (lib/supabase/tab-account.ts); `ms-account` is only the fallback for a request that cannot carry
+ * a header: a page load, a form post. `x-ms-tab` names the tab, so a request that switched account
+ * (a sign-in) leaves `ms-account-tab=<tab>:<slot>` for that tab alone to take up.
+ */
+export const TAB_ACCOUNT_HEADER = "x-ms-account";
+export const TAB_ID_HEADER = "x-ms-tab";
+export const TAB_ADOPT_COOKIE = "ms-account-tab";
+export const TAB_ID_PATTERN = /^[a-z0-9]{8,32}$/;
+
+/** The slot a request acts as: an account this request just switched this tab to, else the
+ *  tab's header, else the browser's `ms-account` cookie. */
+export function resolveSlot(r: {
+  header?: string | null;
+  tab?: string | null;
+  adopt?: string | null;
+  cookie?: string | null;
+}): number {
+  if (r.tab && r.adopt) {
+    const [tab, slot] = decodeURIComponent(r.adopt).split(":");
+    if (tab === r.tab) return parseSlot(slot);
+  }
+  return parseSlot(r.header || r.cookie);
+}

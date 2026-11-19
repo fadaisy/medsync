@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
 import { env } from "@/lib/env";
@@ -7,9 +7,24 @@ import {
   ACTIVE_ACCOUNT_COOKIE_OPTIONS,
   authCookieName,
   MAX_ACCOUNTS,
-  parseSlot,
+  resolveSlot,
   slotsInUse,
+  TAB_ACCOUNT_HEADER,
+  TAB_ADOPT_COOKIE,
+  TAB_ID_HEADER,
+  TAB_ID_PATTERN,
 } from "@/lib/supabase/accounts";
+
+/** The slot this request acts as: its tab's account (ADR 0529), else the browser's `ms-account`. */
+async function currentSlot(): Promise<number> {
+  const [cookieStore, h] = await Promise.all([cookies(), headers()]);
+  return resolveSlot({
+    header: h.get(TAB_ACCOUNT_HEADER),
+    tab: h.get(TAB_ID_HEADER),
+    adopt: cookieStore.get(TAB_ADOPT_COOKIE)?.value,
+    cookie: cookieStore.get(ACTIVE_ACCOUNT_COOKIE)?.value,
+  });
+}
 
 /**
  * Supabase client for use inside Server Components, Route Handlers, and
@@ -23,12 +38,12 @@ import {
  * it must NOT be used for authorization decisions in Server Components, route
  * handlers, or middleware/proxy. (Supabase guidance, mandatory for MedSync.)
  *
- * Talks as the browser's active account (lib/supabase/accounts.ts) unless a
+ * Talks as this tab's account (lib/supabase/accounts.ts) unless a
  * `slot` is given — only sign-in, sign-out and the account switcher pass one.
  */
 export async function createClient(slot?: number) {
   const cookieStore = await cookies();
-  const name = authCookieName(slot ?? parseSlot(cookieStore.get(ACTIVE_ACCOUNT_COOKIE)?.value));
+  const name = authCookieName(slot ?? (await currentSlot()));
 
   return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     cookieOptions: { name },
@@ -60,7 +75,7 @@ export type SignedInAccount = { slot: number; email: string; active: boolean };
  */
 export async function listAccounts(): Promise<SignedInAccount[]> {
   const cookieStore = await cookies();
-  const active = parseSlot(cookieStore.get(ACTIVE_ACCOUNT_COOKIE)?.value);
+  const active = await currentSlot();
   const accounts: SignedInAccount[] = [];
   for (const slot of slotsInUse(cookieStore.getAll())) {
     const { data } = await (await createClient(slot)).auth.getSession();
@@ -75,16 +90,25 @@ export async function listAccounts(): Promise<SignedInAccount[]> {
  * account, else the first free one, else (all full) the active one.
  */
 export async function slotForSignIn(email: string): Promise<number> {
-  const cookieStore = await cookies();
   const accounts = await listAccounts();
   const same = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
   if (same) return same.slot;
   const used = new Set(accounts.map((a) => a.slot));
   for (let s = 0; s < MAX_ACCOUNTS; s++) if (!used.has(s)) return s;
-  return parseSlot(cookieStore.get(ACTIVE_ACCOUNT_COOKIE)?.value);
+  return currentSlot();
 }
 
-/** Make `slot` the account every tab in this browser uses. */
+/**
+ * Make `slot` this tab's account, and the one a new tab or page load starts with. A request from
+ * the tab's script names the tab; it alone takes the slot up, before its next request (ADR 0529).
+ */
 export async function setActiveAccount(slot: number): Promise<void> {
-  (await cookies()).set(ACTIVE_ACCOUNT_COOKIE, String(slot), ACTIVE_ACCOUNT_COOKIE_OPTIONS);
+  const [cookieStore, h] = await Promise.all([cookies(), headers()]);
+  cookieStore.set(ACTIVE_ACCOUNT_COOKIE, String(slot), ACTIVE_ACCOUNT_COOKIE_OPTIONS);
+  const tab = h.get(TAB_ID_HEADER);
+  if (tab && TAB_ID_PATTERN.test(tab))
+    cookieStore.set(TAB_ADOPT_COOKIE, `${tab}:${slot}`, {
+      ...ACTIVE_ACCOUNT_COOKIE_OPTIONS,
+      maxAge: 60,
+    });
 }

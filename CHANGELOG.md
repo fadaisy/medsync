@@ -22,6 +22,26 @@ The redesign the owner approved on the design canvas ("portrait", 18 Nov; ticked
 - Gone from Home: the large ID badges, the filter chips, the rating and "Come today" on each badge. No count of people, no rating, no placeholder doctor.
 - Not built yet: the full "See a doctor" list from the same prototype (day rail, cards that open, filters). "See all" still opens Book.
 
+### Added — Several hospitals at clinical staff sign-up (ADR 0530) — 19 Nov 2026
+
+A doctor who works at more than one hospital can list them all at sign-up. Each hospital gets its own request, and its own admin approves or rejects it; one hospital's approval grants nothing at another. No migration, no flag, no Edge Function change: the database and the approval path already worked per hospital.
+
+- **Form:** under "Where you work", "Add another hospital" (up to four more), each with its department, employment and, if it differs, the post held there; remove one; a hospital is never offered or accepted twice (`app/signup/clinical/_components/form.tsx`, `WorkFields` takes a `prefix`).
+- **Saving:** `submitClinicalSignup` inserts one `staff_affiliations` row per hospital in one statement (`lib/onboarding/workplaces.ts`, `clinicalSchema.moreWorkplaces`).
+- **Pending page:** every hospital with its own state, reason or admin's note; the headline follows the furthest-on request (`leadAffiliation`).
+- **Profile:** `/doctor/profile` shows "Your hospitals", each with its state, and "Add a hospital" (a centred dialog) sends one more pending request in the same post to that hospital's admin (`requestHospitalAction`, `joinRefusal`). Leaving a hospital is still done by its admin.
+- **Department list:** chosen from a searchable list of the picked hospital's live departments, like the hospital, instead of the system menu.
+- **Not in this change:** choosing which hospital you are working in after sign-in. A doctor approved at two still lands in the most recently approved one.
+- **Tests:** `tests/onboarding-v2/workplaces.test.ts`. Not yet seen in a browser.
+
+### Changed — One account per tab (ADR 0529, amends ADR 0280) — 19 Nov 2026
+
+Signing in as another role in a second tab no longer moves the first tab to that account. Each tab keeps the account it signed in with, and both sessions stay until signed out.
+
+- **How:** an inline script in the root layout (`lib/supabase/tab-account.ts`) adds `x-ms-account` and `x-ms-tab` to the tab's own requests; `resolveSlot` (`lib/supabase/accounts.ts`) makes the server client, the proxy and `listAccounts` read it before `ms-account`. `ms-account` stays the fallback for page loads and form posts, and the tab you are using writes its account back to it on focus.
+- **Switching:** `setActiveAccount` also leaves `ms-account-tab=<tab>:<slot>` for the tab whose request switched account (a sign-in), so the next step (MFA) acts as the new account; switch and sign-out stay form posts.
+- **Tests:** `tests/auth/tab-account.test.ts` (two tabs keep their accounts, a switch is taken up by its own tab only, other sites get no header). Not yet seen in a browser.
+
 ### Changed — The header Help steps aside only while the page draws its own red Help (ADR 0528, amends law L6) (phone) — 19 Nov 2026
 
 The owner wrote "help shouldn't be on every screen" and asked that the screens which lose it be found by Book's rule. **The rule:** a screen hides the header Help only while the page itself shows a red Help that opens `/help`, in view without scrolling, in that state, as its main action. Nothing loses Help for being calm, a form or a settings page; signed-out screens, the splash and the welcome keep it; otherwise L6 stands.
