@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Lab and pharmacy are not booked like clinics; lab test prices; costs on the patient website — 18 Nov 2026
+
+On the owner's word ("okay, build") after the discussion of lab and pharmacy bookings ([ADR 0527](docs/adr/0527-lab-and-pharmacy-are-not-booked-like-clinics.md)). Everything new is behind a flag and off by default. Not seen in a browser. Wording is draft.
+
+- Departments: only a department that sees patients in clinics has the Booking rules tab. The laboratory and the pharmacy get "Prices and hours"; other support and office departments get none.
+- Laboratory and imaging: a price per test (above zero or free, from a day; UGX 0 never stored), set by the hospital admin or the laboratory lead. Migration 0305 (GATED), flag `LAB_TEST_PRICES`.
+- Patient website: "What your tests cost" on Lab tests and "What your medicines cost" on Medicines, each with a total and "you pay at the hospital". Flag `PATIENT_PRICES`, off in production until the wording is signed.
+- Clinics & schedule week plan: each clinic's sessions are tinted in its assigned colour.
+
+### Changed — Admin: one source of truth for Live on Tether and for booking rules — 18 Nov 2026
+
+- A clinic whose department is off Tether is no longer listed in Clinics & schedule ([ADR 0525](docs/adr/0525-departments-own-live-on-tether.md)).
+- Days, hours and slot length are set once, on the clinic's week plan; Departments shows them ([ADR 0526](docs/adr/0526-booking-rules-set-once-on-the-clinic.md)).
+
 ### Changed — Patient app v2 is the phone's default; shell, Home and Tether brand — 18 Nov 2026
 
 The owner chose "v2 by default, old as fallback" for the phone ([ADR 0524](docs/adr/0524-patient-app-v2-is-the-phone-default.md)); the cutover had been planned for after the 5-day pilot. The `appV2Mobile` switch is removed. Nothing reaches patients until a new phone build is released. Seen in a browser at phone width on fixtures, not on a device. The v2 wording is still draft, not signed by the CSO.

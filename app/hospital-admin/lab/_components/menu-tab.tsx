@@ -1,7 +1,7 @@
 "use client";
 
 import type { MenuRow } from "../_lib/model";
-import type { Act } from "./shared";
+import type { Act, Prices } from "./shared";
 import type { MenuOffering, SectionKey, Where } from "@/lib/lab/test-menu";
 import type { TestMenuData } from "@/lib/lab/test-menu-read";
 import { useState } from "react";
@@ -15,7 +15,7 @@ import { minutesWords, rankTests, sectionName, SECTIONS } from "@/lib/lab/test-m
 import { saveOfferingsAction } from "@/lib/lab/test-menu-actions";
 import { offered, sectionHours } from "../_lib/model";
 import v from "./lab.module.css";
-import { sectionHoursWords } from "./shared";
+import { chargeWords, sectionHoursWords } from "./shared";
 
 type WhereFilter = "all" | "in_house" | "referred";
 
@@ -30,12 +30,14 @@ export function MenuTab({
   sel,
   onOpen,
   act,
+  prices,
 }: {
   data: TestMenuData;
   rows: MenuRow[];
   sel: string | null;
   onOpen: (code: string) => void;
   act: Act;
+  prices: Prices;
 }) {
   const M = LAB_ADMIN.menu;
   const [section, setSection] = useState<SectionKey | "all">("all");
@@ -150,6 +152,14 @@ export function MenuTab({
           />
         ) : null}
 
+        {prices ? (
+          <p className={k("su-note")}>
+            {LAB_ADMIN.price.priced(
+              on.filter((r) => chargeWords(prices.charges[r.t.code])).length,
+              on.length,
+            )}
+          </p>
+        ) : null}
         <div className={`${k("su-card")} ${v.scx}`} data-tour="wt-lab-table">
           <div className={`${v.r} ${v.hd}`} aria-hidden="true">
             <span />
@@ -184,7 +194,14 @@ export function MenuTab({
                 >
                   <b>{name}</b>
                   <small>
-                    {[sectionName(r.section), r.t.specimen, r.t.tube].filter(Boolean).join(" · ")}
+                    {[
+                      sectionName(r.section),
+                      r.t.specimen,
+                      r.t.tube,
+                      prices ? chargeWords(prices.charges[r.t.code]) : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </small>
                 </button>
                 <span className={`${v.tag} ${r.o.where === "in_house" ? v.tagIn : ""}`}>

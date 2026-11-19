@@ -1,6 +1,6 @@
 "use client";
 
-import type { BookingRules, ClinicWeek, DepartmentsData } from "../_lib/model";
+import type { BookedAs, BookingRules, ClinicWeek, DepartmentsData } from "../_lib/model";
 import type { DepartmentRow } from "@/lib/services/data";
 import Link from "next/link";
 import { useState } from "react";
@@ -13,6 +13,7 @@ import { LAB_SECTIONS } from "@/supabase/functions/_shared/services-hub";
 import { saveBookingRulesAction } from "../_lib/actions";
 import {
   abbr,
+  bookedAs,
   clinicWeeks,
   DAY_SHORT,
   fmtDate,
@@ -50,6 +51,11 @@ export function DepartmentDetail({
 }) {
   const [tab, setTab] = useState<Tab>("overview");
   const ids = idsOf(dept, data.departments);
+  // ADR 0527: only a department that sees patients in clinics has clinic booking rules.
+  const mode = bookedAs(
+    dept,
+    data.clinics.some((c) => ids.includes(c.departmentId) && c.status !== "archived"),
+  );
   const n = (m: Record<string, number>) => ids.reduce((s, id) => s + (m[id] ?? 0), 0);
   const beds = data.wards
     .filter((w) => !w.archived && w.departmentId && ids.includes(w.departmentId))
@@ -76,9 +82,11 @@ export function DepartmentDetail({
       </div>
       <Seg
         opts={[
-          ["overview", D.tabs.overview],
-          ["booking", D.tabs.booking],
-          ["inside", D.tabs.inside],
+          ["overview", D.tabs.overview] as const,
+          ...(mode === "none"
+            ? []
+            : [["booking", mode === "clinic" ? D.tabs.booking : D.tabs.priced] as const]),
+          ["inside", D.tabs.inside] as const,
         ]}
         value={tab}
         onPick={setTab}
@@ -87,13 +95,23 @@ export function DepartmentDetail({
         tour="wt-dp-tabs"
       />
       {tab === "overview" ? (
-        <Overview dept={dept} data={data} assign={assign} onBooking={() => setTab("booking")} />
-      ) : tab === "booking" ? (
-        <BookingRulesTab
+        <Overview
           dept={dept}
-          rules={data.rules[dept.id] ?? null}
-          weeks={clinicWeeks(idsOf(dept, data.departments), data.clinics, data.sessions)}
+          data={data}
+          assign={assign}
+          mode={mode}
+          onBooking={() => setTab("booking")}
         />
+      ) : tab === "booking" && mode !== "none" ? (
+        mode === "clinic" ? (
+          <BookingRulesTab
+            dept={dept}
+            rules={data.rules[dept.id] ?? null}
+            weeks={clinicWeeks(ids, data.clinics, data.sessions)}
+          />
+        ) : (
+          <PricedByItem mode={mode} />
+        )
       ) : (
         <Inside dept={dept} data={data} />
       )}
@@ -115,11 +133,13 @@ function Overview({
   dept,
   data,
   assign,
+  mode,
   onBooking,
 }: {
   dept: DepartmentRow;
   data: DepartmentsData;
   assign: boolean;
+  mode: BookedAs;
   onBooking: () => void;
 }) {
   const op = useOp();
@@ -339,10 +359,14 @@ function Overview({
 
       <div className={k("su-sec")}>
         <span className={k("cap")}>{D.bookingCap}</span>
-        <p className={k("su-note")}>{bookingLine(dept, data)}</p>
-        <button type="button" className={`${k("btn", "sm", "q")} ${d.start}`} onClick={onBooking}>
-          {D.tabs.booking}
-        </button>
+        <p className={k("su-note")}>
+          {mode === "clinic" ? bookingLine(dept, data) : DEPTS.priced[mode].line}
+        </p>
+        {mode === "none" ? null : (
+          <button type="button" className={`${k("btn", "sm", "q")} ${d.start}`} onClick={onBooking}>
+            {mode === "clinic" ? D.tabs.booking : D.tabs.priced}
+          </button>
+        )}
       </div>
 
       <div className={k("su-sec")}>
@@ -519,6 +543,28 @@ function History({ dept, data }: { dept: DepartmentRow; data: DepartmentsData })
 
 const withCurrent = (base: readonly number[], cur: number) =>
   [...new Set([...base, cur])].sort((a, b) => a - b);
+
+/** The laboratory and the pharmacy: no clinic rules; what a visit costs and when it is open is set per item. */
+function PricedByItem({ mode }: { mode: "tests" | "medicines" }) {
+  const P = DEPTS.priced[mode];
+  return (
+    <div className={k("su-sec")}>
+      <p className={k("su-note")}>{P.lead}</p>
+      <ul className={d.lines}>
+        {P.points.map((x) => (
+          <li key={x}>{x}</li>
+        ))}
+      </ul>
+      {P.href ? (
+        <Link href={P.href} className={`${k("btn", "sm", "q")} ${d.start}`}>
+          {P.open}
+        </Link>
+      ) : (
+        <p className={k("su-note")}>{P.open}</p>
+      )}
+    </div>
+  );
+}
 
 /** The overview's one line: the clinics' week plans where they hold the rules, else the department's own. */
 function bookingLine(dept: DepartmentRow, data: DepartmentsData): string {

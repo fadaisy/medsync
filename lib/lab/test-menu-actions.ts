@@ -12,6 +12,9 @@ import { requireEmrActor } from "@/lib/emr/actor";
 import { asClinicalWriter } from "@/lib/emr/db";
 import { actionError, EmrWriteError } from "@/lib/emr/write/context";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { labTestPricesLiveFor } from "./feature";
+import { MAX_PRICE_UGX } from "./prices";
+import { setTestPrice } from "./prices-store";
 import { LEVELS, looksLikeIdentifier, namesRestricted, notOffered, SECTIONS } from "./test-menu";
 import { loadCatalogueTests, loadMenuOfferings } from "./test-menu-read";
 import { addFromTemplate, saveOfferings } from "./test-menu-write";
@@ -63,6 +66,40 @@ export async function saveOfferingsAction(raw: unknown): Promise<ActionResult> {
   try {
     const me = await editor(p.data.surface);
     await saveOfferings(me, p.data.items, new Date());
+    return ok(p.data.clientKey);
+  } catch (e) {
+    return actionError(e);
+  }
+}
+
+/* ─── ADR 0527: the hospital's own price for one test ────────────────── */
+
+const Price = z
+  .object({
+    surface,
+    clientKey,
+    code,
+    /** Whole shillings above zero, or null with `free`. UGX 0 is never a price. */
+    priceUgx: z.number().int().min(1).max(MAX_PRICE_UGX).nullable(),
+    free: z.boolean(),
+    fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  })
+  .strict()
+  .refine((v) => v.free !== (v.priceUgx !== null), { message: "A price or free, not both." });
+
+export async function saveTestPriceAction(raw: unknown): Promise<ActionResult> {
+  const p = Price.safeParse(raw);
+  if (!p.success)
+    return {
+      ok: false,
+      code: "invalid",
+      error: "Enter a price above zero, or mark the test free.",
+    };
+  try {
+    const me = await editor(p.data.surface);
+    if (!labTestPricesLiveFor(me.hospitalId))
+      throw new EmrWriteError("forbidden", "Test prices are not switched on for this hospital.");
+    await setTestPrice(me, p.data, new Date());
     return ok(p.data.clientKey);
   } catch (e) {
     return actionError(e);

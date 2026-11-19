@@ -4,6 +4,9 @@ import type { Metadata } from "next";
 import { LAB_ADMIN } from "@/content/hospital-admin/lab";
 import { emrV1LiveFor } from "@/lib/emr/feature";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { labTestPricesLiveFor } from "@/lib/lab/feature";
+import { chargeFor } from "@/lib/lab/prices";
+import { loadTestPrices } from "@/lib/lab/prices-store";
 import { loadTestMenuData } from "@/lib/lab/test-menu-read";
 import {
   loadDepartments,
@@ -31,13 +34,17 @@ export default async function LabPage({
 }) {
   const scope = await requireHospitalAdminScope();
   const h = scope.hospitalId;
-  const [menu, departments, offerings, problems, comparison] = await Promise.all([
+  // ADR 0527: prices are read only where the flag is on (the table is migration 0305).
+  const pricesOn = labTestPricesLiveFor(h);
+  const [menu, departments, offerings, problems, comparison, priceRows] = await Promise.all([
     loadTestMenuData(h, "hub", false),
     loadDepartments(h),
     loadOfferings(h),
     loadOpenProblems(h),
     standardsComparison(h),
+    pricesOn ? loadTestPrices(h) : Promise.resolve([]),
   ]);
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Kampala" });
   const lab =
     departments.find(
       (d) => d.parentId === null && d.catalogueCode === "LABORATORY" && !d.archived,
@@ -55,6 +62,16 @@ export default async function LabPage({
       imagingComparison={comparison?.rows.find((r) => r.kind === "imaging") ?? null}
       presetLabel={comparison?.preset.levelLabel ?? null}
       oneResultPath={emrV1LiveFor(h)}
+      prices={
+        pricesOn
+          ? {
+              today,
+              charges: Object.fromEntries(
+                menu.menu.map((o) => [o.code, chargeFor(priceRows, o.code, today)]),
+              ),
+            }
+          : null
+      }
     />
   );
 }

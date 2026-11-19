@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  bookedAs,
   clinicWeeks,
   isNarrowed,
   rulesSummary,
@@ -171,6 +172,30 @@ describe("Departments in the desk", () => {
       expect(src).toMatch(/clinicLed \? \(/);
       expect(src).toMatch(/windowToSave\(v, clinicLed\)/);
       expect(read("app/hospital-admin/departments/page.tsx")).toContain("loadClinicSessions(h)");
+    });
+  });
+
+  describe("lab and pharmacy are not booked like clinics (ADR 0527)", () => {
+    const dept = (kind: string, catalogueCode: string | null) => ({ kind, catalogueCode });
+    it("a clinical department is booked through clinics", () => {
+      expect(bookedAs(dept("clinical", "ENT"), false)).toBe("clinic");
+    });
+    it("the laboratory is priced by test and the pharmacy by medicine, with no clinic booking rules", () => {
+      expect(bookedAs(dept("diagnostic", "LABORATORY"), false)).toBe("tests");
+      expect(bookedAs(dept("support", "PHARMACY"), false)).toBe("medicines");
+    });
+    it("other support and office departments take no bookings", () => {
+      expect(bookedAs(dept("administrative", "RECORDS_HEALTH_INFO"), false)).toBe("none");
+      expect(bookedAs(dept("support", "MORTUARY"), false)).toBe("none");
+    });
+    it("a department that really runs a clinic keeps its clinic rules, whatever its kind", () => {
+      expect(bookedAs(dept("diagnostic", "RADIOLOGY_IMAGING"), true)).toBe("clinic");
+      expect(bookedAs(dept("support", "NUTRITION_DIETETICS"), true)).toBe("clinic");
+    });
+    it("the panel shows the Booking rules tab only for a department booked through clinics", () => {
+      const src = read("app/hospital-admin/departments/_components/department-detail.tsx");
+      expect(src).toMatch(/mode === "clinic" \?/);
+      expect(src).toContain("<PricedByItem");
     });
   });
 
