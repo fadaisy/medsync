@@ -3,13 +3,19 @@
  * fixtures, for screenshots. Development builds only. Invented names (prompt Appendix A); no patient data.
  *
  * `screen=home` is the whole v2 shell (finish pass 1): the header with the avatar count, Home and the nav.
- * `&visit=none|loading|failed|next` picks Home's visit state (today's visit by default); `&place=book|visits|me`
- * moves the nav's marker.
+ * `&visit=none|loading|failed|next|tomorrow` picks Home's visit state (today's visit by default);
+ * `&place=book|visits|me` moves the nav's marker.
+ *
+ * `&care=none|trends|due|team|danger` draws Home's top card as Care mode would (home-top.tsx), on the fixtures
+ * below; `&metric=sugar|weight` changes the trend card's measure (blood pressure by default). Left out, Home
+ * is as it is with `careMode` off. This calls the pure view: it does not switch the flag on.
  */
 import type { VisitQuestion } from "@/data/visit-v2";
 import type { AppointmentRow } from "@/lib/booking";
 import type { VisitPlace } from "@/components/tide/v2-shell";
 import type { HomeVisit } from "@/features/v2/home";
+import type { HomeCare, HomeTrend } from "@/features/v2/home-top";
+import type { TodayState } from "@patient-core/today-hero";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, useWindowDimensions, View } from "react-native";
@@ -51,6 +57,56 @@ const PAID = {
   receiptNumber: 421,
   paidChannel: "app" as const,
 };
+
+/** Sample readings for the trend card: seven days ending today, two with none. Belong to nobody. */
+const WEEK = ["13", "14", "15", "16", "17", "18", "19"].map((d) => ({ date: `${d} Nov`, dayKey: `2026-11-${d}` }));
+const week = (values: (number | null)[], bottoms?: (number | null)[]) =>
+  WEEK.map((d, i) => ({ ...d, value: values[i] ?? null, ...(bottoms ? { bottom: bottoms[i] ?? null } : {}) }));
+const TRENDS: Record<string, HomeTrend> = {
+  bp: {
+    metric: "bp",
+    ctx: "fasting",
+    unit: "mmHg",
+    days: week([136, 142, null, 132, 134, null, 128], [84, 90, null, 82, 84, null, 80]),
+    weekAgo: 136,
+  },
+  sugar: {
+    metric: "sugar",
+    ctx: "fasting",
+    unit: "mmol/L",
+    days: week([7.9, 7.6, null, 6.8, 7.4, null, 7.8]),
+    weekAgo: 8.4,
+  },
+  weight: {
+    metric: "weight",
+    ctx: "fasting",
+    unit: "kg",
+    days: week([82.4, null, 82.1, null, 81.9, null, 81.6]),
+    weekAgo: 82.6,
+  },
+};
+const QUIET: TodayState = { danger: null, teamAsks: null, dueNow: null, visitToday: null, nextItem: null, nothingUntil: null };
+const TODAYS: Record<string, TodayState> = {
+  trends: QUIET,
+  due: { ...QUIET, dueNow: { kind: "dose", key: "m@08:00", label: "Metformin", dueAt: "08:00" } },
+  team: { ...QUIET, teamAsks: { id: "a1", from: "Your care team", at: "2026-11-19T06:10:00.000Z" } },
+  danger: { ...QUIET, danger: { kind: "very_high_bp", at: "09:10" } },
+};
+
+/** `care` as the route would pass it, on the fixtures; undefined is Home with `careMode` off. */
+function careFixture(care: string | undefined, metric: string | undefined): HomeCare | undefined {
+  if (care === "none") return { state: "none" };
+  const today = care ? TODAYS[care] : undefined;
+  if (!today) return undefined;
+  return {
+    state: "ready",
+    today,
+    trend: TRENDS[metric ?? "bp"] ?? TRENDS.bp ?? null,
+    onHeroAction: () => undefined,
+    onLog: () => undefined,
+    onSeeAll: () => undefined,
+  };
+}
 
 export default function DevVisitV2() {
   const { screen = "day", scheme } = useLocalSearchParams<{ screen?: string; scheme?: string }>();
@@ -117,7 +173,7 @@ function HomeShell() {
   const t = useTide();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const params = useLocalSearchParams<{ visit?: string; place?: string }>();
+  const params = useLocalSearchParams<{ visit?: string; place?: string; care?: string; metric?: string }>();
   const start = VISIT_PLACES.find((p) => p.key === params.place)?.key ?? "home";
   const [place, setPlace] = useState<VisitPlace>(start);
   const ticket = ticketFor(ESTHER, PAID, "Esther N.");
@@ -128,7 +184,8 @@ function HomeShell() {
           state: "ready",
           ticket,
           stage: stageOf("arrived", "line"),
-          today: params.visit !== "next",
+          today: params.visit !== "next" && params.visit !== "tomorrow",
+          tomorrow: params.visit === "tomorrow",
         };
   const empty = params.visit === "none";
   return (
@@ -161,6 +218,7 @@ function HomeShell() {
                 }
           }
           household={empty ? [] : [{ id: "h1", label: "Mother" }]}
+          care={careFixture(params.care, params.metric)}
           careLink
           onOpenVisit={() => undefined}
           onRetryVisit={() => undefined}
