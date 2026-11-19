@@ -28,12 +28,13 @@ import { useLabsSummary } from "@/data/labs";
 import { metaName } from "@/data/me";
 import { takeFreshSignup } from "@/data/signup";
 import { loadPayStatus, ticketFor } from "@/data/visit-v2";
-import { loadWeek } from "@/data/visits";
+import { loadVisitAhead, loadWeek } from "@/data/visits";
 import { Doctors } from "@/features/home/doctors";
 import { ActiveShareBanner, useShareBannerShown } from "@/features/location-share/active-banner";
 import { useHomeCare } from "@/features/v2/care-routes";
 import { useHeaderIdentity } from "@/features/v2/header-avatar";
 import { HomeV2View } from "@/features/v2/home";
+import { visitMayHaveAhead } from "@/features/visits/logic";
 import { sinceBoot, track } from "@/lib/analytics";
 import { fetchHousehold } from "@/lib/booking";
 import { flag } from "@/lib/flags";
@@ -59,7 +60,14 @@ async function fetchVisit(me: string): Promise<Visit> {
   const week = await loadWeek(now);
   const next = nextVisit(week.upcoming);
   if (!next) return { state: "none" };
-  const pay = (await loadPayStatus([next.id]).catch(() => null))?.get(next.id);
+  // "N ahead of you" only once the desk has checked the patient in; a failed read is no count, not a failed visit.
+  const [pay, ahead] = await Promise.all([
+    loadPayStatus([next.id]).then(
+      (m) => m.get(next.id),
+      () => undefined,
+    ),
+    visitMayHaveAhead(next, now) ? loadVisitAhead(next.id).catch(() => null) : null,
+  ]);
   const day = kampalaDay(new Date(next.startsAtIso));
   return {
     state: "ready",
@@ -68,6 +76,7 @@ async function fetchVisit(me: string): Promise<Visit> {
     stage: stageOf(next.status, null),
     today: day === kampalaDay(now),
     tomorrow: day === kampalaDay(new Date(now.getTime() + 86_400_000)),
+    ahead,
   };
 }
 

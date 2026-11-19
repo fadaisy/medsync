@@ -8,8 +8,9 @@
  * desk and the stage, in words and one bar. The membership card is on Me and no longer repeated here.
  *
  * `HomeV2View` is props-driven, so the dev gallery renders it on fixtures. No red, amber or green here: nothing on
- * this page is a clinical state (MR5). No queue numbers, and the stage is never a number (MR4). Results are free
- * whatever the plan (MR9).
+ * this page is a clinical state (MR5). The stage is never a number (MR4). The one count is "N ahead of you" under
+ * the stage on the day, once the desk has checked the patient in, from the server (ADR 0084 §6, owner approved
+ * 19 Nov 2026): never a place number, a total or a wait. Results are free whatever the plan (MR9).
  *
  * In Care mode (`careMode`, locked until Gate CG) the route also passes `care`, and the top card is then chosen
  * by `homeTop` (home-top.tsx): a reading that needs action, a question from the team, something due, a near
@@ -20,6 +21,7 @@
 import type { IconName } from "@/components/tide";
 import type { TicketV2Props } from "@/components/tide/v2";
 import type { HomeCare } from "@/features/v2/home-top";
+import type { AheadRead } from "@/features/visits/logic";
 import type { StageView } from "@patient-core/visit-stages";
 import type { ReactNode } from "react";
 import { CARE_V2_COPY as CARE } from "@content/patient-app/care";
@@ -33,6 +35,7 @@ import { Avatar, Button, Card, Icon, Press, SectionHead, SkeletonCard } from "@/
 import { spokenCode } from "@/components/tide/v2";
 import { HeroCard } from "@/components/tide/v2-hero";
 import { homeTop, HomeTrendCard } from "@/features/v2/home-top";
+import { AheadLines } from "@/features/visits/ahead";
 import { EASE_OUT } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
@@ -48,6 +51,11 @@ export type HomeVisit =
       today: boolean;
       /** The visit is tomorrow: with today, what "near" means for the top card in Care mode. */
       tomorrow?: boolean;
+      /**
+       * Once the desk has checked the patient in: their intake's status and "N ahead of you" from the server
+       * (ADR 0084 §6). Left out before arrival and on any failure, and then nothing is drawn.
+       */
+      ahead?: AheadRead | null;
     };
 
 /** The phone holds the tests a clinician ordered and no result values yet (ADR 0342 §2). */
@@ -288,6 +296,8 @@ function VisitCard(p: HomeV2Props) {
             </View>
           ) : null}
           {today ? <StageBar view={ready.stage} /> : null}
+          {/* Under the stage, never in place of it: only on the day, once present, and only a true count. */}
+          {today && ready.ahead ? <AheadLines {...ready.ahead} /> : null}
           <View style={{ gap: tSpace[2] }}>
             <Button label={H.seeVisit} variant="accent" onPress={p.onOpenVisit} />
             <Quiet label={H.phone.manageVisit} onPress={p.onOpenVisit} />

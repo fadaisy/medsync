@@ -26,9 +26,9 @@ import {
   todaysQueueTicket,
   useTickets,
 } from "@/data/visits";
+import { AheadLines } from "@/features/visits/ahead";
 import { HospitalPicker } from "@/features/visits/hospital-picker";
 import {
-  AHEAD_NOTE,
   aheadWords,
   clockOf,
   dayKeyOf,
@@ -359,22 +359,6 @@ export default function BookTodayScreen() {
         />
       </View>
     </Screen>
-  );
-}
-
-/**
- * "N ahead of you" under the stage, only once the patient is present and the
- * count came back (`aheadWords`); with the reason it can move. Else nothing.
- */
-function AheadLines({ status, ahead }: { status: string | null; ahead: number | null }) {
-  const t = useTide();
-  const words = aheadWords(status, ahead);
-  if (!words) return null;
-  return (
-    <View accessibilityLiveRegion="polite" style={{ gap: 2 }}>
-      <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>{words}</Text>
-      <Text style={[tType.bodyS, { color: t.ink2 }]}>{AHEAD_NOTE}</Text>
-    </View>
   );
 }
 

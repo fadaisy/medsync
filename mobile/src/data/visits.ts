@@ -1,4 +1,4 @@
-import type { Fee } from "@/features/visits/logic";
+import type { AheadRead, Fee } from "@/features/visits/logic";
 import type { Ticket } from "@/features/visits/ticket-cache";
 import type {
   AppointmentReason,
@@ -15,7 +15,14 @@ import { mergeDays } from "@patient-core/book-days";
 import { feeRange } from "@shared/fees";
 
 import { createStore, useStore } from "@/data/store";
-import { clockOf, dayKeyOf, feeFor, partOf, payLook } from "@/features/visits/logic";
+import {
+  clockOf,
+  dayKeyOf,
+  feeFor,
+  partOf,
+  payLook,
+  presentInLine,
+} from "@/features/visits/logic";
 import { dropTicket, readTickets, saveTicket } from "@/features/visits/ticket-cache";
 import { track } from "@/lib/analytics";
 import {
@@ -30,6 +37,7 @@ import {
   fetchPatientProfile,
   fetchServiceLines,
   fetchSessions,
+  fetchVisitIntake,
   fetchWalkInDepartments,
   markArrived,
   requestAppointment,
@@ -250,6 +258,22 @@ export async function loadAhead(intakeId: string): Promise<number | null> {
   try {
     const { data, error } = await supabase.rpc("patient_intake_ahead", { p_intake: intakeId });
     return error || typeof data !== "number" ? null : data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * "N ahead of you" for a booked visit, once the desk has checked the patient in: the intake row naming the
+ * booking, then the same count as a walk-in (`loadAhead`). Null before check-in, once seen, and on ANY
+ * failure: the screen then says nothing, never a 0 for an unknown. Callers ask only where `visitMayHaveAhead` holds.
+ */
+export async function loadVisitAhead(appointmentId: string): Promise<AheadRead | null> {
+  try {
+    const intake = await fetchVisitIntake(appointmentId);
+    if (!intake || !presentInLine(intake.status)) return null;
+    const ahead = await loadAhead(intake.id);
+    return ahead === null ? null : { status: intake.status, ahead };
   } catch {
     return null;
   }

@@ -5,6 +5,9 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { Band, Button, Card, Icon, Note, Screen, TextLink } from "@/components/tide";
+import { loadAhead } from "@/data/visits";
+import { AheadLines } from "@/features/visits/ahead";
+import { presentInLine } from "@/features/visits/logic";
 import { cancelIntake, fetchLiveIntake, fetchPatientProfile, STAGE_WORD } from "@/lib/booking";
 import { useSession } from "@/lib/session";
 import { useTide } from "@/theme/theme";
@@ -17,15 +20,18 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
  * awaiting_triage → triaged. Terminal rows (completed / cancelled) do not come
  * back from the live-intake read, so "nothing saved today" covers them.
  *
- * **No "N ahead of you" here — and not by oversight (ADR 0084 §6).** The
- * number is honest only when counted against this patient's own row among
- * present patients in this department. Under RLS a patient can SELECT their
- * own intakes and nobody else's (`patient_intakes_select_scoped`), so a count
- * run from the phone returns 0 whatever the room looks like, and "No one is
- * ahead of you" would be a fabricated datum on the highest-anxiety screen in
- * the product. The web computes it server-side over a direct connection. Until
- * an Edge Function or a SECURITY DEFINER RPC serves the count to the patient,
- * this screen says where they stand and what happens next, and no number.
+ * **"N ahead of you", and only where it is true (ADR 0084 §6).** The number
+ * is honest only when counted against this patient's own row among present
+ * patients in this department. Under RLS a patient can SELECT their own
+ * intakes and nobody else's (`patient_intakes_select_scoped`), so a count run
+ * from the phone would return 0 whatever the room looks like. The count comes
+ * instead from the SECURITY DEFINER function `patient_intake_ahead` (migration
+ * 0170, `loadAhead`), which counts this intake's department server-side, as the
+ * web does. It shows under the stage only while the patient is present
+ * (`arrived` or `awaiting_triage`, `aheadWords`), always with `AHEAD_NOTE`;
+ * before arrival, once seen, and on any failure, nothing (no placeholder, and
+ * never a 0 standing in for an unknown). The row may be a walk-in's or a booked visit the desk checked
+ * in: both are intakes, counted the same way.
  *
  * Refresh is on focus and on demand (§15), never on a timer: the patient owns
  * the spend, and a screen that reloads itself every 30 seconds for a
@@ -51,6 +57,8 @@ export default function TicketScreen() {
   const [profile, setProfile] = useState<PatientProfile | null>(null);
   // `undefined` = not loaded yet. `null` = nothing live today.
   const [intake, setIntake] = useState<LiveIntake | null | undefined>();
+  // From the server only, and only while present; null shows nothing.
+  const [ahead, setAhead] = useState<number | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
 
@@ -73,8 +81,11 @@ export default function TicketScreen() {
         return;
       }
       const live = await fetchLiveIntake(p.hospitalId);
+      // Asked together with the stage, so a count never outlives the status it belongs to.
+      const count = live && presentInLine(live.status) ? await loadAhead(live.id) : null;
       setProfile(p);
       setIntake(live);
+      setAhead(count);
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : "Couldn't load your place in line.");
     } finally {
@@ -183,8 +194,8 @@ export default function TicketScreen() {
       }
     >
       {/* The place, and the two facts about it that are true: the code the
-          desk matches on, and the stage. Never a position (§6), never an
-          hour (§10). */}
+          desk matches on, and the stage. Never a position or a place number
+          (§6), never an hour (§10); the one count sits under the timeline. */}
       <Band>
         <View style={{ gap: 2 }}>
           <Text style={[tType.overline, { color: t.onBand2 }]}>Your place today</Text>
@@ -272,6 +283,8 @@ export default function TicketScreen() {
             );
           })}
         </View>
+
+        <AheadLines status={intake.status} ahead={ahead} />
 
         <View style={{ height: 1, backgroundColor: t.line, marginVertical: tSpace[1] }} />
 

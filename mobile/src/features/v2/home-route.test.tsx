@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/theme/theme";
  */
 const mockPush = jest.fn();
 const mockLoadWeek = jest.fn();
+const mockLoadVisitAhead = jest.fn();
 const mockLoadCare = jest.fn();
 const mockUseReadings = jest.fn();
 jest.mock("expo-router", () => {
@@ -55,7 +56,10 @@ jest.mock("@/features/location-share/active-banner", () => ({
   ActiveShareBanner: () => null,
 }));
 jest.mock("@/features/home/doctors", () => ({ Doctors: () => null }));
-jest.mock("@/data/visits", () => ({ loadWeek: (now: Date) => mockLoadWeek(now) }));
+jest.mock("@/data/visits", () => ({
+  loadWeek: (now: Date) => mockLoadWeek(now),
+  loadVisitAhead: (id: string) => mockLoadVisitAhead(id),
+}));
 // Care mode's loaders, watched: with `careMode` off (the real flag, as shipped) Home must never call them.
 jest.mock("@/data/care-v2", () => ({ loadCare: () => mockLoadCare(), tickDose: jest.fn() }));
 jest.mock("@/data/readings", () => ({
@@ -99,6 +103,7 @@ describe("the Home route, v2", () => {
   beforeEach(() => {
     mockPush.mockClear();
     mockLoadWeek.mockReset();
+    mockLoadVisitAhead.mockReset();
     mockLoadCare.mockReset();
     mockUseReadings.mockReset();
   });
@@ -155,6 +160,43 @@ describe("the Home route, v2", () => {
       expect(screen.getByText("Couldn't load your visits. Check your connection.")).toBeTruthy(),
     );
     expect(screen.queryByText("No visit booked")).toBeNull();
+  });
+
+  it("today, once the desk has checked the patient in, the count sits under the stage", async () => {
+    const now = new Date().toISOString();
+    mockLoadWeek.mockResolvedValue({
+      upcoming: [{ id: "a1", status: "arrived", startsAtIso: now, forMember: null, type: "in_person" }],
+      past: [],
+    });
+    mockLoadVisitAhead.mockResolvedValue({ status: "awaiting_triage", ahead: 3 });
+    await mount();
+    await waitFor(() => expect(screen.getByText("3 ahead of you")).toBeTruthy());
+    expect(mockLoadVisitAhead).toHaveBeenCalledWith("a1");
+    expect(screen.getByText("Here")).toBeTruthy();
+  });
+
+  it("before arrival the count is never asked for", async () => {
+    const now = new Date().toISOString();
+    mockLoadWeek.mockResolvedValue({
+      upcoming: [{ id: "a1", status: "confirmed", startsAtIso: now, forMember: null, type: "in_person" }],
+      past: [],
+    });
+    await mount();
+    await waitFor(() => expect(screen.getByText("Open your visit")).toBeTruthy());
+    expect(mockLoadVisitAhead).not.toHaveBeenCalled();
+    expect(screen.queryByText(/ahead of you/)).toBeNull();
+  });
+
+  it("a failed count read keeps the visit and draws no count", async () => {
+    const now = new Date().toISOString();
+    mockLoadWeek.mockResolvedValue({
+      upcoming: [{ id: "a1", status: "arrived", startsAtIso: now, forMember: null, type: "in_person" }],
+      past: [],
+    });
+    mockLoadVisitAhead.mockRejectedValue(new Error("offline"));
+    await mount();
+    await waitFor(() => expect(screen.getByText("Open your visit")).toBeTruthy());
+    expect(screen.queryByText(/ahead of you/)).toBeNull();
   });
 
   it("the greeting follows the clock", () => {

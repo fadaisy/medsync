@@ -626,6 +626,30 @@ export async function fetchLiveIntake(hospitalId: string): Promise<LiveIntake | 
   };
 }
 
+/**
+ * The intake row a booked visit became when the desk checked the patient in (`ha-check-in-patient` writes one
+ * `booked_arrival` intake naming the booking in `appointment_id`), or null when there is none yet. The
+ * patient reads only their own row (`patient_intakes_select_scoped`), and the explicit `patient_user_id` filter
+ * keeps a staff account's wider reach out of it. The newest, should the desk have re-routed.
+ */
+export async function fetchVisitIntake(
+  appointmentId: string,
+): Promise<{ id: string; status: string } | null> {
+  const userId = await currentUserId();
+  if (!userId) return null;
+  const { data, error } = await supabase
+    .from("patient_intakes")
+    .select("id, status")
+    .eq("appointment_id", appointmentId)
+    .eq("patient_user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+    .overrideTypes<{ id: string; status: string }, { merge: false }>();
+  if (error) raise(error.message, "your place in line");
+  return data ?? null;
+}
+
 /* ─── the same-day door ──────────────────────────────────────────── */
 
 interface DepartmentRow {

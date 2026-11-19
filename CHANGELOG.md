@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — "N ahead of you" on a booked visit, once the patient is at the hospital (phone) — 19 Nov 2026
+
+Approved by the owner. The rule is ADR 0084 §6, unchanged: a number only where it is true, "N ahead of you" among patients present in the same department, never a place number, a total or a wait, always with "Sicker people are seen first, so this number can go up as well as down." No migration, no Edge Function, no flag.
+
+- **Why a booked visit can have it:** when the desk checks a booked patient in, `ha-check-in-patient` writes a `booked_arrival` intake naming the booking (`patient_intakes.appointment_id`), in the booked department, as `awaiting_triage` or `arrived`. The patient reads their own row (`patient_intakes_select_scoped`) and `patient_intake_ahead` (migration 0170) counts it as it counts a walk-in. The patient's own "I have arrived" (`ha-mark-arrived`) makes no intake, so until the desk checks them in there is no count.
+- **Where:** Home's visit card on the day and the v2 visit page, under the stage words and bar, which stay; the ticket (`ticket.tsx`, whose comment predated the function) under its timeline. Only while present (`arrived`, `awaiting_triage`); before arrival, once seen and on any failure, nothing. Refresh on focus and on the patient's own "Check again" / "Check for an update", never on a timer (§15). Not for a household member's visit or a virtual one.
+- **Code:** `fetchVisitIntake` (`mobile/src/lib/booking.ts`), `loadVisitAhead` (`mobile/src/data/visits.ts`), `presentInLine` / `visitMayHaveAhead` (`features/visits/logic.ts`), and the walk-in screen's `AheadLines` moved to `features/visits/ahead.tsx` so all four places say the same. The honesty tests list the new files and hold each to `AheadLines`. `/dev/visit-v2?screen=home&ahead=3` (or `ahead=0`) draws Home's card with a count. Not seen on a device in this change; held by tests.
+
 ### Added — Blood pressure "Too low": a top number below 80 is a danger (thresholds 0.3.0, pending CSO) — 19 Nov 2026
 
 Researched by Claude at the CSO's request; **not signed**. Every screen that shows it still says "Limits pending CSO sign-off."

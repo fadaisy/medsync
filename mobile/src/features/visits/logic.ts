@@ -1,3 +1,5 @@
+import { dayKeyOf } from "@patient-core/book-days";
+
 export { daysBetween, inDays } from "@patient-core/visits-calendar";
 
 export {
@@ -46,6 +48,35 @@ export function aheadWords(status: string | null, ahead: number | null): string 
 
 /** Said beside a count, so it is never read as a promise (the web's own words). */
 export const AHEAD_NOTE = "Sicker people are seen first, so this number can go up as well as down.";
+
+/** Where the patient stands in today's line: their intake's status and the server's count. */
+export interface AheadRead {
+  status: string;
+  ahead: number | null;
+}
+
+/** True for the two statuses where the patient is in the building and not yet seen. */
+export function presentInLine(status: string | null): boolean {
+  return status !== null && PRESENT.has(status);
+}
+
+/**
+ * Whether a booked visit can have a place in today's line worth asking about: the patient's own (a household
+ * member's intake is not theirs to count), in person, on the hospital's today, and checked in (`arrived`).
+ * The desk's check-in (`ha-check-in-patient`) is what makes the intake row that names the booking; before
+ * it there is no line to be in, so nothing is read.
+ */
+export function visitMayHaveAhead(
+  v: { status: string; forMember: string | null; type: string; startsAtIso: string },
+  now: Date,
+): boolean {
+  return (
+    v.status === "arrived" &&
+    v.forMember === null &&
+    v.type !== "virtual" &&
+    dayKeyOf(v.startsAtIso) === dayKeyOf(now)
+  );
+}
 
 /* ─── days, in the hospital's zone ───────────────────────────────── */
 

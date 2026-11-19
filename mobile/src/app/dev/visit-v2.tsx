@@ -12,6 +12,10 @@
  * on a reading the app's check calls "Too low", in the critical tone; `lowbp` is the same for blood pressure
  * (thresholds 0.3.0, pending CSO). Left out, Home is as it is with `careMode`
  * off. This calls the pure view: it does not switch the flag on.
+ *
+ * `&ahead=N` draws today's visit card as a patient the desk has checked in, with "N ahead of you" under the
+ * stage (`0` is "No one is ahead of you."); left out, or not a whole number, the card has no count, as before
+ * arrival or after a failed read.
  */
 import type { VisitQuestion } from "@/data/visit-v2";
 import type { AppointmentRow } from "@/lib/booking";
@@ -196,7 +200,14 @@ function HomeShell() {
   const t = useTide();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const params = useLocalSearchParams<{ visit?: string; place?: string; care?: string; metric?: string }>();
+  const params = useLocalSearchParams<{
+    visit?: string;
+    place?: string;
+    care?: string;
+    metric?: string;
+    ahead?: string;
+  }>();
+  const aheadCount = params.ahead !== undefined && /^\d+$/.test(params.ahead) ? Number(params.ahead) : null;
   const start = VISIT_PLACES.find((p) => p.key === params.place)?.key ?? "home";
   const [place, setPlace] = useState<VisitPlace>(start);
   const ticket = ticketFor(ESTHER, PAID, "Esther N.");
@@ -209,6 +220,7 @@ function HomeShell() {
           stage: stageOf("arrived", "line"),
           today: params.visit !== "next" && params.visit !== "tomorrow",
           tomorrow: params.visit === "tomorrow",
+          ahead: aheadCount === null ? null : { status: "awaiting_triage", ahead: aheadCount },
         };
   const empty = params.visit === "none";
   return (
