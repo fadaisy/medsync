@@ -64,6 +64,7 @@ renumbers its ADR.
 | migration 0263 | Pharmacy: demo removal keeps accounts the access log names | `fix/pharmacy-demo-remove-access-log` | 29 Oct 2026 | used (unapplied) |
 | ADR 0469 | Pharmacy: signed packs start from MedSync's sourced drafts | `feat/pharmacy-stock-up-polish` | 29 Oct 2026 | used |
 | migration 0264, ADR 0470 | Pharmacy: local medicines from the catalogue, controlled by the signed substance list | `feat/pharmacy-stock-up-polish` | 29 Oct 2026 | used (unapplied) |
+| ADR 0529 | One account per tab | `feat/account-per-tab` | 19 Nov 2026 | used |
 
 **Resolved 25 Oct 2026:** merging `feat/mobile-tide-v1` into `feat/patient-web-tide` met main's lab migrations 0171–0173
 and lab ADRs 0343–0355. The phone's became migrations 0185–0191 (pharmacy Phase 2, merged, keeps 0192–0204) and ADRs
