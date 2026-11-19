@@ -17,7 +17,7 @@ import { readingsRepo } from "@/data/readings";
 import { useNow } from "@/lib/use-now";
 import { newId } from "@/offline/outbox";
 
-import { DangerFlowV2, MessagesV2, MyCareV2, WellnessV2 } from "./my-care";
+import { DangerFlowV2, helpInPageFor, MessagesV2, MyCareV2, WellnessV2 } from "./my-care";
 
 function useMyCare() {
   const [data, setData] = useState<MyCareData | null>(null);
@@ -90,11 +90,22 @@ export function WellnessBody() {
  * The v2 danger flow, from the reading that opened it. Each recheck is saved the usual way (care mode: the team
  * is told when online, S19); the flow itself needs no network.
  */
-export function DangerFlowBody({ kind }: { kind: DangerKind }) {
+export function DangerFlowBody({
+  kind,
+  onHelpInPage,
+}: {
+  kind: DangerKind;
+  /** Told whether this step draws its own red Help (`helpInPageFor`), so the screen can hide its header one. */
+  onHelpInPage?: (inPage: boolean) => void;
+}) {
   const router = useRouter();
   const now = useNow(1000);
   const [step, setStep] = useState<FlowStep>(() => startFlow(kind));
   const [teamNote, setTeamNote] = useState<string | null>(null);
+  const inPage = helpInPageFor(step);
+  useEffect(() => {
+    onHelpInPage?.(inPage);
+  }, [inPage, onHelpInPage]);
   return (
     <DangerFlowV2
       step={step}

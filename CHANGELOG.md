@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — The header Help steps aside only while the page draws its own red Help (ADR 0525, amends law L6) (phone) — 19 Nov 2026
+
+The owner wrote "help shouldn't be on every screen" and asked that the screens which lose it be found by Book's rule. **The rule:** a screen hides the header Help only while the page itself shows a red Help that opens `/help`, in view without scrolling, in that state, as its main action. Nothing loses Help for being calm, a form or a settings page; signed-out screens, the splash and the welcome keep it; otherwise L6 stands.
+
+- **One new case:** the danger interrupt (`mobile/src/app/(app)/danger.tsx`). Its first step ("Yes, get help now", red, pinned footer, opens `/help`) hides the header Help; the recheck step, where the red Help is a second button, keeps it. Behind `careMode` (still locked), the flow's "Get help now" steps do the same (`helpInPageFor` in `features/v2/my-care.tsx`, reported by `DangerFlowBody`).
+- **Every other red button keeps the header Help**, each for a stated reason in ADR 0525's table: the symptom checker's and the reading screens' red buttons open the emergency lines or the danger interrupt, not `/help`; Messages, Activity and the symptom note's red Help are not the page's main action; Home's and Today's danger card has no red Help button.
+- **Tests:** the Help crawl names the case (`IN_PAGE_HELP`), so `danger.tsx` passes only with the switch tied to its red Help; the general check is not loosened. `features/safety/help-in-page.test.tsx` checks each in-page button is red and opens `/help`, and that the header Help returns on the recheck. `docs/mobile-tide/PROMPT-MOBILE-TIDE-V1.md` is the historical build prompt and is left as written.
+
 ### Added — "N ahead of you" on a booked visit, once the patient is at the hospital (phone) — 19 Nov 2026
 
 Approved by the owner. The rule is ADR 0084 §6, unchanged: a number only where it is true, "N ahead of you" among patients present in the same department, never a place number, a total or a wait, always with "Sicker people are seen first, so this number can go up as well as down." No migration, no Edge Function, no flag.

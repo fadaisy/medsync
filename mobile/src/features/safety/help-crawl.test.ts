@@ -5,7 +5,10 @@ import { join, relative } from "path";
  * Law L6, the Help route crawl: every route under `src/app` must show the red
  * Help. A route passes when it renders the Tide `<Screen>` (which draws Help)
  * without `help="none"`, or renders `<HelpButton>` itself. Only Help may opt
- * out, because it is the destination. Layouts and `dev/` are not routes a
+ * out, because it is the destination. ADR 0525 amends L6: a page may hide the
+ * header Help only while it draws its own red Help that opens /help, in view,
+ * as its main action — Book's "Something is wrong" card and the cases named
+ * in `IN_PAGE_HELP`. Layouts and `dev/` are not routes a
  * patient reaches.
  *
  * The legacy Chroma `<Screen>` (`@/components/ui/screen`) has no Help, so a
@@ -23,6 +26,21 @@ function routes(dir: string): string[] {
     return [path];
   });
 }
+
+/**
+ * The pages that hide the header Help by ADR 0525's rule (amending L6, owner 19 Nov 2026), by name, each with
+ * what must hold for it: the switch is set by the very state that draws the red Help opening /help as the
+ * page's main action, in view without scrolling. A swap on one of these files passes only with all of them.
+ */
+export const IN_PAGE_HELP: Record<string, RegExp[]> = {
+  // The danger interrupt: the first step's "Yes, get help now" in the pinned footer; and, in Care mode, the
+  // flow's "Get help now" steps, which the flow reports (`helpInPageFor`, checked below).
+  "(app)/danger.tsx": [
+    /const helpInPage = step === "ask";/,
+    /step === "ask" \? \(\s*<>\s*<Button\s+label="Yes, get help now"\s+icon="phone"\s+variant="danger"\s+onPress=\{\(\) => router\.push\("\/help"\)\}/,
+    /<DangerFlowBody kind=\{kind\} onHelpInPage=\{setHelpInPage\} \/>/,
+  ],
+};
 
 /** Null when the source satisfies L6, else the reason it does not. */
 export function helpViolation(file: string, src: string): string | null {
@@ -44,6 +62,9 @@ export function helpViolation(file: string, src: string): string | null {
     )
   )
     return "hides the header Help without a red Help of its own on the page";
+  const named = IN_PAGE_HELP[file];
+  if (swaps && named && !named.every((r) => r.test(src)))
+    return "hides the header Help outside the state that draws its own red Help";
   if (isHelp) return null;
   // The emergency routes are Help's own family: the lines, crisis and SV
   // screens Help opens, and the signed-out sheet.
@@ -92,6 +113,38 @@ describe("law L6: Help is reachable on every route", () => {
     const helpNow = src.slice(src.indexOf("function HelpNow"));
     expect(helpNow).toMatch(/variant="danger"/);
     expect(helpNow).toMatch(/push\("\/help"\)/);
+  });
+
+  it("the danger interrupt hides its header Help only in the states that draw the red Help (ADR 0525)", () => {
+    const danger = readFileSync(join(APP, "(app)/danger.tsx"), "utf8");
+    expect(helpViolation("(app)/danger.tsx", danger)).toBeNull();
+    // Each named condition is needed: the same file with the switch set by another state fails.
+    const otherState = danger.replace('const helpInPage = step === "ask";', 'const helpInPage = step === "recheck";');
+    expect(helpViolation("(app)/danger.tsx", otherState)).not.toBeNull();
+    const notReported = danger.replace(" onHelpInPage={setHelpInPage}", "");
+    expect(helpViolation("(app)/danger.tsx", notReported)).not.toBeNull();
+    const notHelp = danger.replace(
+      'variant="danger"\n              onPress={() => router.push("/help")}',
+      'variant="danger"\n              onPress={() => router.push("/care")}',
+    );
+    expect(helpViolation("(app)/danger.tsx", notHelp)).not.toBeNull();
+  });
+
+  it("the danger flow reports only its Help steps, whose red button opens /help", () => {
+    const feature = join(APP, "..", "features", "v2");
+    const view = readFileSync(join(feature, "my-care.tsx"), "utf8");
+    expect(view).toMatch(
+      /export function helpInPageFor\(s: FlowStep\): boolean \{\s*return s\.step === "help" \|\| s\.step === "help_now";\s*\}/,
+    );
+    expect(view).toMatch(/const helpStep = helpInPageFor\(s\);/);
+    expect(view).toMatch(
+      /\{helpStep \? <Button label=\{D\.helpNow\} variant="danger" size="lg" onPress=\{p\.onHelp\} \/> : null\}/,
+    );
+    const routes = readFileSync(join(feature, "my-care-routes.tsx"), "utf8");
+    const body = routes.slice(routes.indexOf("export function DangerFlowBody"));
+    expect(body).toMatch(/const inPage = helpInPageFor\(step\);/);
+    expect(body).toMatch(/onHelpInPage\?\.\(inPage\)/);
+    expect(body).toMatch(/onHelp=\{\(\) => router\.push\("\/help"\)\}/);
   });
 
   it("fails a route without Help", () => {
