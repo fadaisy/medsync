@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Home's "See a doctor" is small portrait previews (phone) — 19 Nov 2026
+
+The redesign the owner approved on the design canvas ("portrait", 18 Nov; ticked in the CSO sign-off pack, section 7), for Home only.
+
+- `mobile/src/features/home/doctors.tsx`: up to four doctors with an open day, soonest first and the patient's own hospital first on the same day (`doctorPreviews`). Each is a 156pt card: the photo, or a quiet silhouette, with the day in the fewest words on a chip ("Today", filled, or "Thu 19 Nov"), then the name, the role and where. Tapping one asks that doctor for a day, as before. "See all" opens Book.
+- While the doctors load, cannot be read, or none is open, the section is one quiet row; on a failure, tapping it tries again.
+- Gone from Home: the large ID badges, the filter chips, the rating and "Come today" on each badge. No count of people, no rating, no placeholder doctor.
+- Not built yet: the full "See a doctor" list from the same prototype (day rail, cards that open, filters). "See all" still opens Book.
+
 ### Changed — The header Help steps aside only while the page draws its own red Help (ADR 0528, amends law L6) (phone) — 19 Nov 2026
 
 The owner wrote "help shouldn't be on every screen" and asked that the screens which lose it be found by Book's rule. **The rule:** a screen hides the header Help only while the page itself shows a red Help that opens `/help`, in view without scrolling, in that state, as its main action. Nothing loses Help for being calm, a form or a settings page; signed-out screens, the splash and the welcome keep it; otherwise L6 stands.
