@@ -2,176 +2,162 @@
 
 import type { DoctorCard } from "@patient-core/doctors";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   availabilityWords,
   dayKeyOf,
-  doctorFilters,
-  matchesFilter,
+  doctorPreviews,
+  placeOfNextDay,
   shortDayOf,
 } from "@patient-core/doctors";
-import {
-  ArrowRightIcon,
-  CalendarIcon,
-  CheckIcon,
-  ClockIcon,
-  StarIcon,
-  WalletIcon,
-} from "lucide-react";
+import { ChevronRightIcon, UserIcon } from "lucide-react";
 
-import { Chip, ChipRow } from "@/components/tide/controls";
-import { buttonClass, ICON } from "@/components/tide/kit";
+import { ICON, SectionHead, TextLink } from "@/components/tide/kit";
 import { HOME_COPY as C } from "@/content/patient/home";
 import { cn } from "@/lib/utils";
 
+const FOCUS =
+  "focus-visible:outline-pw-focus focus-visible:outline-2 focus-visible:outline-offset-2";
+
 /**
- * "See a doctor" (the phone's features/home/doctors.tsx): filter chips the data can answer, then one ID
- * badge per real clinician. No count of people anywhere (ADR 0084 §6). Ratings stay off on the web
- * (D-PW-08): every badge reads "New". The row scrolls sideways inside its own box only.
+ * "See a doctor" on Home (the phone's features/home/doctors.tsx, "portrait", 18 Nov 2026): up to four small
+ * portrait previews of the doctors with the soonest open day (`doctorPreviews`). No count of people anywhere
+ * (ADR 0084 §6), no rating, no placeholder doctor. "See all" opens Book. `doctors` is null when they could
+ * not be read; then, and when none is open, the section is one quiet row.
  */
-export function DoctorsView({ doctors }: { doctors: DoctorCard[] }) {
-  const [filter, setFilter] = useState<string | null>(null);
-  if (doctors.length === 0)
+export function DoctorsView({ doctors }: { doctors: DoctorCard[] | null }) {
+  const router = useRouter();
+  const previews = doctors ? doctorPreviews(doctors) : [];
+  if (!doctors) return <QuietRow line={C.doctorsFailed} onRetry={() => router.refresh()} />;
+  if (previews.length === 0)
     return (
-      <p className="rounded-pw-row bg-pw-surface-2 text-pw-ink-2 p-4 text-[15px]">
-        {C.doctorsNone}
-      </p>
+      <QuietRow
+        line={doctors.length === 0 ? C.doctorsNone : C.doctorsNoOpenDay}
+        href="/patient/book"
+      />
     );
-  const filters = doctorFilters(doctors);
-  const active = filter && filters.includes(filter) ? filter : null;
-  const shown = doctors.filter((d) => matchesFilter(d, active));
+  const today = dayKeyOf(new Date());
   return (
-    <>
-      {filters.length > 0 ? (
-        <ChipRow label={C.doctorFilters}>
-          {filters.map((f) => (
-            <Chip
-              key={f}
-              selected={active === f}
-              onClick={() => setFilter(active === f ? null : f)}
-            >
-              {f}
-            </Chip>
-          ))}
-        </ChipRow>
-      ) : null}
-      <ul className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pt-1 pb-3">
-        {shown.map((d) => (
+    <section aria-labelledby="see-doctor" className="flex min-w-0 flex-col gap-3">
+      <SectionHead
+        id="see-doctor"
+        title={C.seeDoctor}
+        action={<TextLink href="/patient/book">{C.seeAll}</TextLink>}
+      />
+      <ul className="-mx-1 flex snap-x gap-2.5 overflow-x-auto px-1 pt-0.5 pb-3.5">
+        {previews.map((d) => (
           <li key={d.key} className="snap-start">
-            <Badge d={d} />
+            <DoctorPreview d={d} todayKey={today} />
           </li>
         ))}
       </ul>
-    </>
+    </section>
   );
 }
 
-/** The badge: the photo (or initials) over a navy band with a curved shoulder, the fee along the foot. */
-function Badge({ d }: { d: DoctorCard }) {
-  const firstOpen = d.places.find((p) => p.nextDayKey !== null) ?? null;
-  const available = availabilityWords(d.nextDayKey, dayKeyOf(new Date()), shortDayOf);
-  const where = firstOpen ?? d.places[0]!;
-  const walkIn = d.places.find((p) => p.walkInToday) ?? null;
-  const placeWords =
-    d.places.length === 1
-      ? `${where.departmentName} · ${where.hospitalName}`
-      : C.andMore(where.hospitalName, d.places.length - 1);
-  const label = `${d.name}, ${d.role}. ${placeWords}. ${available.text}. ${where.feeWords}. ${C.ratingNew}.${
-    firstOpen ? C.askForDay : ""
-  }`;
-  const ask = firstOpen
-    ? `/patient/book/day?${new URLSearchParams({
-        doctor: d.userId,
-        department: firstOpen.departmentId,
-        hospital: firstOpen.hospitalId,
-      })}`
-    : null;
-  const AvailIcon = available.today ? CheckIcon : d.nextDayKey ? CalendarIcon : ClockIcon;
-
+/**
+ * One doctor: the photo (or a quiet silhouette) with the day in the fewest words on a chip ("Today", filled,
+ * or "Thu 19 Nov"; the word says it, so colour is never alone), then the name, the role and where. It asks
+ * that doctor for a day, where they are open first.
+ */
+function DoctorPreview({ d, todayKey }: { d: DoctorCard; todayKey: string }) {
+  const at = placeOfNextDay(d);
+  const available = availabilityWords(d.nextDayKey, todayKey, shortDayOf);
+  const where =
+    d.places.length === 1 ? at.hospitalName : C.andMore(at.hospitalName, d.places.length - 1);
+  const day = available.today ? C.today : d.nextDayKey ? shortDayOf(d.nextDayKey) : "";
+  const href = `/patient/book/day?${new URLSearchParams({
+    doctor: d.userId,
+    department: at.departmentId,
+    hospital: at.hospitalId,
+  })}`;
   return (
-    <article className="rounded-pw-card bg-pw-band text-pw-on-band shadow-pw-float relative flex h-[420px] w-[236px] flex-col overflow-hidden">
-      <div className="bg-pw-surface-2 relative h-[252px] shrink-0">
+    <Link
+      href={href}
+      aria-label={`${d.name}, ${d.role}. ${where}. ${available.text}.${C.askForDay}`}
+      className={cn(
+        "rounded-pw-card bg-pw-surface shadow-pw-card flex w-[156px] flex-col overflow-hidden",
+        "transition-[scale] duration-150 ease-out active:scale-[0.97] motion-reduce:transition-none",
+        FOCUS,
+      )}
+    >
+      <span className="bg-pw-surface-3 relative flex h-[118px] items-end justify-center overflow-hidden">
         {d.photoUrl ? (
           // A signed URL good for an hour, from pt-bookable-clinicians: no optimiser in between.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={d.photoUrl} alt="" className="size-full object-cover" />
+          <img src={d.photoUrl} alt="" className="absolute inset-0 size-full object-cover" />
         ) : (
-          <div className="bg-pw-info-tint grid size-full place-items-center pb-10">
-            <span className="bg-pw-surface text-pw-info-text grid size-[104px] place-items-center rounded-full text-[40px] font-semibold">
-              {d.initials}
-            </span>
-          </div>
-        )}
-        <div aria-hidden className="absolute top-3 left-3 flex items-center gap-1.5">
-          <span
-            className={cn(
-              "grid size-[30px] place-items-center rounded-full",
-              available.today ? "bg-pw-accent text-pw-on-accent" : "bg-pw-surface",
-              !available.today && (d.nextDayKey ? "text-pw-ink" : "text-pw-ink-3"),
-            )}
+          <svg
+            aria-hidden
+            viewBox="0 0 24 24"
+            className="fill-pw-ink-3 -mb-[18px] size-[104px] opacity-40"
           >
-            <AvailIcon className="size-[15px]" strokeWidth={available.today ? 3 : 2} />
-          </span>
-          {walkIn ? (
-            <span className="bg-pw-band text-pw-on-band-accent flex min-h-[26px] items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold">
-              <span className="bg-pw-accent size-[7px] rounded-full" />
-              {C.walkInsToday}
-            </span>
-          ) : null}
-        </div>
+            <circle cx={12} cy={9} r={4.2} />
+            <path d="M3.5 24c0-5 3.8-8.2 8.5-8.2s8.5 3.2 8.5 8.2z" />
+          </svg>
+        )}
         <span
           aria-hidden
-          className="bg-pw-surface text-pw-ink-3 absolute top-3 right-3 flex min-h-[26px] items-center gap-1 rounded-full px-[9px] text-xs font-semibold"
-        >
-          <StarIcon className="size-3" {...ICON} />
-          {C.ratingNew}
-        </span>
-        <svg
-          aria-hidden
-          viewBox="0 0 236 40"
-          preserveAspectRatio="none"
-          className="fill-pw-band absolute inset-x-0 bottom-0 h-10 w-full"
-        >
-          <path d="M0 0 H122.7 C155.8 0 155.8 32 188.8 32 H236 V40 H0 Z" />
-        </svg>
-      </div>
-      <div className="flex flex-1 flex-col gap-1 px-4 pb-4">
-        <h3 className="line-clamp-2 text-[21px] leading-[25px] font-semibold tracking-[-0.015em]">
-          {ask ? (
-            <Link
-              href={ask}
-              aria-label={label}
-              className="focus-visible:outline-pw-focus after:absolute after:inset-0 after:content-[''] focus-visible:outline-2"
-            >
-              {d.name}
-            </Link>
-          ) : (
-            <span aria-label={label}>{d.name}</span>
+          className={cn(
+            "absolute top-2.5 left-2.5 flex min-h-[26px] items-center rounded-full px-2.5 text-xs font-semibold",
+            available.today ? "bg-pw-accent text-pw-on-accent" : "bg-pw-surface text-pw-ink",
           )}
-        </h3>
-        <p className="text-pw-on-band-2 truncate text-[15px] font-medium">{d.role}</p>
-        <p className="text-pw-on-band-2 truncate text-xs font-medium">{placeWords}</p>
-        <div className="mt-auto flex items-center gap-1.5 pt-2.5">
-          <WalletIcon className="text-pw-on-band-2 size-[13px] shrink-0" {...ICON} />
-          <span className="min-w-0 flex-1 truncate text-xs font-semibold">{where.feeWords}</span>
-          {walkIn ? (
-            <Link
-              href={`/patient/book/today?${new URLSearchParams({ clinic: walkIn.departmentId })}`}
-              aria-label={C.comeTodayLabel(walkIn.departmentName, walkIn.hospitalName)}
-              className={cn(buttonClass("accent", "s"), "relative z-10")}
-            >
-              {C.comeToday}
-            </Link>
-          ) : ask ? (
-            <span
-              aria-hidden
-              className="bg-pw-band-glass grid size-[30px] place-items-center rounded-full"
-            >
-              <ArrowRightIcon className="size-[15px]" {...ICON} />
-            </span>
-          ) : null}
-        </div>
-      </div>
-    </article>
+        >
+          {day}
+        </span>
+      </span>
+      <span className="flex flex-col px-3.5 pt-3 pb-3.5">
+        <span className="truncate text-[15px] font-semibold">{d.name}</span>
+        <span className="text-pw-ink-2 truncate text-xs font-medium">{d.role}</span>
+        <span className="text-pw-ink-2 truncate text-xs font-medium">{where}</span>
+      </span>
+    </Link>
+  );
+}
+
+/**
+ * While the doctors load, cannot be read, or none is open: one quiet row that still leads to Book (or, on a
+ * failure, tries again; or, with no hospital, leads to choosing one).
+ */
+export function QuietRow({
+  line,
+  href,
+  onRetry,
+}: {
+  line: string;
+  href?: string;
+  onRetry?: () => void;
+}) {
+  const body = (
+    <>
+      <span className="bg-pw-surface-3 text-pw-ink-2 grid size-11 shrink-0 place-items-center rounded-full">
+        <UserIcon className="size-5" {...ICON} />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col text-left">
+        <span className="text-[15px] font-semibold">{C.seeDoctor}</span>
+        <span className="text-pw-ink-2 text-xs font-medium">{line}</span>
+      </span>
+      <ChevronRightIcon className="text-pw-ink-3 size-5 shrink-0" {...ICON} />
+    </>
+  );
+  const cls = cn(
+    "rounded-pw-card bg-pw-surface shadow-pw-card flex min-h-[68px] w-full items-center gap-3 px-3.5 py-3",
+    FOCUS,
+  );
+  if (onRetry)
+    return (
+      <button
+        type="button"
+        onClick={onRetry}
+        aria-label={`${C.seeDoctor}. ${line} ${C.tryAgain}`}
+        className={cls}
+      >
+        {body}
+      </button>
+    );
+  return (
+    <Link href={href ?? "/patient/book"} className={cls}>
+      {body}
+    </Link>
   );
 }

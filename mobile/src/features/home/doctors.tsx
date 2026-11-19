@@ -6,6 +6,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 
 import { Icon, Press, SectionHead } from "@/components/tide";
 import { availabilityWords, loadDoctors, useDoctors } from "@/data/doctors";
+import { doctorPreviews, placeOfNextDay } from "@patient-core/doctors";
 import { shortDayOf } from "@/features/visits/logic";
 import { dateKey } from "@/lib/booking";
 import { useNow } from "@/lib/use-now";
@@ -71,31 +72,7 @@ export function Doctors() {
   );
 }
 
-/** How many doctors Home shows; the rest are in Book. */
-export const PREVIEW_COUNT = 4;
-
-/**
- * Home's previews: the doctors with an open day, soonest first, the patient's own hospital first on the same
- * day, then as the list came. A doctor with no open day in the horizon is left for Book.
- */
-export function doctorPreviews(doctors: readonly DoctorCard[]): DoctorCard[] {
-  return doctors
-    .map((d, i) => ({ d, i }))
-    .filter(({ d }) => d.nextDayKey !== null)
-    .sort(
-      (a, b) =>
-        (a.d.nextDayKey ?? "").localeCompare(b.d.nextDayKey ?? "") ||
-        Number(atHome(b.d)) - Number(atHome(a.d)) ||
-        a.i - b.i,
-    )
-    .slice(0, PREVIEW_COUNT)
-    .map(({ d }) => d);
-}
-
-/** The place of the doctor's next open day, else their first place. */
-const placeOf = (d: DoctorCard) =>
-  d.places.find((p) => p.nextDayKey === d.nextDayKey) ?? d.places[0];
-const atHome = (d: DoctorCard) => placeOf(d)?.home === true;
+export { doctorPreviews, PREVIEW_COUNT } from "@patient-core/doctors";
 
 const CARD_W = 156;
 const PHOTO_H = 118;
@@ -108,7 +85,7 @@ const PHOTO_H = 118;
 function DoctorPreview({ d, todayKey }: { d: DoctorCard; todayKey: string }) {
   const t = useTide();
   const router = useRouter();
-  const at = placeOf(d);
+  const at = placeOfNextDay(d);
   const available = availabilityWords(d.nextDayKey, todayKey, shortDayOf);
   const where =
     d.places.length === 1 ? at.hospitalName : `${at.hospitalName} and ${d.places.length - 1} more`;

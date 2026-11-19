@@ -242,3 +242,30 @@ export function matchesFilter(card: DoctorCard, filter: string | null): boolean 
   if (filter === WALK_IN_FILTER) return card.places.some((p) => p.walkInToday);
   return card.places.some((p) => p.hospitalName === filter || p.departmentName === filter);
 }
+
+/** How many doctors Home shows; the rest are in Book. */
+export const PREVIEW_COUNT = 4;
+
+/** The place of the doctor's next open day, else their first place. */
+export const placeOfNextDay = (d: DoctorCard): DoctorPlace =>
+  d.places.find((p) => p.nextDayKey === d.nextDayKey) ?? d.places[0]!;
+
+/**
+ * Home's "See a doctor" previews (phone and web): the doctors with an open day, soonest first, the patient's
+ * own hospital first on the same day, then as the list came. A doctor with no open day in the horizon is left
+ * for Book.
+ */
+export function doctorPreviews(doctors: readonly DoctorCard[]): DoctorCard[] {
+  const atHome = (d: DoctorCard) => placeOfNextDay(d).home;
+  return doctors
+    .map((d, i) => ({ d, i }))
+    .filter(({ d }) => d.nextDayKey !== null)
+    .sort(
+      (a, b) =>
+        (a.d.nextDayKey ?? "").localeCompare(b.d.nextDayKey ?? "") ||
+        Number(atHome(b.d)) - Number(atHome(a.d)) ||
+        a.i - b.i,
+    )
+    .slice(0, PREVIEW_COUNT)
+    .map(({ d }) => d);
+}

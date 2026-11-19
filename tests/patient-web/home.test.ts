@@ -1,12 +1,25 @@
+import type { DoctorCard } from "@patient-core/doctors";
 import type { LogRow } from "@patient-core/log";
 import type { MedRow, TakeRec } from "@patient-core/medicines";
-import { doctorFilters, FEE_UNKNOWN, toDoctorCards, WALK_IN_FILTER } from "@patient-core/doctors";
+import { createElement as h } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import {
+  doctorFilters,
+  doctorPreviews,
+  FEE_UNKNOWN,
+  PREVIEW_COUNT,
+  toDoctorCards,
+  WALK_IN_FILTER,
+} from "@patient-core/doctors";
 import { lastDays, moodsFor, readingsFrom, yearMix } from "@patient-core/log";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import { DoctorsView } from "@/app/pw/patient/_components/doctors";
 import { buildDay } from "@/app/pw/patient/_lib/cascade";
 import { HOME_COPY } from "@/content/patient/home";
 import { today } from "@/lib/patient-web/today";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
 /** Home (Step 3): S4 first run and the cascade order; S5's take/undo pair round-trips the day. */
 const NOW = new Date(2026, 9, 25, 8, 10);
@@ -128,5 +141,71 @@ describe("See a doctor (S7)", () => {
     expect(cards[0]!.places[0]!.walkInToday).toBe(true);
     expect(cards[1]!.places[0]!.walkInToday).toBe(false);
     expect(doctorFilters(cards)).toContain(WALK_IN_FILTER);
+  });
+});
+
+/** A doctor with one place; invented, belongs to nobody (the phone's doctors.test.tsx fixture). */
+const doc = (key: string, next: string | null, home = false): DoctorCard => ({
+  key,
+  userId: key,
+  name: `Doctor ${key}`,
+  role: "Medical Officer",
+  initials: "DR",
+  photoUrl: null,
+  nextDayKey: next,
+  rating: null,
+  places: [
+    {
+      hospitalId: home ? "h-home" : "h-away",
+      hospitalName: home ? "Home Hospital" : "Away Hospital",
+      departmentId: "dep",
+      departmentName: "General OPD",
+      nextDayKey: next,
+      feeWords: "No fee",
+      walkInToday: false,
+      home,
+    },
+  ],
+});
+
+describe("Home's See a doctor previews (the phone's, 19 Nov 2026)", () => {
+  it("soonest open day first, the patient's own hospital first on the same day, at most four", () => {
+    const list = [
+      doc("late", "2026-11-23"),
+      doc("none", null),
+      doc("away-today", "2026-11-18"),
+      doc("home-today", "2026-11-18", true),
+      doc("tomorrow", "2026-11-19"),
+      doc("later", "2026-11-25"),
+    ];
+    expect(doctorPreviews(list).map((d) => d.key)).toEqual([
+      "home-today",
+      "away-today",
+      "tomorrow",
+      "late",
+    ]);
+    expect(PREVIEW_COUNT).toBe(4);
+  });
+
+  it("draws each preview with its day on a chip, asking that doctor for a day; See all opens Book", () => {
+    const html = renderToStaticMarkup(
+      h(DoctorsView, { doctors: [doc("a", "2027-01-14", true), doc("b", null)] }),
+    );
+    expect(html).toContain("See a doctor");
+    expect(html).toContain("Thu 14 Jan");
+    expect(html).toContain("/patient/book/day?doctor=a&amp;department=dep&amp;hospital=h-home");
+    expect(html).toContain('href="/patient/book"');
+    expect(html).not.toContain("Doctor b");
+    expect(html).not.toMatch(/rating|UGX|No fee|Come today/i);
+  });
+
+  it("on failure, with no doctor, or with none open, it is one quiet row and no See all", () => {
+    const failed = renderToStaticMarkup(h(DoctorsView, { doctors: null }));
+    expect(failed).toContain(HOME_COPY.doctorsFailed.replace("'", "&#x27;"));
+    expect(failed).toContain("<button");
+    expect(renderToStaticMarkup(h(DoctorsView, { doctors: [] }))).toContain(HOME_COPY.doctorsNone);
+    const closed = renderToStaticMarkup(h(DoctorsView, { doctors: [doc("x", null)] }));
+    expect(closed).toContain(HOME_COPY.doctorsNoOpenDay);
+    expect(closed).not.toContain(HOME_COPY.seeAll);
   });
 });
