@@ -1,3 +1,4 @@
+import type { DangerKind } from "@patient-core/danger-flow";
 import { useState } from "react";
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { Text, View } from "react-native";
@@ -17,7 +18,11 @@ import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
  * The dangerous-reading interrupt (board TDanger/DDanger, F-22). Forced light
- * (law L11). Unlike Help it keeps the round Help in its header (law L6).
+ * (law L11). It keeps the round Help in its header (law L6) except while the
+ * page's own main action is the red Help that opens /help, in view without
+ * scrolling (ADR 0528): the first step's "Yes, get help now" in the pinned
+ * footer, and in Care mode the flow's "Get help now" steps (`helpInPageFor`).
+ * Then the header one steps aside, as on Book's "Something is wrong" card.
  *
  * The reading arrives as route params (`kind`, `value`, and `context` for
  * sugar); the level, the headline and the signs come from `checkReading()`
@@ -32,14 +37,23 @@ export default function DangerScreen() {
   const kind = flag("careMode") ? dangerFor(readingFromParams(params)) : null;
   return (
     <ForcedScheme scheme="light">
-      {kind ? (
-        <Screen stagger={false} helpSource="danger" back={{}}>
-          <DangerFlowBody kind={kind} />
-        </Screen>
-      ) : (
-        <DangerBody />
-      )}
+      {kind ? <DangerFlowScreen kind={kind} /> : <DangerBody />}
     </ForcedScheme>
+  );
+}
+
+/** Care mode's step-by-step flow. Its "Get help now" steps draw the red Help, so the header one steps aside. */
+function DangerFlowScreen({ kind }: { kind: DangerKind }) {
+  const [helpInPage, setHelpInPage] = useState(false);
+  return (
+    <Screen
+      stagger={false}
+      helpSource="danger"
+      back={{}}
+      help={helpInPage ? "none" : "round"}
+    >
+      <DangerFlowBody kind={kind} onHelpInPage={setHelpInPage} />
+    </Screen>
   );
 }
 
@@ -52,6 +66,9 @@ function DangerBody() {
   const check = checkReading(input);
   const [seenAt] = useState(() => hhmm(new Date()));
   const [step, setStep] = useState<"ask" | "recheck">("ask");
+  // The first step's main action is the red "Yes, get help now" (pinned footer, opens /help), so the header
+  // Help steps aside (ADR 0528). On the recheck the red Help is a second button under the wait, so it returns.
+  const helpInPage = step === "ask";
 
   // The recheck wait, really run: `useNow` ticks each second against `endsAt`.
   const total = RECHECK_MINUTES * 60_000;
@@ -70,6 +87,7 @@ function DangerBody() {
     <Screen
       stagger={false}
       helpSource="danger"
+      help={helpInPage ? "none" : "round"}
       header={
         <Pill label={`Danger · ${seenAt}`} icon="alert" bg={t.surface} fg={t.critical.text} />
       }

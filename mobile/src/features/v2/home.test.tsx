@@ -3,7 +3,13 @@ import { stageOf } from "@patient-core/visit-stages";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { AvatarCount, VISIT_PLACES, VisitNav } from "@/components/tide/v2-shell";
+import {
+  AvatarCount,
+  VISIT_NAV_GLASS,
+  VISIT_PLACES,
+  VisitNav,
+  visitNavBottom,
+} from "@/components/tide/v2-shell";
 import { HomeV2View } from "@/features/v2/home";
 import { ThemeProvider } from "@/theme/theme";
 
@@ -41,18 +47,18 @@ const handlers = () => ({
   onRetryVisit: jest.fn(),
   onBookToday: jest.fn(),
   onBookDay: jest.fn(),
-  onOpenCard: jest.fn(),
   onResults: jest.fn(),
   onBookFor: jest.fn(),
   onAddSomeone: jest.fn(),
   onCare: jest.fn(),
+  onReadings: jest.fn(),
+  onMedicines: jest.fn(),
   onWellness: jest.fn(),
 });
 const base = (over: Partial<HomeV2Props> = {}): HomeV2Props => ({
   visit: { state: "none" },
   results: { state: "off" },
   household: [],
-  card: { tierName: "Basic", memberNo: "TTH 0042 2290", plus: false },
   careLink: true,
   ...handlers(),
   ...over,
@@ -74,15 +80,20 @@ describe("Home v2 on the phone (feature matrix 3.1)", () => {
     expect(screen.queryByText("Open your visit")).toBeNull();
   });
 
-  it("today's visit is the ticket with the stage in words; another day's has no stage", async () => {
+  it("today's visit shows the code for the desk and the stage in words; another day's has no stage", async () => {
     const p = base({
       visit: { state: "ready", ticket: TICKET, stage: stageOf("arrived", "line"), today: true },
     });
     const view = await wrap(<HomeV2View {...p} />);
     expect(screen.getByText("Today's visit")).toBeTruthy();
+    expect(screen.getByText("Show this code at the desk")).toBeTruthy();
     expect(screen.getByText("K7M 42Q")).toBeTruthy();
+    // Who the visit is for is on the card: the next visit can be a parent's or a child's.
+    expect(screen.getByText(/Esther N\./)).toBeTruthy();
     const stage = stageOf("arrived", "line").label;
     expect(screen.getByText(stage)).toBeTruthy();
+    // The stage is words and a bar, never a number (MR4).
+    expect(screen.queryByText(/step \d|\d of \d/i)).toBeNull();
     await fireEvent.press(screen.getByText("Open your visit"));
     expect(p.onOpenVisit).toHaveBeenCalledTimes(1);
 
@@ -97,6 +108,7 @@ describe("Home v2 on the phone (feature matrix 3.1)", () => {
       </SafeAreaProvider>,
     );
     expect(screen.getByText("Your next visit")).toBeTruthy();
+    expect(screen.getByText("Monday 16 November")).toBeTruthy();
     expect(screen.queryByText(stage)).toBeNull();
   });
 
@@ -108,7 +120,7 @@ describe("Home v2 on the phone (feature matrix 3.1)", () => {
     expect(p.onRetryVisit).toHaveBeenCalledTimes(1);
   });
 
-  it("results are free and show no values; the household books by name; the care link is optional", async () => {
+  it("results are free and show no values; the household books by name; the care doors are optional", async () => {
     const p = base({
       results: { state: "ordered", tests: 2, note: "Results come after review." },
       household: [{ id: "h1", label: "Mother" }],
@@ -116,20 +128,29 @@ describe("Home v2 on the phone (feature matrix 3.1)", () => {
     const view = await wrap(<HomeV2View {...p} />);
     expect(screen.getByText("Always free")).toBeTruthy();
     expect(screen.getByText("2 tests ordered at your visits")).toBeTruthy();
-    await fireEvent.press(screen.getByText("Book for Mother"));
+    await fireEvent.press(screen.getByLabelText("Book for Mother"));
     expect(p.onBookFor).toHaveBeenCalledWith("h1");
     await fireEvent.press(screen.getByText("Your care"));
     expect(p.onCare).toHaveBeenCalledTimes(1);
+    // The four doors under "Your care": each opens its own current screen.
+    await fireEvent.press(screen.getByLabelText("Readings"));
+    await fireEvent.press(screen.getByLabelText("Medicines"));
+    await fireEvent.press(screen.getByLabelText("Wellness"));
+    expect(p.onReadings).toHaveBeenCalledTimes(1);
+    expect(p.onMedicines).toHaveBeenCalledTimes(1);
+    expect(p.onWellness).toHaveBeenCalledTimes(1);
 
     await view.rerender(
       <SafeAreaProvider initialMetrics={METRICS}>
         <ThemeProvider>
-          <HomeV2View {...p} careLink={false} card={null} />
+          <HomeV2View {...p} careLink={false} />
         </ThemeProvider>
       </SafeAreaProvider>,
     );
     expect(screen.queryByText("Your care")).toBeNull();
-    // The card waits for the membership: it never guesses a tier.
+    // Results stay, free, with Care mode's own places in front.
+    expect(screen.getByText("Always free")).toBeTruthy();
+    // The membership card is on Me: Home never shows a tier.
     expect(screen.queryByText("Basic")).toBeNull();
   });
 });
@@ -151,6 +172,35 @@ describe("the v2 shell (feature matrix 1.1, 1.3)", () => {
     expect(onNavigate).toHaveBeenCalledWith("book");
     await fireEvent.press(screen.getByLabelText(/^Add:/));
     expect(onPlus).toHaveBeenCalledTimes(1);
+  });
+
+  it("the nav sits just above the home indicator, and off the edge where there is none", () => {
+    // 4 pt over the indicator's 34 pt; never closer than 12 pt to the edge of the glass.
+    expect(visitNavBottom(34)).toBe(38);
+    expect(visitNavBottom(0)).toBe(12);
+  });
+
+  it("the pill is glass only where the system has it, and solid where the glass module is missing", () => {
+    // jest-expo's mock reports the glass as available, so the test above drew the glass pill.
+    expect(VISIT_NAV_GLASS).toBe(true);
+    const glassWhen = (isLiquidGlassAvailable: () => boolean) => {
+      let mod!: typeof import("@/components/tide/v2-shell");
+      jest.isolateModules(() => {
+        jest.doMock("expo-glass-effect", () => ({
+          GlassView: "GlassView",
+          isLiquidGlassAvailable,
+        }));
+        mod = jest.requireActual("@/components/tide/v2-shell");
+      });
+      jest.dontMock("expo-glass-effect");
+      return mod.VISIT_NAV_GLASS;
+    };
+    expect(glassWhen(() => false)).toBe(false);
+    expect(
+      glassWhen(() => {
+        throw new Error("Cannot find native module 'ExpoGlassEffect'");
+      }),
+    ).toBe(false);
   });
 
   it("the avatar carries the unseen count in its name and opens Notifications", async () => {

@@ -26,6 +26,9 @@ const THRESHOLDS = {
   bp: {
     dangerTopAtLeast: rules.bp.dangerTopAtLeast,
     dangerBottomAtLeast: rules.bp.dangerBottomAtLeast,
+    dangerLowTopBelow: rules.bp.dangerLowTopBelow,
+    implausibleTopBelow: rules.bp.implausibleTopBelow,
+    implausibleBottomBelow: rules.bp.implausibleBottomBelow,
   },
   sugar: {
     dangerLowBelow: rules.sugar.dangerLowBelow,
@@ -34,7 +37,13 @@ const THRESHOLDS = {
   pulse: { dangerBelow: rules.pulse.dangerBelow, dangerAbove: rules.pulse.dangerAbove },
 };
 
-/** The danger a reading is in, from the one rules file; the same answer the server alerts on. */
+/**
+ * The danger a reading is in, from the one rules file; the same answer the server alerts on.
+ *
+ * A blood pressure that is too low (thresholds 0.3.0, pending CSO) is `low_bp`: it has no step-by-step flow
+ * of its own, so `startFlow` sends it to Help now, as it does a pulse. The server raises the alert once the
+ * updated `pt-care-reading` is deployed (it carries the same rule, `_shared/reading-danger.ts`).
+ */
 export function dangerFor(input: DangerInput): DangerKind | null {
   return dangerOf(input, THRESHOLDS);
 }

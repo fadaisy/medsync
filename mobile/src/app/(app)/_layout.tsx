@@ -77,6 +77,8 @@ export default function AppLayout() {
         <Stack.Screen name="places/index" />
         <Stack.Screen name="places/[id]" />
         <Stack.Screen name="profile/details" />
+        {/* The plans, moved off Me onto their own page (18 Nov 2026). */}
+        <Stack.Screen name="plans" />
         <Stack.Screen name="history" />
         <Stack.Screen name="danger" options={{ animation: "fade" }} />
         <Stack.Screen name="household" />

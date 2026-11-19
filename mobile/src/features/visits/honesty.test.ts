@@ -24,6 +24,18 @@ const ALL = [
   "data/visits.ts",
   "features/home/doctors.tsx",
   "data/doctors.ts",
+  // The screens that draw "N ahead of you" (owner approved 19 Nov 2026), and the one part they draw it with.
+  "features/visits/ahead.tsx",
+  "app/(app)/ticket.tsx",
+  "features/v2/home.tsx",
+  "features/v2/visit-day.tsx",
+];
+/** Where the count is drawn: each through `AheadLines`, never words of its own. */
+const AHEAD_SCREENS = [
+  "app/(app)/book/today.tsx",
+  "app/(app)/ticket.tsx",
+  "features/v2/home.tsx",
+  "features/v2/visit-day.tsx",
 ];
 
 describe("queue honesty (law L8)", () => {
@@ -54,6 +66,18 @@ describe("queue honesty (law L8)", () => {
   it("the only count is the ahead line, from the server, on the ticket screen", () => {
     expect(read("app/(app)/book/today.tsx")).toContain("aheadWords(");
     expect(read("data/visits.ts")).toContain('rpc("patient_intake_ahead"');
+  });
+
+  it("the ahead line is one part, worded by aheadWords with its note", () => {
+    const part = read("features/visits/ahead.tsx");
+    expect(part).toContain("aheadWords(");
+    expect(part).toContain("{AHEAD_NOTE}");
+  });
+
+  it.each(AHEAD_SCREENS)("%s draws the count only through AheadLines", (file) => {
+    const src = read(file);
+    expect(src).toContain("<AheadLines");
+    expect(src).not.toMatch(/ahead of you`|`\$\{[^}]*\} ahead/);
   });
 
   it("a place in the line never promises a time; a day ticket only a doctor's chosen slot (ADR 0403)", () => {

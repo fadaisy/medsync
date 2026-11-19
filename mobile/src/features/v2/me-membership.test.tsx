@@ -63,4 +63,29 @@ describe("Me v2 (Step 10)", () => {
       idempotencyKey: "00000000-0000-4000-8000-000000000001",
     });
   });
+
+  it("on Me only the card and one line to the plans show; the plans page shows the plans and no card", async () => {
+    const onSeePlans = jest.fn();
+    const quiet = { trialUsed: true, startTrial: jest.fn(), pay: jest.fn() };
+    const view = await wrap(
+      <MeMembershipV2 {...base} {...quiet} tier="plus_care" trial part="card" onSeePlans={onSeePlans} />,
+    );
+    // The card, and the plan held with its date; no plan to choose and nothing to pay here.
+    expect(screen.getByText("K7M 42Q")).toBeTruthy();
+    expect(screen.getByText("Plus Care · Free until 2026-12-16")).toBeTruthy();
+    expect(screen.queryByText(/Always free, on every plan/)).toBeNull();
+    await fireEvent.press(screen.getByText("Your plan"));
+    expect(onSeePlans).toHaveBeenCalledTimes(1);
+
+    await view.rerender(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <ThemeProvider>
+          <MeMembershipV2 {...base} {...quiet} tier="plus_care" trial part="plans" />
+        </ThemeProvider>
+      </SafeAreaProvider>,
+    );
+    expect(screen.queryByText("K7M 42Q")).toBeNull();
+    expect(screen.getByText(/Always free, on every plan/)).toBeTruthy();
+    expect(screen.getByText("Free until 2026-12-16")).toBeTruthy();
+  });
 });

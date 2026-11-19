@@ -1,89 +1,55 @@
 import type { GeoWords } from "@/data/places";
 import type { PlaceOption, SignupNotice } from "@/data/signup";
-import type { SignupDraft, Step } from "@/features/auth/rules";
+import type { ReviewRow, SignupDraft, Step } from "@/features/auth/rules";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Text, useWindowDimensions, View } from "react-native";
+import Animated, { useReducedMotion } from "react-native-reanimated";
 
-import {
-  Card,
-  Chip,
-  ChipRow,
-  FieldError,
-  FieldLabel,
-  findMe,
-  Icon,
-  IconDisc,
-  Note,
-  PhoneField,
-  PlaceMap,
-  Press,
-  TextField,
-  TextLink,
-  wordsFor,
-} from "@/components/tide";
+import { Card, FieldLabel, findMe, Icon, Note, PlaceMap, Press, wordsFor } from "@/components/tide";
 import { PLACE_CONSENT } from "@/data/places";
 import { searchPlaces, signupFromAppOn } from "@/data/signup";
+import {
+  ChoiceTiles,
+  FieldProblem,
+  Mark,
+  QuietLink,
+  STATE_WORDS,
+  StatusField,
+  StatusPhoneField,
+} from "@/features/auth/marks";
 import {
   autoPick,
   checkDob,
   isEmail,
   MINOR_NOTE,
   NAME_MAX,
+  PASSWORD_MIN,
   passwordOk,
   passwordStrength,
   phoneProblem,
   SEX_OPTIONS,
-  STEP_NAMES,
   VILLAGE_MAX,
 } from "@/features/auth/rules";
 import { BRAND } from "@/lib/brand";
+import { motion } from "@/motion/presets";
 import { useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /** Patch the draft. Steps never own state; the screen does. */
 export type Patch = (next: Partial<SignupDraft>) => void;
 
-/** "Step 2 of 4 · Where you live" over four segments: done lagoon, current ink. */
-export function StepProgress({ step }: { step: Step }) {
-  const t = useTide();
-  return (
-    <View
-      style={{ gap: tSpace[2] }}
-      accessible
-      accessibilityLabel={`Step ${step} of 4, ${STEP_NAMES[step]}`}
-    >
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text style={[tType.caption, { color: t.ink3 }]}>Step {step} of 4</Text>
-        <Text style={[tType.caption, { color: t.ink3 }]}>{STEP_NAMES[step]}</Text>
-      </View>
-      <View style={{ flexDirection: "row", gap: 6 }}>
-        {[1, 2, 3, 4].map((i) => (
-          <View
-            key={i}
-            style={{
-              flex: 1,
-              height: 6,
-              borderRadius: 3,
-              backgroundColor: i < step ? t.accentPressed : i === step ? t.ink : t.line,
-            }}
-          />
-        ))}
-      </View>
-    </View>
-  );
-}
-
+/** A step's large heading with one grey line under it. Sign-in uses it too. */
 export function StepHeading({ title, sub }: { title: string; sub: string }) {
   const t = useTide();
   return (
-    <View style={{ gap: tSpace[1] }}>
+    <View style={{ gap: tSpace[1.5] }}>
       <Text
         accessibilityRole="header"
         style={[tType.display, { fontSize: 30, lineHeight: 34, color: t.ink }]}
       >
         {title}
       </Text>
-      <Text style={[tType.bodyM, { fontSize: 14, lineHeight: 20, color: t.ink2 }]}>{sub}</Text>
+      <Text style={[tType.bodyM, { fontFamily: tFont.regular, color: t.ink3 }]}>{sub}</Text>
     </View>
   );
 }
@@ -103,44 +69,39 @@ export function AboutStep({
 }) {
   const dob = checkDob(draft.dobDay, draft.dobMonth, draft.dobYear, today);
   const dobFilled = dob.ok || dob.reason !== "incomplete";
-  const dobState = dob.ok ? "good" : dobFilled ? "error" : "idle";
+  const dobState = dob.ok ? "good" : dobFilled ? "bad" : "idle";
   const name = (v: string) => (v.trim() ? "good" : "idle");
   return (
-    <View style={{ gap: tSpace[4] }}>
+    <View style={{ gap: tSpace[3.5] }}>
       <StepHeading title="About you" sub="We use this to find and keep your records." />
-      <TextField
+      <StatusField
         label="First name"
         value={draft.firstName}
         onChangeText={(v) => patch({ firstName: v })}
         state={name(draft.firstName)}
+        icon="user"
         placeholder="e.g. Sarah"
         autoComplete="given-name"
         maxLength={NAME_MAX}
         inputProps={{ autoCapitalize: "words", textContentType: "givenName" }}
       />
-      <TextField
+      <StatusField
         label="Surname"
         value={draft.surname}
         onChangeText={(v) => patch({ surname: v })}
         state={name(draft.surname)}
+        icon="user"
         placeholder="e.g. Nakato"
         autoComplete="family-name"
         maxLength={NAME_MAX}
         inputProps={{ autoCapitalize: "words", textContentType: "familyName" }}
       />
-      <View style={{ gap: tSpace[1.5] }}>
-        <FieldLabel>Sex at birth</FieldLabel>
-        <ChipRow>
-          {SEX_OPTIONS.map((o) => (
-            <Chip
-              key={o.key}
-              label={o.label}
-              selected={draft.sex === o.key}
-              onPress={() => patch({ sex: o.key })}
-            />
-          ))}
-        </ChipRow>
-      </View>
+      <ChoiceTiles
+        label="Sex at birth"
+        options={SEX_OPTIONS}
+        value={draft.sex}
+        onChange={(sex) => patch({ sex })}
+      />
       <View style={{ gap: tSpace[1.5] }}>
         <FieldLabel>Date of birth</FieldLabel>
         <View style={{ flexDirection: "row", gap: tSpace[2] }}>
@@ -148,14 +109,17 @@ export function AboutStep({
             [
               ["dobDay", "Day", "DD", 2, 1],
               ["dobMonth", "Month", "MM", 2, 1],
-              ["dobYear", "Year", "YYYY", 4, 1.5],
+              ["dobYear", "Year", "YYYY", 4, 2],
             ] as const
           ).map(([part, a11y, ph, max, grow]) => (
             <View key={part} style={{ flex: grow }}>
-              <TextField
+              <StatusField
                 value={draft[part]}
                 onChangeText={(v) => onDob(part, v)}
                 state={dobState}
+                icon="calendar"
+                // One mark for the whole date, at the right end of the year.
+                mark={part === "dobYear"}
                 placeholder={ph}
                 keyboardType="number-pad"
                 maxLength={max}
@@ -165,15 +129,15 @@ export function AboutStep({
             </View>
           ))}
         </View>
-        {!dob.ok && dob.message ? <FieldError>{dob.message}</FieldError> : null}
+        {!dob.ok && dob.message ? <FieldProblem>{dob.message}</FieldProblem> : null}
         {draft.refusedMinor ? (
-          <Note tone="info">
+          <Note tone="plain" icon={null}>
             {"You must be 18 or older to create an account. "}
             {MINOR_NOTE}
           </Note>
         ) : null}
       </View>
-      <PhoneField
+      <StatusPhoneField
         label="Mobile number"
         value={draft.phone}
         onChangeText={(v) => patch({ phone: v })}
@@ -192,7 +156,16 @@ export function AboutStep({
  * unless the patient typed their own. The pin itself is saved as the home
  * place after sign-in, and only with the PLACE_CONSENT yes.
  */
-export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }) {
+export function PlaceStep({
+  draft,
+  patch,
+  on = signupFromAppOn,
+}: {
+  draft: SignupDraft;
+  patch: Patch;
+  /** Whether sign-up from the app is switched on (the build names the web origin). */
+  on?: boolean;
+}) {
   const t = useTide();
   const [q, setQ] = useState("");
   const [found, setFound] = useState<{ q: string; places: PlaceOption[] } | null>(null);
@@ -261,12 +234,17 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
   const results = found && found.q === q && q.trim().length >= 2 ? found.places : null;
 
   return (
-    <View style={{ gap: tSpace[4] }}>
+    <View style={{ gap: tSpace[3.5] }}>
       <StepHeading title="Where you live" sub="So we can show clinics near you." />
 
       <View style={{ gap: tSpace[1.5] }}>
         <View
-          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            minHeight: 48,
+          }}
         >
           <FieldLabel>District or subcounty</FieldLabel>
           {!draft.place ? (
@@ -274,10 +252,15 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
               onPress={() => void locateMe()}
               disabled={finding}
               accessibilityLabel="Use my location to fill this in"
-              style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1], minHeight: 44 }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: tSpace[1.5],
+                minHeight: 48,
+              }}
             >
               <Icon name="locate" size={16} color={t.accentText} />
-              <Text style={[tType.labelS, { color: t.accentText }]}>
+              <Text style={[tType.labelS, { fontSize: 15, color: t.accentText }]}>
                 {finding ? "Finding you…" : "Use my location"}
               </Text>
             </Press>
@@ -288,33 +271,38 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
             style={{
               flexDirection: "row",
               alignItems: "center",
-              gap: tSpace[2],
-              minHeight: 54,
-              paddingLeft: tSpace[3.5],
-              paddingRight: tSpace[2],
+              gap: tSpace[2.5],
+              minHeight: 52,
+              paddingLeft: tSpace[4],
+              paddingRight: tSpace[1.5],
               borderRadius: tRadius.field,
               backgroundColor: t.surface,
-              boxShadow: `inset 0px 0px 0px 2px ${t.accentPressed}`,
+              boxShadow: `inset 0px 0px 0px 1px ${t.line}`,
             }}
           >
-            <Icon name="mapPin" size={18} color={t.ink} />
-            <Text style={[tType.label, { flex: 1, color: t.ink }]}>{draft.place.label}</Text>
+            <View accessible accessibilityRole="image" accessibilityLabel={STATE_WORDS.good}>
+              <Mark kind="tick" />
+            </View>
+            <Text style={[tType.label, { flex: 1, lineHeight: 22, color: t.ink }]}>
+              {draft.place.label}
+            </Text>
             <Press
               onPress={() => patch({ place: null })}
               accessibilityLabel="Change where you live"
-              style={{ minHeight: 44, paddingHorizontal: tSpace[2.5], justifyContent: "center" }}
+              style={{ minHeight: 48, paddingHorizontal: tSpace[2.5], justifyContent: "center" }}
             >
-              <Text style={[tType.labelS, { color: t.accentText }]}>Change</Text>
+              <Text style={[tType.labelS, { fontSize: 15, color: t.accentText }]}>Change</Text>
             </Press>
           </View>
         ) : (
           <>
-            <TextField
+            <StatusField
               value={q}
               onChangeText={(v) => {
                 setQ(v);
                 setAutoQuery(null);
               }}
+              icon="search"
               placeholder="Search, e.g. Kawempe"
               accessibilityLabel="Search your district or subcounty"
               inputProps={{ autoCorrect: false, returnKeyType: "search" }}
@@ -324,7 +312,7 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
                 {locNote}
               </Text>
             ) : null}
-            {!signupFromAppOn ? (
+            {!on ? (
               <Note tone="plain">
                 Sign-up from the app is not switched on yet, so the place search is off.
               </Note>
@@ -346,22 +334,27 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
                     }}
                     accessibilityLabel={`${p.label}, ${p.path}`}
                     style={{
-                      minHeight: 48,
-                      paddingHorizontal: tSpace[3],
+                      minHeight: 56,
+                      paddingHorizontal: tSpace[3.5],
                       paddingVertical: tSpace[2],
-                      borderRadius: tRadius.md,
+                      borderRadius: tRadius.field,
                       backgroundColor: t.surface,
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: tSpace[2],
+                      gap: tSpace[2.5],
                       boxShadow: t.shadow.card,
                     }}
                   >
-                    <Icon name="mapPin" size={16} color={t.ink2} />
+                    <Icon name="mapPin" size={18} color={t.ink2} />
                     <View style={{ flex: 1 }}>
-                      <Text style={[tType.labelS, { color: t.ink }]}>{p.label}</Text>
-                      <Text style={[tType.micro, { color: t.ink3 }]}>{p.path}</Text>
+                      <Text style={[tType.labelS, { fontSize: 15, lineHeight: 20, color: t.ink }]}>
+                        {p.label}
+                      </Text>
+                      <Text style={[tType.micro, { fontSize: 12, lineHeight: 16, color: t.ink3 }]}>
+                        {p.path}
+                      </Text>
                     </View>
+                    <Mark kind="ring" />
                   </Press>
                 ))}
               </View>
@@ -370,17 +363,18 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
         )}
       </View>
 
-      <TextField
+      <StatusField
         label="Village or address"
-        optional
         value={draft.village}
         onChangeText={(v) => patch({ village: v })}
+        state={draft.village.trim() ? "good" : "opt"}
+        icon="home"
         placeholder="e.g. Bwaise II, near the market"
         maxLength={VILLAGE_MAX}
       />
 
-      <View style={{ gap: tSpace[2] }}>
-        <FieldLabel optional>Pin your home</FieldLabel>
+      <View style={{ gap: tSpace[1.5] }}>
+        <FieldLabel>Pin your home</FieldLabel>
         {mapOpen ? (
           <>
             <PlaceMap
@@ -403,8 +397,8 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
                 style={{
                   flexDirection: "row",
                   alignItems: "flex-start",
-                  gap: tSpace[2.5],
-                  minHeight: 44,
+                  gap: tSpace[3],
+                  minHeight: 48,
                 }}
               >
                 <View
@@ -424,11 +418,11 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
                     <Icon name="check" size={15} color={t.onPrimary} strokeWidth={3} />
                   ) : null}
                 </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={[tType.labelS, { color: t.ink }]}>Save as my home place</Text>
-                  <Text style={[tType.bodyS, { fontSize: 13, color: t.ink2 }]}>
-                    {PLACE_CONSENT.words}
+                <View style={{ flex: 1, gap: 3 }}>
+                  <Text style={[tType.labelS, { fontSize: 15, lineHeight: 20, color: t.ink }]}>
+                    Save as my home place
                   </Text>
+                  <Text style={[tType.bodyS, { color: t.ink2 }]}>{PLACE_CONSENT.words}</Text>
                 </View>
               </Press>
             ) : null}
@@ -436,26 +430,30 @@ export function PlaceStep({ draft, patch }: { draft: SignupDraft; patch: Patch }
         ) : (
           <Press
             onPress={() => setMapOpen(true)}
-            accessibilityLabel="Pin your home on a map"
+            accessibilityLabel="Pin your home on a map. Optional."
             style={{
               flexDirection: "row",
               alignItems: "center",
               gap: tSpace[3],
-              minHeight: 56,
-              paddingHorizontal: tSpace[3.5],
-              borderRadius: tRadius.card,
+              minHeight: 60,
+              paddingLeft: tSpace[4],
+              paddingRight: tSpace[3.5],
+              paddingVertical: tSpace[2],
+              borderRadius: tRadius.field,
               backgroundColor: t.surface,
-              boxShadow: t.shadow.card,
+              boxShadow: `inset 0px 0px 0px 1px ${t.line}`,
             }}
           >
-            <Icon name="mapPin" size={20} color={t.accentText} />
+            <Icon name="mapPin" size={20} color={t.ink3} />
             <View style={{ flex: 1 }}>
-              <Text style={[tType.labelS, { color: t.ink }]}>Pin it on a map</Text>
-              <Text style={[tType.bodyS, { fontSize: 13, color: t.ink2 }]}>
+              <Text style={[tType.labelS, { fontSize: 15, lineHeight: 20, color: t.ink }]}>
+                Pin it on a map
+              </Text>
+              <Text style={[tType.bodyS, { lineHeight: 17, color: t.ink2 }]}>
                 Helps a health worker find you
               </Text>
             </View>
-            <Icon name="forward" size={18} color={t.ink3} />
+            <Text style={[tType.bodyS, { lineHeight: 17, color: t.ink3 }]}>Optional</Text>
           </Press>
         )}
       </View>
@@ -469,19 +467,22 @@ export function SignInStep({ draft, patch }: { draft: SignupDraft; patch: Patch 
   const t = useTide();
   const [show, setShow] = useState(false);
   const strength = passwordStrength(draft.password);
-  // Neutral to lagoon: red and amber belong to emergencies and clinical signals (laws L3, L4).
-  const bar = [t.line, t.ink4, t.ink3, t.accent, t.accentPressed][strength.score];
+  const typed = draft.password.length > 0;
+  const good = passwordOk(draft.password);
+  // Long enough and still refused: only a password over the server's byte limit lands here.
+  const tooLong = typed && !good && draft.password.length >= PASSWORD_MIN;
   return (
-    <View style={{ gap: tSpace[4] }}>
+    <View style={{ gap: tSpace[3.5] }}>
       <StepHeading
         title="Your sign-in"
         sub="You can also sign in later with a code sent to your phone."
       />
-      <TextField
+      <StatusField
         label="Email"
         value={draft.email}
         onChangeText={(v) => patch({ email: v })}
-        state={isEmail(draft.email) ? "good" : draft.email ? "error" : "idle"}
+        state={isEmail(draft.email) ? "good" : draft.email ? "bad" : "idle"}
+        icon="mail"
         error={isEmail(draft.email) ? null : "Enter a valid email, like name@example.com"}
         placeholder="name@example.com"
         keyboardType="email-address"
@@ -490,11 +491,12 @@ export function SignInStep({ draft, patch }: { draft: SignupDraft; patch: Patch 
         inputProps={{ autoCapitalize: "none", autoCorrect: false, textContentType: "emailAddress" }}
       />
       <View style={{ gap: tSpace[1.5] }}>
-        <TextField
+        <StatusField
           label="Password"
           value={draft.password}
           onChangeText={(v) => patch({ password: v })}
-          state={passwordOk(draft.password) ? "good" : "idle"}
+          state={good ? "good" : tooLong ? "bad" : "idle"}
+          icon="lock"
           placeholder="12 or more characters"
           secure={!show}
           onToggleSecure={() => setShow((s) => !s)}
@@ -505,26 +507,32 @@ export function SignInStep({ draft, patch }: { draft: SignupDraft; patch: Patch 
             textContentType: "newPassword",
           }}
         />
-        <View style={{ flexDirection: "row", gap: 4 }} accessible={false}>
-          {[1, 2, 3, 4].map((i) => (
-            <View
-              key={i}
-              style={{
-                flex: 1,
-                height: 4,
-                borderRadius: 2,
-                backgroundColor: i <= strength.score ? bar : t.line,
-              }}
-            />
-          ))}
-        </View>
-        {/* The words carry the strength; the bar only repeats them (never colour alone). */}
-        <Text
+        {/* The app's own strength words carry it; the mark only repeats them (never colour alone). */}
+        <View
           accessibilityLiveRegion="polite"
-          style={[tType.bodyS, { fontSize: 12, color: t.ink2 }]}
+          style={{ flexDirection: "row", alignItems: "flex-start", gap: tSpace[1.5] }}
         >
-          {strength.hint}
-        </Text>
+          {good ? (
+            <Mark kind="tick" size={16} />
+          ) : tooLong ? (
+            <Mark kind="triangle" size={16} />
+          ) : typed ? (
+            <Mark kind="ring" size={16} color={t.ink3} />
+          ) : null}
+          <Text
+            style={[
+              tType.bodyS,
+              {
+                flexShrink: 1,
+                lineHeight: 17,
+                fontFamily: typed ? tFont.semibold : tFont.medium,
+                color: typed ? t.ink : t.ink3,
+              },
+            ]}
+          >
+            {strength.hint}
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -538,20 +546,29 @@ export function ConsentStep({
   notice,
   loading,
   onRetry,
+  review,
+  onChange,
+  on = signupFromAppOn,
 }: {
   draft: SignupDraft;
   patch: Patch;
   notice: SignupNotice | null;
   loading: boolean;
   onRetry: () => void;
+  /** "Your details": the three finished steps (`reviewRows`). */
+  review: readonly ReviewRow[];
+  /** Go back to a finished step to change it. */
+  onChange: (step: Step) => void;
+  /** Whether sign-up from the app is switched on (the build names the web origin). */
+  on?: boolean;
 }) {
   const t = useTide();
   const [full, setFull] = useState(false);
   const live = notice?.notice ?? null;
   return (
-    <View style={{ gap: tSpace[4] }}>
+    <View style={{ gap: tSpace[3.5] }}>
       <StepHeading title="Your consent" sub="Please read this before we create your account." />
-      {!signupFromAppOn ? (
+      {!on ? (
         <Note tone="plain">Sign-up from the app is not switched on yet.</Note>
       ) : loading ? (
         <Note tone="plain" icon="clock">
@@ -562,13 +579,15 @@ export function ConsentStep({
           <Note tone="plain" icon="alert">
             We couldn&apos;t load the data notice. Check your connection and try again.
           </Note>
-          <TextLink label="Try again" onPress={onRetry} />
+          <View style={{ alignItems: "flex-start" }}>
+            <QuietLink label="Try again" onPress={onRetry} />
+          </View>
         </View>
       ) : !notice.open ? (
         <Note tone="plain">Sign-up is not open yet. Please try again later.</Note>
       ) : (
         <>
-          <Card>
+          <Card padding={tSpace[4]}>
             <View
               style={{
                 flexDirection: "row",
@@ -605,16 +624,19 @@ export function ConsentStep({
             {full ? (
               <Text style={[tType.bodyS, { lineHeight: 19, color: t.ink2 }]}>{live.body}</Text>
             ) : null}
-            <TextLink
-              label={
-                full
-                  ? "Hide the full notice"
-                  : `Read the full notice (${live.version}, effective ${live.effective})`
-              }
-              onPress={() => setFull((f) => !f)}
-            />
+            <View style={{ alignItems: "flex-start" }}>
+              <QuietLink
+                label={
+                  full
+                    ? "Hide the full notice"
+                    : `Read the full notice (${live.version}, effective ${live.effective})`
+                }
+                onPress={() => setFull((f) => !f)}
+              />
+            </View>
           </Card>
           <CheckRow
+            tone="ink"
             checked={draft.consent}
             onToggle={() => patch({ consent: !draft.consent })}
             title={notice.agree}
@@ -622,6 +644,7 @@ export function ConsentStep({
           />
           {notice.sms ? (
             <CheckRow
+              tone="ink"
               checked={draft.sms}
               onToggle={() => patch({ sms: !draft.sms })}
               title={notice.sms.label}
@@ -630,23 +653,32 @@ export function ConsentStep({
           ) : null}
         </>
       )}
+      <ReviewCard rows={review} onChange={onChange} />
     </View>
   );
 }
 
-/** A tick box as a whole card: the hit area is the sentence, not the 24pt square. */
+/**
+ * A tick box as a whole card: the hit area is the sentence, not the 24pt square. `ink` is sign-up's, where
+ * the ticked box is navy so the page keeps one lagoon fill; `accent` is the look every other screen has.
+ */
 export function CheckRow({
   checked,
   onToggle,
   title,
   sub,
+  tone = "accent",
 }: {
   checked: boolean;
   onToggle: () => void;
   title: string;
   sub?: string;
+  tone?: "accent" | "ink";
 }) {
   const t = useTide();
+  const fill = tone === "ink" ? t.primary : t.accentPressed;
+  const tick = tone === "ink" ? t.onPrimary : t.onAccent;
+  const edge = checked ? `2px ${fill}` : tone === "ink" ? `1px ${t.line}` : `2px ${t.line}`;
   return (
     <Press
       onPress={onToggle}
@@ -660,7 +692,7 @@ export function CheckRow({
         padding: tSpace[3.5],
         borderRadius: tRadius.row,
         backgroundColor: t.surface,
-        boxShadow: `inset 0px 0px 0px 2px ${checked ? t.accentPressed : t.line}`,
+        boxShadow: `inset 0px 0px 0px ${edge}`,
       }}
     >
       <View
@@ -668,13 +700,13 @@ export function CheckRow({
           width: 24,
           height: 24,
           borderRadius: 7,
-          backgroundColor: checked ? t.accentPressed : t.surface,
-          boxShadow: `inset 0px 0px 0px 2px ${checked ? t.accentPressed : t.lineStrong}`,
+          backgroundColor: checked ? fill : t.surface,
+          boxShadow: `inset 0px 0px 0px 2px ${checked ? fill : t.lineStrong}`,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        {checked ? <Icon name="check" size={16} color={t.onAccent} strokeWidth={3} /> : null}
+        {checked ? <Icon name="check" size={16} color={tick} strokeWidth={3} /> : null}
       </View>
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={[tType.labelS, { lineHeight: 19, color: t.ink }]}>{title}</Text>
@@ -686,7 +718,171 @@ export function CheckRow({
   );
 }
 
-/* ─── Done ───────────────────────────────────────────────────────────── */
+/**
+ * "Your details": what the three finished steps hold, each with a way back to change it. It is given rows
+ * (`reviewRows`), never the draft, so the password cannot reach it.
+ */
+export function ReviewCard({
+  rows,
+  onChange,
+}: {
+  rows: readonly ReviewRow[];
+  onChange: (step: Step) => void;
+}) {
+  const t = useTide();
+  return (
+    <View
+      style={{
+        borderRadius: tRadius.cardLg,
+        backgroundColor: t.surface,
+        boxShadow: t.shadow.card,
+      }}
+    >
+      <Text
+        accessibilityRole="header"
+        style={[
+          tType.label,
+          {
+            paddingHorizontal: tSpace[4],
+            paddingTop: tSpace[3.5],
+            paddingBottom: tSpace[1.5],
+            fontFamily: tFont.bold,
+            fontSize: 15,
+            color: t.ink,
+          },
+        ]}
+      >
+        Your details
+      </Text>
+      {rows.map((r) => (
+        <View
+          key={r.step}
+          style={{
+            minHeight: 60,
+            paddingVertical: tSpace[1],
+            paddingLeft: tSpace[4],
+            paddingRight: tSpace[1.5],
+            flexDirection: "row",
+            alignItems: "center",
+            gap: tSpace[3],
+            borderTopWidth: 1,
+            borderTopColor: t.line,
+          }}
+        >
+          <Mark kind="tick" />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={[tType.bodyS, { lineHeight: 17, color: t.ink2 }]}>{r.name}</Text>
+            {r.value ? (
+              <Text numberOfLines={1} style={[tType.label, { fontSize: 15, color: t.ink }]}>
+                {r.value}
+              </Text>
+            ) : null}
+          </View>
+          <Press
+            onPress={() => onChange(r.step)}
+            accessibilityRole="link"
+            accessibilityLabel={`Change ${r.name}`}
+            style={{ minHeight: 48, paddingHorizontal: tSpace[2.5], justifyContent: "center" }}
+          >
+            <Text style={[tType.labelS, { fontSize: 15, color: t.accentText }]}>Change</Text>
+          </Press>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/* ─── Creating, and done ─────────────────────────────────────────────── */
+
+const DISC = 84;
+
+/**
+ * The line that runs in from the left edge to the middle of the page. While the account is being made it
+ * ends at an empty ring and a small mark keeps moving along it; when it is made the line is drawn in ink
+ * and ends at the tick. No percent and no countdown: the app does not know how long the answer takes.
+ */
+export function FinishMark({ state }: { state: "creating" | "done" }) {
+  const t = useTide();
+  const reduced = useReducedMotion();
+  const { width } = useWindowDimensions();
+  const half = width / 2;
+  const line = {
+    position: "absolute",
+    left: 0,
+    top: DISC / 2 - 2,
+    width: half,
+    height: 3,
+  } as const;
+  const disc = {
+    position: "absolute",
+    left: half - DISC / 2,
+    top: 0,
+    width: DISC,
+    height: DISC,
+    borderRadius: DISC / 2,
+  } as const;
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ height: DISC, marginTop: tSpace[6], marginHorizontal: -tSpace[5] }}
+    >
+      {state === "creating" ? (
+        <>
+          <View style={[line, { backgroundColor: t.lineStrong, overflow: "hidden" }]}>
+            {reduced ? null : (
+              <Animated.View
+                style={[
+                  { width: half * 0.4, height: 3, borderRadius: 2, backgroundColor: t.ink },
+                  motion.glint(half, reduced),
+                ]}
+              />
+            )}
+          </View>
+          <View
+            style={[disc, { borderWidth: 3, borderColor: t.lineStrong, backgroundColor: t.bg }]}
+          />
+        </>
+      ) : (
+        <>
+          <Animated.View
+            style={[
+              line,
+              { backgroundColor: t.ink, transformOrigin: "0% 50%" },
+              motion.lineDraw(100, reduced),
+            ]}
+          />
+          <Animated.View
+            style={[
+              disc,
+              { backgroundColor: t.primary, alignItems: "center", justifyContent: "center" },
+              motion.discIn(400, reduced),
+            ]}
+          >
+            <Icon name="check" size={40} color={t.onPrimary} strokeWidth={2.4} />
+          </Animated.View>
+        </>
+      )}
+    </View>
+  );
+}
+
+/** Shown while the account is being made: from "Create my account" until the server answers. */
+export function CreatingStep() {
+  const t = useTide();
+  return (
+    <View style={{ gap: tSpace[3.5] }}>
+      <FinishMark state="creating" />
+      <Text
+        accessibilityRole="header"
+        accessibilityLiveRegion="polite"
+        style={[tType.display, { fontSize: 30, lineHeight: 34, color: t.ink, textAlign: "center" }]}
+      >
+        Creating your account
+      </Text>
+    </View>
+  );
+}
 
 /** A preview only: "Continue" signs in and Home opens the details screen with these inputs. */
 const LATER = [
@@ -701,9 +897,9 @@ const LATER = [
 export function DoneStep({ firstName }: { firstName: string }) {
   const t = useTide();
   return (
-    <View style={{ gap: tSpace[4] }}>
-      <View style={{ alignItems: "center", gap: tSpace[3], paddingTop: tSpace[6] }}>
-        <IconDisc name="check" size={84} color={t.onAccent} bg={t.accent} />
+    <View style={{ gap: tSpace[3.5] }}>
+      <FinishMark state="done" />
+      <View style={{ alignItems: "center", gap: tSpace[3] }}>
         <Text
           accessibilityRole="header"
           style={[
@@ -717,10 +913,10 @@ export function DoneStep({ firstName }: { firstName: string }) {
           Your account is ready. Your {BRAND} number is given at your first visit.
         </Text>
       </View>
-      <Card>
+      <Card padding={tSpace[4]}>
         <Text
           accessibilityRole="header"
-          style={[tType.labelS, { fontFamily: tFont.bold, color: t.ink }]}
+          style={[tType.labelS, { fontFamily: tFont.bold, fontSize: 15, color: t.ink }]}
         >
           Next, a few details
         </Text>
@@ -739,7 +935,7 @@ export function DoneStep({ firstName }: { firstName: string }) {
                 justifyContent: "center",
               }}
             >
-              <Text style={[tType.caption, { color: t.ink }]}>{w}</Text>
+              <Text style={[tType.caption, { fontSize: 13, color: t.ink }]}>{w}</Text>
             </View>
           ))}
         </View>

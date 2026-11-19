@@ -1,21 +1,24 @@
 /**
  * The day of the visit, v2 (patient app v2 §5.5, phone board 2): the ticket, quick actions (Add to calendar,
- * Directions, Share, The text we sent), where you are (five named steps, never a number, MR4), the Called
+ * Directions, Share, The text we sent), where you are (five named steps, never a number, MR4) and, once the desk
+ * has checked the patient in, "N ahead of you" under them (ADR 0084 §6, owner approved 19 Nov 2026), the Called
  * banner, and Questions for the doctor (write while waiting, three suggestions, tick as asked, remove; the
  * nurse and doctor read them, the desk does not, D-PA-10). Paying the fee from the ticket (P4) opens the pay
  * sheet. Data comes in as props, so the same screen renders on fixtures for screenshots.
  */
 import type { TicketV2Props } from "@/components/tide/v2";
 import type { VisitQuestion } from "@/data/visit-v2";
+import type { AheadRead } from "@/features/visits/logic";
 import type { StageView } from "@patient-core/visit-stages";
 import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 import { VISIT_COPY } from "@content/patient-app/visit";
 
-import { Button, Chip, SectionHead } from "@/components/tide";
+import { Button, Chip, SectionHead, TextLink } from "@/components/tide";
 import { Icon } from "@/components/tide/icon";
 import { Press } from "@/components/tide/press";
 import { CalledBanner, StageList, TicketV2 } from "@/components/tide/v2";
+import { AheadLines } from "@/features/visits/ahead";
 import { useTide } from "@/theme/theme";
 import { tRadius, tSpace, tType } from "@/theme/tide";
 
@@ -26,6 +29,10 @@ export interface VisitDayProps {
   ticket: TicketV2Props;
   stage: StageView;
   stageTimes: (string | null)[];
+  /** Once checked in: the intake's status and the server's count. Left out before arrival and on any failure. */
+  ahead?: AheadRead | null;
+  /** The patient's own "Check again" for the count; refresh is on focus and on this, never on a timer (§15). */
+  onCheckAhead?: () => void;
   calledRoom: string | null;
   questions: VisitQuestion[];
   nurseNote: string | null;
@@ -85,6 +92,12 @@ export function VisitDay(p: VisitDayProps) {
       <View style={{ gap: tSpace[3] }}>
         <SectionHead title="Where you are" />
         <StageList view={p.stage} times={p.stageTimes} />
+        {p.ahead ? <AheadLines {...p.ahead} /> : null}
+        {p.ahead && p.onCheckAhead ? (
+          <View style={{ alignItems: "flex-start" }}>
+            <TextLink label="Check again" onPress={p.onCheckAhead} />
+          </View>
+        ) : null}
       </View>
 
       <View style={{ gap: tSpace[3] }}>

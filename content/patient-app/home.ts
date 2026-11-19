@@ -64,6 +64,22 @@ export const HOME_V2_COPY = {
       title: "Your care",
       note: "Your medicines, readings, movement and mood.",
       open: "Open your care",
+      /** Home's four doors under "Your care" (redraw of 18 Nov 2026). Results and Wellness use their own titles. */
+      readings: "Readings",
+      medicines: "Medicines",
+    },
+    /**
+     * Home's top card in Care mode (19 Nov 2026; behind `careMode`, locked until Gate CG). The first three are
+     * the phone's own words already (Care's "Health trends · See all", the plus's "Log a reading"), gathered
+     * here; "tap a day" is new, and a draft like the rest. "Start logging readings" is the button's words while
+     * the patient has no reading at all (asked for by the owner, 19 Nov 2026); a draft like the rest.
+     */
+    top: {
+      trends: "Health trends",
+      log: "Log a reading",
+      logFirst: "Start logging readings",
+      seeAll: "See all",
+      tapDay: "tap a day",
     },
   },
 } as const;

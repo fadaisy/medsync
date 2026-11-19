@@ -3,13 +3,26 @@
  * fixtures, for screenshots. Development builds only. Invented names (prompt Appendix A); no patient data.
  *
  * `screen=home` is the whole v2 shell (finish pass 1): the header with the avatar count, Home and the nav.
- * `&visit=none|loading|failed|next` picks Home's visit state (today's visit by default); `&place=book|visits|me`
- * moves the nav's marker.
+ * `&visit=none|loading|failed|next|tomorrow` picks Home's visit state (today's visit by default);
+ * `&place=book|visits|me` moves the nav's marker.
+ *
+ * `&care=none|trends|first|due|team|danger` draws Home's top card as Care mode would (home-top.tsx), on the
+ * fixtures below; `&metric=sugar|weight|low|lowbp` changes the trend card's measure (blood pressure by
+ * default). `first` is a patient with no reading at all ("Start logging readings"); `low` is a sugar week ending
+ * on a reading the app's check calls "Too low", in the critical tone; `lowbp` is the same for blood pressure
+ * (thresholds 0.3.0, pending CSO). Left out, Home is as it is with `careMode`
+ * off. This calls the pure view: it does not switch the flag on.
+ *
+ * `&ahead=N` draws today's visit card as a patient the desk has checked in, with "N ahead of you" under the
+ * stage (`0` is "No one is ahead of you."); left out, or not a whole number, the card has no count, as before
+ * arrival or after a failed read.
  */
 import type { VisitQuestion } from "@/data/visit-v2";
 import type { AppointmentRow } from "@/lib/booking";
 import type { VisitPlace } from "@/components/tide/v2-shell";
 import type { HomeVisit } from "@/features/v2/home";
+import type { HomeCare, HomeTrend } from "@/features/v2/home-top";
+import type { TodayState } from "@patient-core/today-hero";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, useWindowDimensions, View } from "react-native";
@@ -18,7 +31,7 @@ import { stageOf } from "@patient-core/visit-stages";
 
 import { Screen } from "@/components/tide";
 import { PayChoice, PromptStatus } from "@/components/tide/v2";
-import { AvatarCount, VISIT_PLACES, VisitNav } from "@/components/tide/v2-shell";
+import { AvatarCount, VISIT_PLACES, VisitNav, visitNavBottom } from "@/components/tide/v2-shell";
 import { ticketFor } from "@/data/visit-v2";
 import { HomeV2View } from "@/features/v2/home";
 import { VisitDay } from "@/features/v2/visit-day";
@@ -51,6 +64,76 @@ const PAID = {
   receiptNumber: 421,
   paidChannel: "app" as const,
 };
+
+/** Sample readings for the trend card: seven days ending today, two with none. Belong to nobody. */
+const WEEK = ["13", "14", "15", "16", "17", "18", "19"].map((d) => ({ date: `${d} Nov`, dayKey: `2026-11-${d}` }));
+const week = (values: (number | null)[], bottoms?: (number | null)[]) =>
+  WEEK.map((d, i) => ({ ...d, value: values[i] ?? null, ...(bottoms ? { bottom: bottoms[i] ?? null } : {}) }));
+const TRENDS: Record<string, HomeTrend> = {
+  bp: {
+    metric: "bp",
+    ctx: "fasting",
+    unit: "mmHg",
+    days: week([136, 142, null, 132, 134, null, 128], [84, 90, null, 82, 84, null, 80]),
+    weekAgo: 136,
+  },
+  sugar: {
+    metric: "sugar",
+    ctx: "fasting",
+    unit: "mmol/L",
+    days: week([7.9, 7.6, null, 6.8, 7.4, null, 7.8]),
+    weekAgo: 8.4,
+  },
+  weight: {
+    metric: "weight",
+    ctx: "fasting",
+    unit: "kg",
+    days: week([82.4, null, 82.1, null, 81.9, null, 81.6]),
+    weekAgo: 82.6,
+  },
+  /** A sugar week ending on a sample reading the app's own check calls "Too low". */
+  low: {
+    metric: "sugar",
+    ctx: "fasting",
+    unit: "mmol/L",
+    days: week([6.9, 6.4, null, 6.1, 5.6, null, 3.4]),
+    weekAgo: null,
+  },
+  /** A blood pressure week ending on a sample reading the app's own check calls "Too low". */
+  lowbp: {
+    metric: "bp",
+    ctx: "fasting",
+    unit: "mmHg",
+    days: week([118, 112, null, 104, 96, null, 76], [74, 70, null, 66, 60, null, 50]),
+    weekAgo: null,
+  },
+};
+/** No reading at all: every day is a gap. */
+const EMPTY_WEEK: HomeTrend = { metric: "bp", ctx: "fasting", unit: "mmHg", days: week([]), weekAgo: null };
+const QUIET: TodayState = { danger: null, teamAsks: null, dueNow: null, visitToday: null, nextItem: null, nothingUntil: null };
+const TODAYS: Record<string, TodayState> = {
+  trends: QUIET,
+  first: QUIET,
+  due: { ...QUIET, dueNow: { kind: "dose", key: "m@08:00", label: "Metformin", dueAt: "08:00" } },
+  team: { ...QUIET, teamAsks: { id: "a1", from: "Your care team", at: "2026-11-19T06:10:00.000Z" } },
+  danger: { ...QUIET, danger: { kind: "very_high_bp", at: "09:10" } },
+};
+
+/** `care` as the route would pass it, on the fixtures; undefined is Home with `careMode` off. */
+function careFixture(care: string | undefined, metric: string | undefined): HomeCare | undefined {
+  if (care === "none") return { state: "none" };
+  const today = care ? TODAYS[care] : undefined;
+  if (!today) return undefined;
+  return {
+    state: "ready",
+    today,
+    trend: care === "first" ? EMPTY_WEEK : (TRENDS[metric ?? "bp"] ?? TRENDS.bp ?? null),
+    noReadings: care === "first",
+    onHeroAction: () => undefined,
+    onLog: () => undefined,
+    onSeeAll: () => undefined,
+  };
+}
 
 export default function DevVisitV2() {
   const { screen = "day", scheme } = useLocalSearchParams<{ screen?: string; scheme?: string }>();
@@ -117,7 +200,14 @@ function HomeShell() {
   const t = useTide();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const params = useLocalSearchParams<{ visit?: string; place?: string }>();
+  const params = useLocalSearchParams<{
+    visit?: string;
+    place?: string;
+    care?: string;
+    metric?: string;
+    ahead?: string;
+  }>();
+  const aheadCount = params.ahead !== undefined && /^\d+$/.test(params.ahead) ? Number(params.ahead) : null;
   const start = VISIT_PLACES.find((p) => p.key === params.place)?.key ?? "home";
   const [place, setPlace] = useState<VisitPlace>(start);
   const ticket = ticketFor(ESTHER, PAID, "Esther N.");
@@ -128,7 +218,9 @@ function HomeShell() {
           state: "ready",
           ticket,
           stage: stageOf("arrived", "line"),
-          today: params.visit !== "next",
+          today: params.visit !== "next" && params.visit !== "tomorrow",
+          tomorrow: params.visit === "tomorrow",
+          ahead: aheadCount === null ? null : { status: "awaiting_triage", ahead: aheadCount },
         };
   const empty = params.visit === "none";
   return (
@@ -161,23 +253,29 @@ function HomeShell() {
                 }
           }
           household={empty ? [] : [{ id: "h1", label: "Mother" }]}
-          card={{ tierName: "Basic", memberNo: "TTH 0042 2290", plus: false }}
+          care={careFixture(params.care, params.metric)}
           careLink
           onOpenVisit={() => undefined}
           onRetryVisit={() => undefined}
           onBookToday={() => undefined}
           onBookDay={() => undefined}
-          onOpenCard={() => undefined}
           onResults={() => undefined}
           onBookFor={() => undefined}
           onAddSomeone={() => undefined}
           onCare={() => undefined}
+          onReadings={() => undefined}
+          onMedicines={() => undefined}
           onWellness={() => undefined}
         />
       </Screen>
       <View
         pointerEvents="box-none"
-        style={{ position: "absolute", left: 16, right: 16, bottom: 14 + insets.bottom }}
+        style={{
+          position: "absolute",
+          left: 16,
+          right: 16,
+          bottom: visitNavBottom(insets.bottom),
+        }}
       >
         <VisitNav
           width={width - 32}

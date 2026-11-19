@@ -85,12 +85,36 @@
       "top": 50,
       "bottom": 70
     },
-    "level": "watch"
+    "level": "danger"
   },
   {
     "input": {
       "kind": "bp",
       "top": 50.1,
+      "bottom": 70
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 79.9,
+      "bottom": 70
+    },
+    "level": "danger"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 80,
+      "bottom": 70
+    },
+    "level": "watch"
+  },
+  {
+    "input": {
+      "kind": "bp",
+      "top": 80.1,
       "bottom": 70
     },
     "level": "watch"

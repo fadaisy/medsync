@@ -1,4 +1,3 @@
-import type { IconName } from "@/components/tide";
 import type { HouseholdMember } from "@/lib/booking";
 import type { ThemePreference } from "@/theme/theme";
 import type { ReactNode } from "react";
@@ -8,7 +7,8 @@ import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Image, Linking, Switch, Text, View } from "react-native";
 
-import { Avatar, Button, HealthCard, Icon, Press, Screen, TextLink } from "@/components/tide";
+import { Avatar, Button, Icon, Press, Screen, TextLink } from "@/components/tide";
+import { TetherCard } from "@/components/tide/tether-card";
 import { useHistory } from "@/data/history";
 import {
   ageWords,
@@ -41,8 +41,10 @@ import { useTheme, useTide } from "@/theme/theme";
 import { tFont, tRadius, tSpace, tType } from "@/theme/tide";
 
 /**
- * Me (board TMe/DMe, §8.6, F-20): the health card, my health, the people I
- * book for, privacy, and the phone's settings.
+ * Me (board TMe/DMe, §8.6, F-20; regrouped 18 Nov 2026 from the owner's approved prototype): who this is,
+ * the one card (membership on the front, the Medical ID on the back, drawn from the phone's cache so it
+ * shows offline) with a line that opens the plans (`/plans`), my health, the people I book for, privacy,
+ * notifications, this phone's settings and my details.
  *
  * All real: name (auth metadata), patient code, home facility, sex and age
  * (cached for the offline card); the conditions, allergies and family history
@@ -156,6 +158,8 @@ export default function MeTab() {
     history.off ? "Not switched on yet" : n ? `${count(n, one, many)} · not yet confirmed` : none;
   const facilityName = id.facility ?? "any hospital";
 
+  const holder = id.name ?? "Name not recorded";
+
   return (
     <Screen
       title="Me"
@@ -165,8 +169,45 @@ export default function MeTab() {
       // Patient app v2 (1.3): the avatar carries the unseen count on every place.
       headerRight={<HeaderAvatar />}
     >
+      {/* Who this is, and the way to their details. */}
+      <Press
+        onPress={() => router.push("/profile/details")}
+        haptic={false}
+        accessibilityRole="link"
+        accessibilityLabel={`Profile details. ${holder}${id.facility ? `, ${id.facility}` : ""}`}
+        style={{ minHeight: 56, flexDirection: "row", alignItems: "center", gap: tSpace[3.5] }}
+      >
+        {avatarUrl ? (
+          <Image
+            source={{ uri: avatarUrl }}
+            accessibilityIgnoresInvertColors
+            style={{ width: 56, height: 56, borderRadius: 28 }}
+          />
+        ) : (
+          <Avatar initials={initials(name)} size={56} />
+        )}
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text numberOfLines={1} style={[tType.heading, { color: t.ink }]}>
+            {holder}
+          </Text>
+          {id.facility ? (
+            <Text numberOfLines={1} style={[tType.bodyS, { color: t.ink2 }]}>
+              {id.facility}
+            </Text>
+          ) : null}
+        </View>
+        <Icon name="forward" size={18} color={t.ink3} />
+      </Press>
+
+      {/*
+        The one card: the membership card and the offline health card, folded into one with two sides. It
+        draws from what the phone holds, so it shows with no signal; the plan and the code join it when they
+        load. Under it, one line that opens the plans (`/plans`).
+      */}
       <MeMembershipRoute
-        name={id.name ?? "Name not recorded"}
+        part="card"
+        onSeePlans={() => router.push("/plans")}
+        name={holder}
         code={id.code}
         id={{
           emergencyContact: nokOnFile ? "Next of kin on file" : "—",
@@ -175,58 +216,42 @@ export default function MeTab() {
           conditions: card.conditions === "None listed" ? [] : [card.conditions],
           hospitalLine: id.facility ?? "—",
         }}
+        renderCard={({ tier, qr }) => (
+          <TetherCard
+            tier={tier}
+            qr={qr}
+            data={{
+              holder,
+              number: cardNumber(id.code),
+              facility: id.facility,
+              age: ageWords(id.dob, now),
+              sex,
+              conditions: prefs.showConditionsOnCard ? card.conditions : null,
+              allergies: card.allergies,
+              nextOfKin:
+                nokOnFile === null
+                  ? null
+                  : nokOnFile
+                    ? `On file${id.facility ? ` at ${id.facility}` : ""}`
+                    : "None given",
+              ifFound:
+                id.emergencyPhone && id.facility
+                  ? `If found, call ${id.facility} on ${id.emergencyPhone}`
+                  : `If found, please return it to ${facilityName}`,
+            }}
+          />
+        )}
       />
-      <HealthCard
-        data={{
-          holder: id.name ?? "Name not recorded",
-          number: cardNumber(id.code),
-          facility: id.facility,
-          age: ageWords(id.dob, now),
-          conditions: prefs.showConditionsOnCard ? card.conditions : null,
-          allergies: card.allergies,
-          nextOfKin:
-            nokOnFile === null
-              ? null
-              : nokOnFile
-                ? `On file${id.facility ? ` at ${id.facility}` : ""}`
-                : "None given",
-          ifFound:
-            id.emergencyPhone && id.facility
-              ? `If found, call ${id.facility} on ${id.emergencyPhone}`
-              : `If found, please return it to ${facilityName}`,
-        }}
-      />
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          paddingHorizontal: tSpace[1],
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1.5] }}>
-          <Icon name="replay" size={13} color={t.ink3} />
-          <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>
-            Tap the card to turn it over · works offline
-          </Text>
-        </View>
-        {sex ? (
-          <Text style={[tType.caption, { fontFamily: tFont.medium, color: t.ink3 }]}>{sex}</Text>
-        ) : null}
-      </View>
 
       <Label text="My health" />
       <Group>
         <Row
           first
-          icon="heart"
-          color={t.area.readings}
           title="My conditions"
           sub={historySub(history.conditions.length, "condition", "conditions", "None added yet")}
           onPress={() => router.push("/history?section=conditions")}
         />
         <Row
-          icon="alert"
-          color={t.ink2}
           title="Allergies"
           sub={
             !history.allergies.length && history.noKnownAllergies
@@ -236,8 +261,6 @@ export default function MeTab() {
           onPress={() => router.push("/history?section=allergies")}
         />
         <Row
-          icon="users"
-          color={t.area.team}
           title="Family history"
           sub={historySub(
             history.family.length,
@@ -248,8 +271,6 @@ export default function MeTab() {
           onPress={() => router.push("/history?section=family")}
         />
         <Row
-          icon="pill"
-          color={t.area.medicines}
           title="My medicines"
           sub={
             medCount === 0
@@ -259,8 +280,6 @@ export default function MeTab() {
           onPress={() => router.push("/care/medicines")}
         />
         <Row
-          icon="file"
-          color={t.area.team}
           title="Visits and documents"
           sub="What your clinician shared after a visit"
           onPress={() => router.push("/records")}
@@ -268,101 +287,66 @@ export default function MeTab() {
       </Group>
 
       <Label text="People I care for" />
-      <Group>
-        <View
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: tSpace[2] }}>
+        {household.map((m) => (
+          <Press
+            key={m.id}
+            onPress={() => router.push("/household")}
+            haptic={false}
+            accessibilityLabel={m.label}
+            style={{
+              height: 48,
+              paddingLeft: tSpace[1.5],
+              paddingRight: tSpace[4],
+              borderRadius: tRadius.pill,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: tSpace[2],
+              backgroundColor: t.surface,
+              borderWidth: 1,
+              borderColor: t.lineStrong,
+            }}
+          >
+            <Avatar initials={initials(m.label)} size={36} bg={t.place.tint} fg={t.place.text} />
+            <Text numberOfLines={1} style={[tType.label, { fontSize: 15, color: t.ink }]}>
+              {m.label}
+            </Text>
+          </Press>
+        ))}
+        <Press
+          onPress={() => router.push("/household")}
+          haptic={false}
+          accessibilityLabel="Add"
           style={{
+            height: 48,
+            paddingLeft: tSpace[3],
+            paddingRight: tSpace[4],
+            borderRadius: tRadius.pill,
             flexDirection: "row",
-            flexWrap: "wrap",
-            gap: tSpace[2.5],
-            paddingHorizontal: tSpace[3.5],
-            paddingTop: tSpace[3],
+            alignItems: "center",
+            gap: tSpace[1.5],
+            borderWidth: 1,
+            borderStyle: "dashed",
+            borderColor: t.lineStrong,
           }}
         >
-          <Person label="Me" selected>
-            {avatarUrl ? (
-              <Image
-                source={{ uri: avatarUrl }}
-                accessibilityIgnoresInvertColors
-                style={{ width: 48, height: 48, borderRadius: 24 }}
-              />
-            ) : (
-              <Avatar initials={initials(name)} size={48} />
-            )}
-          </Person>
-          {household.map((m) => (
-            <Person key={m.id} label={m.label} onPress={() => router.push("/household")}>
-              <Avatar initials={initials(m.label)} size={48} bg={t.place.tint} fg={t.place.text} />
-            </Person>
-          ))}
-          <Person label="Add" onPress={() => router.push("/household")}>
-            <View
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                borderWidth: 1.5,
-                borderColor: t.lineStrong,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Icon name="plus" size={20} color={t.ink} />
-            </View>
-          </Person>
-        </View>
-        <Text
-          style={[
-            tType.caption,
-            {
-              fontFamily: tFont.medium,
-              fontSize: 12,
-              lineHeight: 17,
-              color: t.ink2,
-              padding: tSpace[3.5],
-              paddingTop: tSpace[2],
-            },
-          ]}
-        >
-          Their readings, medicines and visits are kept separate.
-        </Text>
-      </Group>
-
-      <Label text="My places" />
-      <Group>
-        <Row
-          first
-          icon="mapPin"
-          color={t.ink2}
-          title="Home, work and others"
-          sub={
-            places.off
-              ? "Saving places is not switched on yet"
-              : places.loading
-                ? "Loading…"
-                : `${placesSummary(places.places)} · only you can see them`
-          }
-          onPress={() => router.push("/places")}
-        />
-      </Group>
-
-      <Label text="My details" />
-      <Group>
-        <Row
-          first
-          icon="user"
-          color={t.ink2}
-          title="Profile details"
-          sub="Photo, title, language, hospital, ID and next of kin"
-          onPress={() => router.push("/profile/details")}
-        />
-      </Group>
+          <Icon name="plus" size={18} color={t.ink2} strokeWidth={2} />
+          <Text style={[tType.label, { fontSize: 15, color: t.ink2 }]}>Add</Text>
+        </Press>
+      </View>
+      <Text
+        style={[
+          tType.caption,
+          { fontFamily: tFont.medium, color: t.ink2, paddingHorizontal: tSpace[1] },
+        ]}
+      >
+        Their readings, medicines and visits are kept separate.
+      </Text>
 
       <Label text="Privacy and sharing" />
       <Group>
         <Row
           first
-          icon="card"
-          color={t.ink2}
           title="Show conditions on my card"
           sub={
             prefs.showConditionsOnCard
@@ -378,27 +362,21 @@ export default function MeTab() {
           }
         />
         <Row
-          icon="eye"
-          color={t.accentText}
           title="Who sees what you log"
           sub="Your care team sees your readings and what you add under My health. Your medicines and doses stay on your account only."
         />
       </Group>
 
-      <Label text="App" />
+      <Label text="Notifications" />
       <Group>
         <Row
           first
-          icon="bell"
-          color={t.accentText}
           title="Notifications"
           sub="App and SMS"
           onPress={() => router.push("/notifications")}
         />
         {push !== null ? (
           <Row
-            icon="smartphone"
-            color={t.ink2}
             title={`Notifications on this phone · ${push === "granted" ? "On" : "Off"}`}
             sub={
               push === "granted"
@@ -419,8 +397,6 @@ export default function MeTab() {
         ) : null}
         {smsOn !== null ? (
           <Row
-            icon="message"
-            color={t.ink2}
             title={`${SMS_CONSENT_COPY.label} · ${smsOn ? "On" : "Off"}`}
             sub={
               smsOn
@@ -438,9 +414,24 @@ export default function MeTab() {
             }
           />
         ) : null}
+      </Group>
+
+      <Label text="This phone" />
+      <Group>
+        <View style={{ padding: tSpace[4], gap: tSpace[2.5] }}>
+          <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>Theme</Text>
+          <SegTrack<ThemePreference>
+            label="Theme"
+            value={preference}
+            onChange={setPreference}
+            options={[
+              { key: "system", label: "System" },
+              { key: "light", label: "Light" },
+              { key: "dark", label: "Dark" },
+            ]}
+          />
+        </View>
         <Row
-          icon="globe"
-          color={t.area.readings}
           title="Language"
           sub={
             language
@@ -450,32 +441,20 @@ export default function MeTab() {
           onPress={() => router.push("/profile/details")}
         />
         <Row
-          icon="type"
-          color={t.ink2}
           title="Text size"
           sub="Follows your phone. Make text larger in your phone's Settings, under Display."
         />
+      </Group>
+
+      <Label text="My details" />
+      <Group>
         <Row
-          icon={t.scheme === "dark" ? "moon" : "sun"}
-          color={t.ink2}
-          title="Theme"
-          sub={preference === "system" ? "Same as phone" : preference === "dark" ? "Dark" : "Light"}
-          right={
-            <MiniSeg<ThemePreference>
-              label="Theme"
-              value={preference}
-              onChange={setPreference}
-              options={[
-                { key: "system", label: "System" },
-                { key: "light", label: "Light" },
-                { key: "dark", label: "Dark" },
-              ]}
-            />
-          }
+          first
+          title="Profile details"
+          sub="Photo, title, language, hospital, ID and next of kin"
+          onPress={() => router.push("/profile/details")}
         />
         <Row
-          icon="camera"
-          color={t.ink2}
           title="Profile photo"
           sub="Shown with your name in the app"
           note={photoError}
@@ -485,6 +464,17 @@ export default function MeTab() {
               onPress={() => void onChangePhoto()}
             />
           }
+        />
+        <Row
+          title="Home, work and others"
+          sub={
+            places.off
+              ? "Saving places is not switched on yet"
+              : places.loading
+                ? "Loading…"
+                : `${placesSummary(places.places)} · only you can see them`
+          }
+          onPress={() => router.push("/places")}
         />
       </Group>
 
@@ -510,14 +500,8 @@ function Label({ text }: { text: string }) {
     <Text
       accessibilityRole="header"
       style={[
-        tType.labelS,
-        {
-          fontSize: 13,
-          lineHeight: 18,
-          color: t.ink3,
-          paddingTop: tSpace[1.5],
-          paddingHorizontal: tSpace[1],
-        },
+        tType.overline,
+        { color: t.ink3, paddingTop: tSpace[3], paddingHorizontal: tSpace[1] },
       ]}
     >
       {text}
@@ -541,10 +525,8 @@ function Group({ children }: { children: ReactNode }) {
   );
 }
 
-/** One settings row: a square icon, a title over a line, and a control or a chevron. */
+/** One settings row: a title over a line, and a control or a chevron. */
 function Row({
-  icon,
-  color,
   title,
   sub,
   note,
@@ -552,8 +534,6 @@ function Row({
   right,
   first = false,
 }: {
-  icon: IconName;
-  color: string;
   title: string;
   sub: string;
   note?: string | null;
@@ -564,33 +544,11 @@ function Row({
   const t = useTide();
   const body = (
     <>
-      <View
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: tRadius.sm,
-          backgroundColor: t.surface2,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Icon name={icon} size={18} color={color} />
-      </View>
-      <View style={{ flex: 1, gap: 1 }}>
-        <Text style={[tType.labelS, { fontSize: 14, lineHeight: 19, color: t.ink }]}>{title}</Text>
-        <Text
-          style={[
-            tType.caption,
-            { fontFamily: tFont.medium, fontSize: 12, lineHeight: 17, color: t.ink2 },
-          ]}
-        >
-          {sub}
-        </Text>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[tType.label, { fontSize: 15, color: t.ink }]}>{title}</Text>
+        <Text style={[tType.bodyS, { color: t.ink2 }]}>{sub}</Text>
         {note ? (
-          <Text
-            accessibilityLiveRegion="polite"
-            style={[tType.caption, { fontSize: 12, lineHeight: 17, color: t.ink }]}
-          >
+          <Text accessibilityLiveRegion="polite" style={[tType.bodyS, { color: t.ink }]}>
             {note}
           </Text>
         ) : null}
@@ -602,11 +560,11 @@ function Row({
     flexDirection: "row" as const,
     alignItems: "center" as const,
     gap: tSpace[3],
-    minHeight: 56,
-    paddingVertical: 11,
-    paddingHorizontal: tSpace[3.5],
+    minHeight: 60,
+    paddingVertical: tSpace[2.5],
+    paddingHorizontal: tSpace[4],
     borderTopWidth: first ? 0 : 1,
-    borderTopColor: t.surface3,
+    borderTopColor: t.line,
   };
   if (onPress)
     return (
@@ -643,8 +601,8 @@ function Toggle({
   );
 }
 
-/** A small pill segment inside a row: English / Luganda, A / A+, System / Light / Dark. */
-function MiniSeg<K extends string>({
+/** A full-width choice of a few: a sunken track, and the chosen one raised on it. System / Light / Dark. */
+function SegTrack<K extends string>({
   label,
   options,
   value,
@@ -662,7 +620,7 @@ function MiniSeg<K extends string>({
       accessibilityLabel={label}
       style={{
         flexDirection: "row",
-        padding: 3,
+        padding: 4,
         borderRadius: tRadius.pill,
         backgroundColor: t.surface3,
       }}
@@ -676,59 +634,23 @@ function MiniSeg<K extends string>({
             accessibilityRole="radio"
             accessibilityState={{ checked: on }}
             accessibilityLabel={`${label}: ${o.label}`}
-            hitSlop={{ top: 8, bottom: 8 }}
             style={{
-              height: 30,
-              paddingHorizontal: tSpace[2.5],
+              flex: 1,
+              height: 44,
               borderRadius: tRadius.pill,
+              alignItems: "center",
               justifyContent: "center",
-              backgroundColor: on ? t.surface : "transparent",
+              // Raised, so the chosen one is lighter than the track in the dark scheme too.
+              backgroundColor: on ? t.surfaceRaised : "transparent",
               boxShadow: on ? t.shadow.card : undefined,
             }}
           >
-            <Text style={[tType.caption, { color: on ? t.ink : t.ink2 }]}>{o.label}</Text>
+            <Text style={[tType.label, { fontSize: 15, color: on ? t.ink : t.ink2 }]}>
+              {o.label}
+            </Text>
           </Press>
         );
       })}
     </View>
-  );
-}
-
-/** One person in "People I care for": avatar over a name. */
-function Person({
-  label,
-  children,
-  selected = false,
-  onPress,
-}: {
-  label: string;
-  children: ReactNode;
-  selected?: boolean;
-  onPress?: () => void;
-}) {
-  const t = useTide();
-  return (
-    <Press
-      onPress={onPress}
-      disabled={!onPress}
-      accessibilityLabel={selected ? `${label}, selected` : label}
-      accessibilityState={{ selected }}
-      haptic={false}
-      style={{ width: 64, alignItems: "center", gap: tSpace[1] }}
-    >
-      <View
-        style={{
-          borderRadius: 28,
-          padding: 2,
-          borderWidth: 2,
-          borderColor: selected ? t.accent : "transparent",
-        }}
-      >
-        {children}
-      </View>
-      <Text numberOfLines={1} style={[tType.caption, { color: label === "Add" ? t.ink2 : t.ink }]}>
-        {label}
-      </Text>
-    </Press>
   );
 }

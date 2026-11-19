@@ -122,6 +122,7 @@ function RootNavigator() {
         <Stack.Screen name="dev/screen" />
         <Stack.Screen name="dev/v2" />
         <Stack.Screen name="dev/visit-v2" />
+        <Stack.Screen name="dev/onboarding" />
       </Stack.Protected>
     </Stack>
   );

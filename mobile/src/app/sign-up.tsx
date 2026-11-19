@@ -1,10 +1,11 @@
 import type { SignupNotice } from "@/data/signup";
 import type { SignupDraft, Step } from "@/features/auth/rules";
+import type { Patch } from "@/features/auth/steps";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { Alert } from "react-native";
+import { Alert, View } from "react-native";
 
-import { Button, Note, Screen, TextLink } from "@/components/tide";
+import { Button, Note, Screen } from "@/components/tide";
 import { addPlace, OFF_WORDS } from "@/data/places";
 import {
   fetchSignupNotice,
@@ -13,21 +14,24 @@ import {
   signupFromAppOn,
   submitSignup,
 } from "@/data/signup";
+import { BarBack, FieldProblem, QuietLink, StepRail, StillNeeded } from "@/features/auth/marks";
 import {
   buildSubmission,
   initialDraft,
+  reviewRows,
   signupKey,
   stepOfField,
   stepValid,
+  stillNeeded,
   typeDob,
 } from "@/features/auth/rules";
 import {
   AboutStep,
   ConsentStep,
+  CreatingStep,
   DoneStep,
   PlaceStep,
   SignInStep,
-  StepProgress,
 } from "@/features/auth/steps";
 import { track } from "@/lib/analytics";
 import { useNow } from "@/lib/use-now";
@@ -43,6 +47,8 @@ import { useNow } from "@/lib/use-now";
  * "Welcome" could show). Signed in, the pin is saved as the home place if
  * the patient agreed to PLACE_CONSENT (`addPlace`, migration 0185). Home then
  * opens "A few more details" once (`markFreshSignup`).
+ *
+ * This route holds the draft and talks to the server; `SignUpView` below draws it.
  */
 export default function SignUpScreen() {
   const router = useRouter();
@@ -143,11 +149,94 @@ export default function SignUpScreen() {
       );
   };
 
+  return (
+    <SignUpView
+      step={step}
+      draft={draft}
+      today={now}
+      patch={patch}
+      onDob={onDob}
+      notice={notice}
+      noticeLoading={noticeLoading}
+      onRetryNotice={() => {
+        setNoticeLoading(true);
+        setNoticeTry((n) => n + 1);
+      }}
+      busy={busy}
+      problem={problem}
+      signupOn={signupFromAppOn}
+      onCancel={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+      onGo={(to) => {
+        setProblem(null);
+        setStep(to);
+      }}
+      onNext={() => {
+        setProblem(null);
+        if (step === 4) void submit();
+        else if (step !== "done") setStep((step + 1) as Step);
+      }}
+      onContinue={goHome}
+      onSignInInstead={() => router.replace("/sign-in")}
+    />
+  );
+}
+
+export interface SignUpViewProps {
+  step: Step | "done";
+  draft: SignupDraft;
+  today: Date;
+  patch: Patch;
+  onDob: (part: "dobDay" | "dobMonth" | "dobYear", raw: string) => void;
+  notice: SignupNotice | null;
+  noticeLoading: boolean;
+  onRetryNotice: () => void;
+  /** A request is out: the account being made on step 4, or the sign-in after "Continue". */
+  busy: boolean;
+  /** The server's or the app's own words for what went wrong, or null. */
+  problem: string | null;
+  /** Whether sign-up from the app is switched on (the build names the web origin). */
+  signupOn: boolean;
+  /** Leave sign-up from step 1. */
+  onCancel: () => void;
+  /** Go to a step: Back, a ticked mark of the stepper, or "Change" on the review card. */
+  onGo: (step: Step) => void;
+  /** The main button of a step: on to the next one, or create the account on step 4. */
+  onNext: () => void;
+  /** "Continue" on the done screen. */
+  onContinue: () => void;
+  onSignInInstead: () => void;
+}
+
+/**
+ * Sign-up as drawn (owner's approved onboarding prototype, 18 Nov 2026): a small title between Back and
+ * Help, the stepper, one step, and above the lagoon button the one line that names what is still needed.
+ * Everything it shows comes in by props, so `/dev/onboarding` can draw each state with no network.
+ */
+export function SignUpView({
+  step,
+  draft,
+  today,
+  patch,
+  onDob,
+  notice,
+  noticeLoading,
+  onRetryNotice,
+  busy,
+  problem,
+  signupOn,
+  onCancel,
+  onGo,
+  onNext,
+  onContinue,
+  onSignInInstead,
+}: SignUpViewProps) {
   if (step === "done")
     return (
       <Screen
+        help="pill"
         helpSource="sign-up"
-        footer={<Button label="Continue" onPress={goHome} busy={busy} />}
+        barTitle="Create an account"
+        footer={<Button label="Continue" variant="accent" onPress={onContinue} busy={busy} />}
       >
         <DoneStep firstName={draft.firstName.trim() || "[First name]"} />
         {problem ? (
@@ -156,56 +245,55 @@ export default function SignUpScreen() {
           </Note>
         ) : null}
         {problem ? (
-          <TextLink
-            key="signin"
-            label="Sign in instead"
-            onPress={() => router.replace("/sign-in")}
-          />
+          <View key="signin" style={{ alignItems: "flex-start" }}>
+            <QuietLink label="Sign in instead" onPress={onSignInInstead} />
+          </View>
         ) : null}
+      </Screen>
+    );
+
+  // The account is being made: the step gives way to the waiting line until the server answers.
+  if (step === 4 && busy)
+    return (
+      <Screen help="pill" helpSource="sign-up" barTitle="Create an account">
+        <CreatingStep />
       </Screen>
     );
 
   // With the web origin unset nothing can be sent. The steps still open so the
   // patient is told in plain words at the end, not by a dead button.
-  const valid = stepValid(step, draft, now) || (!signupFromAppOn && (step === 2 || step === 4));
-  const next = () => {
-    setProblem(null);
-    if (step === 4) void submit();
-    else setStep((step + 1) as Step);
-  };
-
+  const valid = stepValid(step, draft, today) || (!signupOn && (step === 2 || step === 4));
   return (
     <Screen
-      back={
-        step === 1
-          ? {
-              label: "Cancel",
-              icon: "close",
-              onPress: () => (router.canGoBack() ? router.back() : router.replace("/")),
-            }
-          : {
-              label: "Back",
-              onPress: () => {
-                setProblem(null);
-                setStep((step - 1) as Step);
-              },
-            }
+      header={
+        step === 1 ? (
+          <BarBack label="Cancel" icon="close" onPress={onCancel} />
+        ) : (
+          <BarBack label="Back" onPress={() => onGo((step - 1) as Step)} />
+        )
       }
+      help="pill"
       helpSource="sign-up"
+      barTitle={`Step ${step} of 4`}
       footer={
-        <Button
-          label={step === 4 ? "Create my account" : "Continue"}
-          onPress={next}
-          disabled={!valid}
-          busy={busy}
-        />
+        <>
+          {valid ? null : <StillNeeded names={stillNeeded(step, draft, today)} />}
+          {problem ? <FieldProblem center>{problem}</FieldProblem> : null}
+          <Button
+            label={step === 4 ? "Create my account" : "Continue"}
+            variant="accent"
+            onPress={onNext}
+            disabled={!valid}
+            busy={busy}
+          />
+        </>
       }
     >
-      <StepProgress key="progress" step={step} />
+      <StepRail key="progress" step={step} onGo={onGo} />
       {step === 1 ? (
-        <AboutStep key="s1" draft={draft} patch={patch} today={now} onDob={onDob} />
+        <AboutStep key="s1" draft={draft} patch={patch} today={today} onDob={onDob} />
       ) : null}
-      {step === 2 ? <PlaceStep key="s2" draft={draft} patch={patch} /> : null}
+      {step === 2 ? <PlaceStep key="s2" draft={draft} patch={patch} on={signupOn} /> : null}
       {step === 3 ? <SignInStep key="s3" draft={draft} patch={patch} /> : null}
       {step === 4 ? (
         <ConsentStep
@@ -214,16 +302,11 @@ export default function SignUpScreen() {
           patch={patch}
           notice={notice}
           loading={noticeLoading}
-          onRetry={() => {
-            setNoticeLoading(true);
-            setNoticeTry((n) => n + 1);
-          }}
+          onRetry={onRetryNotice}
+          review={reviewRows(draft)}
+          onChange={onGo}
+          on={signupOn}
         />
-      ) : null}
-      {problem ? (
-        <Note key="problem" tone="plain" icon="alert">
-          {problem}
-        </Note>
       ) : null}
     </Screen>
   );

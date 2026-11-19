@@ -5,10 +5,11 @@
  */
 import type { OfferV2, VisitRowV2 } from "@/features/v2/visits-list";
 import type { MoneyRows, VisitQuestion, VisitPay } from "@/data/visit-v2";
+import type { AheadRead } from "@/features/visits/logic";
 import type { AppointmentRow } from "@/lib/booking";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Share, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { stageOf } from "@patient-core/visit-stages";
 
 import { HOME_V2_COPY } from "@content/patient-app/home";
@@ -31,13 +32,14 @@ import {
 import { HeaderAvatar } from "@/features/v2/header-avatar";
 import { VisitMoneySection } from "@/features/v2/visit-money";
 import { supabase } from "@/lib/supabase";
-import { loadVisit, loadWeek } from "@/data/visits";
+import { loadVisit, loadVisitAhead, loadWeek } from "@/data/visits";
 import { VisitDay } from "@/features/v2/visit-day";
 import { VisitsList } from "@/features/v2/visits-list";
-import { mapsUrl } from "@/features/visits/logic";
+import { mapsUrl, visitMayHaveAhead } from "@/features/visits/logic";
 import { fetchPatientProfile } from "@/lib/booking";
 import { flag } from "@/lib/flags";
 import { acceptRebooking, fetchRebookingOffer } from "@/lib/notifications";
+import { dayKeyOf, shortDayOf } from "@patient-core/visits-calendar";
 import { useTide } from "@/theme/theme";
 import { tSpace } from "@/theme/tide";
 
@@ -50,6 +52,7 @@ function rowOf(v: AppointmentRow, pay: VisitPay | undefined, me: string): VisitR
     id: v.id,
     day: String(d.getUTCDate()),
     dayLabel: DAY_LABEL[d.getUTCDay()]!,
+    date: shortDayOf(dayKeyOf(v.startsAtIso)),
     clinic: v.departmentName,
     who: v.forMember ?? "You",
     window: t.window,
@@ -83,7 +86,7 @@ async function fetchVisits(): Promise<VisitsState> {
     offers.push({
       id: v.id,
       title: `${v.departmentName} moved`,
-      line: `The clinic cancelled this day. Next open day: ${new Date(o.startsAtIso).toDateString()}`,
+      line: `The clinic cancelled this day. Next open day: ${shortDayOf(dayKeyOf(o.startsAtIso))}.`,
     });
   }
   return {
@@ -146,15 +149,38 @@ export function VisitDayV2Route({ id, onManage }: { id: string; onManage: () => 
     if (rows && meId) setMoney({ rows, meId, msisdn });
     setPay((await loadPayStatus([v.id])).get(v.id));
   }, []);
+  // "N ahead of you" once the desk has checked the patient in (ADR 0084 §6); null before, and on any failure.
+  const [ahead, setAhead] = useState<AheadRead | null>(null);
+  const aheadFor = useCallback(
+    async (v: AppointmentRow | null) =>
+      setAhead(v && visitMayHaveAhead(v, new Date()) ? await loadVisitAhead(v.id) : null),
+    [],
+  );
   useEffect(() => {
     void (async () => {
       const [v, profile] = await Promise.all([loadVisit(id), fetchPatientProfile().catch(() => null)]);
       setVisit(v);
       if (profile && "fullName" in profile) setMe(String((profile as { fullName?: string }).fullName ?? "You"));
+      void aheadFor(v);
       if (v) await refreshMoney(v);
       await refreshQuestions();
     })();
-  }, [id, refreshQuestions, refreshMoney]);
+  }, [id, refreshQuestions, refreshMoney, aheadFor]);
+  // On a return to the page and on the patient's own "Check again", never on a timer (ADR 0084 §15). The visit
+  // is read again with it, so a check-in at the desk while the page was open shows. The first focus is the
+  // mount, which the load above already covers.
+  const checkAhead = useCallback(async () => {
+    const v = await loadVisit(id).catch(() => null);
+    if (v) setVisit(v);
+    await aheadFor(v);
+  }, [id, aheadFor]);
+  const focusedOnce = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (focusedOnce.current) void checkAhead();
+      focusedOnce.current = true;
+    }, [checkAhead]),
+  );
   if (!visit) return <Screen title="Your visit" back={{}}><Loading /></Screen>;
   const ticket = ticketFor(visit, pay, me);
   return (
@@ -163,6 +189,8 @@ export function VisitDayV2Route({ id, onManage }: { id: string; onManage: () => 
         ticket={ticket}
         stage={stageOf(visit.status, null)}
         stageTimes={[null, null, null, null, null]}
+        ahead={ahead}
+        onCheckAhead={() => void checkAhead()}
         calledRoom={null}
         questions={questions}
         nurseNote={visit.reasonNote}

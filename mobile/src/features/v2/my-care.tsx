@@ -206,6 +206,14 @@ export function WellnessV2(p: { onOpen: (where: "move" | "mood" | "eat") => void
 }
 
 /**
+ * The steps whose main action is the red "Get help now", which opens Help and is the first thing under the
+ * words. While one shows, the danger screen hides its header Help (ADR 0528, amending law L6).
+ */
+export function helpInPageFor(s: FlowStep): boolean {
+  return s.step === "help" || s.step === "help_now";
+}
+
+/**
  * One step of a danger flow. The next reading is typed here and saved by the caller (which tells the team when
  * online, S19). The warning signs and Help are on every step.
  */
@@ -253,7 +261,7 @@ export function DangerFlowV2(p: {
     />
   );
   const ended = s.step === "better" || s.step === "call_nurse";
-  const helpStep = s.step === "help" || s.step === "help_now";
+  const helpStep = helpInPageFor(s);
   return (
     <View style={{ gap: tSpace[5] }}>
       <View accessibilityRole="alert" style={{ gap: tSpace[2] }}>
