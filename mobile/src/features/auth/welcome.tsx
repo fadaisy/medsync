@@ -61,6 +61,13 @@ export const SLIDES = [
 export type SlideIndex = 0 | 1 | 2;
 const INDEXES: readonly SlideIndex[] = [0, 1, 2];
 
+/** The headline's type, shared by the slides and the unseen copy that sets the box's height. */
+const HEADLINE = { fontSize: 30, lineHeight: 34, letterSpacing: -0.9, textAlign: "center" } as const;
+/** The slide with the most words: it wraps to the most lines, so it sets the headline box's height. */
+const LONGEST = INDEXES.reduce((a, b) =>
+  SLIDES[b].lead.length + SLIDES[b].rest.length > SLIDES[a].lead.length + SLIDES[a].rest.length ? b : a,
+);
+
 const WORD_SIZE = 56;
 /** The row the letters rise into: it clips them until they are up. */
 const WORD_BOX = 54;
@@ -414,6 +421,16 @@ function WelcomeSlides({
           motion.rise(160, reduced),
         ]}
       >
+        {/* The longest headline, unseen and in the flow, so the box is as tall as the tallest slide at any
+            width or text size: the slides sit over it, and the bars under them never move or get covered. */}
+        <Text
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[tType.display, HEADLINE, { opacity: 0 }]}
+        >
+          <Text style={{ fontFamily: tFont.semibold }}>{SLIDES[LONGEST].lead}</Text>{" "}
+          {SLIDES[LONGEST].rest}
+        </Text>
         {INDEXES.map((i) => (
           <Animated.Text
             key={i}
@@ -422,17 +439,8 @@ function WelcomeSlides({
             importantForAccessibility={i === slide ? "auto" : "no-hide-descendants"}
             style={[
               tType.display,
-              {
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: 0,
-                fontSize: 30,
-                lineHeight: 34,
-                letterSpacing: -0.9,
-                textAlign: "center",
-                color: t.ink3,
-              },
+              HEADLINE,
+              { position: "absolute", left: 0, right: 0, top: 0, color: t.ink3 },
               layer(i, 12),
               transition.swap(reduced),
             ]}
