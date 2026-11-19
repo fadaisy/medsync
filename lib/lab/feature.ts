@@ -4,6 +4,7 @@ import { LAB2_COPY_STATUS } from "@/content/lab-phase-2";
 import { LAB3_COPY_STATUS } from "@/content/lab-phase-3";
 import { LAB4_COPY_STATUS } from "@/content/lab-phase-4";
 import { LAB5_COPY_STATUS } from "@/content/lab-phase-5";
+import { PATIENT_PRICES_COPY_STATUS } from "@/content/patient-prices";
 import { workspaceLiveFor } from "@/lib/workspace-access/flag";
 
 /**
@@ -127,3 +128,19 @@ export const patientResultsLiveFor = (h: string) =>
   phase5(process.env.PATIENT_RESULTS, "patient_results", h);
 export const patientResultsSmsLiveFor = (h: string) =>
   phase5(process.env.PATIENT_RESULTS_SMS, "patient_results_sms", h) && patientResultsLiveFor(h);
+
+/**
+ * LAB_TEST_PRICES (ADR 0527; needs migration 0305): the hospital admin and the laboratory lead set a price per
+ * test. "1" or hospital ids; off by default, and with it off the test menu is exactly what it was and the table is
+ * never read. Staff wording only, so nothing here waits on a signature.
+ */
+export const labTestPricesLiveFor = (h: string) =>
+  workspaceLiveFor(process.env.LAB_TEST_PRICES, h, [], "lab_test_prices");
+
+/**
+ * PATIENT_PRICES (ADR 0527): the patient website shows what a person's waiting tests and medicines cost. It needs
+ * the hospital's prices to exist (LAB_TEST_PRICES for tests), and in production it stays off while the patient
+ * wording is unsigned.
+ */
+export const patientPricesLiveFor = (h: string) =>
+  workspaceLiveFor(process.env.PATIENT_PRICES, h, [PATIENT_PRICES_COPY_STATUS], "patient_prices");

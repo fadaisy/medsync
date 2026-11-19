@@ -98,6 +98,24 @@ export const isNarrowed = (r: Window) => r.days.length < 7 || r.start > 0 || r.e
 export const windowToSave = (v: Window, clinicLed: boolean): Window =>
   clinicLed ? { ...ANY_TIME } : { days: v.days, start: v.start, end: v.end };
 
+/** How people come to a department: through a clinic's bookings, for tests, for medicines, or not at all. */
+export type BookedAs = "clinic" | "tests" | "medicines" | "none";
+
+/**
+ * ADR 0527: only a department that sees patients in clinics has clinic booking rules. The laboratory is priced
+ * and timed test by test, the pharmacy medicine by medicine, and the other support and office departments take
+ * no bookings. A department that really runs a clinic keeps its rules, whatever its kind.
+ */
+export function bookedAs(
+  dept: { kind: string; catalogueCode: string | null },
+  hasClinics: boolean,
+): BookedAs {
+  if (dept.kind === "clinical" || hasClinics) return "clinic";
+  if (dept.catalogueCode === "LABORATORY") return "tests";
+  if (dept.catalogueCode === "PHARMACY") return "medicines";
+  return "none";
+}
+
 export const DAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 /** 480 → "08:00". */

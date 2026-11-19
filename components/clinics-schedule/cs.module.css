@@ -2009,7 +2009,17 @@ button.su-hi:hover {
   cursor: pointer;
   text-align: left;
 }
-.su-wsx:hover {
+/* Each clinic's sessions carry its assigned colour: a tinted fill and a full border in that hue (no edge bar).
+   The words stay in ink, and the clinic is named in the row header, so colour is never the only cue. */
+.su-wr[style] .su-wsx {
+  border-color: color-mix(in srgb, var(--cc, var(--line)) 50%, var(--line));
+  background: color-mix(in srgb, var(--cc, var(--surface)) 12%, var(--surface));
+}
+.su-wr[style] .su-wn i {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cc, transparent) 22%, transparent);
+}
+.su-wsx:hover,
+.su-wr[style] .su-wsx:hover {
   border-color: var(--acc);
 }
 .su-wsx b {

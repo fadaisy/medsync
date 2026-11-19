@@ -64,7 +64,12 @@ export const DEPTS = {
   },
   detail: {
     close: "Close",
-    tabs: { overview: "Overview", booking: "Booking rules", inside: "Clinics and wards" },
+    tabs: {
+      overview: "Overview",
+      booking: "Booking rules",
+      priced: "Prices and hours",
+      inside: "Clinics and wards",
+    },
     sub: "{kind} · {facts}",
     live: [
       "Live on Tether",
@@ -163,6 +168,32 @@ export const DEPTS = {
     pharmacyDemo: "Load the pharmacy demo (demo hospital)",
     staffLine: "{n} staff affiliated (approved or waiting).",
     openStaff: "Open Staff",
+  },
+  /** Departments that are not booked like a clinic (ADR 0527). */
+  priced: {
+    tests: {
+      line: "Not booked like a clinic. People come for tests; each test has its own price and hours.",
+      lead: "The laboratory has no clinic booking rules. A visit is the tests a person comes for.",
+      points: [
+        "Which tests you run, and which are sent to another laboratory",
+        "When each section is open",
+        "The price of each test; a visit costs the total of its tests",
+      ],
+      open: "Open Laboratory and imaging",
+      href: "/hospital-admin/lab",
+    },
+    medicines: {
+      line: "Not booked like a clinic. People come for medicines; each medicine has its own price.",
+      lead: "The pharmacy has no clinic booking rules. A visit is the medicines a person collects.",
+      points: [
+        "Where medicines are given out, under Clinics and wards here",
+        "The price of each medicine, on the pharmacy's own price list",
+        "A visit costs the total of what is given",
+      ],
+      open: "Prices are kept by the pharmacy in-charge, in the pharmacy workspace.",
+      href: null,
+    },
+    none: { line: "This department takes no bookings." },
   },
   rules: {
     note: "No clinic in this department has a week plan yet, so its days and hours are set here. Once a clinic has a week plan, they come from the clinic.",
