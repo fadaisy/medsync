@@ -36,16 +36,19 @@ export const SPLASH_STATUS = [
   "Ready · works offline too",
 ] as const;
 
-/** The three slides. Headlines are draft wording until the Clinical Safety Officer signs them. */
+/**
+ * The three slides. Headlines are draft wording until the Clinical Safety Officer signs them; the first
+ * two carry the wording signed on 19 Nov 2026.
+ */
 export const SLIDES = [
   {
-    name: "Book from home",
-    lead: "Book from home.",
+    name: "Book from anywhere",
+    lead: "Book from anywhere.",
     rest: "Pick a clinic and a day that suits you.",
   },
   {
-    name: "One code",
-    lead: "One code.",
+    name: "Your ticket, on your phone",
+    lead: "Your ticket, on your phone.",
     rest: "Show it at the desk, then see where you are in your visit.",
   },
   {

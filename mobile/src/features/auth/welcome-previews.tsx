@@ -59,7 +59,7 @@ function CodePill({ code }: { code: string }) {
   );
 }
 
-/* ─── 1 · Book from home ─────────────────────────────────────────────── */
+/* ─── 1 · Book from anywhere ─────────────────────────────────────────── */
 
 const DOCTORS = [
   { day: "Today", role: "Medical Officer" },
@@ -180,7 +180,7 @@ function BookPreview() {
   );
 }
 
-/* ─── 2 · One code ───────────────────────────────────────────────────── */
+/* ─── 2 · Your ticket, on your phone ─────────────────────────────────── */
 
 function TodayLabel() {
   const t = useTide();
@@ -419,7 +419,7 @@ function FamilyPreview() {
   );
 }
 
-/** The drawing for one welcome slide: 0 Book from home, 1 One code, 2 Book for your family. */
+/** The drawing for one welcome slide: 0 Book from anywhere, 1 Your ticket, 2 Book for your family. */
 export function WelcomePreview({ index }: { index: 0 | 1 | 2 }) {
   return index === 0 ? <BookPreview /> : index === 1 ? <CodePreview /> : <FamilyPreview />;
 }

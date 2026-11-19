@@ -93,8 +93,12 @@ export const PASSWORD_MAX_BYTES = 72;
 export const ADULT_AGE = 18;
 export const OLDEST_AGE = 120;
 
-export const MINOR_NOTE =
-  'MedSync accounts are for adults. A parent or guardian can add a child from their own account, under "People I care for".';
+/** The 18-or-older note, said with the name the build shows: the phone says Tether, the web its own. */
+export function minorNote(name: string): string {
+  return `${name} accounts are for adults. A parent or guardian can add a child from their own account, under "People I care for".`;
+}
+
+export const MINOR_NOTE = minorNote("MedSync");
 
 /* ─── Date of birth ──────────────────────────────────────────────────── */
 

@@ -3,6 +3,7 @@ import type { SignupDraft, Step } from "@patient-core/getting-in-signup";
 import {
   checkDob,
   isEmail,
+  minorNote,
   NAME_MAX,
   passwordOk,
   STEP_NAMES,
@@ -10,6 +11,7 @@ import {
 } from "@patient-core/getting-in-signup";
 
 import { formatUgPhone, isUgMobile } from "@/components/tide/field";
+import { BRAND } from "@/lib/brand";
 
 export type {
   DobCheck,
@@ -23,7 +25,6 @@ export type {
 } from "@patient-core/getting-in-signup";
 export {
   ADULT_AGE,
-  MINOR_NOTE,
   NAME_MAX,
   OLDEST_AGE,
   PASSWORD_MAX_BYTES,
@@ -44,6 +45,9 @@ export {
   stepValid,
   typeDob,
 } from "@patient-core/getting-in-signup";
+
+/** The 18-or-older note, with the name the phone shows (signed by the CSO, 19 Nov 2026). */
+export const MINOR_NOTE = minorNote(BRAND);
 
 /* ─── Phone, email, password ─────────────────────────────────────────── */
 

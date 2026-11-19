@@ -380,7 +380,7 @@ describe("the consent and SMS wording is unchanged", () => {
 
   it("keeps the 18-or-older words, with the name they carry", async () => {
     expect(MINOR_NOTE).toBe(
-      'MedSync accounts are for adults. A parent or guardian can add a child from their own account, under "People I care for".',
+      'Tether accounts are for adults. A parent or guardian can add a child from their own account, under "People I care for".',
     );
     await wrap(
       <AboutStep
@@ -392,7 +392,7 @@ describe("the consent and SMS wording is unchanged", () => {
     );
     expect(
       screen.getByText(
-        'You must be 18 or older to create an account. MedSync accounts are for adults. A parent or guardian can add a child from their own account, under "People I care for".',
+        'You must be 18 or older to create an account. Tether accounts are for adults. A parent or guardian can add a child from their own account, under "People I care for".',
       ),
     ).toBeTruthy();
   });

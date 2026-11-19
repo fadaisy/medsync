@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { SPLASH_STATUS, SplashView } from "@/features/auth/welcome";
+import { SLIDES, SPLASH_STATUS, SplashView } from "@/features/auth/welcome";
 import { HONEST } from "@/features/visits/parts";
 import { ThemeProvider } from "@/theme/theme";
 
@@ -60,6 +60,14 @@ describe("the splash and the welcome", () => {
     ]);
   });
 
+  it("keeps the signed wording of the three slides", () => {
+    expect(SLIDES.map((s) => `${s.lead} ${s.rest}`)).toEqual([
+      "Book from anywhere. Pick a clinic and a day that suits you.",
+      "Your ticket, on your phone. Show it at the desk, then see where you are in your visit.",
+      "Book for your family. A parent or a child, in the same app.",
+    ]);
+  });
+
   it("while the app opens: the name, its line's words and Help, and no way in yet", async () => {
     await wrap(splash({ line: 1, status: SPLASH_STATUS[1] }));
     expect(screen.getByLabelText("Tether. Book your clinic visit from home.")).toBeTruthy();
@@ -77,21 +85,21 @@ describe("the splash and the welcome", () => {
     );
     expect(screen.getByText("Help")).toBeTruthy();
     expect(screen.getByText(HONEST)).toBeTruthy();
-    expect(screen.getByText(/^Book from home\./)).toBeTruthy();
+    expect(screen.getByText(/^Book from anywhere\./)).toBeTruthy();
     // The other two headlines wait their turn, hidden from screen readers.
-    expect(screen.queryByText(/^One code\./)).toBeNull();
+    expect(screen.queryByText(/^Your ticket, on your phone\./)).toBeNull();
     expect(
-      screen.getByLabelText("Slide 1 of 3: Book from home").props.accessibilityState,
+      screen.getByLabelText("Slide 1 of 3: Book from anywhere").props.accessibilityState,
     ).toMatchObject({ selected: true });
 
     await fireEvent.press(screen.getByLabelText("Slide 3 of 3: Book for your family"));
     expect(screen.getByText(/^Book for your family\./)).toBeTruthy();
-    expect(screen.queryByText(/^Book from home\./)).toBeNull();
+    expect(screen.queryByText(/^Book from anywhere\./)).toBeNull();
     // Tapping the picture moves on, and comes round to the first slide again.
-    await fireEvent.press(screen.getByLabelText("Next: Book from home"));
-    expect(screen.getByText(/^Book from home\./)).toBeTruthy();
-    await fireEvent.press(screen.getByLabelText("Next: One code"));
-    expect(screen.getByText(/^One code\./)).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText("Next: Book from anywhere"));
+    expect(screen.getByText(/^Book from anywhere\./)).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText("Next: Your ticket, on your phone"));
+    expect(screen.getByText(/^Your ticket, on your phone\./)).toBeTruthy();
 
     await fireEvent.press(screen.getByLabelText("Sign in"));
     await fireEvent.press(screen.getByLabelText("Get started"));
