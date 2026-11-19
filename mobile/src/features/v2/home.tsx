@@ -111,7 +111,12 @@ function TopCard(p: HomeV2Props & { care: HomeCare }) {
     <View style={{ gap: tSpace[4] }}>
       {top.kind === "trends" ? (
         trend ? (
-          <HomeTrendCard trend={trend} onLog={() => c.onLog(trend.metric)} onSeeAll={c.onSeeAll} />
+          <HomeTrendCard
+            trend={trend}
+            first={c.noReadings === true}
+            onLog={() => c.onLog(trend.metric)}
+            onSeeAll={c.onSeeAll}
+          />
         ) : null
       ) : (
         <HeroCard hero={top.hero} onAction={() => c.onHeroAction(top.hero)} />

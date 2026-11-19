@@ -6,9 +6,11 @@
  * `&visit=none|loading|failed|next|tomorrow` picks Home's visit state (today's visit by default);
  * `&place=book|visits|me` moves the nav's marker.
  *
- * `&care=none|trends|due|team|danger` draws Home's top card as Care mode would (home-top.tsx), on the fixtures
- * below; `&metric=sugar|weight` changes the trend card's measure (blood pressure by default). Left out, Home
- * is as it is with `careMode` off. This calls the pure view: it does not switch the flag on.
+ * `&care=none|trends|first|due|team|danger` draws Home's top card as Care mode would (home-top.tsx), on the
+ * fixtures below; `&metric=sugar|weight|low` changes the trend card's measure (blood pressure by default).
+ * `first` is a patient with no reading at all ("Start logging readings"); `low` is a sugar week ending on a
+ * reading the app's check calls "Too low", in the critical tone. Left out, Home is as it is with `careMode`
+ * off. This calls the pure view: it does not switch the flag on.
  */
 import type { VisitQuestion } from "@/data/visit-v2";
 import type { AppointmentRow } from "@/lib/booking";
@@ -84,10 +86,21 @@ const TRENDS: Record<string, HomeTrend> = {
     days: week([82.4, null, 82.1, null, 81.9, null, 81.6]),
     weekAgo: 82.6,
   },
+  /** A sugar week ending on a sample reading the app's own check calls "Too low". */
+  low: {
+    metric: "sugar",
+    ctx: "fasting",
+    unit: "mmol/L",
+    days: week([6.9, 6.4, null, 6.1, 5.6, null, 3.4]),
+    weekAgo: null,
+  },
 };
+/** No reading at all: every day is a gap. */
+const EMPTY_WEEK: HomeTrend = { metric: "bp", ctx: "fasting", unit: "mmHg", days: week([]), weekAgo: null };
 const QUIET: TodayState = { danger: null, teamAsks: null, dueNow: null, visitToday: null, nextItem: null, nothingUntil: null };
 const TODAYS: Record<string, TodayState> = {
   trends: QUIET,
+  first: QUIET,
   due: { ...QUIET, dueNow: { kind: "dose", key: "m@08:00", label: "Metformin", dueAt: "08:00" } },
   team: { ...QUIET, teamAsks: { id: "a1", from: "Your care team", at: "2026-11-19T06:10:00.000Z" } },
   danger: { ...QUIET, danger: { kind: "very_high_bp", at: "09:10" } },
@@ -101,7 +114,8 @@ function careFixture(care: string | undefined, metric: string | undefined): Home
   return {
     state: "ready",
     today,
-    trend: TRENDS[metric ?? "bp"] ?? TRENDS.bp ?? null,
+    trend: care === "first" ? EMPTY_WEEK : (TRENDS[metric ?? "bp"] ?? TRENDS.bp ?? null),
+    noReadings: care === "first",
     onHeroAction: () => undefined,
     onLog: () => undefined,
     onSeeAll: () => undefined,

@@ -12,6 +12,10 @@
  * No clinical number or word is written here: targets come from `targetMarks`, the change from `weekChange`,
  * the in-range check from `checkReading`, and the words from @content/patient-app and @patient-core. Out of
  * target is amber with words, never red (MR5): the one red card is the danger hero, in v2-hero.tsx.
+ *
+ * One exception, signed by the CSO on 19 Nov 2026 (sign-off pack, section 1): a reading the app's own check
+ * calls a danger and that is not above target ("Too low") has its status pill in the critical tone, with the
+ * same words. "Low" and "Above target" stay amber. The rule is `judge`'s; no threshold is written here.
  */
 import type { HomeVisit } from "@/features/v2/home";
 import type { ReadingInput, SugarContext } from "@patient-core/readings";
@@ -56,6 +60,8 @@ export type HomeCare =
       /** What the ladder reads, already in the screen's words (the team, never a name). */
       today: TodayState;
       trend: HomeTrend | null;
+      /** True once the log is read and holds no reading of any kind: the button invites the first one. */
+      noReadings?: boolean;
       onHeroAction: (hero: Hero) => void;
       onLog: (metric: TrendMetric) => void;
       onSeeAll: () => void;
@@ -88,8 +94,11 @@ export type DayStatus =
   | { kind: "none" }
   | { kind: "in" }
   | { kind: "above" }
-  /** Not above, and not in range by the app's own check (a low reading): its own word, never "In target". */
-  | { kind: "other"; word: string }
+  /**
+   * Not above, and not in range by the app's own check (a low reading): its own word, never "In target", and
+   * its own tone: `critical` when the check calls it a danger ("Too low"), `caution` otherwise ("Low").
+   */
+  | { kind: "other"; word: string; tone: "caution" | "critical" }
   /** Weight: a trend, never judged. */
   | { kind: "untargeted" };
 
@@ -116,7 +125,10 @@ export function dayStatus(
     input = { kind: "sugar", value, context: ctx };
   } else return { kind: "untargeted" };
   const level = checkReading(input).level;
-  if (level === "watch" || level === "danger") return { kind: "other", word: judge(input).word };
+  if (level === "watch" || level === "danger") {
+    const { word, tone } = judge(input);
+    return { kind: "other", word, tone: tone === "critical" ? "critical" : "caution" };
+  }
   return { kind: "in" };
 }
 
@@ -138,14 +150,18 @@ const letterOf = (dayKey: string) => DAY_LETTERS[new Date(`${dayKey}T12:00:00Z`)
 /**
  * The week's readings as Home's top card: the measure, the picked day's reading and whether it is in target
  * in words, the change over a week, and the chart. It opens on the latest reading; tapping a day reads that
- * day. One lagoon button ("Log a reading") and a quiet "See all".
+ * day. One lagoon button ("Log a reading", or "Start logging readings" while the patient has no reading at
+ * all; both open the same logging flow) and a quiet "See all".
  */
 export function HomeTrendCard({
   trend,
+  first = false,
   onLog,
   onSeeAll,
 }: {
   trend: HomeTrend;
+  /** The patient has no reading of any kind yet. */
+  first?: boolean;
   onLog: () => void;
   onSeeAll: () => void;
 }) {
@@ -217,7 +233,15 @@ export function HomeTrendCard({
         </View>
         {word ? (
           <StatusPill
-            tone={status.kind === "in" ? "stable" : status.kind === "none" ? "pending" : "caution"}
+            tone={
+              status.kind === "in"
+                ? "stable"
+                : status.kind === "none"
+                  ? "pending"
+                  : status.kind === "other"
+                    ? status.tone
+                    : "caution"
+            }
             label={word}
             style={{ minHeight: 28, paddingHorizontal: tSpace[3] }}
           />
@@ -312,7 +336,7 @@ export function HomeTrendCard({
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: tSpace[1] }}>
         <Button
-          label={W.log}
+          label={first ? W.logFirst : W.log}
           variant="accent"
           size="md"
           onPress={onLog}

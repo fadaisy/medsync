@@ -136,7 +136,7 @@ export function useHomeCare(): HomeCare {
     }, []),
   );
   const { now, care, loaded, ticks, slots, tick } = useCare(turn);
-  const { readings } = useReadings();
+  const { readings, loading: logLoading, error: logError } = useReadings();
   if (!loaded) return { state: "loading" };
   if (!care) return { state: "none" };
   const today = heroWords(
@@ -152,6 +152,8 @@ export function useHomeCare(): HomeCare {
     state: "ready",
     today,
     trend,
+    // Only once the log is read: a log still loading, or one that could not be read, is not "no readings".
+    noReadings: !logLoading && !logError && readings.length === 0,
     onHeroAction: (hero) => {
       if (hero.kind === "danger") router.push("/help");
       if (hero.kind === "team") router.push("/care/messages");

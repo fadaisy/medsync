@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Six small changes signed by the CSO on 19 Nov 2026 (phone) — 19 Nov 2026
+
+The owner, who is also the Clinical Safety Officer, signed these on 19 Nov 2026. No migration, no flag change, no new threshold or rule; `careMode` stays off and locked until Gate CG.
+
+- **The app's name is Tether** (`mobile/app.json`, `expo.name`): the name on the system launch screen and under the icon. The slug, scheme, bundle identifier and Android package are unchanged. The permission sentences in `app.json` still say "MedSync"; they were not part of the sign-off.
+- **The 18-or-older note says the app's name** (`packages/patient-core/getting-in-signup.ts` gains `minorNote(name)`; `mobile/src/features/auth/rules.ts` builds the phone's `MINOR_NOTE` from `BRAND`): "Tether accounts are for adults. …". The web keeps its own words: its `MINOR_NOTE` is `minorNote("MedSync")`, the same text as before.
+- **The consent and SMS notice text is unchanged.** It is the recorded legal notice (`consent_versions`, bound by version and hash); moving it to "Tether" needs a new notice version from the owner first.
+- **Welcome slides** (`mobile/src/features/auth/welcome.tsx`): slide 1 is "Book from anywhere. Pick a clinic and a day that suits you."; slide 2 is "Your ticket, on your phone. Show it at the desk, then see where you are in your visit." The screen-reader names of the slides follow.
+- **Home's care card, behind `careMode`** (`mobile/src/features/v2/home-top.tsx`, `care-routes.tsx`): while the patient has no reading at all (the log is read and empty), the trend card's button reads "Start logging readings" and opens the same logging as "Log a reading". New draft string `HOME_V2_COPY.phone.top.logFirst`.
+- **"Too low" alerts in red, behind `careMode`** (`home-top.tsx`): a reading the app's own check calls a danger and that is not above target (`checkReading` and `judge`: "Too low") has its status pill in the critical tone, with the same words. "Low" and "Above target" stay amber; the chart's dots, the danger card and Help are untouched. `features/v2/home-top.tsx` joins the red list in `theme/colour-laws.test.ts` (sign-off pack, section 1).
+- **Seeing it:** `/dev/visit-v2?screen=home&care=first` (no reading at all) and `&care=trends&metric=low` (a sample week ending on "Too low"). Not seen on a device in this change; held by tests.
+
 ### Added — The phone's Home shows what matters most right now, behind `careMode` — 19 Nov 2026
 
 Built from the prototype the owner approved on the design canvas ("build it"). **It ships dark:** everything here is behind `careMode`, which stays locked until Gate CG is signed; the flag, `GATE_CG_SIGNED` and the environment are untouched, and there is no way round them. With the flag off Home is the visit card exactly as before, and none of the care rows are read. No migration, no new table, Edge Function or network call, no new dependency.

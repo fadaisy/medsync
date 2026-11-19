@@ -2,16 +2,19 @@ import type { HomeV2Props, HomeVisit } from "@/features/v2/home";
 import type { HomeTrend } from "@/features/v2/home-top";
 import type { TodayState } from "@patient-core/today-hero";
 import { CARE_V2_COPY } from "@content/patient-app/care";
+import { targetBand } from "@patient-core/care-trends";
 import { targetMarks } from "@patient-core/reading-cards";
 import { heroFor } from "@patient-core/today-hero";
 import { stageOf } from "@patient-core/visit-stages";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { laneScale, trendFrame } from "@/components/tide/trend-lanes";
 import { HomeV2View } from "@/features/v2/home";
 import { dayStatus, homeTop } from "@/features/v2/home-top";
 import { ThemeProvider } from "@/theme/theme";
+import { tideLight } from "@/theme/tide";
 
 /**
  * Home's top card in Care mode (behind `careMode`, locked until Gate CG): the rule, the row that keeps the visit
@@ -79,6 +82,8 @@ const r1 = (n: number) => Math.round(n * 10) / 10;
 const SUGAR_IN = r1(SUGAR.hi - 0.4);
 const SUGAR_OVER = r1(SUGAR.hi + 0.6);
 const SUGAR_LOW = r1(SUGAR.lo - 0.8);
+/** A top number a little under the app's own low line (the bottom of its band), with the bottom number in range. */
+const BP_LOW_TOP = targetBand("bp", "fasting")!.lo - 4;
 
 const WEEK = ["13", "14", "15", "16", "17", "18", "19"].map((d) => ({
   date: `${d} Nov`,
@@ -207,6 +212,20 @@ describe("a day against its target (dayStatus)", () => {
     // The word is the app's own for that reading, not one written here.
     expect(low.kind === "other" ? low.word : "").toBeTruthy();
     expect(low.kind === "other" ? low.word : "").not.toBe(CARE_V2_COPY.readings.outOfTarget);
+  });
+
+  it('a reading the check calls a danger is "Too low" in the critical tone; "Low" stays amber', () => {
+    // The rule is the app's own (`checkReading` and `judge`): no line is drawn here.
+    expect(dayStatus("sugar", "fasting", SUGAR_LOW)).toEqual({
+      kind: "other",
+      word: "Too low",
+      tone: "critical",
+    });
+    expect(dayStatus("bp", "fasting", BP_LOW_TOP, BOTTOM - 20)).toEqual({
+      kind: "other",
+      word: "Low",
+      tone: "caution",
+    });
   });
 
   it("no reading is no reading, and weight is a trend that is never judged", () => {
@@ -399,6 +418,66 @@ describe("the trend card", () => {
     expect(screen.getByText("—")).toBeTruthy();
     expect(screen.getByLabelText("Today: No reading yet")).toBeTruthy();
     expect(screen.getByText("Log a reading")).toBeTruthy();
+    expect(screen.queryByText("Start logging readings")).toBeNull();
+  });
+
+  it('with no reading at all the button reads "Start logging readings" and opens the same logging', async () => {
+    const care = { ...ready({}, { ...BP, days: days([]), weekAgo: null }), noReadings: true };
+    await wrap(<HomeV2View {...base({ visit: FAR, care })} />);
+    expect(screen.queryByText("Log a reading")).toBeNull();
+    await fireEvent.press(screen.getByText("Start logging readings"));
+    expect(care.onLog).toHaveBeenCalledWith("bp");
+  });
+
+  it('with a reading the button stays "Log a reading"', async () => {
+    const care = { ...ready(), noReadings: false };
+    await wrap(<HomeV2View {...base({ visit: FAR, care })} />);
+    expect(screen.getByText("Log a reading")).toBeTruthy();
+    expect(screen.queryByText("Start logging readings")).toBeNull();
+  });
+
+  /** The status pill's two colours: its words' and the fill of the pill around them. */
+  const pill = (word: string) => {
+    const text = screen.getByText(word);
+    let tint: unknown;
+    for (let node = text.parent; node && tint === undefined; node = node.parent)
+      tint = StyleSheet.flatten(node.props.style)?.backgroundColor;
+    return { text: StyleSheet.flatten(text.props.style).color, tint };
+  };
+
+  it('"Too low" is in the critical tone, with its words (CSO, 19 Nov 2026)', async () => {
+    await open({
+      metric: "sugar",
+      ctx: "fasting",
+      unit: "mmol/L",
+      days: days([SUGAR_IN, null, null, null, null, null, SUGAR_LOW]),
+      weekAgo: null,
+    });
+    expect(pill("Too low")).toEqual({
+      text: tideLight.critical.text,
+      tint: tideLight.critical.tint,
+    });
+    // The day still says so in words for a screen reader.
+    expect(screen.getByLabelText(`Today: ${SUGAR_LOW} mmol/L, Too low`)).toBeTruthy();
+  });
+
+  it('"Low" and "Above target" stay amber', async () => {
+    const amber = { text: tideLight.caution.text, tint: tideLight.caution.tint };
+    await open({
+      ...BP,
+      days: days(
+        [TOP + 2, null, null, null, null, null, BP_LOW_TOP],
+        [BOTTOM - 2, null, null, null, null, null, BOTTOM - 20],
+      ),
+      weekAgo: null,
+    });
+    expect(pill("Low")).toEqual(amber);
+    await fireEvent.press(
+      screen.getByLabelText(
+        `13 Nov: Top number ${TOP + 2}, Bottom number ${BOTTOM - 2} mmHg, Above target`,
+      ),
+    );
+    expect(pill("Above target")).toEqual(amber);
   });
 
   it("sugar is one lane against its band; a low day takes the app's own word, in place of a target word", async () => {
